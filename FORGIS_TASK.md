@@ -16,7 +16,9 @@ The target repository root must be treated as read-only for generated work.
 
 All generated migration output must be written only inside the configured target_subdir:
 
-Kikaria-Android
+Kikaria-HarmonyOS
+
+If Kikaria-HarmonyOS does not exist, create it.
 
 Do not write to the Outposts repository root.
 
@@ -26,7 +28,7 @@ Do not modify this task file.
 
 Do not modify workflow files.
 
-Do not write outside Kikaria-Android.
+Do not write outside Kikaria-HarmonyOS.
 
 Do not modify the source repository.
 
@@ -40,40 +42,48 @@ You must inspect the source repository through Forgis file tools before writing 
 
 ## Goal
 
-Create the first runnable Android version of Kikaria inside:
+Create the first runnable HarmonyOS version of Kikaria inside:
 
-Kikaria-Android
+Kikaria-HarmonyOS
 
-This should be a real Android project skeleton and first-pass port, not a dry-run report.
+This should be a real HarmonyOS project skeleton and first-pass port, not a dry-run report.
 
-The goal is not to fully complete every advanced feature in one run. The goal is to produce a coherent Android project that preserves Kikaria's product direction, source structure understanding, data concepts, and core user experience enough for future iterations.
+The goal is not to fully complete every advanced feature in one run. The goal is to produce a coherent HarmonyOS project that preserves Kikaria's product direction, source structure understanding, data concepts, and core user experience enough for future iterations.
 
 ## Required target structure
 
-Create or update files only under Kikaria-Android.
+Create or update files only under Kikaria-HarmonyOS.
 
 At minimum, create:
 
-- Kikaria-Android/settings.gradle.kts
-- Kikaria-Android/build.gradle.kts
-- Kikaria-Android/app/build.gradle.kts
-- Kikaria-Android/app/src/main/AndroidManifest.xml
-- Kikaria-Android/app/src/main/java/...
-- Kikaria-Android/app/src/main/res/...
-- Kikaria-Android/README.md
-- Kikaria-Android/FORGIS_MIGRATION_REPORT.md
+- Kikaria-HarmonyOS/oh-package.json5
+- Kikaria-HarmonyOS/build-profile.json5
+- Kikaria-HarmonyOS/hvigorfile.ts
+- Kikaria-HarmonyOS/AppScope/app.json5
+- Kikaria-HarmonyOS/entry/oh-package.json5
+- Kikaria-HarmonyOS/entry/build-profile.json5
+- Kikaria-HarmonyOS/entry/hvigorfile.ts
+- Kikaria-HarmonyOS/entry/src/main/module.json5
+- Kikaria-HarmonyOS/entry/src/main/ets/entryability/EntryAbility.ets
+- Kikaria-HarmonyOS/entry/src/main/ets/pages/Index.ets
+- Kikaria-HarmonyOS/entry/src/main/ets/...
+- Kikaria-HarmonyOS/entry/src/main/resources/...
+- Kikaria-HarmonyOS/README.md
+- Kikaria-HarmonyOS/FORGIS_MIGRATION_REPORT.md
 
-Use Kotlin for Android code.
+Use ArkTS for HarmonyOS code.
 
-Prefer Jetpack Compose for UI unless the source inspection strongly suggests another Android-native approach.
+Prefer ArkUI for UI unless the source inspection strongly suggests another HarmonyOS-native approach.
 
-Use Gradle Kotlin DSL.
+Use a HarmonyOS Stage model project structure.
+
+Use Hvigor / JSON5 project configuration appropriate for a first-pass HarmonyOS project.
 
 Do not create files in the target repo root.
 
 ## Source inspection requirements
 
-Before writing Android files, inspect the Kikaria source repository.
+Before writing HarmonyOS files, inspect the Kikaria source repository.
 
 You should list and read enough source files to understand:
 
@@ -84,7 +94,7 @@ You should list and read enough source files to understand:
 - important collection or mastered-list logic;
 - typography and visual design direction;
 - Markdown or content parsing direction if present;
-- platform-specific SwiftUI pieces that need Android equivalents.
+- platform-specific SwiftUI pieces that need HarmonyOS / ArkUI equivalents.
 
 Do not dump the whole source repository into memory.
 
@@ -110,19 +120,19 @@ Do not add external business names.
 
 Do not add placeholder references to unrelated products.
 
-## Android implementation expectations
+## HarmonyOS implementation expectations
 
-Build a first-pass Android app under Kikaria-Android that includes:
+Build a first-pass HarmonyOS app under Kikaria-HarmonyOS that includes:
 
-1. A runnable Android project layout.
+1. A runnable HarmonyOS project layout.
 
-2. A main activity.
+2. A main EntryAbility.
 
-3. A Compose-based application shell.
+3. An ArkUI-based application shell.
 
 4. A home screen reflecting Kikaria's memorization product direction.
 
-5. Basic data models for knowledge items, presets, important collection, mastered items, and review state, based on the source repository inspection.
+5. Basic ArkTS data models for knowledge items, presets, important collection, mastered items, and review state, based on the source repository inspection.
 
 6. A simple local sample preset so the app can launch and display content without network access.
 
@@ -134,7 +144,7 @@ Build a first-pass Android app under Kikaria-Android that includes:
    - allow marking as mastered;
    - move through items.
 
-8. Basic local state management suitable for a first Android port.
+8. Basic local state management suitable for a first HarmonyOS port.
 
 9. A visual style that attempts to preserve Kikaria's clean, soft, study-focused feel.
 
@@ -148,7 +158,7 @@ Avoid unrelated architecture.
 
 ## Dependencies
 
-Use standard Android / Kotlin / Compose dependencies when needed.
+Use standard HarmonyOS / ArkTS / ArkUI dependencies when needed.
 
 Keep dependencies minimal.
 
@@ -162,13 +172,13 @@ Do not require network access at runtime.
 
 ## README requirements
 
-Create Kikaria-Android/README.md.
+Create Kikaria-HarmonyOS/README.md.
 
 It should explain:
 
-- this is the Android target workspace for Kikaria;
-- generated output is intentionally contained inside Kikaria-Android;
-- how to open the project in Android Studio;
+- this is the HarmonyOS target workspace for Kikaria;
+- generated output is intentionally contained inside Kikaria-HarmonyOS;
+- how to open the project in DevEco Studio;
 - what was implemented in this first pass;
 - what remains for future migration passes.
 
@@ -180,14 +190,14 @@ Do not include secrets.
 
 ## Migration report requirements
 
-Create Kikaria-Android/FORGIS_MIGRATION_REPORT.md.
+Create Kikaria-HarmonyOS/FORGIS_MIGRATION_REPORT.md.
 
 It should include:
 
 - source paths inspected;
 - target files created or updated;
 - major source concepts identified;
-- how those concepts were mapped into Android/Kotlin/Compose;
+- how those concepts were mapped into HarmonyOS / ArkTS / ArkUI;
 - known gaps;
 - recommended next migration tasks.
 
@@ -201,7 +211,9 @@ You may read the source repository.
 
 You may read the target repository.
 
-You may write only inside Kikaria-Android.
+You may write only inside Kikaria-HarmonyOS.
+
+If Kikaria-HarmonyOS does not exist, create it before writing generated migration output.
 
 You must not write to:
 
@@ -209,10 +221,10 @@ You must not write to:
 - FORGIS_CONFIG.yml;
 - FORGIS_TASK.md;
 - .github/workflows;
-- any path outside Kikaria-Android;
+- any path outside Kikaria-HarmonyOS;
 - the source repository.
 
-You must not delete files outside Kikaria-Android.
+You must not delete files outside Kikaria-HarmonyOS.
 
 You must not access secrets.
 
@@ -225,9 +237,9 @@ When finished, return final_summary.
 The final_summary should include:
 
 - source files and directories inspected;
-- Android files created or updated;
-- whether all writes stayed inside Kikaria-Android;
+- HarmonyOS files created or updated;
+- whether all writes stayed inside Kikaria-HarmonyOS;
 - whether any Forgis safety rule blocked an operation;
-- whether the first Android project skeleton was produced;
+- whether the first HarmonyOS project skeleton was produced;
 - known limitations;
 - recommended next task for a second migration pass.
