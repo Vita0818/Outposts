@@ -1,45 +1,72 @@
 # Forgis Task
 
-This is a mock-safe first task for validating the Forgis configuration and file-tool workflow.
+You are running inside Forgis.
 
-Do not perform a real platform migration.
+This is a dry-run-safe validation task for the Kikaria to Android target workspace.
 
-Your goal is to inspect the authorized source repository and create a small report inside the target repository's configured target_subdir.
+Do not perform a real migration in this run.
 
-## Rules
+## Repositories
 
-- You must use only the file tools provided by Forgis.
+The source repository is Kikaria.
+
+The target repository is Outposts.
+
+The target repository root is read-only for generated work. You must not write to the target repository root.
+
+All generated files, reports, experiments, or future migration output must be placed only inside the configured target_subdir:
+
+Kikaria-Android
+
+## Current task
+
+Inspect the authorized source repository and the target workspace structure using only Forgis file tools.
+
+Create a small source overview report inside:
+
+Kikaria-Android/SOURCE_OVERVIEW.md
+
+## Strict rules
+
+- Use only the file tools provided by Forgis.
 - You may read the source repository.
 - You may read the target repository.
-- You may only write inside the configured target_subdir.
+- You may only write inside Kikaria-Android.
+- Do not write to the Outposts repository root.
 - Do not modify FORGIS_CONFIG.yml.
 - Do not modify this task file.
-- Do not write to the target repository root.
-- Do not write workflow files.
+- Do not modify workflow files.
 - Do not access secrets.
-- Do not assume any platform stack.
-- Do not add scaffold code.
-- Do not perform Android, iOS, Web, Gradle, npm, Cargo, Rust, Python, Swift, Kotlin, or other platform-specific migration logic unless a future task explicitly requests it.
+- Do not assume direct filesystem access.
+- Do not perform a real Android migration yet.
+- Do not create Android project scaffolding yet.
+- Do not create Gradle files yet.
+- Do not rewrite source code yet.
+- Do not make platform-specific migration decisions beyond observing the source structure.
+- Do not write outside Kikaria-Android.
 
-## Required output
+## Required output file
 
-Create the following file inside target_subdir:
+Create:
 
-SOURCE_OVERVIEW.md
+Kikaria-Android/SOURCE_OVERVIEW.md
 
-The file should contain:
+The report should contain:
 
-1. The source repository name.
-2. The source ref.
-3. A short directory overview based only on files you actually read or listed.
-4. A short note confirming that no real migration was performed.
-5. A short note explaining what additional task instructions would be needed for a future real run.
+1. A short statement that the source repository is Kikaria.
+2. A short statement that the target repository is Outposts.
+3. A short statement that all future output must stay inside Kikaria-Android.
+4. A concise directory overview of the source repository based only on files and directories actually listed or read.
+5. A concise directory overview of the existing Kikaria-Android target_subdir, if it exists.
+6. A note confirming that no real migration was performed in this dry-run validation task.
+7. A note describing what additional task instructions would be needed before a future real Android migration run.
 
 ## Completion
 
-When finished, return a final summary explaining:
+When finished, return a final_summary explaining:
 
-- what you inspected;
-- what you wrote;
-- which files were changed;
-- whether any limits or safety restrictions prevented further work.
+- what source paths you inspected;
+- what target paths you inspected;
+- what file you wrote;
+- whether any operation was blocked by Forgis safety rules;
+- whether the task stayed within Kikaria-Android.
