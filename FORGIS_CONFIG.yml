@@ -1,25 +1,20 @@
 source_repo: Vita0818/Kikaria
 source_ref: main
 
-target_platform: android
-target_stack: kotlin-compose
-migration_profile: pixel-clone-app
-
 target_subdir: Kikaria-Android
 task_prompt_path: FORGIS_TASK.md
 
+agent_backend: aider
 model: deepseek/deepseek-v4-pro
-target_branch: forgis/kikaria-android-pixel-4
+
+target_branch: forgis/kikaria-android-pixel-final
 target_base_branch: main
 
 run_log_path: Kikaria-Android/FORGIS_LOG.md
 
-required_prompt_markers:
-  - Kikaria Android Migration Task
-  - Vita0818/Kikaria
-  - Vita0818/Outposts
-  - Kikaria-Android
-
 dry_run: false
-run_aider: true
+run_agent: true
 confirm_real_run: true
+
+model_env:
+  DEEPSEEK_API_KEY: DEEPSEEK_API_KEY
