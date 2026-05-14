@@ -5,16 +5,18 @@ target_subdir: Kikaria-Android
 task_prompt_path: FORGIS_TASK.md
 
 agent_backend: deepseek
-model: deepseek/deepseek-v4-pro
+model: deepseek-v4-pro
+api_base: https://api.deepseek.com
+api_format: openai-compatible
 
 target_branch: forgis/kikaria-android
 target_base_branch: main
 
 run_log_path: Kikaria-Android/FORGIS_LOG.md
 
-dry_run: true
-run_agent: false
-confirm_real_run: false
+dry_run: false
+run_agent: true
+confirm_real_run: true
 
 model_env:
   DEEPSEEK_API_KEY: DEEPSEEK_API_KEY
@@ -24,4 +26,10 @@ max_tool_result_chars: 20000
 
 validation_commands: []
 
-success_checks: []
+success_checks:
+  - path_exists: Kikaria-Android/settings.gradle.kts
+  - path_exists: Kikaria-Android/build.gradle.kts
+  - path_exists: Kikaria-Android/app/build.gradle.kts
+  - path_exists: Kikaria-Android/app/src/main/AndroidManifest.xml
+  - path_exists: Kikaria-Android/app/src/main/java
+  - path_exists: Kikaria-Android/FORGIS_MIGRATION_REPORT.md
