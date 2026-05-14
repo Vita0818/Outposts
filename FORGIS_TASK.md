@@ -8,7 +8,7 @@
 
 ---
 
-## 0. 本提示词文件位置
+## 0. 本提示词文件位置与只读规则
 
 本提示词文件名固定为：
 
@@ -18,13 +18,23 @@
 
 `Vita0818/Outposts/FORGIS_TASK.md`
 
-注意：
+本文件是迁移任务提示词，只能作为只读输入，不得被修改。
 
-`FORGIS_TASK.md` 是本次任务唯一允许放在 `Outposts` 根目录下的任务文件。
+目标仓库根目录还可以存在 Forgis 的机器配置文件：
 
-除 `FORGIS_TASK.md` 外，本次迁移生成或修改的所有 Android 项目文件，都必须放在：
+`FORGIS_CONFIG.yml`
+
+该文件同样只能作为只读输入，不得被修改。
+
+本次迁移生成或修改的所有 Android 项目文件，必须全部放在：
 
 `Vita0818/Outposts/Kikaria-Android/`
+
+长期运行日志也必须放在该目标目录内，例如：
+
+`Vita0818/Outposts/Kikaria-Android/FORGIS_LOG.md`
+
+根目录下的 `FORGIS_CONFIG.yml` 和 `FORGIS_TASK.md` 是只读配置与提示词，不属于 Android 项目源码，不得作为应用代码修改对象。
 
 ---
 
@@ -42,21 +52,21 @@
 
 重点关注但不限于：
 
-- SwiftUI 页面结构
-- Kikaria 的主界面 / 首页
-- 复习页面
-- 预设切换
-- 每日目标
-- 倒数日
-- 重点集锦
-- 已掌握清单
-- 设置页
-- 用户头像 / 资料相关 UI
-- Markdown 知识点导入、解析、展示逻辑
-- 颜色系统
-- 字体系统
-- 卡片、气泡、玻璃感组件、按钮、输入框等通用 UI
-- iPad / Mac 适配中可迁移到 Android 平板的设计逻辑
+- SwiftUI 页面结构；
+- Kikaria 的主界面 / 首页；
+- 复习页面；
+- 预设切换；
+- 每日目标；
+- 倒数日；
+- 重点集锦；
+- 已掌握清单；
+- 设置页；
+- 用户头像 / 资料相关 UI；
+- Markdown 知识点导入、解析、展示逻辑；
+- 颜色系统；
+- 字体系统；
+- 卡片、气泡、玻璃感组件、按钮、输入框等通用 UI；
+- iPad / Mac 适配中可迁移到 Android 平板的设计逻辑。
 
 ---
 
@@ -107,7 +117,7 @@
 
 重要：`Outposts` 不是 Kikaria Android 的专属仓库，它会存储多个迁移项目。
 
-本次任务生成的所有 Android 项目文件，必须全部放在：
+本次任务的目标输出目录固定为：
 
 `Kikaria-Android/`
 
@@ -117,15 +127,22 @@
 
 禁止将 Android 工程文件散落到目标仓库根目录。
 
+禁止修改 `Outposts` 中除 `Kikaria-Android/` 以外的其它项目或目录。
+
 ---
 
 ### 1.4 目标仓库根目录规则
 
-目标仓库根目录只允许存在本任务提示词文件：
+目标仓库根目录可以包含以下 Forgis 控制文件：
 
-`FORGIS_TASK.md`
+- `FORGIS_CONFIG.yml`
+- `FORGIS_TASK.md`
 
-除 `FORGIS_TASK.md` 外，不得因为本次迁移任务在 `Outposts` 根目录创建、修改、删除其它项目文件。
+这两个文件都是只读输入。
+
+不得因为本次迁移任务修改、删除、重命名、格式化、覆盖它们。
+
+除上述只读控制文件外，不得因为本次迁移任务在 `Outposts` 根目录创建、修改、删除 Android 工程文件。
 
 尤其禁止在 `Outposts` 根目录直接创建：
 
@@ -143,8 +160,9 @@
 - `local.properties`
 - `src/`
 - `AndroidManifest.xml`
+- `FORGIS_LOG.md`
 
-这些文件如果需要存在，必须放在：
+这些文件如果属于 Android 工程，必须放在：
 
 `Kikaria-Android/`
 
@@ -154,6 +172,7 @@
 - `Kikaria-Android/build.gradle.kts`
 - `Kikaria-Android/app/build.gradle.kts`
 - `Kikaria-Android/app/src/main/...`
+- `Kikaria-Android/FORGIS_LOG.md`
 
 ---
 
@@ -164,8 +183,11 @@
 你只能读取：
 
 1. 源仓库 `Vita0818/Kikaria` 的内容；
-2. 目标仓库 `Vita0818/Outposts` 的根目录，用于确认 `FORGIS_TASK.md` 和 `Kikaria-Android/` 状态；
-3. 目标仓库 `Vita0818/Outposts/Kikaria-Android/` 下的内容，如果该目录已经存在。
+2. 目标仓库 `Vita0818/Outposts` 的根目录，用于读取只读控制文件并确认目标目录状态；
+3. 目标仓库根目录下的只读控制文件，例如：
+   - `FORGIS_CONFIG.yml`
+   - `FORGIS_TASK.md`
+4. 目标仓库 `Vita0818/Outposts/Kikaria-Android/` 下的内容，如果该目录已经存在。
 
 ---
 
@@ -173,10 +195,21 @@
 
 你只能写入：
 
-1. `Vita0818/Outposts/FORGIS_TASK.md`
-2. `Vita0818/Outposts/Kikaria-Android/`
+`Vita0818/Outposts/Kikaria-Android/`
+
+长期日志文件也必须写入该目录内，例如：
+
+`Vita0818/Outposts/Kikaria-Android/FORGIS_LOG.md`
 
 除此之外，不得写入其它路径。
+
+特别注意：
+
+- 不得写入 `Vita0818/Outposts/FORGIS_CONFIG.yml`；
+- 不得写入 `Vita0818/Outposts/FORGIS_TASK.md`；
+- 不得写入 `Vita0818/Outposts/` 根目录下的其它文件；
+- 不得写入 `Vita0818/Outposts/` 中其它项目目录；
+- 不得写入源仓库 `Vita0818/Kikaria` 的任何位置。
 
 ---
 
@@ -185,9 +218,12 @@
 禁止：
 
 - 修改源仓库；
-- 修改 `Outposts` 中其它项目；
+- 修改 `Outposts` 中除 `Kikaria-Android/` 以外的任何文件或目录；
+- 修改 `FORGIS_CONFIG.yml`；
+- 修改 `FORGIS_TASK.md`；
 - 删除或重构 `Outposts` 中已有的其它项目；
 - 将 Android 项目文件放到 `Outposts` 根目录；
+- 将长期日志写到 `Outposts` 根目录；
 - 访问与本次任务无关的仓库、目录、用户文件或系统目录；
 - 进行全盘搜索；
 - 读取密钥、token、证书、Keychain、环境变量中的敏感信息；
@@ -245,10 +281,15 @@ Android 项目必须位于：
 检查内容包括：
 
 1. 当前仓库根目录下已有文件和目录；
-2. 是否已经存在 `Kikaria-Android/`；
-3. 如果 `Kikaria-Android/` 已存在，检查其中已有内容；
-4. 确认本次任务不会覆盖、删除、移动或污染 `Outposts` 中其它项目；
-5. 确认除 `FORGIS_TASK.md` 外，不会在 `Outposts` 根目录生成 Android 工程文件。
+2. 是否存在只读控制文件：
+   - `FORGIS_CONFIG.yml`
+   - `FORGIS_TASK.md`
+3. 是否已经存在 `Kikaria-Android/`；
+4. 如果 `Kikaria-Android/` 已存在，检查其中已有内容；
+5. 确认本次任务不会覆盖、删除、移动或污染 `Outposts` 中其它项目；
+6. 确认不会修改 `FORGIS_CONFIG.yml` 和 `FORGIS_TASK.md`；
+7. 确认不会在 `Outposts` 根目录生成 Android 工程文件；
+8. 确认长期日志路径位于 `Kikaria-Android/` 内。
 
 检查完成后，再继续下一步。
 
@@ -304,7 +345,11 @@ Android 项目必须位于：
 10. 哪些内容应直接迁移；
 11. 哪些内容只能作为 Android 版本预留结构。
 
-这份理解摘要可以写入最终报告，也可以在开发过程中作为内部迁移依据。
+这份理解摘要可以写入最终报告，也可以写入：
+
+`Kikaria-Android/FORGIS_LOG.md`
+
+不得写入目标仓库根目录。
 
 不得在未理解源仓库结构的情况下直接按模板生成 Android App。
 
@@ -351,7 +396,7 @@ Android 项目必须位于：
 
 `Kikaria-Android/`
 
-除 `FORGIS_TASK.md` 外，不得在 `Outposts` 根目录创建 Android 工程文件。
+除 `Kikaria-Android/` 内文件外，不得创建或修改目标仓库其它位置。
 
 ---
 
@@ -403,19 +448,19 @@ Kikaria Android 的 UI 必须尽量复刻源 iOS 项目。
 
 重点保持：
 
-- 年轻感
-- 通透感
-- 高级感
-- 淡蓝色 / 玻璃感主视觉
-- 精装书感但不过度厚重的字体气质
-- 极简布局
-- 非必要不增加元素
-- 首页气泡的轻盈感
-- 卡片式内容结构
-- 柔和阴影
-- 大圆角
-- 克制的动效
-- 清晰的主操作入口
+- 年轻感；
+- 通透感；
+- 高级感；
+- 淡蓝色 / 玻璃感主视觉；
+- 精装书感但不过度厚重的字体气质；
+- 极简布局；
+- 非必要不增加元素；
+- 首页气泡的轻盈感；
+- 卡片式内容结构；
+- 柔和阴影；
+- 大圆角；
+- 克制的动效；
+- 清晰的主操作入口。
 
 不要把它做成普通 Android Material 模板。
 
@@ -463,6 +508,8 @@ Android 版本应尽量复刻：
 10. Markdown 或结构化内容导入与展示。
 
 具体页面名称、组件名称和数据结构，必须以源仓库真实代码为准。
+
+---
 
 ### 7.1 首页
 
@@ -613,16 +660,16 @@ Android 版本应使用本地数据。
 
 应尽量复刻源项目的数据模型，例如：
 
-- Preset
-- KnowledgeItem
-- Hint
-- Content
-- Tags
-- Highlight / Favorite
-- Mastered
-- DailyGoal
-- Countdown
-- UserProfile
+- Preset；
+- KnowledgeItem；
+- Hint；
+- Content；
+- Tags；
+- Highlight / Favorite；
+- Mastered；
+- DailyGoal；
+- Countdown；
+- UserProfile。
 
 如果源项目已经有明确的数据结构，应优先翻译源结构，而不是重新发明。
 
@@ -649,11 +696,11 @@ HTML 最多只能作为未来导入转换方向，不得作为 Android 版本的
 
 Kikaria 未来的内容扩展方向是：
 
-- Markdown
-- 本地 assets
-- Kikaria-specific fenced content blocks
-- 解析为结构化 Kikaria Content Blocks
-- 使用专门 renderer 渲染
+- Markdown；
+- 本地 assets；
+- Kikaria-specific fenced content blocks；
+- 解析为结构化 Kikaria Content Blocks；
+- 使用专门 renderer 渲染。
 
 因此 Android 项目中，内容渲染部分应尽量预留扩展性。
 
@@ -704,8 +751,11 @@ Kikaria 未来的内容扩展方向是：
     - `drawable/`
     - `mipmap-*`
     - `values/`
+- `FORGIS_LOG.md`
 
 请保持目录清晰，不要把所有代码塞进一个文件。
+
+`FORGIS_LOG.md` 是 Forgis 长期运行日志，可以存在于 `Kikaria-Android/` 内，但不应替代 Android 项目文档或源码。
 
 ---
 
@@ -815,6 +865,8 @@ Kikaria 未来的内容扩展方向是：
 
 不得在源仓库中运行可能产生构建产物或文件变化的命令。
 
+不得在目标仓库根目录运行会生成 Android 工程文件或构建产物的命令。
+
 ---
 
 ## 16. 最低可接受成果
@@ -831,7 +883,10 @@ Kikaria 未来的内容扩展方向是：
 - 有设置页或用户页入口；
 - 有统一主题、颜色、字体和组件系统；
 - 没有把工程文件散落到 Outposts 根目录；
-- 没有修改源仓库任何内容。
+- 没有修改 `FORGIS_CONFIG.yml`；
+- 没有修改 `FORGIS_TASK.md`；
+- 没有修改源仓库任何内容；
+- 没有修改 `Outposts` 中除 `Kikaria-Android/` 以外的其它项目。
 
 如果时间不足，优先完成：
 
@@ -841,7 +896,8 @@ Kikaria 未来的内容扩展方向是：
 4. 复习主流程；
 5. 数据模型；
 6. 重点集锦 / 已掌握；
-7. 设置与内容管理。
+7. 设置与内容管理；
+8. `Kikaria-Android/FORGIS_LOG.md` 中的迁移摘要。
 
 ---
 
@@ -859,7 +915,10 @@ Kikaria 未来的内容扩展方向是：
 - 把 Kikaria 改成另一个风格；
 - 把所有代码写进 `MainActivity.kt`；
 - 把项目文件放在目标仓库根目录；
+- 修改 `FORGIS_CONFIG.yml`；
+- 修改 `FORGIS_TASK.md`；
 - 删除 Outposts 中其它项目；
+- 修改 Outposts 中其它项目；
 - 访问本任务无关文件；
 - 修改源仓库任何文件。
 
@@ -871,15 +930,19 @@ Kikaria 未来的内容扩展方向是：
 
 1. 读取了源仓库哪些关键文件或目录；
 2. 确认源仓库未被修改；
-3. Android 项目生成在什么路径；
-4. 创建或修改了哪些关键文件；
-5. 已实现哪些页面；
-6. 已实现哪些核心逻辑；
-7. 哪些地方是源项目的直接迁移；
-8. 哪些地方是 Android 平台必要调整；
-9. 是否运行了构建或检查；
-10. 如果没有运行，说明原因；
-11. 后续建议的下一步。
+3. 确认 `FORGIS_CONFIG.yml` 未被修改；
+4. 确认 `FORGIS_TASK.md` 未被修改；
+5. 确认目标仓库中除 `Kikaria-Android/` 外未被修改；
+6. Android 项目生成在什么路径；
+7. 创建或修改了哪些关键文件；
+8. 已实现哪些页面；
+9. 已实现哪些核心逻辑；
+10. 哪些地方是源项目的直接迁移；
+11. 哪些地方是 Android 平台必要调整；
+12. 是否写入或追加了 `Kikaria-Android/FORGIS_LOG.md`；
+13. 是否运行了构建或检查；
+14. 如果没有运行，说明原因；
+15. 后续建议的下一步。
 
 最终报告不要夸大完成度。
 
@@ -898,6 +961,9 @@ Kikaria 未来的内容扩展方向是：
 - 是否保持本地优先；
 - 是否把所有项目文件放在 `Kikaria-Android/`；
 - 是否没有污染 `Outposts` 根目录和其它项目；
-- 是否严格保持源仓库只读且未修改。
+- 是否没有修改 `FORGIS_CONFIG.yml`；
+- 是否没有修改 `FORGIS_TASK.md`；
+- 是否严格保持源仓库只读且未修改；
+- 是否把长期日志放在 `Kikaria-Android/FORGIS_LOG.md` 或配置指定的 `Kikaria-Android/` 内路径。
 
 请开始执行迁移。
