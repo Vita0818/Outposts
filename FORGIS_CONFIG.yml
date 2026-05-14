@@ -1,20 +1,27 @@
-source_repo: Vita0818/Kikaria
+source_repo: owner/source-repo
 source_ref: main
 
-target_subdir: Kikaria-Android
+target_subdir: target-output
 task_prompt_path: FORGIS_TASK.md
 
-agent_backend: aider
+agent_backend: deepseek
 model: deepseek/deepseek-v4-pro
 
-target_branch: forgis/kikaria-android-pixel-final
+target_branch: forgis/output
 target_base_branch: main
 
-run_log_path: Kikaria-Android/FORGIS_LOG.md
+run_log_path: target-output/FORGIS_LOG.md
 
-dry_run: false
-run_agent: true
-confirm_real_run: true
+dry_run: true
+run_agent: false
+confirm_real_run: false
 
 model_env:
   DEEPSEEK_API_KEY: DEEPSEEK_API_KEY
+
+max_iterations: 80
+max_tool_result_chars: 20000
+
+validation_commands: []
+
+success_checks: []
