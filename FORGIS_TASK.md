@@ -2,204 +2,161 @@
 
 You are running inside Forgis.
 
-This is a focused build-fix pass for the existing Kikaria-Android project in the Outposts target repository.
+This is a focused visual-fidelity pass for the existing Kikaria-Android project.
+
+The Android project already runs, but the current home screen looks like a generic Android skeleton instead of Kikaria.
+
+Your task is to make the Android home screen meaningfully closer to the original Kikaria iOS home screen.
 
 Do not perform a new migration.
 
-Do not redesign the app.
-
-Do not add major new features.
-
 Do not rewrite the whole project.
 
-The current Android project already exists at:
-
-Kikaria-Android
-
-The source repository is Kikaria and must remain read-only.
-
-The target repository is Outposts.
-
-## Goal
-
-Fix the existing Kikaria-Android project so that it is much more likely to sync and compile in Android Studio.
-
-Focus on build correctness, Gradle configuration, Android resources, Kotlin syntax, Compose API compatibility, package consistency, manifest correctness, and obvious compile errors.
-
-This pass should produce a practical build-fix PR.
-
-## Hard safety rule
-
-The source repository must not be modified.
-
-## Target work area
-
-All edits should be made inside:
-
-Kikaria-Android
+Do not add unrelated features.
 
 Do not modify the source repository.
 
+## Hard safety rule
+
+The source repository must remain read-only.
+
+## Target work area
+
+All edits should stay inside:
+
+Kikaria-Android
+
+Do not modify:
+
+- the source repository
+- Outposts repository root
+- FORGIS_CONFIG.yml
+- FORGIS_TASK.md
+- .github/workflows
+
 Do not access secrets.
 
-Do not print secrets.
+## High-level goal
 
-Do not add analytics, ads, network services, accounts, cloud services, or unrelated features.
+Improve the Android home screen so that it better preserves Kikaria's original identity, layout logic, visual rhythm, and premium study-product feeling.
 
-## Known current errors to fix
+This is not a generic Material Design redesign.
 
-The user attempted to open and run the generated Android project locally and encountered these errors:
+This is a source-guided visual translation from Kikaria iOS to Kikaria Android.
 
-1. AndroidX / Compose dependency check failed because the project was missing gradle.properties with AndroidX enabled.
+## Required reasoning process
 
-Fix expected:
+Before editing, inspect the relevant iOS source and current Android implementation.
 
-- Create or update Kikaria-Android/gradle.properties
-- Ensure it includes android.useAndroidX=true
-- Ensure Kotlin style and reasonable JVM args are present
+You should first understand:
 
-2. AndroidManifest.xml referenced a missing launcher icon:
+1. What the Kikaria iOS home screen is trying to communicate.
+2. What its visual hierarchy is.
+3. What design primitives it relies on.
+4. What typography and spacing logic it uses.
+5. What the current Android version gets wrong.
+6. Which changes would produce the largest fidelity improvement with the least risk.
 
-- resource mipmap/ic_launcher not found
+Do not blindly copy SwiftUI code.
 
-Fix expected:
+Translate the design intent into idiomatic Jetpack Compose.
 
-- Create valid launcher icon resources or change the manifest to reference existing valid resources
-- Include both normal and round launcher icons if the manifest references both
+## Source inspection
 
-3. Compose runtime delegate error:
+Use the Kikaria source repository as the design reference.
 
-- Type MutableState<Boolean> has no method getValue
-- This usually means Kotlin files using by remember { mutableStateOf(...) } are missing:
-  import androidx.compose.runtime.getValue
-  import androidx.compose.runtime.setValue
+Inspect relevant source files such as:
 
-Fix expected:
+- iOS app entry and main view files
+- home screen implementation
+- typography system
+- adaptive layout helpers
+- theme/color definitions
+- product specification or design notes if present
 
-- Scan all Kotlin files and add the correct Compose runtime delegate imports where needed
-- Do not add duplicate imports
+Use targeted reads.
 
-4. Material3 LinearProgressIndicator API mismatch:
+Do not dump the whole source repository.
 
-- LinearProgressIndicator(progress = { ... }) failed
-- Current dependency expects progress = Float, not lambda
+## Android inspection
 
-Fix expected:
+Inspect the current Android implementation, especially:
 
-- Replace LinearProgressIndicator(progress = { expression }) with LinearProgressIndicator(progress = expression)
-- Also check CircularProgressIndicator for the same issue
-- Apply this across the whole project, not just one file
+- home screen
+- theme/colors
+- reusable glass or card components
+- navigation shell
+- ViewModel state used by the home screen
 
-5. ViewModel property initialization errors appeared in KikariaViewModel.kt:
+Understand the current implementation before changing it.
 
-- Property must be initialized
-- Initializer is not allowed here because this property has no backing field
+## What to improve
 
-The user tried a local script that incorrectly changed custom getter properties like:
+Make the Android home screen substantially closer to the iOS Kikaria home screen.
 
-val activePreset: KnowledgePreset? = null
-    get() = ...
+You decide the exact implementation details after inspecting the source.
 
-and:
+Focus on visual fidelity and product identity, including but not limited to:
 
-var allTags: List<String> = emptyList()
-    get() = ...
+- overall composition
+- background treatment
+- title and profile/avatar area
+- primary action area
+- dashboard/progress information
+- preset/status information
+- typography
+- color palette
+- glass/translucent feeling
+- spacing and proportions
+- minimalism
 
-Fix expected:
+Do not overfit to one screenshot.
 
-- Repair any property with a custom get() so it does not have an initializer
-- Use val instead of var where appropriate for computed properties
-- Example desired shape:
-  val activePreset: KnowledgePreset?
-      get() = presets.find { it.id == activePresetId }
+Use the source project itself as the stronger reference.
 
-  val allTags: List<String>
-      get() = knowledgePoints.flatMap { it.tags }.distinct().sorted()
+## Constraints
 
-6. There may be more similar Kotlin or Compose compile errors.
+Keep the app runnable.
 
-Fix expected:
+Keep changes focused on the home screen and directly related theme/component files.
 
-- Inspect all Kotlin files under Kikaria-Android/app/src/main/java
-- Fix obvious compile-time problems systematically
-- Keep changes minimal and targeted
+Do not break review flow, navigation, data models, or existing sample presets.
 
-## Files to inspect first
+Do not add network services, analytics, accounts, ads, cloud dependencies, or unrelated libraries.
 
-Before editing, inspect:
+Do not introduce heavy dependencies.
 
-- Kikaria-Android/settings.gradle.kts
-- Kikaria-Android/build.gradle.kts
-- Kikaria-Android/app/build.gradle.kts
-- Kikaria-Android/gradle.properties if it exists
-- Kikaria-Android/app/src/main/AndroidManifest.xml
-- Kikaria-Android/app/src/main/java/com/vita0818/kikaria/viewmodel/KikariaViewModel.kt
-- Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/review/ReviewScreen.kt
-- Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/reinforcement/ReinforcementScreen.kt
-- All Kotlin files under Kikaria-Android/app/src/main/java
-- Resource files under Kikaria-Android/app/src/main/res
+Prefer Compose-native implementation.
 
-Use the Kikaria source repository only as reference if needed.
+Avoid fragile APIs that may break the current Gradle/Compose setup.
 
-## What to fix
+## Expected output
 
-Fix issues such as:
-
-- missing gradle.properties
-- AndroidX not enabled
-- missing launcher icon resources
-- invalid manifest resource references
-- missing Compose runtime imports
-- invalid Material3 progress indicator calls
-- invalid custom getter property initializers
-- uninitialized properties
-- wrong val/var usage for computed properties
-- missing imports
-- invalid package references
-- Kotlin syntax errors
-- obvious Compose API misuse
-- invalid resource references
-- inconsistent package names
-- missing namespace or SDK config
-- missing MainActivity registration
-
-Do not make broad product changes.
-
-Do not redesign UI.
-
-Do not replace the whole project.
-
-Do not delete the current project and regenerate it from scratch.
-
-## Desired result
-
-The project should be in a cleaner state for Android Studio Gradle Sync and app launch.
-
-The output does not need to be perfect or feature-complete.
-
-The priority is to fix the current build/sync/run blockers.
-
-## Report
+Modify the Android project so that the home screen is visibly more Kikaria-like.
 
 Create or update:
 
-Kikaria-Android/FORGIS_BUILD_FIX_REPORT.md
+Kikaria-Android/FORGIS_HOME_UI_REPORT.md
 
 The report should include:
 
-- files inspected
-- files changed
-- build errors fixed
-- remaining risks
-- suggested next local Android Studio steps
+- iOS source files inspected
+- Android files inspected
+- visual gaps identified
+- Android files changed
+- design decisions made
+- remaining visual gaps
+- suggested next UI pass
 
 ## Completion
 
 When finished, return final_summary with:
 
-- what was inspected
-- what was fixed
-- which files changed
-- whether all writes stayed in Kikaria-Android
+- what source files were inspected
+- what Android files were inspected
+- what visual gaps were identified
+- what changes were made
+- whether all writes stayed inside Kikaria-Android
 - whether the source repository stayed read-only
-- remaining likely build risks
+- remaining risks
+- recommended next step
