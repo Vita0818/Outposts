@@ -74,3 +74,79 @@
 5. Add `RenderEffect`-based blur for API 31+ glass surfaces
 6. Connect countdown data to ViewModel and expose via state
 7. Add tablet-adaptive layout using `WindowSizeClass`
+
+---
+
+## Pass 2 — Visual Fidelity Refinement (2026-05)
+
+### Source Files Inspected
+
+| File | Key Insights |
+|---|---|
+| `Kikaria/ContentView.swift` (lines 6500–7300) | StartReviewButton with `SoftBubble`/`DecorativeBubble`, `TimelineView(.animation)` orbit, center circle with `actionGradient` + `.ultraThinMaterial` + gradient stroke + radial overlay. `TodayOverviewHomeProgressButton` horizontal layout. `HomeDashboardGridCard` with `liquidGlassCard()` modifier, `HomeDashboardMetricColumn`, `HomeDashboardDivider`. |
+| `Kikaria/ContentView.swift` (lines 1–700) | `LiquidGlassCardModifier`: 3-layer glass look — glassSurface fill → `.ultraThinMaterial` → gradient stroke (white→white faint→glassStrokeAccent) → soft white highlight line → shadow. `LiquidGlassCircleModifier` with similar layered treatment. |
+| `Kikaria/KikariaTypography.swift` | `appTitle(size:weight:)` uses `.system(size:weight:design:.serif)` — serif design is integral to Kikaria's brand identity. Latin/English text uses serif, Chinese uses system. |
+| `Kikaria/KikariaAdaptiveLayout.swift` | Scale factors, padding, iPad support (noted but not targeted this pass). |
+
+### Android Files Inspected
+
+| File | Status |
+|---|---|
+| `ui/home/HomeScreen.kt` | Pre-refinement home screen: structurally close to iOS but missing key visual treatment |
+| `ui/components/GlassComponents.kt` | Glass card/capsule circle — missing gradient stroke overlay |
+| `ui/theme/KikariaColors.kt` | Color palette already well-aligned with iOS |
+| `viewmodel/KikariaViewModel.kt` | Data feeding — no changes needed this pass |
+
+### Visual Gaps Identified (Pass 2)
+
+1. **Serif typography missing**: iOS `appTitle` uses `.design: .serif`; Android used default sans-serif for "Kikaria" title and all Latin text. This is the strongest brand-identity gap.
+2. **Glass card gradient stroke missing**: iOS `LiquidGlassCardModifier` has a sophisticated gradient border (white → white(0.10) → cyan accent) plus a soft white highlight. Android cards had only flat `glassSurface` fill + shadow. This made cards feel flat and non-premium.
+3. **Start button center circle no stroke**: iOS center circle has a gradient border stroke matching `LiquidGlassCircleModifier`. Android circle lacked this.
+4. **Decorative bubbles no stroke**: iOS `SoftBubble` has gradient stroke + `.ultraThinMaterial` background. Android bubbles had only radial highlight + linear fill.
+5. **Shadow depth slightly off**: iOS uses `shadowOpacity: 0.12, shadowRadius: 18, shadowY: 10` for cards; Android was close but shadow opacity was inconsistent.
+6. **Number typography**: iOS value numbers use serif design (via `KikariaTypography.numericText`). Android used system sans-serif.
+7. **Spacing rhythm**: Minor vertical spacing gaps slightly wider than iOS's tighter rhythm.
+
+### Refinement Strategy
+
+**Philosophy**: Fewer, higher-impact changes. Focus on the "atmosphere" rather than adding elements.
+
+**Changes made**:
+
+1. **Serif font for Latin text** — Added `fontFamily = FontFamily.Serif` to "Kikaria" title, date text, progress numbers, and dashboard metric values. This brings the iOS serif identity to Android.
+
+2. **Glass card gradient stroke overlay** — Created `Modifier.liquidGlassStroke()` using `drawBehind` with a `Brush.linearGradient` (white → white faint → glassStrokeAccent) in a `Stroke` style. Applied to `TodayProgressCard`, `DashboardCard`, and `GlassCard` in GlassComponents. This is the single biggest visual upgrade — cards now have the premium glass border that defines Kikaria's look.
+
+3. **Start button circle stroke** — Created `Modifier.liquidGlassCircleStroke()` matching iOS `LiquidGlassCircleModifier` (white → white faint → sky accent). Applied to center action circle.
+
+4. **Decorative bubble strokes** — Applied `liquidGlassCircleStroke` to each orbiting bubble, matching iOS `SoftBubble` treatment.
+
+5. **Shadow tuning** — Tightened shadow values on cards to `shadowOpacity: 0.12, shadowRadius: 18.dp` matching iOS more closely. Corner radius on progress card aligned to 28.dp.
+
+6. **Tighter vertical spacing** — Reduced spacers between header/start-button/from 28→24.dp to match iOS's more compact rhythm.
+
+### Files Changed
+
+| File | Change Summary |
+|---|---|
+| `ui/home/HomeScreen.kt` | Added `FontFamily.Serif` to title, date, progress, and metric values. Added `liquidGlassStroke()` and `liquidGlassCircleStroke()` helper modifiers using `drawBehind` with gradient strokes. Applied strokes to TodayProgressCard, DashboardCard, start button center circle, and all four decorative bubbles. Tuned shadow opacities and corner radii. Tightened vertical spacing. |
+| `ui/components/GlassComponents.kt` | Added `glassCardStroke()` private modifier using `drawBehind`. Applied gradient stroke to `GlassCard` composable so all GlassCard usages get the liquid glass border. |
+
+### Remaining Visual Gaps (After Pass 2)
+
+1. **No native blur material** — Compose lacks `RenderEffect`-based blur (API 31+). Current semi-transparent fill approximates `.ultraThinMaterial` but doesn't blur background content.
+2. **Avatar still placeholder** — Shows "V" initial; needs proper icon or photo composable.
+3. **Countdown "Days Left" still placeholder** — Shows "-- Days Left"; needs ViewModel to expose countdown data.
+4. **Orbit animation not truly continuous** — `rememberInfiniteTransition` restarts every 150s rather than being driven by wall-clock time like iOS `TimelineView(.animation)`.
+5. **Typography system not extracted** — No `KikariaTypography` object yet; serif choices are inline.
+6. **Navigation targets not wired** — Today overview and preset selection routes are TODO placeholders.
+7. **Tablet adaptive layout** — iOS has comprehensive iPad portrait/landscape support; Android targets phone only.
+8. **Review/Mastered/Reinforcement screens** — Not yet visually refined to match iOS glass aesthetic.
+
+### Recommended Next Pass
+
+1. Extract `KikariaTypography` object with named styles for consistency
+2. Add `RenderEffect` blur for glass cards on API 31+ devices
+3. Wire countdown data from ViewModel to home screen
+4. Refine Review screen to use glass card styling consistently
+5. Build proper `ProfileAvatar` composable

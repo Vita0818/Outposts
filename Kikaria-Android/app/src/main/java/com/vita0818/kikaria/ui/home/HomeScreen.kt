@@ -29,12 +29,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -87,6 +91,7 @@ fun HomeScreen(
             ) {
                 Text(
                     text = "Kikaria",
+                    fontFamily = FontFamily.Serif,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 39.sp,
                     color = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
@@ -110,11 +115,11 @@ fun HomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             KikariaStartButton(onClick = onStartReview, isDark = isDark)
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             TodayProgressCard(
                 dateText = dateTitle,
@@ -140,6 +145,72 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
+}
+
+// ─── Liquid Glass helpers ───
+
+/**
+ * Creates the layered glass card border gradient composable.
+ * Matches iOS LiquidGlassCardModifier stroke: white → faint white → accent cyan.
+ */
+private fun glassCardStrokeColors(isDark: Boolean): List<Color> {
+    val accent = if (isDark) KikariaColors.GlassStrokeAccentDark else KikariaColors.GlassStrokeAccent
+    return listOf(
+        Color.White.copy(alpha = if (isDark) 0.36f else 0.44f),
+        Color.White.copy(alpha = if (isDark) 0.08f else 0.10f),
+        accent.copy(alpha = if (isDark) 0.22f else 0.14f)
+    )
+}
+
+private fun glassCircleStrokeColors(isDark: Boolean): List<Color> {
+    val accent = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+    return listOf(
+        Color.White.copy(alpha = if (isDark) 0.38f else 0.42f),
+        Color.White.copy(alpha = if (isDark) 0.08f else 0.09f),
+        accent.copy(alpha = if (isDark) 0.24f else 0.12f)
+    )
+}
+
+/**
+ * Draws a glass stroke overlay using Compose drawBehind.
+ * This approximates the iOS gradient border on glass cards.
+ */
+private fun Modifier.liquidGlassStroke(
+    shape: RoundedCornerShape,
+    isDark: Boolean,
+    lineWidth: Float = 1f
+): Modifier = this.drawBehind {
+    val strokeWidth = lineWidth * density
+    val colors = glassCardStrokeColors(isDark)
+    drawRoundRect(
+        brush = Brush.linearGradient(
+            colors = colors,
+            start = Offset.Zero,
+            end = Offset(size.width, size.height)
+        ),
+        cornerRadius = CornerRadius(
+            shape.topStart.toPx(size, density),
+            shape.topEnd.toPx(size, density)
+        ),
+        style = Stroke(width = strokeWidth)
+    )
+}
+
+private fun Modifier.liquidGlassCircleStroke(
+    isDark: Boolean,
+    lineWidth: Float = 1f
+): Modifier = this.drawBehind {
+    val strokeWidth = lineWidth * density
+    val colors = glassCircleStrokeColors(isDark)
+    drawCircle(
+        brush = Brush.linearGradient(
+            colors = colors,
+            start = Offset.Zero,
+            end = Offset(size.width, size.height)
+        ),
+        radius = size.minDimension / 2f - strokeWidth / 2f,
+        style = Stroke(width = strokeWidth)
+    )
 }
 
 // ─── Start Button ───
@@ -171,6 +242,7 @@ private fun KikariaStartButton(onClick: () -> Unit, isDark: Boolean) {
     val scale = 1f
 
     Box(modifier = Modifier.size(272.dp, 260.dp), contentAlignment = Alignment.Center) {
+        // Orbiting bubble ring
         Box(modifier = Modifier.size(272.dp, 260.dp).rotate(orbitAngle)) {
             DecorativeBubble(92f, if (isDark) listOf(KikariaColors.CyanDark, KikariaColors.BubbleMintDark) else listOf(KikariaColors.Cyan, KikariaColors.BubbleMint), 0.48f, breatheScale, isDark, -96f, -68f)
             DecorativeBubble(80f, if (isDark) listOf(KikariaColors.BubbleLavenderDark, KikariaColors.MistDark) else listOf(KikariaColors.BubbleLavender, KikariaColors.Mist), 0.42f, 1f / breatheScale, isDark, 102f, -56f)
@@ -178,9 +250,10 @@ private fun KikariaStartButton(onClick: () -> Unit, isDark: Boolean) {
             DecorativeBubble(74f, if (isDark) listOf(KikariaColors.SkyDark, KikariaColors.BubbleWhiteDark) else listOf(KikariaColors.Sky, KikariaColors.BubbleWhite), 0.36f, 1f / breatheScale, isDark, -106f, 78f)
         }
 
-        val shadowC = if (isDark) KikariaColors.SkyDark.copy(alpha = 0.28f) else KikariaColors.Sky.copy(alpha = 0.28f)
         val actionGrad = if (isDark) KikariaColors.ActionGradientDark else KikariaColors.ActionGradientLight
+        val shadowC = if (isDark) KikariaColors.SkyDark.copy(alpha = 0.28f) else KikariaColors.Sky.copy(alpha = 0.28f)
 
+        // Center action circle with glass treatment
         Box(
             modifier = Modifier
                 .size((190 * scale).dp)
@@ -188,17 +261,22 @@ private fun KikariaStartButton(onClick: () -> Unit, isDark: Boolean) {
                 .shadow(28.dp, CircleShape, ambientColor = shadowC, spotColor = shadowC)
                 .clip(CircleShape)
                 .background(actionGrad)
+                .liquidGlassCircleStroke(isDark, lineWidth = 1.1f)
                 .clickable { onClick() },
             contentAlignment = Alignment.Center
         ) {
+            // Radial glass highlight
             Box(
-                modifier = Modifier.fillMaxSize().clip(CircleShape).background(
-                    Brush.radialGradient(
-                        listOf(Color.White.copy(alpha = 0.30f), Color.White.copy(alpha = 0.10f), Color.White.copy(alpha = 0.02f)),
-                        center = Offset(57f, 57f),
-                        radius = 150f
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape)
+                    .background(
+                        Brush.radialGradient(
+                            listOf(Color.White.copy(alpha = 0.30f), Color.White.copy(alpha = 0.10f), Color.White.copy(alpha = 0.02f)),
+                            center = Offset(57f, 57f),
+                            radius = 150f
+                        )
                     )
-                )
             )
             Text("→", color = Color.White.copy(alpha = 0.96f), fontSize = 70.sp, fontWeight = FontWeight.Normal, textAlign = TextAlign.Center)
         }
@@ -219,15 +297,20 @@ private fun DecorativeBubble(
             .shadow(14.dp, CircleShape, ambientColor = shadowC, spotColor = shadowC)
             .clip(CircleShape)
             .background(Brush.linearGradient(colors.map { it.copy(alpha = opacity) }))
+            .liquidGlassCircleStroke(isDark, lineWidth = 1f)
     ) {
+        // Radial glass highlight matching iOS SoftBubble
         Box(
-            modifier = Modifier.fillMaxSize().clip(CircleShape).background(
-                Brush.radialGradient(
-                    listOf(Color.White.copy(alpha = 0.24f), Color.White.copy(alpha = 0.05f), Color.Transparent),
-                    center = Offset(0.25f * size, 0.25f * size),
-                    radius = size * 0.72f
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape)
+                .background(
+                    Brush.radialGradient(
+                        listOf(Color.White.copy(alpha = 0.24f), Color.White.copy(alpha = 0.05f), Color.Transparent),
+                        center = Offset(0.25f * size, 0.25f * size),
+                        radius = size * 0.72f
+                    )
                 )
-            )
         )
     }
 }
@@ -244,23 +327,46 @@ private fun TodayProgressCard(
     val masteredGreen = if (isDark) KikariaColors.MasteredDeepGreenDark else KikariaColors.MasteredDeepGreen
     val blueGray = if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray
     val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
-    val shadowC = if (isDark) KikariaColors.SkyDark.copy(alpha = 0.11f) else KikariaColors.Sky.copy(alpha = 0.11f)
+    val shadowC = if (isDark) KikariaColors.SkyDark.copy(alpha = 0.12f) else KikariaColors.Sky.copy(alpha = 0.12f)
+    val cornerRadius = 28.dp
+    val shape = RoundedCornerShape(cornerRadius)
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(17.dp, RoundedCornerShape(25.dp), ambientColor = shadowC, spotColor = shadowC)
-            .clip(RoundedCornerShape(25.dp))
-            .background(glassSurface.copy(alpha = 0.42f))
+            .shadow(18.dp, shape, ambientColor = shadowC, spotColor = shadowC)
+            .clip(shape)
+            .background(glassSurface.copy(alpha = 0.40f))
+            .liquidGlassStroke(shape, isDark)
             .clickable { onClick() }
             .padding(horizontal = 20.dp, vertical = 20.dp)
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(dateText, fontSize = 23.sp, fontWeight = FontWeight.SemiBold, color = deepText, maxLines = 1)
-                Text(daysLeftText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = softText, maxLines = 1)
+                Text(
+                    dateText,
+                    fontFamily = FontFamily.Serif,
+                    fontSize = 23.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = deepText,
+                    maxLines = 1
+                )
+                Text(
+                    daysLeftText,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = softText,
+                    maxLines = 1
+                )
             }
-            Text(progressText, fontSize = 25.sp, fontWeight = FontWeight.Bold, color = masteredGreen, maxLines = 1)
+            Text(
+                progressText,
+                fontFamily = FontFamily.Serif,
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold,
+                color = masteredGreen,
+                maxLines = 1
+            )
             Spacer(modifier = Modifier.width(8.dp))
             Text("›", fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = blueGray.copy(alpha = 0.52f))
         }
@@ -283,13 +389,16 @@ private fun DashboardCard(
     val cyan = if (isDark) KikariaColors.CyanDark else KikariaColors.Cyan
     val masteredGreen = if (isDark) KikariaColors.MasteredGreenDark else KikariaColors.MasteredGreen
     val shadowC = if (isDark) KikariaColors.SkyDark.copy(alpha = 0.12f) else KikariaColors.Sky.copy(alpha = 0.12f)
+    val cornerRadius = 28.dp
+    val shape = RoundedCornerShape(cornerRadius)
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(18.dp, RoundedCornerShape(28.dp), ambientColor = shadowC, spotColor = shadowC)
-            .clip(RoundedCornerShape(28.dp))
+            .shadow(18.dp, shape, ambientColor = shadowC, spotColor = shadowC)
+            .clip(shape)
             .background(glassSurface.copy(alpha = 0.40f))
+            .liquidGlassStroke(shape, isDark)
     ) {
         Column {
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -301,10 +410,20 @@ private fun DashboardCard(
             }
             Box(Modifier.fillMaxWidth().padding(horizontal = 18.dp).height(1.dp).background(blueGray.copy(alpha = 0.12f)))
             Row(
-                Modifier.fillMaxWidth().clickable { /* TODO: preset selection */ }.padding(horizontal = 20.dp, vertical = 16.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { /* TODO: preset selection */ }
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(presetName, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = deepText, maxLines = 1, modifier = Modifier.weight(1f, fill = false))
+                Text(
+                    presetName,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = deepText,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
                 Text(" 当前预设", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = softText, maxLines = 1)
                 Spacer(Modifier.weight(1f))
                 Text("›", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = blueGray.copy(alpha = 0.58f))
@@ -318,11 +437,24 @@ private fun DashboardMetricColumn(
     title: String, value: String, tint: Color, labelColor: Color,
     modifier: Modifier = Modifier, onClick: () -> Unit
 ) {
-    Box(modifier.clickable { onClick() }.padding(horizontal = 12.dp, vertical = 18.dp), contentAlignment = Alignment.Center) {
+    Box(
+        modifier
+            .clickable { onClick() }
+            .padding(horizontal = 12.dp, vertical = 18.dp),
+        contentAlignment = Alignment.Center
+    ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(title, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = labelColor, maxLines = 1)
             Spacer(Modifier.height(8.dp))
-            Text(value, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = tint, maxLines = 1, textAlign = TextAlign.Center)
+            Text(
+                value,
+                fontFamily = FontFamily.Serif,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = tint,
+                maxLines = 1,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
