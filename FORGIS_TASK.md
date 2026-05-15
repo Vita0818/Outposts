@@ -2,11 +2,11 @@
 
 You are running inside Forgis.
 
-This is a focused visual-fidelity pass for the existing Kikaria-Android project.
+This is a focused visual refinement pass for the existing Kikaria-Android project.
 
-The Android project already runs, but the current home screen looks like a generic Android skeleton instead of Kikaria.
+The current Android app already runs, and the latest home screen direction is broadly correct. However, it is still not close enough to the original Kikaria iOS experience.
 
-Your task is to make the Android home screen meaningfully closer to the original Kikaria iOS home screen.
+Your task is to improve the Android home screen's visual fidelity and product feeling by studying the source project and making your own design/implementation decisions.
 
 Do not perform a new migration.
 
@@ -36,127 +36,93 @@ Do not modify:
 
 Do not access secrets.
 
-## High-level goal
+## Goal
 
-Improve the Android home screen so that it better preserves Kikaria's original identity, layout logic, visual rhythm, and premium study-product feeling.
+Improve the Android home screen so it feels more like Kikaria, not like a generic Android/Compose imitation.
 
-This is not a generic Material Design redesign.
+The goal is not pixel-perfect copying.
 
-This is a source-guided visual translation from Kikaria iOS to Kikaria Android.
+The goal is source-guided visual translation: understand the iOS design intent, compare it with the current Android result, identify the most important remaining gaps, and refine the Android implementation accordingly.
 
 ## Required reasoning process
 
-Before editing, inspect the relevant iOS source and current Android implementation.
+Before editing, you must inspect both sides:
 
-You should first understand:
+1. Inspect the relevant Kikaria iOS source and design/context files.
+2. Inspect the current Kikaria-Android home screen and related styling files.
+3. Compare the two implementations.
+4. Identify the most important visual gaps.
+5. Decide your own minimal but meaningful refinement plan.
+6. Implement the refinement.
+7. Keep the app runnable.
 
-1. What the Kikaria iOS home screen is trying to communicate.
-2. What its visual hierarchy is.
-3. What design primitives it relies on.
-4. What typography and spacing logic it uses.
-5. What the current Android version gets wrong.
-6. Which changes would produce the largest fidelity improvement with the least risk.
+Do not rely only on the task text.
 
-Do not blindly copy SwiftUI code.
+Use the source repository as the primary reference.
 
-Translate the design intent into idiomatic Jetpack Compose.
+Use the current Android implementation as the starting point.
 
-## Source inspection
+## What to optimize
 
-Use the Kikaria source repository as the design reference.
+Use your own judgment after source inspection.
 
-Inspect relevant source files such as:
+Focus on the home screen's overall visual fidelity, including composition, hierarchy, rhythm, typography, color, softness, atmosphere, and product identity.
 
-- iOS app entry and main view files
-- home screen implementation
-- typography system
-- adaptive layout helpers
-- theme/color definitions
-- product specification or design notes if present
+Do not make broad feature changes.
 
-Use targeted reads.
+Do not change review flow, data model, Markdown parsing, persistence, or other non-home areas unless required to keep the app compiling.
 
-Do not dump the whole source repository.
+## Important constraint
 
-## Android inspection
+Do not simply add more UI elements.
 
-Inspect the current Android implementation, especially:
+Do not overcomplicate the screen.
 
-- home screen
-- theme/colors
-- reusable glass or card components
-- navigation shell
-- ViewModel state used by the home screen
+Kikaria's visual direction should remain calm, minimal, soft, premium, and study-focused.
 
-Understand the current implementation before changing it.
+Prefer fewer, higher-impact changes over many scattered tweaks.
 
-## What to improve
+## Implementation freedom
 
-Make the Android home screen substantially closer to the iOS Kikaria home screen.
+You may choose which Android files to edit.
 
-You decide the exact implementation details after inspecting the source.
+You may adjust theme, reusable components, and home screen implementation if needed.
 
-Focus on visual fidelity and product identity, including but not limited to:
+You may create small helper composables if they clearly improve the implementation.
 
-- overall composition
-- background treatment
-- title and profile/avatar area
-- primary action area
-- dashboard/progress information
-- preset/status information
-- typography
-- color palette
-- glass/translucent feeling
-- spacing and proportions
-- minimalism
-
-Do not overfit to one screenshot.
-
-Use the source project itself as the stronger reference.
-
-## Constraints
-
-Keep the app runnable.
-
-Keep changes focused on the home screen and directly related theme/component files.
-
-Do not break review flow, navigation, data models, or existing sample presets.
-
-Do not add network services, analytics, accounts, ads, cloud dependencies, or unrelated libraries.
+You may use Compose-native drawing and layout techniques.
 
 Do not introduce heavy dependencies.
 
-Prefer Compose-native implementation.
+Do not make fragile Gradle or dependency changes unless absolutely necessary.
 
-Avoid fragile APIs that may break the current Gradle/Compose setup.
-
-## Expected output
-
-Modify the Android project so that the home screen is visibly more Kikaria-like.
+## Report
 
 Create or update:
 
 Kikaria-Android/FORGIS_HOME_UI_REPORT.md
 
+Add a new section for this pass.
+
 The report should include:
 
-- iOS source files inspected
-- Android files inspected
-- visual gaps identified
-- Android files changed
-- design decisions made
-- remaining visual gaps
-- suggested next UI pass
+- what source files you inspected;
+- what Android files you inspected;
+- the visual gaps you identified;
+- the refinement strategy you chose;
+- files changed;
+- remaining gaps;
+- recommended next pass.
 
 ## Completion
 
 When finished, return final_summary with:
 
-- what source files were inspected
-- what Android files were inspected
-- what visual gaps were identified
-- what changes were made
-- whether all writes stayed inside Kikaria-Android
-- whether the source repository stayed read-only
-- remaining risks
-- recommended next step
+- source files inspected;
+- Android files inspected;
+- main visual gaps identified;
+- changes made;
+- whether all writes stayed inside Kikaria-Android;
+- whether the source repository stayed read-only;
+- remaining risks;
+- recommended next step.
