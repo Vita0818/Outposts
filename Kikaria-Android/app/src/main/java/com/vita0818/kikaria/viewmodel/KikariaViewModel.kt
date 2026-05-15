@@ -40,7 +40,7 @@ class KikariaViewModel : ViewModel() {
 
     // --- Tag Selection ---
     var selectedTags = mutableStateListOf<String>()
-    var allTags: List<String>
+    val allTags: List<String>
         get() = knowledgePoints.flatMap { it.tags }.distinct().sorted()
 
     // --- Review State ---
