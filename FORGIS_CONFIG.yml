@@ -33,6 +33,8 @@ success_checks: []
 
 staged_translation:
   min_total_iterations: 180
+  min_processed_units: 4
+  max_units_per_run: 10
 
   phases:
     overview:
@@ -47,6 +49,12 @@ staged_translation:
       min_iterations: 30
       max_iterations: 90
 
+  enforce_micro_phases: true
+  require_source_read: true
+  require_compare_report: true
+  require_progress_update: true
+  require_target_effect_or_deferred_reason: true
+
   per_file_micro_phases:
     enabled: true
     require_feed: true
@@ -54,9 +62,15 @@ staged_translation:
     require_compare_report: true
     require_revision: true
 
+  low_impact_warning:
+    enabled: true
+    min_code_changed_paths: 1
+    ignore_report_only_changes: true
+
   folder_batch_review:
     enabled: true
     max_bundle_chars: 80000
+    require_after_folder_complete: true
 
   source_inventory:
     include_globs:
@@ -72,6 +86,13 @@ staged_translation:
       - "**/*.xcworkspace/**"
       - "**/*.xcodeproj/project.xcworkspace/**"
       - "**/*.xcodeproj/xcuserdata/**"
+      - "**/*.png"
+      - "**/*.jpg"
+      - "**/*.jpeg"
+      - "**/*.gif"
+      - "**/*.pdf"
+      - "**/*.zip"
+      - "**/*.lock"
 
   progress_files:
     plan: FORGIS_TRANSLATION_PLAN.md
