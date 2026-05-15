@@ -329,3 +329,59 @@ All changes are verified. Let me provide the final summary.\n\n---\n\n## final_s
 ### Warnings
 
 - None.
+
+
+## Forgis Run - 2026-05-15T12:19:42Z
+
+| Field | Value |
+|---|---|
+| Run id | `25915575592` |
+| Run time | `2026-05-15T12:19:42Z` |
+| Run URL | `https://github.com/Vita0818/Forgis/actions/runs/25915575592` |
+| Target repo | `Vita0818/Outposts` |
+| Source repo | `Vita0818/Kikaria` |
+| Source ref | `main` |
+| Target base branch | `main` |
+| Target branch | `forgis/kikaria-android-staged-translation` |
+| Target subdir | `Kikaria-Android` |
+| Task file path | `FORGIS_TASK.md` |
+| Config path | `FORGIS_CONFIG.yml` |
+| Agent backend | `deepseek` |
+| Model | `deepseek-v4-pro` |
+| dry_run | `false` |
+| run_agent config value | `true` |
+| Effective run_agent | `true` |
+| confirm_real_run | `true` |
+| DeepSeek executed | `true` |
+| DeepSeek status | `completed` |
+| Tool call count | `368` |
+| Read tool count | `198` |
+| Write tool count | `169` |
+| Guardrail result | `See workflow logs.` |
+| validation_commands | `0 configured` |
+| success_checks | `0 configured` |
+| Run log path | `Kikaria-Android/FORGIS_LOG.md` |
+| Validation result | `See workflow logs.` |
+
+### Changed Paths
+
+- `Kikaria-Android/.gitignore`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/data/PresetStudyState.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/theme/KikariaTypography.kt`
+
+### Read-Only Inputs
+
+- Source repository checkout
+- Target repository outside `Kikaria-Android/`
+- Config file: `FORGIS_CONFIG.yml`
+- Task file: `FORGIS_TASK.md`
+
+### Final Summary
+
+## final_summary\n\n### Source Files Inspected\n\nAll 13 iOS source files (~11,500 lines Swift/SwiftUI), 5 preset Markdown files (~37,000 lines), and 6 root-level documentation/config files were read and analyzed. Key source files included `ContentView.swift` (~10,024 lines — monolithic core with theme, glass modifiers, routing, all screens, state management), `KnowledgePoint.swift` (models + parser + presets), `StudyTracking.swift` (activity records + widget), `KikariaTypography.swift` (mixed Chinese/serif font system), `KikariaAdaptiveLayout.swift` (tablet layout), and the LaTeX/math subsystem.\n\n### Android Files Inspected\n\nAll 18 existing Kotlin source files (across 9 packages), 7 resource files, 5 Gradle/build configuration files, the AndroidManifest, and 6 existing Forgis reports were inspected.\n\n### Source-Target Map Status\n\nThe `FORGIS_SOURCE_TARGET_MAP.md` maps 49 source units to Android target files. Status distribution:\n- **Translated**: 8 units (`.gitignore`, `KikariaColors`, `KikariaTheme`, `GlassComponents`, `KikariaTypography`, `KnowledgePoint` model, `MarkdownParser`, 2 presets)\n- **Partially translated**: 7 units (`ContentView.swift` state/persistence, `KikariaApp.swift`, `KnowledgePoint.swift` presets, `StudyTracking.swift`, Presets, ReviewScreen, other screens)\n- **Deferred**: 34 units (macOS files, Widget, LaTeX/math, adaptive layout, Xcode configs, asset catalogs, documentation)\n\n### Units Processed in This Run\n\n- **49 source units** individually processed through the 4-step translation loop\n- **49 comparison reports** written to `FORGIS_COMPARE_REPORTS/`\n- **3 folder-level reviews** completed (Kikaria/, KikariaMac/, Presets/)\n\n### Android Files Changed\n\n| File | Action |\n|------|--------|\n| `.gitignore` | Created — Android/Gradle/Kotlin ignore patterns |\n| `ui/theme/KikariaTypography.kt` | Created (182 lines) — named font styles + mixed Chinese/serif AnnotatedString rendering |\n| `data/PresetStudyState.kt` | Created (54 lines) — per-preset state data class with DailyReviewRecord |\n| `res/raw/` | Created (empty directory, for future preset file loading) |\n| `FORGIS_TRANSLATION_PLAN.md` | Created |\n| `FORGIS_SOURCE_TARGET_MAP.md` | Created + updated throughout |\n| `FORGIS_TRANSLATION_PROGRESS.md` | Created + updated throughout |\n| `FORGIS_COMPARE_REPORTS/` | Created + 49 reports |\n\n### Structural Improvements\n\n- **Type system**: Created centralized `KikariaTypography` with named styles matching iOS brand identity (serif Latin + system CJK mixing via `AnnotatedString`)\n- **State model**: Created `PresetStudyState` data class preparing for multi-preset independence and JSON persistence\n- **Infrastructure**: Added `.gitignore`, `res/raw/` directory for runtime preset loading\n- **Documentation**: Comprehensive plan, map, progress, and 49 per-file comparison reports\n\n### State-Semantic Improvements\n\n- `PresetStudyState` faithfully models iOS per-preset state: knowledge points, selected tags, daily review records, activity records, daily goal (clamped 1-100), countdown dates, notification settings, danger percent (clamped 1-100)\n- `DailyReviewRecord` captures per-knowledge-point daily review counts\n\n### UI and Product-Identity Improvements\n\n- `KikariaTypography` provides the serif identity for Latin text and system font for CJK — the strongest brand-identity element previously missing\n- Named styles (appTitle, chineseTitle, chineseHeadline, chineseBody, chineseButton, chineseCaption, tag, number) ready for screen migration\n- Mixed `AnnotatedString` rendering with CJK detection matching iOS Unicode ranges exactly\n\n### Build or Run Stability\n\n- **No build was run** — `validation_commands: 0 configured`\n- Static review confirms all new files have correct package names, valid Compose API imports, and consistent cross-file references\n- New files are additive — no existing code was modified, so existing screens continue to work\n- All 20 Kotlin source files verified 
+
+[Forgis log note: final_summary truncated after 4000 characters.]
+
+### Warnings
+
+- None.
