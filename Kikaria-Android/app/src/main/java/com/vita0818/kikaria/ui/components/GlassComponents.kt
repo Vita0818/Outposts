@@ -14,13 +14,44 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.vita0818.kikaria.ui.theme.KikariaColors
+
+/**
+ * Draws a glass card gradient stroke overlay matching iOS LiquidGlassCardModifier.
+ */
+private fun Modifier.glassCardStroke(
+    shape: RoundedCornerShape,
+    isDark: Boolean,
+    lineWidth: Float = 1f
+): Modifier = this.drawBehind {
+    val strokeWidth = lineWidth * density
+    val accent = if (isDark) KikariaColors.GlassStrokeAccentDark else KikariaColors.GlassStrokeAccent
+    drawRoundRect(
+        brush = Brush.linearGradient(
+            colors = listOf(
+                Color.White.copy(alpha = if (isDark) 0.36f else 0.44f),
+                Color.White.copy(alpha = if (isDark) 0.08f else 0.10f),
+                accent.copy(alpha = if (isDark) 0.22f else 0.14f)
+            ),
+            start = Offset.Zero,
+            end = Offset(size.width, size.height)
+        ),
+        cornerRadius = CornerRadius(
+            shape.topStart.toPx(size, density),
+            shape.topEnd.toPx(size, density)
+        ),
+        style = Stroke(width = strokeWidth)
+    )
+}
 
 /**
  * Liquid-glass-style card modifier translated from the
@@ -40,22 +71,19 @@ fun GlassCard(
     val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
     val shadowColor = if (isDark) KikariaColors.SkyDark.copy(alpha = 0.12f) else KikariaColors.Sky.copy(alpha = 0.12f)
 
-    Surface(
+    Box(
         modifier = modifier
             .shadow(
                 elevation = 18.dp,
                 shape = shape,
                 ambientColor = shadowColor,
                 spotColor = shadowColor
-            ),
-        shape = shape,
-        color = glassSurface.copy(alpha = 0.48f),
-        tonalElevation = 1.dp,
-        border = null
+            )
+            .clip(shape)
+            .background(glassSurface.copy(alpha = 0.48f))
+            .glassCardStroke(shape, isDark)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            content()
-        }
+        content()
     }
 }
 

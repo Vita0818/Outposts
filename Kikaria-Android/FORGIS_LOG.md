@@ -219,3 +219,59 @@ All changes are complete and verified. Here is the final summary:\n\n## final_su
 ### Warnings
 
 - None.
+
+
+## Forgis Run - 2026-05-15T06:19:53Z
+
+| Field | Value |
+|---|---|
+| Run id | `25903229253` |
+| Run time | `2026-05-15T06:19:53Z` |
+| Run URL | `https://github.com/Vita0818/Forgis/actions/runs/25903229253` |
+| Target repo | `Vita0818/Outposts` |
+| Source repo | `Vita0818/Kikaria` |
+| Source ref | `main` |
+| Target base branch | `main` |
+| Target branch | `forgis/kikaria-android-home-visual-refine` |
+| Target subdir | `Kikaria-Android` |
+| Task file path | `FORGIS_TASK.md` |
+| Config path | `FORGIS_CONFIG.yml` |
+| Agent backend | `deepseek` |
+| Model | `deepseek-v4-pro` |
+| dry_run | `false` |
+| run_agent config value | `true` |
+| Effective run_agent | `true` |
+| confirm_real_run | `true` |
+| DeepSeek executed | `true` |
+| DeepSeek status | `completed` |
+| Tool call count | `45` |
+| Read tool count | `41` |
+| Write tool count | `4` |
+| Guardrail result | `See workflow logs.` |
+| validation_commands | `0 configured` |
+| success_checks | `0 configured` |
+| Run log path | `Kikaria-Android/FORGIS_LOG.md` |
+| Validation result | `See workflow logs.` |
+
+### Changed Paths
+
+- `Kikaria-Android/FORGIS_HOME_UI_REPORT.md`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/components/GlassComponents.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/home/HomeScreen.kt`
+
+### Read-Only Inputs
+
+- Source repository checkout
+- Target repository outside `Kikaria-Android/`
+- Config file: `FORGIS_CONFIG.yml`
+- Task file: `FORGIS_TASK.md`
+
+### Final Summary
+
+All changes are confined to `Kikaria-Android`. Let me provide the final summary.\n\n---\n\n## final_summary\n\n### Source Files Inspected\n\n| File | Purpose |\n|---|---|\n| `Kikaria/ContentView.swift` (lines 1–700, 2500–2800, 3500–3800, 5500–5800, 6500–7300) | LiquidGlassCardModifier/CircleModifier, StartReviewButton with SoftBubble/DecorativeBubble + orbit animation, TodayOverviewHomeProgressButton, HomeDashboardGridCard, HomeDashboardMetricColumn, KikariaTheme color/gradient definitions |\n| `Kikaria/KikariaTypography.swift` | `appTitle` uses `.design: .serif`; `numericText` / `mixedText` with serif for Latin chars |\n| `Kikaria/KikariaAdaptiveLayout.swift` | Layout system: horizontal padding, scale factors, tablet support (noted but not targeted) |\n| `Kikaria/KikariaApp.swift`, `KnowledgePoint.swift`, `StudyTracking.swift`, `KikariaMathText.swift`, `KikariaLatexParser.swift`, `KikariaMathFormulaView.swift` | Read for context |\n| `SPEC.md`, `CODEX_CONTEXT.md` | Overall product context and constraints |\n\n### Android Files Inspected\n\n| File | Purpose |\n|---|---|\n| `ui/home/HomeScreen.kt` | Pre-refinement home screen — structurally close to iOS but missing key visual treatments |\n| `ui/components/GlassComponents.kt` | GlassCard/GlassCapsule/GlassCircle/InfoCard — missing gradient stroke |\n| `ui/theme/KikariaColors.kt` | Color palette (well-aligned, no changes needed) |\n| `ui/theme/KikariaTheme.kt` | Material3 theme wrapping |\n| `viewmodel/KikariaViewModel.kt` | Data feeding (no changes needed) |\n| `MainActivity.kt` | App entry |\n\n### Main Visual Gaps Identified\n\n1. **Serif typography missing** — iOS `appTitle` uses `.design: .serif`; Android used default sans-serif for "Kikaria" title and all Latin/numeric text. This is the strongest brand-identity gap.\n2. **Glass card gradient stroke missing** — iOS `LiquidGlassCardModifier` has a sophisticated 3-layer gradient border (white → white faint → cyan accent). Android cards had only flat `glassSurface` fill + shadow — felt non-premium.\n3. **Start button center circle no gradient stroke** — iOS circle has `LiquidGlassCircleModifier` stroke; Android circle lacked it.\n4. **Decorative bubbles no gradient stroke** — iOS `SoftBubble` has gradient stroke + `.ultraThinMaterial`; Android bubbles were simpler.\n5. **Shadow depth and corner radius slightly off** from iOS values.\n6. **Vertical spacing slightly wider** than iOS's tighter rhythm.\n\n### Changes Made\n\n1. **`ui/home/HomeScreen.kt`** — Added `FontFamily.Serif` to "Kikaria" title, date text, progress numbers, and dashboard metric values. Created `Modifier.liquidGlassStroke()` and `Modifier.liquidGlassCircleStroke()` using `drawBehind` with `Brush.linearGradient` strokes matching iOS gradient border pattern (white→faint→accent). Applied strokes to TodayProgressCard, DashboardCard, start button center circle, and all 4 decorative bubbles. Tuned shadow opacities to `0.12f` and radii to `18.dp` matching iOS, corner radius aligned to `28.dp`. Tightened spacers from 28→24.dp.\n\n2. **`ui/components/GlassComponents.kt`** — Added `glassCardStroke()` private modifier using `drawBehind` with gradient stroke. Applied to `GlassCard` composable so all existing `GlassCard` usages gain the liquid glass border.\n\n3. **`FORGIS_HOME_UI_REPORT.md`** — Appended Pass 2 section documenting the refinement: source inspection, gaps, strategy, files changed, remaining gaps, and recommended next steps.\n\n### Constraint Compliance\n\n- ✅ All writes stayed inside `Kikaria-Android`\n- ✅ Source repository remained read-only\n- ✅ No new dependencies added\n- ✅ No feature changes — only visual refinement of existing home screen\n- ✅ App structure preserved — only `HomeScreen.kt` and `GlassComponents.kt` modified\n\n### Remaining Risks\n\n1. **`CornerSize.toPx(Size, Density)`** — the `CornerRadius` construction uses `shape.topStart.toPx(size, density)`. This is a standard Compose API and should compile correctly.\n2. **No build verification*
+
+[Forgis log note: final_summary truncated after 4000 characters.]
+
+### Warnings
+
+- None.
