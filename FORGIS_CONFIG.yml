@@ -9,7 +9,7 @@ model: deepseek-v4-pro
 api_base: https://api.deepseek.com
 api_format: openai-compatible
 
-target_branch: forgis/kikaria-android-structured-translation
+target_branch: forgis/kikaria-android-staged-translation
 target_base_branch: main
 
 run_log_path: Kikaria-Android/FORGIS_LOG.md
@@ -21,10 +21,60 @@ confirm_real_run: true
 model_env:
   DEEPSEEK_API_KEY: DEEPSEEK_API_KEY
 
+execution_mode: staged_translation
+
 max_iterations: 360
 max_tool_result_chars: 40000
+
+strict_mode: false
 
 validation_commands: []
 success_checks: []
 
-strict_mode: false
+staged_translation:
+  min_total_iterations: 180
+
+  phases:
+    overview:
+      min_iterations: 30
+      max_iterations: 90
+
+    per_file:
+      min_iterations: 100
+      max_iterations: 240
+
+    stabilization:
+      min_iterations: 30
+      max_iterations: 90
+
+  per_file_micro_phases:
+    enabled: true
+    require_feed: true
+    require_write: true
+    require_compare_report: true
+    require_revision: true
+
+  folder_batch_review:
+    enabled: true
+    max_bundle_chars: 80000
+
+  source_inventory:
+    include_globs:
+      - "**/*"
+    exclude_globs:
+      - ".git/**"
+      - "**/.DS_Store"
+      - "**/build/**"
+      - "**/.gradle/**"
+      - "**/DerivedData/**"
+      - "**/node_modules/**"
+      - "**/*.xcuserstate"
+      - "**/*.xcworkspace/**"
+      - "**/*.xcodeproj/project.xcworkspace/**"
+      - "**/*.xcodeproj/xcuserdata/**"
+
+  progress_files:
+    plan: FORGIS_TRANSLATION_PLAN.md
+    source_target_map: FORGIS_SOURCE_TARGET_MAP.md
+    progress: FORGIS_TRANSLATION_PROGRESS.md
+    compare_report_dir: FORGIS_COMPARE_REPORTS
