@@ -1,5 +1,7 @@
 package com.vita0818.kikaria.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -22,34 +26,30 @@ import com.vita0818.kikaria.ui.theme.KikariaColors
  * Liquid-glass-style card modifier translated from the
  * LiquidGlassCardModifier / liquidGlassCard View extension in ContentView.swift.
  *
- * Provides a soft glass-morphism surface with subtle border gradient
- * and colored shadow, preserving Kikaria's clean study-focused aesthetic.
+ * Provides a soft glass-morphism surface with subtle shadow,
+ * preserving Kikaria's clean study-focused aesthetic.
  */
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 28.dp,
-    shadowElevation: Dp = 18.dp,
-    shadowColor: Color = KikariaColors.Shadow.copy(alpha = 0.12f),
-    borderColors: List<Color> = listOf(
-        Color.White.copy(alpha = 0.42f),
-        Color.White.copy(alpha = 0.10f),
-        KikariaColors.GlassStrokeAccent.copy(alpha = 0.13f)
-    ),
     content: @Composable () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
     val shape = RoundedCornerShape(cornerRadius)
+    val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
+    val shadowColor = if (isDark) KikariaColors.SkyDark.copy(alpha = 0.12f) else KikariaColors.Sky.copy(alpha = 0.12f)
 
     Surface(
         modifier = modifier
             .shadow(
-                elevation = shadowElevation,
+                elevation = 18.dp,
                 shape = shape,
                 ambientColor = shadowColor,
                 spotColor = shadowColor
             ),
         shape = shape,
-        color = KikariaColors.GlassSurface.copy(alpha = 0.48f),
+        color = glassSurface.copy(alpha = 0.48f),
         tonalElevation = 1.dp,
         border = null
     ) {
@@ -62,9 +62,12 @@ fun GlassCard(
 @Composable
 fun GlassCapsule(
     modifier: Modifier = Modifier,
-    shadowColor: Color = KikariaColors.Shadow.copy(alpha = 0.10f),
     content: @Composable () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
+    val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
+    val shadowColor = if (isDark) KikariaColors.SkyDark.copy(alpha = 0.10f) else KikariaColors.Sky.copy(alpha = 0.10f)
+
     Surface(
         modifier = modifier
             .shadow(
@@ -74,7 +77,7 @@ fun GlassCapsule(
                 spotColor = shadowColor
             ),
         shape = CircleShape,
-        color = KikariaColors.GlassSurface.copy(alpha = 0.48f),
+        color = glassSurface.copy(alpha = 0.48f),
         tonalElevation = 1.dp
     ) {
         content()
@@ -84,9 +87,12 @@ fun GlassCapsule(
 @Composable
 fun GlassCircle(
     modifier: Modifier = Modifier,
-    shadowColor: Color = KikariaColors.Shadow.copy(alpha = 0.14f),
     content: @Composable () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
+    val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
+    val shadowColor = if (isDark) KikariaColors.SkyDark.copy(alpha = 0.14f) else KikariaColors.Sky.copy(alpha = 0.14f)
+
     Surface(
         modifier = modifier
             .shadow(
@@ -96,7 +102,7 @@ fun GlassCircle(
                 spotColor = shadowColor
             ),
         shape = CircleShape,
-        color = KikariaColors.GlassSurface.copy(alpha = 0.44f),
+        color = glassSurface.copy(alpha = 0.44f),
         tonalElevation = 1.dp
     ) {
         content()
@@ -113,10 +119,15 @@ fun InfoCard(
     label: String,
     text: String
 ) {
+    val isDark = isSystemInDarkTheme()
+    val mist = if (isDark) KikariaColors.MistDark else KikariaColors.Mist
+    val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
+    val tertiaryText = if (isDark) KikariaColors.TertiaryTextDark else KikariaColors.TertiaryText
+
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(20.dp),
-        color = KikariaColors.Mist.copy(alpha = 0.7f),
+        color = mist.copy(alpha = 0.7f),
         tonalElevation = 1.dp
     ) {
         Box(modifier = Modifier.padding(20.dp)) {
@@ -124,12 +135,12 @@ fun InfoCard(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.labelMedium,
-                    color = KikariaColors.TertiaryText
+                    color = tertiaryText
                 )
                 Text(
                     text = text,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = KikariaColors.DeepText,
+                    color = deepText,
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }

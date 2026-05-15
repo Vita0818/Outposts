@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import com.vita0818.kikaria.ui.navigation.KikariaNavGraph
 import com.vita0818.kikaria.ui.theme.KikariaTheme
 
@@ -27,7 +28,10 @@ fun KikariaApp() {
     KikariaTheme(
         darkTheme = isSystemInDarkTheme()
     ) {
-        Surface(modifier = Modifier.fillMaxSize()) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = Color.Transparent
+        ) {
             KikariaNavGraph()
         }
     }
