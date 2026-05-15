@@ -2,244 +2,204 @@
 
 You are running inside Forgis.
 
-This is a real first-pass migration task from the Kikaria source repository into the Outposts target repository.
+This is a focused build-fix pass for the existing Kikaria-Android project in the Outposts target repository.
 
-The source repository is:
+Do not perform a new migration.
 
-Vita0818/Kikaria
+Do not redesign the app.
 
-The target repository is:
+Do not add major new features.
 
-Vita0818/Outposts
+Do not rewrite the whole project.
 
-The target repository root must be treated as read-only for generated work.
+The current Android project already exists at:
 
-All generated migration output must be written only inside the configured target_subdir:
+Kikaria-Android
 
-Kikaria-HarmonyOS
+The source repository is Kikaria and must remain read-only.
 
-If Kikaria-HarmonyOS does not exist, create it.
+The target repository is Outposts.
 
-Do not write to the Outposts repository root.
+## Goal
 
-Do not modify FORGIS_CONFIG.yml.
+Fix the existing Kikaria-Android project so that it is much more likely to sync and compile in Android Studio.
 
-Do not modify this task file.
+Focus on build correctness, Gradle configuration, Android resources, Kotlin syntax, Compose API compatibility, package consistency, manifest correctness, and obvious compile errors.
 
-Do not modify workflow files.
+This pass should produce a practical build-fix PR.
 
-Do not write outside Kikaria-HarmonyOS.
+## Hard safety rule
+
+The source repository must not be modified.
+
+## Target work area
+
+All edits should be made inside:
+
+Kikaria-Android
 
 Do not modify the source repository.
 
 Do not access secrets.
 
-Use only the file tools provided by Forgis.
+Do not print secrets.
 
-You do not have direct filesystem access.
+Do not add analytics, ads, network services, accounts, cloud services, or unrelated features.
 
-You must inspect the source repository through Forgis file tools before writing target files.
+## Known current errors to fix
 
-## Goal
+The user attempted to open and run the generated Android project locally and encountered these errors:
 
-Create the first runnable HarmonyOS version of Kikaria inside:
+1. AndroidX / Compose dependency check failed because the project was missing gradle.properties with AndroidX enabled.
 
-Kikaria-HarmonyOS
+Fix expected:
 
-This should be a real HarmonyOS project skeleton and first-pass port, not a dry-run report.
+- Create or update Kikaria-Android/gradle.properties
+- Ensure it includes android.useAndroidX=true
+- Ensure Kotlin style and reasonable JVM args are present
 
-The goal is not to fully complete every advanced feature in one run. The goal is to produce a coherent HarmonyOS project that preserves Kikaria's product direction, source structure understanding, data concepts, and core user experience enough for future iterations.
+2. AndroidManifest.xml referenced a missing launcher icon:
 
-## Required target structure
+- resource mipmap/ic_launcher not found
 
-Create or update files only under Kikaria-HarmonyOS.
+Fix expected:
 
-At minimum, create:
+- Create valid launcher icon resources or change the manifest to reference existing valid resources
+- Include both normal and round launcher icons if the manifest references both
 
-- Kikaria-HarmonyOS/oh-package.json5
-- Kikaria-HarmonyOS/build-profile.json5
-- Kikaria-HarmonyOS/hvigorfile.ts
-- Kikaria-HarmonyOS/AppScope/app.json5
-- Kikaria-HarmonyOS/entry/oh-package.json5
-- Kikaria-HarmonyOS/entry/build-profile.json5
-- Kikaria-HarmonyOS/entry/hvigorfile.ts
-- Kikaria-HarmonyOS/entry/src/main/module.json5
-- Kikaria-HarmonyOS/entry/src/main/ets/entryability/EntryAbility.ets
-- Kikaria-HarmonyOS/entry/src/main/ets/pages/Index.ets
-- Kikaria-HarmonyOS/entry/src/main/ets/...
-- Kikaria-HarmonyOS/entry/src/main/resources/...
-- Kikaria-HarmonyOS/README.md
-- Kikaria-HarmonyOS/FORGIS_MIGRATION_REPORT.md
+3. Compose runtime delegate error:
 
-Use ArkTS for HarmonyOS code.
+- Type MutableState<Boolean> has no method getValue
+- This usually means Kotlin files using by remember { mutableStateOf(...) } are missing:
+  import androidx.compose.runtime.getValue
+  import androidx.compose.runtime.setValue
 
-Prefer ArkUI for UI unless the source inspection strongly suggests another HarmonyOS-native approach.
+Fix expected:
 
-Use a HarmonyOS Stage model project structure.
+- Scan all Kotlin files and add the correct Compose runtime delegate imports where needed
+- Do not add duplicate imports
 
-Use Hvigor / JSON5 project configuration appropriate for a first-pass HarmonyOS project.
+4. Material3 LinearProgressIndicator API mismatch:
 
-Do not create files in the target repo root.
+- LinearProgressIndicator(progress = { ... }) failed
+- Current dependency expects progress = Float, not lambda
 
-## Source inspection requirements
+Fix expected:
 
-Before writing HarmonyOS files, inspect the Kikaria source repository.
+- Replace LinearProgressIndicator(progress = { expression }) with LinearProgressIndicator(progress = expression)
+- Also check CircularProgressIndicator for the same issue
+- Apply this across the whole project, not just one file
 
-You should list and read enough source files to understand:
+5. ViewModel property initialization errors appeared in KikariaViewModel.kt:
 
-- app entry structure;
-- main UI structure;
-- review / memorization flow;
-- preset / knowledge item data model;
-- important collection or mastered-list logic;
-- typography and visual design direction;
-- Markdown or content parsing direction if present;
-- platform-specific SwiftUI pieces that need HarmonyOS / ArkUI equivalents.
+- Property must be initialized
+- Initializer is not allowed here because this property has no backing field
 
-Do not dump the whole source repository into memory.
+The user tried a local script that incorrectly changed custom getter properties like:
 
-Use directory listing and targeted file reads.
+val activePreset: KnowledgePreset? = null
+    get() = ...
 
-Large files must be read in pages when needed.
+and:
 
-## Migration approach
+var allTags: List<String> = emptyList()
+    get() = ...
 
-Use a translation-first approach.
+Fix expected:
 
-Preserve source behavior and structure where practical.
+- Repair any property with a custom get() so it does not have an initializer
+- Use val instead of var where appropriate for computed properties
+- Example desired shape:
+  val activePreset: KnowledgePreset?
+      get() = presets.find { it.id == activePresetId }
 
-Do not redesign the product from scratch.
+  val allTags: List<String>
+      get() = knowledgePoints.flatMap { it.tags }.distinct().sorted()
 
-Do not invent unrelated features.
+6. There may be more similar Kotlin or Compose compile errors.
 
-Do not add cloud services.
+Fix expected:
 
-Do not add accounts, analytics, telemetry, ads, or network dependencies.
+- Inspect all Kotlin files under Kikaria-Android/app/src/main/java
+- Fix obvious compile-time problems systematically
+- Keep changes minimal and targeted
 
-Do not add external business names.
+## Files to inspect first
 
-Do not add placeholder references to unrelated products.
+Before editing, inspect:
 
-## HarmonyOS implementation expectations
+- Kikaria-Android/settings.gradle.kts
+- Kikaria-Android/build.gradle.kts
+- Kikaria-Android/app/build.gradle.kts
+- Kikaria-Android/gradle.properties if it exists
+- Kikaria-Android/app/src/main/AndroidManifest.xml
+- Kikaria-Android/app/src/main/java/com/vita0818/kikaria/viewmodel/KikariaViewModel.kt
+- Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/review/ReviewScreen.kt
+- Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/reinforcement/ReinforcementScreen.kt
+- All Kotlin files under Kikaria-Android/app/src/main/java
+- Resource files under Kikaria-Android/app/src/main/res
 
-Build a first-pass HarmonyOS app under Kikaria-HarmonyOS that includes:
+Use the Kikaria source repository only as reference if needed.
 
-1. A runnable HarmonyOS project layout.
+## What to fix
 
-2. A main EntryAbility.
+Fix issues such as:
 
-3. An ArkUI-based application shell.
+- missing gradle.properties
+- AndroidX not enabled
+- missing launcher icon resources
+- invalid manifest resource references
+- missing Compose runtime imports
+- invalid Material3 progress indicator calls
+- invalid custom getter property initializers
+- uninitialized properties
+- wrong val/var usage for computed properties
+- missing imports
+- invalid package references
+- Kotlin syntax errors
+- obvious Compose API misuse
+- invalid resource references
+- inconsistent package names
+- missing namespace or SDK config
+- missing MainActivity registration
 
-4. A home screen reflecting Kikaria's memorization product direction.
+Do not make broad product changes.
 
-5. Basic ArkTS data models for knowledge items, presets, important collection, mastered items, and review state, based on the source repository inspection.
+Do not redesign UI.
 
-6. A simple local sample preset so the app can launch and display content without network access.
+Do not replace the whole project.
 
-7. A basic review flow:
-   - show a knowledge item title or prompt;
-   - allow showing hint;
-   - allow showing answer;
-   - allow adding to important collection;
-   - allow marking as mastered;
-   - move through items.
+Do not delete the current project and regenerate it from scratch.
 
-8. Basic local state management suitable for a first HarmonyOS port.
+## Desired result
 
-9. A visual style that attempts to preserve Kikaria's clean, soft, study-focused feel.
+The project should be in a cleaner state for Android Studio Gradle Sync and app launch.
 
-10. Clear TODO comments only where future work is genuinely needed.
+The output does not need to be perfect or feature-complete.
 
-Avoid overengineering.
+The priority is to fix the current build/sync/run blockers.
 
-Avoid huge generated files.
+## Report
 
-Avoid unrelated architecture.
+Create or update:
 
-## Dependencies
+Kikaria-Android/FORGIS_BUILD_FIX_REPORT.md
 
-Use standard HarmonyOS / ArkTS / ArkUI dependencies when needed.
+The report should include:
 
-Keep dependencies minimal.
-
-Do not introduce heavyweight or unrelated libraries.
-
-Do not require external services.
-
-Do not require secrets.
-
-Do not require network access at runtime.
-
-## README requirements
-
-Create Kikaria-HarmonyOS/README.md.
-
-It should explain:
-
-- this is the HarmonyOS target workspace for Kikaria;
-- generated output is intentionally contained inside Kikaria-HarmonyOS;
-- how to open the project in DevEco Studio;
-- what was implemented in this first pass;
-- what remains for future migration passes.
-
-Do not mention Aider.
-
-Do not mention hidden internal model reasoning.
-
-Do not include secrets.
-
-## Migration report requirements
-
-Create Kikaria-HarmonyOS/FORGIS_MIGRATION_REPORT.md.
-
-It should include:
-
-- source paths inspected;
-- target files created or updated;
-- major source concepts identified;
-- how those concepts were mapped into HarmonyOS / ArkTS / ArkUI;
-- known gaps;
-- recommended next migration tasks.
-
-The report must not include secret values.
-
-The report must not include huge copied source passages.
-
-## Safety and boundary rules
-
-You may read the source repository.
-
-You may read the target repository.
-
-You may write only inside Kikaria-HarmonyOS.
-
-If Kikaria-HarmonyOS does not exist, create it before writing generated migration output.
-
-You must not write to:
-
-- Outposts repository root;
-- FORGIS_CONFIG.yml;
-- FORGIS_TASK.md;
-- .github/workflows;
-- any path outside Kikaria-HarmonyOS;
-- the source repository.
-
-You must not delete files outside Kikaria-HarmonyOS.
-
-You must not access secrets.
-
-You must not print or write environment variable values.
+- files inspected
+- files changed
+- build errors fixed
+- remaining risks
+- suggested next local Android Studio steps
 
 ## Completion
 
-When finished, return final_summary.
+When finished, return final_summary with:
 
-The final_summary should include:
-
-- source files and directories inspected;
-- HarmonyOS files created or updated;
-- whether all writes stayed inside Kikaria-HarmonyOS;
-- whether any Forgis safety rule blocked an operation;
-- whether the first HarmonyOS project skeleton was produced;
-- known limitations;
-- recommended next task for a second migration pass.
+- what was inspected
+- what was fixed
+- which files changed
+- whether all writes stayed in Kikaria-Android
+- whether the source repository stayed read-only
+- remaining likely build risks
