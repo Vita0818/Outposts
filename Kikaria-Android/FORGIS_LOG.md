@@ -275,3 +275,57 @@ All changes are confined to `Kikaria-Android`. Let me provide the final summary.
 ### Warnings
 
 - None.
+
+
+## Forgis Run - 2026-05-15T09:45:38Z
+
+| Field | Value |
+|---|---|
+| Run id | `25910680350` |
+| Run time | `2026-05-15T09:45:38Z` |
+| Run URL | `https://github.com/Vita0818/Forgis/actions/runs/25910680350` |
+| Target repo | `Vita0818/Outposts` |
+| Source repo | `Vita0818/Kikaria` |
+| Source ref | `main` |
+| Target base branch | `main` |
+| Target branch | `forgis/kikaria-android-run-fix` |
+| Target subdir | `Kikaria-Android` |
+| Task file path | `FORGIS_TASK.md` |
+| Config path | `FORGIS_CONFIG.yml` |
+| Agent backend | `deepseek` |
+| Model | `deepseek-v4-pro` |
+| dry_run | `false` |
+| run_agent config value | `true` |
+| Effective run_agent | `true` |
+| confirm_real_run | `true` |
+| DeepSeek executed | `true` |
+| DeepSeek status | `completed` |
+| Tool call count | `54` |
+| Read tool count | `50` |
+| Write tool count | `3` |
+| Guardrail result | `See workflow logs.` |
+| validation_commands | `0 configured` |
+| success_checks | `0 configured` |
+| Run log path | `Kikaria-Android/FORGIS_LOG.md` |
+| Validation result | `See workflow logs.` |
+
+### Changed Paths
+
+- `Kikaria-Android/FORGIS_RUN_FIX_REPORT.md`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/components/GlassComponents.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/home/HomeScreen.kt`
+
+### Read-Only Inputs
+
+- Source repository checkout
+- Target repository outside `Kikaria-Android/`
+- Config file: `FORGIS_CONFIG.yml`
+- Task file: `FORGIS_TASK.md`
+
+### Final Summary
+
+All changes are verified. Let me provide the final summary.\n\n---\n\n## final_summary\n\n### What Was Inspected\n\nI inspected the complete Kikaria-Android project: 5 Gradle/build files, 7 resource files, 16 Kotlin source files, the AndroidManifest, and all Forgis documentation (FORGIS_HOME_UI_REPORT.md, FORGIS_BUILD_FIX_REPORT.md, FORGIS_LOG.md). The source repository was referenced only for context (iOS `ContentView.swift`, `KikariaTypography.swift`, `KikariaAdaptiveLayout.swift`).\n\n### What Was Broken\n\nThe latest UI refinement pass (Pass 2 — Visual Fidelity Refinement) introduced a **compile error** in two files:\n\n1. **`CornerSize.toPx(size, density)` type mismatch** — In both `HomeScreen.kt` (`liquidGlassStroke` modifier) and `GlassComponents.kt` (`glassCardStroke` modifier), inside `drawBehind` lambdas, `shape.topStart.toPx(size, density)` was called where `density` resolves to a `Float` property of `DrawScope`. But `CornerSize.toPx(Size, Density)` expects the second parameter to be `Density`, not `Float`. The correct value is `this` (the `DrawScope` receiver which implements `Density`). This would produce: `Type mismatch: inferred type is Float but Density was expected`.\n\n2. **`rememberDateTitle()` didn't use `remember`** — The `@Composable` function recomputed `Calendar`/`SimpleDateFormat` objects on every recomposition. Also, the `remember` import was missing.\n\n### What Was Fixed\n\n| File | Fixes |\n|---|---|\n| `ui/home/HomeScreen.kt` | (a) `shape.topStart.toPx(size, density)` → `shape.topStart.toPx(size, this)` and same for `topEnd` in `liquidGlassStroke`. (b) Added `import androidx.compose.runtime.remember`. (c) Wrapped `rememberDateTitle()` body in `remember { ... }`. (d) Wrapped `rememberDaysLeftText()` in `remember { ... }`. |\n| `ui/components/GlassComponents.kt` | `shape.topStart.toPx(size, density)` → `shape.topStart.toPx(size, this)` and same for `topEnd` in `glassCardStroke`. |\n| `FORGIS_RUN_FIX_REPORT.md` | Created with full diagnostic documentation. |\n\n### Files Changed\n\n- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/home/HomeScreen.kt` — modified (4 targeted fixes)\n- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/components/GlassComponents.kt` — modified (1 targeted fix)\n- `Kikaria-Android/FORGIS_RUN_FIX_REPORT.md` — created\n\n### Safety Confirmations\n\n- ✅ All writes stayed inside `Kikaria-Android/`\n- ✅ Source repository remained strictly read-only\n- ✅ No modifications to root, config, task file, or `.github/workflows`\n- ✅ No new features, redesigns, or rewrites\n- ✅ Home UI direction fully preserved (gradient background, serif title, orbit bubbles, glass cards with gradient strokes, dark mode adaptivity — all intact)\n\n### Expected Build/Run\n\nThe project should now compile and run. The `toPx` fix resolves the type mismatch that would have blocked compilation of both `HomeScreen.kt` and `GlassComponents.kt`. The `remember` changes are purely optimization. All other files verified — no additional issues found.\n\n### Remaining Risks\n\n- No build verification possible in Forgis environment — local Android Studio sync + build needed\n- Glass effect uses opacity + shadow fallback (no native blur on pre-API-31)\n- Date caches with `remember` (won't update past midnight until Activity recreation)\n- Material3 experimental APIs may need attention on future BOM bumps\n\n### Recommended Next Step\n\nOpen `Kikaria-Android/` in Android Studio → Sync Gradle → Build → Run on API 26+ device/emulator → Verify home screen renders correctly in both light and dark modes.
+
+### Warnings
+
+- None.

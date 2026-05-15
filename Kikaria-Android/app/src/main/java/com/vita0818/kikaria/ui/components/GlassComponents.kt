@@ -46,8 +46,8 @@ private fun Modifier.glassCardStroke(
             end = Offset(size.width, size.height)
         ),
         cornerRadius = CornerRadius(
-            shape.topStart.toPx(size, density),
-            shape.topEnd.toPx(size, density)
+            shape.topStart.toPx(size, this),
+            shape.topEnd.toPx(size, this)
         ),
         style = Stroke(width = strokeWidth)
     )
