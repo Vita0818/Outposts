@@ -95,8 +95,7 @@ fun ReviewScreen(
                 .padding(padding)
         ) {
             // Progress bar
-            LinearProgressIndicator(
-                progress = { viewModel.reviewProgress },
+            LinearProgressIndicator(progress = viewModel.reviewProgress,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
