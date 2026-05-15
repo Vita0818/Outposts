@@ -1,6 +1,8 @@
 package com.vita0818.kikaria.ui.reinforcement
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -127,7 +129,7 @@ private fun ReinforcementItem(
     point: KnowledgePoint,
     onRemove: () -> Unit
 ) {
-    var expanded by rememberExpanded()
+    var expanded by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
@@ -189,9 +191,4 @@ private fun ReinforcementItem(
             }
         }
     }
-}
-
-@Composable
-private fun rememberExpanded(): androidx.compose.runtime.MutableState<Boolean> {
-    return androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
 }

@@ -1,20 +1,19 @@
 package com.vita0818.kikaria.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.vita0818.kikaria.ui.theme.KikariaColors
@@ -121,15 +120,15 @@ fun InfoCard(
         tonalElevation = 1.dp
     ) {
         Box(modifier = Modifier.padding(20.dp)) {
-            androidx.compose.foundation.layout.Column {
-                androidx.compose.material3.Text(
+            Column {
+                Text(
                     text = label,
-                    style = androidx.compose.material3.MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelMedium,
                     color = KikariaColors.TertiaryText
                 )
-                androidx.compose.material3.Text(
+                Text(
                     text = text,
-                    style = androidx.compose.material3.MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = KikariaColors.DeepText,
                     modifier = Modifier.padding(top = 8.dp)
                 )

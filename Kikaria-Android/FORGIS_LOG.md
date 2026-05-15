@@ -75,3 +75,66 @@ All files are created and verified. Here is the final summary.\n\n---\n\n## fina
 ### Warnings
 
 - None.
+
+
+## Forgis Run - 2026-05-15T02:35:59Z
+
+| Field | Value |
+|---|---|
+| Run id | `25896831513` |
+| Run time | `2026-05-15T02:35:59Z` |
+| Run URL | `https://github.com/Vita0818/Forgis/actions/runs/25896831513` |
+| Target repo | `Vita0818/Outposts` |
+| Source repo | `Vita0818/Kikaria` |
+| Source ref | `main` |
+| Target base branch | `main` |
+| Target branch | `forgis/kikaria-android-build-fix` |
+| Target subdir | `Kikaria-Android` |
+| Task file path | `FORGIS_TASK.md` |
+| Config path | `FORGIS_CONFIG.yml` |
+| Agent backend | `deepseek` |
+| Model | `deepseek-v4-pro` |
+| dry_run | `false` |
+| run_agent config value | `true` |
+| Effective run_agent | `true` |
+| confirm_real_run | `true` |
+| DeepSeek executed | `true` |
+| DeepSeek status | `completed` |
+| Tool call count | `50` |
+| Read tool count | `37` |
+| Write tool count | `13` |
+| Guardrail result | `See workflow logs.` |
+| validation_commands | `0 configured` |
+| success_checks | `0 configured` |
+| Run log path | `Kikaria-Android/FORGIS_LOG.md` |
+| Validation result | `See workflow logs.` |
+
+### Changed Paths
+
+- `Kikaria-Android/FORGIS_BUILD_FIX_REPORT.md`
+- `Kikaria-Android/app/build.gradle.kts`
+- `Kikaria-Android/app/proguard-rules.pro`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/components/GlassComponents.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/reinforcement/ReinforcementScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/viewmodel/KikariaViewModel.kt`
+- `Kikaria-Android/app/src/main/res/drawable/ic_launcher_foreground.xml`
+- `Kikaria-Android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml`
+- `Kikaria-Android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml`
+- `Kikaria-Android/app/src/main/res/mipmap/ic_launcher.xml`
+- `Kikaria-Android/app/src/main/res/mipmap/ic_launcher_round.xml`
+- `Kikaria-Android/app/src/main/res/values/colors.xml`
+
+### Read-Only Inputs
+
+- Source repository checkout
+- Target repository outside `Kikaria-Android/`
+- Config file: `FORGIS_CONFIG.yml`
+- Task file: `FORGIS_TASK.md`
+
+### Final Summary
+
+All fixes are applied. Here is the final summary:\n\n---\n\n## final_summary\n\n### What Was Inspected\n\nAll 18 Kotlin source files, 7 resource files, 5 Gradle/build configuration files, and the AndroidManifest across the `Kikaria-Android` project. The `Kikaria` source repository was used only as a reference name and was not modified.\n\n### What Was Fixed\n\n**5 build errors addressed:**\n\n1. **Missing launcher icon** (`resource mipmap/ic_launcher not found`) — Plain `<vector>` drawables in `mipmap/` are not valid launcher icons. Created proper `<adaptive-icon>` XML files in `mipmap-anydpi-v26/` that reference a foreground drawable and background color. Deleted the old invalid `mipmap/ic_launcher.xml` and `mipmap/ic_launcher_round.xml`.\n\n2. **`var allTags` property initialization error** in `KikariaViewModel.kt` — `var` with a custom getter but no setter is a compile error in Kotlin. Changed to `val allTags` (computed read-only property), which is the correct form since it has no backing field.\n\n3. **Material3 `LinearProgressIndicator` API mismatch** — BOM `2024.01.00` brings Material3 1.1.x where `progress` takes `() -> Float` (lambda). The code already used `progress = viewModel.reviewProgress` (Float). Bumped the Compose BOM to `2024.02.00` which brings Material3 1.2.0 where `progress: Float` matches the existing code.\n\n4. **Missing `proguard-rules.pro`** — Referenced in `app/build.gradle.kts` but the file didn't exist. Created a minimal ProGuard rules file.\n\n5. **Fully-qualified class names** in `GlassComponents.kt` and `ReinforcementScreen.kt` — Replaced `androidx.compose.foundation.layout.Column`, `androidx.compose.material3.Text`, `androidx.compose.runtime.remember`, `androidx.compose.runtime.mutableStateOf` with proper imports. Also removed the unnecessary `rememberExpanded()` helper, inlining it as `remember { mutableStateOf(false) }`.\n\n### Files Changed\n\n| File | Action |\n|------|--------|\n| `app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml` | Created |\n| `app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml` | Created |\n| `app/src/main/res/drawable/ic_launcher_foreground.xml` | Created |\n| `app/src/main/res/values/colors.xml` | Created |\n| `app/src/main/res/mipmap/ic_launcher.xml` | Deleted |\n| `app/src/main/res/mipmap/ic_launcher_round.xml` | Deleted |\n| `app/build.gradle.kts` | Modified (BOM version) |\n| `app/proguard-rules.pro` | Created |\n| `app/src/main/java/.../viewmodel/KikariaViewModel.kt` | Modified (`var` → `val`) |\n| `app/src/main/java/.../ui/components/GlassComponents.kt` | Modified (imports) |\n| `app/src/main/java/.../ui/reinforcement/ReinforcementScreen.kt` | Modified (imports, inlined helper) |\n| `FORGIS_BUILD_FIX_REPORT.md` | Created |\n\n### Safety Confirmations\n\n- **All writes stayed inside `Kikaria-Android/`** — yes\n- **Source repository (`source/`) stayed read-only** — yes, never modified\n- **No new features, redesigns, or rewrites** — changes are minimal and targeted\n\n### Remaining Likely Build Risks\n\n- Material3 Experimental APIs (`ExperimentalMaterial3Api`, `ExperimentalLayoutApi`) — should compile but may need attention on future Compose version bumps\n- Compose compiler extension (1.5.8) must stay in lockstep with Kotlin plugin version (1.9.22)\n- `local.properties` contains a machine-specific SDK path; new developers must set their own\n- No `.gitignore` file — consider adding one to exclude `local.properties`, `.gradle/`, `.idea/`, `build/`
+
+### Warnings
+
+- None.
