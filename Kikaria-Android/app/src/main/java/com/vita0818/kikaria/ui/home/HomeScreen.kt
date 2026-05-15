@@ -45,27 +45,40 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vita0818.kikaria.ui.theme.KikariaColors
+import com.vita0818.kikaria.ui.theme.KikariaTypography
 import com.vita0818.kikaria.viewmodel.KikariaViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+/**
+ * Kikaria home screen, translated from the home screen section of ContentView.swift.
+ *
+ * Layout (matching iOS):
+ * - Header: "Kikaria" title (serif) + profile avatar placeholder
+ * - StartReviewButton: animated orbit bubbles + action circle with "→"
+ * - TodayProgressCard: date + countdown days + mastered/goal + chevron
+ * - DashboardCard: scope / reinforcement / mastered metric columns + preset row
+ */
 @Composable
 fun HomeScreen(
     viewModel: KikariaViewModel,
     onStartReview: () -> Unit,
     onOpenScope: () -> Unit,
     onOpenReinforcement: () -> Unit,
-    onOpenMastered: () -> Unit
+    onOpenMastered: () -> Unit,
+    onOpenPresetSelection: () -> Unit = {}
 ) {
     val dateTitle = rememberDateTitle()
-    val daysLeftText = rememberDaysLeftText()
+    val daysLeftText = viewModel.countdownText  // from ViewModel, replacing "-- Days Left"
     val progressText = "${viewModel.todayMasteredCount}/${viewModel.dailyGoal}"
     val scopeCountText = if (viewModel.selectedTags.isEmpty())
         "${viewModel.allTags.size}" else "${viewModel.selectedTags.size}"
     val reinforcedCount = viewModel.reinforcedPoints.size
     val masteredCount = viewModel.masteredPoints.size
-    val presetName = viewModel.activePreset?.name ?: "无"
+    val preset = viewModel.activePreset
+    val presetName = preset?.name ?: "无"
+    val presetPointCount = preset?.knowledgePointCount ?: 0
 
     val isDark = isSystemInDarkTheme()
     val pageGradient = if (isDark) KikariaColors.PageGradientDark else KikariaColors.PageGradientLight
@@ -84,7 +97,7 @@ fun HomeScreen(
         ) {
             Spacer(modifier = Modifier.height(28.dp))
 
-            // --- Header: Kikaria title + avatar ---
+            // --- Header: Kikaria title (serif) + avatar placeholder ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -92,12 +105,13 @@ fun HomeScreen(
             ) {
                 Text(
                     text = "Kikaria",
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = KikariaTypography.serifFamily,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 39.sp,
                     color = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
                 )
 
+                // Avatar placeholder — matches iOS ProfileAvatarView
                 Box(
                     modifier = Modifier
                         .size(44.dp)
@@ -118,10 +132,12 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // --- Animated start button with orbiting bubbles ---
             KikariaStartButton(onClick = onStartReview, isDark = isDark)
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // --- Today progress card with date + countdown ---
             TodayProgressCard(
                 dateText = dateTitle,
                 daysLeftText = daysLeftText,
@@ -132,15 +148,18 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // --- Dashboard card: metrics + preset row ---
             DashboardCard(
                 scopeCountText = scopeCountText,
                 reinforcedCount = reinforcedCount,
                 masteredCount = masteredCount,
                 presetName = presetName,
+                presetPointCount = presetPointCount,
                 isDark = isDark,
                 onOpenScope = onOpenScope,
                 onOpenReinforcement = onOpenReinforcement,
-                onOpenMastered = onOpenMastered
+                onOpenMastered = onOpenMastered,
+                onOpenPresetSelection = onOpenPresetSelection
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -240,8 +259,6 @@ private fun KikariaStartButton(onClick: () -> Unit, isDark: Boolean) {
         label = "orbit"
     )
 
-    val scale = 1f
-
     Box(modifier = Modifier.size(272.dp, 260.dp), contentAlignment = Alignment.Center) {
         // Orbiting bubble ring
         Box(modifier = Modifier.size(272.dp, 260.dp).rotate(orbitAngle)) {
@@ -257,7 +274,7 @@ private fun KikariaStartButton(onClick: () -> Unit, isDark: Boolean) {
         // Center action circle with glass treatment
         Box(
             modifier = Modifier
-                .size((190 * scale).dp)
+                .size(190.dp)
                 .scale(breatheScale)
                 .shadow(28.dp, CircleShape, ambientColor = shadowC, spotColor = shadowC)
                 .clip(CircleShape)
@@ -320,8 +337,11 @@ private fun DecorativeBubble(
 
 @Composable
 private fun TodayProgressCard(
-    dateText: String, daysLeftText: String, progressText: String,
-    isDark: Boolean, onClick: () -> Unit
+    dateText: String,
+    daysLeftText: String,
+    progressText: String,
+    isDark: Boolean,
+    onClick: () -> Unit
 ) {
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
     val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
@@ -346,7 +366,7 @@ private fun TodayProgressCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     dateText,
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = KikariaTypography.serifFamily,
                     fontSize = 23.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = deepText,
@@ -362,7 +382,7 @@ private fun TodayProgressCard(
             }
             Text(
                 progressText,
-                fontFamily = FontFamily.Serif,
+                fontFamily = KikariaTypography.serifFamily,
                 fontSize = 25.sp,
                 fontWeight = FontWeight.Bold,
                 color = masteredGreen,
@@ -378,9 +398,16 @@ private fun TodayProgressCard(
 
 @Composable
 private fun DashboardCard(
-    scopeCountText: String, reinforcedCount: Int, masteredCount: Int,
-    presetName: String, isDark: Boolean,
-    onOpenScope: () -> Unit, onOpenReinforcement: () -> Unit, onOpenMastered: () -> Unit
+    scopeCountText: String,
+    reinforcedCount: Int,
+    masteredCount: Int,
+    presetName: String,
+    presetPointCount: Int,
+    isDark: Boolean,
+    onOpenScope: () -> Unit,
+    onOpenReinforcement: () -> Unit,
+    onOpenMastered: () -> Unit,
+    onOpenPresetSelection: () -> Unit
 ) {
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
     val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
@@ -413,7 +440,7 @@ private fun DashboardCard(
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .clickable { /* TODO: preset selection */ }
+                    .clickable { onOpenPresetSelection() }
                     .padding(horizontal = 20.dp, vertical = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -425,7 +452,13 @@ private fun DashboardCard(
                     maxLines = 1,
                     modifier = Modifier.weight(1f, fill = false)
                 )
-                Text(" 当前预设", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = softText, maxLines = 1)
+                Text(
+                    " $presetPointCount 知识点",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = softText,
+                    maxLines = 1
+                )
                 Spacer(Modifier.weight(1f))
                 Text("›", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = blueGray.copy(alpha = 0.58f))
             }
@@ -449,7 +482,7 @@ private fun DashboardMetricColumn(
             Spacer(Modifier.height(8.dp))
             Text(
                 value,
-                fontFamily = FontFamily.Serif,
+                fontFamily = KikariaTypography.serifFamily,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = tint,
@@ -472,9 +505,6 @@ private fun rememberDateTitle(): String {
         "$month $day${ordinalSuffix(day)}"
     }
 }
-
-@Composable
-private fun rememberDaysLeftText(): String = remember { "-- Days Left" }
 
 private fun ordinalSuffix(day: Int): String {
     val lastTwo = day % 100

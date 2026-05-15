@@ -329,3 +329,88 @@ All changes are verified. Let me provide the final summary.\n\n---\n\n## final_s
 ### Warnings
 
 - None.
+
+## Forgis Run - Structured Translation Pass
+
+| Field | Value |
+|---|---|
+| Run purpose | Structured source-guided translation pass |
+| Source repo | `Vita0818/Kikaria` |
+| Target subdir | `Kikaria-Android` |
+| Source files inspected | `KikariaApp.swift`, `ContentView.swift` (~9900 lines), `KnowledgePoint.swift`, `StudyTracking.swift`, `KikariaTypography.swift`, `KikariaAdaptiveLayout.swift`, `KikariaLatexParser.swift`, `KikariaMathFormulaView.swift`, `KikariaMathText.swift`, `LatexToken.swift`, `SPEC.md`, `CODEX_CONTEXT.md`, `README.md`, 4 preset `.md` files |
+| Android files inspected | `MainActivity.kt`, `KikariaNavGraph.kt`, `KikariaViewModel.kt`, `KnowledgePoint.kt`, `KnowledgePreset.kt`, `SamplePresets.kt`, `StudyActivityRecord.kt`, `MarkdownParser.kt`, `HomeScreen.kt`, `ReviewScreen.kt`, `ScopeSelectionScreen.kt`, `ReinforcementScreen.kt`, `MasteredScreen.kt`, `GlassComponents.kt`, `KikariaColors.kt`, `KikariaTheme.kt`, `build.gradle.kts` (root + app), `AndroidManifest.xml`, `FORGIS_MIGRATION_REPORT.md`, `FORGIS_HOME_UI_REPORT.md`, `FORGIS_BUILD_FIX_REPORT.md`, `README.md` |
+| Source-target mapping created | `FORGIS_SOURCE_TARGET_MAP.md` |
+| Translation plan created | `FORGIS_TRANSLATION_PLAN.md` |
+| Files created | `ui/theme/KikariaTypography.kt`, `ui/presets/PresetSelectionScreen.kt` |
+| Files modified | `data/KnowledgePreset.kt`, `data/SamplePresets.kt`, `viewmodel/KikariaViewModel.kt`, `ui/home/HomeScreen.kt`, `ui/navigation/KikariaNavGraph.kt`, `ui/review/ReviewScreen.kt` |
+| Files NOT modified | Source repository (read-only), Gradle files, Manifest, resource XMLs, other screens |
+| Build actually run | No (no Gradle in Forgis) |
+| Static build review | Performed — no issues found |
+| All writes inside Kikaria-Android | ✅ |
+| Source repo stayed read-only | ✅ |
+
+
+## Forgis Run - 2026-05-15T10:21:15Z
+
+| Field | Value |
+|---|---|
+| Run id | `25911964666` |
+| Run time | `2026-05-15T10:21:15Z` |
+| Run URL | `https://github.com/Vita0818/Forgis/actions/runs/25911964666` |
+| Target repo | `Vita0818/Outposts` |
+| Source repo | `Vita0818/Kikaria` |
+| Source ref | `main` |
+| Target base branch | `main` |
+| Target branch | `forgis/kikaria-android-structured-translation` |
+| Target subdir | `Kikaria-Android` |
+| Task file path | `FORGIS_TASK.md` |
+| Config path | `FORGIS_CONFIG.yml` |
+| Agent backend | `deepseek` |
+| Model | `deepseek-v4-pro` |
+| dry_run | `false` |
+| run_agent config value | `true` |
+| Effective run_agent | `true` |
+| confirm_real_run | `true` |
+| DeepSeek executed | `true` |
+| DeepSeek status | `completed` |
+| Tool call count | `80` |
+| Read tool count | `61` |
+| Write tool count | `18` |
+| Guardrail result | `See workflow logs.` |
+| validation_commands | `0 configured` |
+| success_checks | `0 configured` |
+| Run log path | `Kikaria-Android/FORGIS_LOG.md` |
+| Validation result | `See workflow logs.` |
+
+### Changed Paths
+
+- `Kikaria-Android/FORGIS_LOG.md`
+- `Kikaria-Android/FORGIS_MIGRATION_REPORT.md`
+- `Kikaria-Android/FORGIS_SOURCE_TARGET_MAP.md`
+- `Kikaria-Android/FORGIS_TRANSLATION_PLAN.md`
+- `Kikaria-Android/FORGIS_TRANSLATION_PROGRESS.md`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/data/KnowledgePreset.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/data/SamplePresets.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/home/HomeScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/navigation/KikariaNavGraph.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/presets/PresetSelectionScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/review/ReviewScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/theme/KikariaTypography.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/viewmodel/KikariaViewModel.kt`
+
+### Read-Only Inputs
+
+- Source repository checkout
+- Target repository outside `Kikaria-Android/`
+- Config file: `FORGIS_CONFIG.yml`
+- Task file: `FORGIS_TASK.md`
+
+### Final Summary
+
+Here is the final summary of the structured translation pass:\n\n---\n\n## Structured Translation Pass — Final Summary\n\n### Source Files / Functional Units Inspected\n\n- `KikariaApp.swift` — App entry point\n- `ContentView.swift` — All screens, theme, glass modifiers, state management (~9900 lines)\n- `KnowledgePoint.swift` — KnowledgePoint, KnowledgePreset, Markdown parser, built-in presets\n- `StudyTracking.swift` — StudyActivityRecord, WidgetSnapshot, WidgetDataStore\n- `KikariaTypography.swift` — Mixed Chinese/serif font system\n- `KikariaAdaptiveLayout.swift` — Width-based adaptive layout metrics\n- `KikariaLatexParser.swift`, `KikariaMathFormulaView.swift`, `KikariaMathText.swift`, `LatexToken.swift` — LaTeX system\n- `SPEC.md`, `CODEX_CONTEXT.md`, `README.md` — Project docs\n- All 4 preset `.md` files: 大学物理 (5022 lines), 大学英语Band4 (9916 lines), 微积分 (7480 lines), 离散数学 (27004 lines)\n\n### Android Files Inspected\n\nAll 18 Kotlin source files, build files, manifest, and all 4 existing Forgis reports.\n\n### Source-Target Mapping\n\nCreated `FORGIS_SOURCE_TARGET_MAP.md` with 40+ mapped items across 10 categories with status indicators (✅ translated, 🟡 partial, ❌ missing, 📅 deferred, 🔍 needs review).\n\n### Files / Units Translated in This Run (6 units)\n\n1. **KnowledgePreset + SamplePresets** — Added `knowledgePointCount`, `BUILT_IN_SEED_VERSION`; rewrote SamplePresets with all 4 source presets\n2. **ViewModel state semantics** — Added `countdownEndDate`, `dangerPercent`, `countdownDays`, `countdownText`, `StudyProgressWarning`\n3. **KikariaTypography** — New file: full typography system with mixed Chinese/serif AnnotatedString\n4. **HomeScreen** — Wired countdownText, preset selection callback, typography\n5. **Navigation + PresetSelectionScreen** — New PRESETS route and glass-styled preset selection screen\n6. **ReviewScreen** — Point counter, prev/next navigation, full dark mode\n\n### Android Files Changed\n\n| File | Change |\n|------|--------|\n| `data/KnowledgePreset.kt` | Enhanced with knowledgePointCount and BUILT_IN_SEED_VERSION |\n| `data/SamplePresets.kt` | Full rewrite: 4 presets with real content from source |\n| `viewmodel/KikariaViewModel.kt` | Added countdown, StudyProgressWarning, dangerPercent |\n| `ui/theme/KikariaTypography.kt` | **New file**: 200-line typography system |\n| `ui/home/HomeScreen.kt` | Countdown wiring, preset callback, typography integration |\n| `ui/navigation/KikariaNavGraph.kt` | Added PRESETS route |\n| `ui/presets/PresetSelectionScreen.kt` | **New file**: 200-line preset selection screen |\n| `ui/review/ReviewScreen.kt` | Point counter, prev/next nav, dark mode throughout |\n\n### What Improved Structurally\n\n- Data model now tracks schema version (`BUILT_IN_SEED_VERSION = 4`) and per-preset `knowledgePointCount`\n- State semantics now match iOS with `countdownDays`, `countdownText`, and `StudyProgressWarning` evaluation logic\n- Typography extracted as reusable `KikariaTypography` object with mixed CJK/serif `AnnotatedString` support\n- All 4 source presets available with real content (was only 2 reduced presets)\n- Preset selection fully navigable from home screen\n\n### What Improved Visually\n\n- Home screen shows dynamic countdown days and preset knowledge point count in dashboard\n- Review screen has point counter ("3 / 7") and both previous/next navigation buttons\n- New glass-styled preset selection screen with "内置" badges, knowledge point counts, active state checkmarks, and category display\n- Full dark mode support in all modified screens\n- Typography now uses serif font for Latin/numbers throughout, matching iOS brand identity\n\n### What Improved in State Semantics\n\n- `countdownEndDate` → `countdownDays` (Int?) → `countdownText` ("X 天" or "--") chain matching iOS `countdownDays(until:)` and `countdownText(for:)`\n- `StudyProgressWarning` inner class with `isActive` boolean computed from masteredCount vs expected * dangerPercent/100\n- Configurable `dangerPercen
+
+[Forgis log note: final_summary truncated after 4000 characters.]
+
+### Warnings
+
+- None.

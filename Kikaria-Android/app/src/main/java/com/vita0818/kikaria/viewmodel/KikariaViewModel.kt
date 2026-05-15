@@ -12,6 +12,7 @@ import com.vita0818.kikaria.data.SamplePresets
 import com.vita0818.kikaria.data.StudyActivityRecord
 import com.vita0818.kikaria.data.StudyActivityType
 import com.vita0818.kikaria.util.MarkdownParser
+import java.util.Calendar
 import java.util.Date
 
 /**
@@ -23,8 +24,10 @@ import java.util.Date
  * - review queue and state
  * - reinforcement and mastered collections
  * - study activity records
+ * - countdown date for study deadline tracking
+ * - study progress warning evaluation
  *
- * Translated from the PresetStudyState + AppState logic in ContentView.swift.
+ * Translated from the PresetStudyState + KikariaAppState logic in ContentView.swift.
  */
 class KikariaViewModel : ViewModel() {
 
@@ -54,7 +57,30 @@ class KikariaViewModel : ViewModel() {
     var todayReviewCount by mutableIntStateOf(0)
     var todayHintCount by mutableIntStateOf(0)
     var todayMasteredCount by mutableIntStateOf(0)
+
+    /** Daily study goal: number of points to review per day. Default 20, matching iOS. */
     var dailyGoal by mutableIntStateOf(20)
+
+    // --- Countdown (study deadline) ---
+    /**
+     * Optional countdown end date for study deadline tracking.
+     * When set, the home screen shows "X Days Left".
+     * Translated from iOS `PresetStudyState.countdownEndDate`.
+     */
+    var countdownEndDate: Date? by mutableStateOf(null)
+
+    // --- Danger threshold ---
+    /**
+     * Percentage threshold for study progress warnings.
+     * When masteredCount / expectedMasteredCount * 100 < dangerPercent,
+     * a notification warning is triggered (when notifications are enabled).
+     * Range: 1-100, default 80. Translated from iOS `PresetStudyState.dangerPercent`.
+     */
+    var dangerPercent by mutableIntStateOf(80)
+
+    // --- Notifications (placeholder for future implementation) ---
+    /** Whether study progress notifications are enabled. Placeholder for future notification support. */
+    var notificationsEnabled by mutableStateOf(false)
 
     // --- Activity records ---
     var activityRecords = mutableStateListOf<StudyActivityRecord>()
@@ -62,7 +88,48 @@ class KikariaViewModel : ViewModel() {
     // --- UI state ---
     var toastMessage by mutableStateOf<String?>(null)
 
-    // --- Derived ---
+    // --- Derived: Countdown ---
+
+    /**
+     * Number of days remaining until countdownEndDate.
+     * Returns null if no countdown is set.
+     * Translated from iOS `countdownDays(until:)`.
+     */
+    val countdownDays: Int?
+        get() {
+            val targetDate = countdownEndDate ?: return null
+            val calendar = Calendar.getInstance()
+            val today = calendar.apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.time
+            val target = Calendar.getInstance().apply {
+                time = targetDate
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.time
+            val diffMillis = target.time - today.time
+            val days = (diffMillis / (1000 * 60 * 60 * 24)).toInt()
+            return maxOf(0, days)
+        }
+
+    /**
+     * Human-readable countdown text.
+     * Returns "--" if no countdown is set, otherwise "X 天".
+     * Translated from iOS `countdownText(for:)`.
+     */
+    val countdownText: String
+        get() {
+            val days = countdownDays ?: return "--"
+            return "$days 天"
+        }
+
+    // --- Derived: Collections ---
+
     val masteredPoints: List<KnowledgePoint>
         get() = knowledgePoints.filter { it.isMastered }
 
@@ -94,6 +161,51 @@ class KikariaViewModel : ViewModel() {
             return knowledgePoints.filter { point ->
                 point.tags.any { it in selectedTags }
             }
+        }
+
+    // --- Derived: Study Progress Warning ---
+
+    /**
+     * Study progress warning data, translated from iOS `StudyProgressWarning`.
+     * Used to determine if the user is falling behind on their study goals.
+     */
+    data class StudyProgressWarning(
+        val masteredCount: Int,
+        val expectedMasteredCount: Int,
+        val dangerPercent: Int,
+        val remainingDays: Int?
+    ) {
+        /** Whether the warning is currently active. */
+        val isActive: Boolean
+            get() {
+                if (masteredCount >= expectedMasteredCount) return false
+                if (expectedMasteredCount <= 0) return false
+                val actualPercent = masteredCount * 100 / expectedMasteredCount
+                return actualPercent < dangerPercent
+            }
+
+        fun body(presetName: String): String {
+            return "今天的「$presetName」学习量尚未达标哦，抓紧学习吧！"
+        }
+    }
+
+    /**
+     * Evaluates the current study progress warning.
+     * Returns null if no warning is needed.
+     * Translated from iOS `evaluateStudyProgressWarning(for:)`.
+     */
+    val studyProgressWarning: StudyProgressWarning?
+        get() {
+            val mastered = todayMasteredCount
+            val goal = dailyGoal
+            if (mastered >= goal) return null
+            if (goal <= 0) return null
+            return StudyProgressWarning(
+                masteredCount = mastered,
+                expectedMasteredCount = goal,
+                dangerPercent = dangerPercent,
+                remainingDays = countdownDays
+            )
         }
 
     init {
