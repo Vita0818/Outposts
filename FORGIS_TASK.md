@@ -2,17 +2,17 @@
 
 You are running inside Forgis.
 
-This is a focused visual refinement pass for the existing Kikaria-Android project.
+This is a focused run-fix pass for the existing Kikaria-Android project.
 
-The current Android app already runs, and the latest home screen direction is broadly correct. However, it is still not close enough to the original Kikaria iOS experience.
-
-Your task is to improve the Android home screen's visual fidelity and product feeling by studying the source project and making your own design/implementation decisions.
+The latest Android UI refinement result does not run correctly. Your task is to diagnose and repair the current Android project so that it can build, install, and launch again, while preserving the current visual direction as much as possible.
 
 Do not perform a new migration.
 
-Do not rewrite the whole project.
+Do not redesign the whole app.
 
-Do not add unrelated features.
+Do not add major new features.
+
+Do not rewrite the project from scratch.
 
 Do not modify the source repository.
 
@@ -38,91 +38,120 @@ Do not access secrets.
 
 ## Goal
 
-Improve the Android home screen so it feels more like Kikaria, not like a generic Android/Compose imitation.
+Repair the current Kikaria-Android project after the latest UI refinement pass.
 
-The goal is not pixel-perfect copying.
+The priority order is:
 
-The goal is source-guided visual translation: understand the iOS design intent, compare it with the current Android result, identify the most important remaining gaps, and refine the Android implementation accordingly.
+1. Restore build/sync/run correctness.
+2. Preserve the latest improved Kikaria-like home visual direction where possible.
+3. Avoid broad rewrites.
+4. Avoid new feature work.
+5. Leave a clear report of what was broken and what was fixed.
+
+If a visual refinement caused compile or runtime breakage, fix it directly.
+
+If a visual change is too fragile, simplify it enough to make the app run, but do not revert the whole home screen to the old generic skeleton.
 
 ## Required reasoning process
 
-Before editing, you must inspect both sides:
+Before editing, inspect the current Android project carefully.
 
-1. Inspect the relevant Kikaria iOS source and design/context files.
-2. Inspect the current Kikaria-Android home screen and related styling files.
-3. Compare the two implementations.
-4. Identify the most important visual gaps.
-5. Decide your own minimal but meaningful refinement plan.
-6. Implement the refinement.
-7. Keep the app runnable.
+You should:
 
-Do not rely only on the task text.
+1. Inspect the Gradle configuration.
+2. Inspect the Android manifest and resources.
+3. Inspect the current home UI implementation.
+4. Inspect theme/component files touched by the visual pass.
+5. Inspect navigation and MainActivity.
+6. Inspect ViewModel state used by the home screen.
+7. Identify likely build, sync, install, or launch blockers.
+8. Repair them systematically.
 
-Use the source repository as the primary reference.
+Do not only patch one isolated line.
 
-Use the current Android implementation as the starting point.
+Do not assume the first visible error is the only error.
 
-## What to optimize
+Try to identify patterns and fix the class of problem.
 
-Use your own judgment after source inspection.
+## Files to inspect
 
-Focus on the home screen's overall visual fidelity, including composition, hierarchy, rhythm, typography, color, softness, atmosphere, and product identity.
+Inspect relevant files under:
 
-Do not make broad feature changes.
+Kikaria-Android
 
-Do not change review flow, data model, Markdown parsing, persistence, or other non-home areas unless required to keep the app compiling.
+including but not limited to:
 
-## Important constraint
+- settings.gradle.kts
+- build.gradle.kts
+- app/build.gradle.kts
+- gradle.properties
+- app/src/main/AndroidManifest.xml
+- app/src/main/java
+- app/src/main/res
+- FORGIS_HOME_UI_REPORT.md
+- FORGIS_BUILD_FIX_REPORT.md
+- FORGIS_LOG.md if useful
 
-Do not simply add more UI elements.
+Use the source repository only as a reference for intended behavior and visual direction.
 
-Do not overcomplicate the screen.
+## What to fix
 
-Kikaria's visual direction should remain calm, minimal, soft, premium, and study-focused.
+Fix issues that can prevent Android Studio sync, build, install, or app launch, such as:
 
-Prefer fewer, higher-impact changes over many scattered tweaks.
+- Kotlin syntax errors
+- invalid Compose API usage
+- missing imports
+- invalid custom getters or state declarations
+- invalid resource references
+- missing resources
+- invalid Manifest entries
+- package or namespace mismatch
+- broken navigation references
+- broken ViewModel usage
+- fragile visual code introduced by the previous UI pass
+- Gradle configuration problems
+- dependency or AndroidX configuration problems
 
-## Implementation freedom
+Keep fixes targeted.
 
-You may choose which Android files to edit.
+Do not add unrelated dependencies.
 
-You may adjust theme, reusable components, and home screen implementation if needed.
+Do not introduce network services, analytics, accounts, ads, telemetry, cloud services, or external runtime requirements.
 
-You may create small helper composables if they clearly improve the implementation.
+## Visual preservation
 
-You may use Compose-native drawing and layout techniques.
+The latest home screen direction should be preserved as much as possible.
 
-Do not introduce heavy dependencies.
+Do not revert to the old generic Material-style skeleton unless absolutely necessary for launch.
 
-Do not make fragile Gradle or dependency changes unless absolutely necessary.
+If a UI detail breaks build/runtime, simplify that detail while keeping the overall Kikaria-like direction.
 
 ## Report
 
 Create or update:
 
-Kikaria-Android/FORGIS_HOME_UI_REPORT.md
-
-Add a new section for this pass.
+Kikaria-Android/FORGIS_RUN_FIX_REPORT.md
 
 The report should include:
 
-- what source files you inspected;
-- what Android files you inspected;
-- the visual gaps you identified;
-- the refinement strategy you chose;
-- files changed;
-- remaining gaps;
-- recommended next pass.
+- files inspected
+- likely failure causes identified
+- files changed
+- fixes made
+- whether the home UI direction was preserved
+- remaining risks
+- suggested next local Android Studio steps
 
 ## Completion
 
 When finished, return final_summary with:
 
-- source files inspected;
-- Android files inspected;
-- main visual gaps identified;
-- changes made;
-- whether all writes stayed inside Kikaria-Android;
-- whether the source repository stayed read-only;
-- remaining risks;
-- recommended next step.
+- what was inspected
+- what was broken
+- what was fixed
+- which files changed
+- whether all writes stayed inside Kikaria-Android
+- whether the source repository stayed read-only
+- whether the app is expected to build/run
+- remaining risks
+- recommended next step
