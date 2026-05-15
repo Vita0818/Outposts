@@ -26,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -189,8 +190,8 @@ private fun Modifier.liquidGlassStroke(
             end = Offset(size.width, size.height)
         ),
         cornerRadius = CornerRadius(
-            shape.topStart.toPx(size, density),
-            shape.topEnd.toPx(size, density)
+            shape.topStart.toPx(size, this),
+            shape.topEnd.toPx(size, this)
         ),
         style = Stroke(width = strokeWidth)
     )
@@ -463,15 +464,17 @@ private fun DashboardMetricColumn(
 
 @Composable
 private fun rememberDateTitle(): String {
-    val calendar = Calendar.getInstance()
-    val day = calendar.get(Calendar.DAY_OF_MONTH)
-    val monthFormat = SimpleDateFormat("MMM", Locale.ENGLISH)
-    val month = monthFormat.format(calendar.time)
-    return "$month $day${ordinalSuffix(day)}"
+    return remember {
+        val calendar = Calendar.getInstance()
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+        val monthFormat = SimpleDateFormat("MMM", Locale.ENGLISH)
+        val month = monthFormat.format(calendar.time)
+        "$month $day${ordinalSuffix(day)}"
+    }
 }
 
 @Composable
-private fun rememberDaysLeftText(): String = "-- Days Left"
+private fun rememberDaysLeftText(): String = remember { "-- Days Left" }
 
 private fun ordinalSuffix(day: Int): String {
     val lastTwo = day % 100
