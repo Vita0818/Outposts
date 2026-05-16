@@ -9,7 +9,7 @@ model: deepseek-v4-pro
 api_base: https://api.deepseek.com
 api_format: openai-compatible
 
-target_branch: forgis/kikaria-android-staged-translation
+target_branch: forgis/kikaria-android-ui-layout-style
 target_base_branch: main
 
 run_log_path: Kikaria-Android/FORGIS_LOG.md
@@ -32,22 +32,22 @@ validation_commands: []
 success_checks: []
 
 staged_translation:
-  min_total_iterations: 180
+  min_total_iterations: 160
   min_processed_units: 4
   max_units_per_run: 10
 
   phases:
     overview:
-      min_iterations: 30
-      max_iterations: 90
+      min_iterations: 25
+      max_iterations: 80
 
     per_file:
-      min_iterations: 100
+      min_iterations: 90
       max_iterations: 240
 
     stabilization:
-      min_iterations: 30
-      max_iterations: 90
+      min_iterations: 25
+      max_iterations: 80
 
   enforce_micro_phases: true
   require_source_read: true
@@ -74,7 +74,15 @@ staged_translation:
 
   source_inventory:
     include_globs:
-      - "**/*"
+      - "README.md"
+      - "SPEC.md"
+      - "CODEX_CONTEXT.md"
+      - "Kikaria/ContentView.swift"
+      - "Kikaria/KikariaTypography.swift"
+      - "Kikaria/KikariaAdaptiveLayout.swift"
+      - "Kikaria/KikariaMathText.swift"
+      - "Kikaria/KikariaMathFormulaView.swift"
+      - "Kikaria/**/*.swift"
     exclude_globs:
       - ".git/**"
       - "**/.DS_Store"
