@@ -2,25 +2,26 @@
 
 You are running inside Forgis.
 
-This is a staged source-guided translation pass for the existing Kikaria-Android project.
+This is a focused UI style and component-layout refinement pass for the existing Kikaria-Android project.
 
-The source repository is Kikaria.
+The current Android app can run, and previous passes have moved it closer to Kikaria. However, the interface still does not fully capture the original product's visual rhythm, component arrangement, typography, softness, glass feeling, and overall study-product identity.
 
-The target repository is Outposts.
+This run should focus mainly on:
 
-The Android target project is located at:
+- interface style;
+- component arrangement;
+- visual hierarchy;
+- layout rhythm;
+- typography treatment;
+- color and atmosphere;
+- glass/card/bubble feeling;
+- screen-level UI fidelity.
 
-Kikaria-Android
+Do not perform a broad migration pass.
 
-The current Android version already exists and can be inspected. However, it is still not faithful enough to the original Kikaria source in structure, behavior, state semantics, and visual identity.
+Do not rewrite the whole project.
 
-This run should use the staged_translation execution mode.
-
-Do not perform a free-form UI tweak pass.
-
-Do not randomly edit files.
-
-Do not rewrite the whole project from scratch.
+Do not add major new features.
 
 Do not modify the source repository.
 
@@ -48,21 +49,19 @@ Do not print secrets.
 
 Do not add analytics, ads, accounts, telemetry, cloud services, or unrelated network services.
 
-## High-level goal
+## Main goal
 
-Move Kikaria-Android from a rough runnable Android approximation toward a more faithful translation of Kikaria.
+Improve the Android interface so it feels more like Kikaria.
 
-The goal is not to mechanically translate Swift code line by line.
+This is not a generic Material redesign.
 
-The goal is:
+This is not pixel-perfect copying.
 
-- business logic should be translated;
-- state logic should be mapped;
-- UI should be rebuilt natively from extracted intent and visual rules.
+This is source-guided UI reconstruction.
 
-For UI, preserve user-visible product identity rather than source-code shape.
+You should study the original iOS source, understand the intended visual structure and product feeling, compare it with the current Android implementation, then refine the Android UI using idiomatic Jetpack Compose.
 
-For state and model logic, preserve runtime semantics rather than superficial names.
+The priority of this run is visual quality and component arrangement, not new functionality.
 
 ## Required staged workflow
 
@@ -70,210 +69,237 @@ Use the staged_translation workflow seriously.
 
 Do not return final_summary early.
 
-Do not stop after only polishing one screen.
+Do not only write reports.
 
-Do not skip the progress artifacts.
+Do not randomly edit files.
 
-This run should follow three stages:
+The run should follow:
 
-1. Overall reading and understanding.
-2. One-file or one-functional-unit translation.
-3. Stabilization and build-oriented review.
+1. Overview and comparison.
+2. UI-focused source-unit processing.
+3. Stabilization and compile-oriented review.
 
-## Stage 1: overall reading and understanding
+## Stage 1: overview and comparison
 
-First inspect the source repository structure and the existing Android target structure.
+First inspect the relevant source and target files.
 
-Read enough source files and target files to understand:
+From the source repository, focus on files that reveal visual design, layout, typography, and screen structure, especially:
 
-- app entry and routing;
-- core data model;
-- preset and Markdown parsing;
-- review flow;
-- important collection / reinforcement flow;
-- mastered list flow;
-- home screen identity;
-- theme, typography, glass, and visual design rules;
-- current Android architecture;
-- current Android gaps.
+- source README / SPEC / CODEX_CONTEXT if present;
+- app entry and main view;
+- home screen implementation;
+- review screen implementation;
+- theme and typography;
+- adaptive layout;
+- reusable visual modifiers or components;
+- math/content rendering only if it affects visible layout.
 
-Create or update these files under Kikaria-Android:
+From the Android target, inspect:
 
-- FORGIS_TRANSLATION_PLAN.md
-- FORGIS_SOURCE_TARGET_MAP.md
-- FORGIS_TRANSLATION_PROGRESS.md
+- HomeScreen;
+- ReviewScreen;
+- ScopeSelectionScreen;
+- ReinforcementScreen;
+- MasteredScreen;
+- navigation shell;
+- theme and color files;
+- glass/card/component files;
+- ViewModel only where it affects visible displayed values;
+- existing Forgis reports and progress files.
 
-The plan should describe the staged migration strategy.
+Create or update:
 
-The source-target map should map source files or source functional units to Android target files or target functional units.
+- Kikaria-Android/FORGIS_TRANSLATION_PLAN.md
+- Kikaria-Android/FORGIS_SOURCE_TARGET_MAP.md
+- Kikaria-Android/FORGIS_TRANSLATION_PROGRESS.md
 
-The progress file should record what this run actually processed.
+In this run, the plan and map should explicitly mark this pass as UI/style/layout focused.
 
-Do not do large code rewrites during the overview stage.
+Do not start with large code rewrites.
 
-## Stage 2: one-file or one-unit translation
+## Stage 2: UI-focused per-file or per-unit refinement
 
-Process the source repository systematically.
+Process UI-related source files or source functional units one at a time.
 
-The middle stage must be one source file or one coherent functional unit at a time.
-
-For each selected source file or unit, follow this four-step loop:
+For each selected source file or unit, follow the staged micro-phases:
 
 1. Feed and understand
 
-Read the selected source file or source unit.
+Read the selected source unit.
 
-Read the related Android target file or files.
+Read the related Android UI/theme/component files.
 
-Identify what the source unit does, what state it owns, what UI or behavior it drives, and whether the Android version already covers it.
+Identify:
 
-2. Translate or merge
+- what screen or visual system the source unit contributes to;
+- what the user should see or feel;
+- what component hierarchy exists;
+- what state affects the visible UI;
+- how the current Android version differs;
+- whether the mismatch is in style, arrangement, typography, hierarchy, or interaction.
 
-Translate the source unit into the Android target in an idiomatic way.
+2. Translate, refine, or merge
 
-For business logic, preserve semantics.
+Modify the Android implementation to better preserve the source visual intent.
 
-For state, use Compose-observable or ViewModel-backed state where appropriate.
+Focus on:
 
-For UI, rebuild from intent using idiomatic Compose rather than mechanically copying SwiftUI structure.
+- visual hierarchy;
+- component arrangement;
+- spacing;
+- proportions;
+- typography;
+- color atmosphere;
+- glass/translucent feeling;
+- card or bubble hierarchy;
+- screen rhythm;
+- overall premium and minimal study-product feeling.
 
-Do not jump to unrelated source files during this step.
+Do not mechanically translate SwiftUI syntax.
+
+Do not add unrelated features.
+
+Do not rewrite non-UI systems unless required to keep the UI compiling.
 
 3. Read-only comparison
 
-After writing, read the source unit again and read the generated or modified target files.
+After writing, read the source unit and modified Android files again.
 
-Compare source intent and Android result.
-
-Write a focused comparison report under:
+Generate a focused comparison report under:
 
 Kikaria-Android/FORGIS_COMPARE_REPORTS
 
-or append a focused comparison entry to:
+or append a focused comparison section to:
 
 Kikaria-Android/FORGIS_TRANSLATION_PROGRESS.md
 
-This comparison should cover what is faithful, what is partial, and what remains.
+The comparison should say:
+
+- what visual intent was extracted;
+- what Android files were changed;
+- what is now closer;
+- what still differs;
+- what was intentionally deferred.
 
 4. Revision
 
-Use the comparison report to make a small targeted revision.
+Use the comparison report to make one targeted revision.
 
 Then update:
 
 - FORGIS_TRANSLATION_PROGRESS.md
 - FORGIS_SOURCE_TARGET_MAP.md
 
-Mark the unit as one of:
+Mark the source unit as:
 
 - translated
 - partially translated
 - needs review
 - deferred
-- missing target support
+- already covered
 
-Only then move to the next source file or source unit.
+Only then move to the next source unit.
+
+## UI focus areas
+
+Use your own judgment after reading the source and Android target.
+
+This pass should mainly improve the following kinds of problems:
+
+- the current Android UI may have the right rough structure but weak visual identity;
+- component sizes may not match the original rhythm;
+- spacing may feel too generic or too compressed;
+- cards may not feel glass-like enough;
+- bubbles or main action components may have the wrong visual weight;
+- typography may not preserve the original serif/bookish feeling;
+- numbers and Chinese labels may not feel aligned with the original;
+- lower dashboard components may have imperfect hierarchy;
+- review screen components may not yet match the original study flow;
+- navigation and screen transitions may feel generic;
+- the app may still look like a Compose demo instead of Kikaria.
+
+Do not treat this list as a rigid checklist.
+
+Use source inspection and your own comparison to decide the actual changes.
+
+## Screens to consider
+
+Prioritize screens and components that affect product identity.
+
+Likely priority:
+
+1. home screen;
+2. review screen;
+3. scope selection;
+4. reinforcement / important collection;
+5. mastered list;
+6. shared glass/card/button components;
+7. theme, typography, and color system.
+
+Do not spend the whole run on hidden data-layer code unless it affects visible UI.
+
+Do not touch persistence, import/export, Markdown parser, or math rendering unless a visible UI issue requires it.
 
 ## Folder-level review
 
-Whenever all directly relevant files in a source folder have been processed, perform a folder-level review.
+When relevant UI-related files in a source folder or target UI folder have been processed, perform a folder-level review.
 
-For that folder:
+For the folder-level review:
 
-- review the processed source files as a group;
-- review the corresponding Android target files as a group;
-- check cross-file consistency;
-- check shared state, navigation, model, UI, and component relationships;
+- compare the group of source UI files with the group of Android UI files;
+- check consistency across screens;
+- check shared components and theme usage;
+- check whether the Android UI now feels like one product;
 - make small consistency fixes if needed;
-- update FORGIS_TRANSLATION_PROGRESS.md and FORGIS_SOURCE_TARGET_MAP.md.
-
-If the folder is too large, review it in batches and clearly record what was included or omitted.
+- record the result in FORGIS_TRANSLATION_PROGRESS.md and FORGIS_SOURCE_TARGET_MAP.md.
 
 Do not silently skip folder-level review.
 
-## Suggested processing priorities
+## Stage 3: stabilization
 
-Use your own judgment after inspecting the source and target, but prioritize work that improves faithfulness and runnability.
+After UI refinements, perform a build-oriented and consistency-oriented review.
 
-A reasonable order is:
+Check:
 
-1. app entry and project structure;
-2. data models;
-3. preset and Markdown parsing;
-4. ViewModel and state semantics;
-5. home screen;
-6. review flow;
-7. scope selection;
-8. reinforcement / important collection;
-9. mastered list;
-10. theme, typography, adaptive layout, and glass components;
-11. content rendering and math-related areas;
-12. final consistency and build-oriented review.
-
-Do not spend the entire run on visual details.
-
-Do not ignore state semantics.
-
-Do not ignore build stability.
-
-## Translation principles
-
-SwiftUI to Compose is not syntax translation.
-
-For model and business logic:
-
-- preserve value semantics where practical;
-- prefer immutable Kotlin data classes for Swift value-like models;
-- use copy-style updates instead of shared mutable data when appropriate;
-- preserve nullability and early-exit control flow;
-- avoid unsafe forced null handling unless truly justified.
-
-For state:
-
-- do not translate SwiftUI state into ordinary Kotlin variables that do not drive recomposition;
-- use Compose state, snapshot state, StateFlow, ViewModel state, or another observable state pattern where appropriate;
-- keep state ownership clear.
-
-For UI:
-
-- infer screen purpose, visual hierarchy, typography, spacing, colors, interaction, and product feeling before writing Compose;
-- rebuild natively in Compose;
-- avoid generic Material-looking UI when the source design has a stronger identity;
-- keep Kikaria calm, minimal, soft, glass-like, premium, and study-focused.
-
-For reports:
-
-- be honest about partial coverage;
-- do not claim real build success unless a real build or validation command actually ran;
-- record what remains for future runs.
-
-## Stage 3: stabilization and build-oriented review
-
-After processing the selected files or units, perform a global stabilization pass.
-
-Inspect:
-
-- Gradle files;
-- manifest;
-- resources;
-- package names;
 - Kotlin syntax;
 - Compose API usage;
 - imports;
-- navigation;
-- ViewModel references;
-- model references;
 - resource references;
-- obvious runtime launch blockers;
-- progress files and reports.
+- navigation references;
+- ViewModel references used by the UI;
+- Gradle and manifest only if touched or needed;
+- whether the app is still expected to launch.
 
-Make small fixes needed to keep the project runnable.
+Make small fixes if needed.
 
-Do not start a new broad migration in this stage.
+Do not start another broad UI redesign in stabilization.
 
-If an actual build command is unavailable, perform static build-oriented review and say that no real build was run.
+Do not claim a real build succeeded unless an actual validation command ran.
 
-If validation commands are not configured, do not claim validation passed.
+If no build command was run, say that only static review was performed.
+
+## Design principle
+
+UI migration is not source syntax translation.
+
+For UI, preserve the user's perception of the product:
+
+- visual hierarchy;
+- calmness;
+- softness;
+- premium feeling;
+- light blue / translucent atmosphere where appropriate;
+- minimal study-focused interface;
+- bookish or serif-leaning typography where appropriate;
+- clear but not heavy component arrangement.
+
+Use Compose-native implementation.
+
+Do not overcomplicate the screen.
+
+Do not simply add more elements.
+
+Prefer fewer, higher-impact refinements.
 
 ## Required output files
 
@@ -283,37 +309,37 @@ Create or update:
 - Kikaria-Android/FORGIS_SOURCE_TARGET_MAP.md
 - Kikaria-Android/FORGIS_TRANSLATION_PROGRESS.md
 
-Use this directory for per-file or per-unit comparison reports:
+Use this directory for comparison reports:
 
 - Kikaria-Android/FORGIS_COMPARE_REPORTS
 
-You may update existing reports when relevant:
+Also update if relevant:
 
-- Kikaria-Android/FORGIS_MIGRATION_REPORT.md
 - Kikaria-Android/FORGIS_HOME_UI_REPORT.md
-- Kikaria-Android/FORGIS_BUILD_FIX_REPORT.md
 - Kikaria-Android/FORGIS_RUN_FIX_REPORT.md
+- Kikaria-Android/FORGIS_BUILD_FIX_REPORT.md
 
 Do not create excessive unrelated report files.
 
 ## Completion rules
 
-Do not return final_summary before the staged workflow has meaningfully completed its current run scope.
+Do not return final_summary before this UI/style/layout-focused staged run has meaningfully completed its current scope.
 
-If max_iterations is reached, record partial progress and next steps instead of pretending the task is complete.
+If max_iterations is reached, record partial progress and next steps.
 
 When finished, return final_summary with:
 
-- source files or source units inspected;
-- Android files inspected;
+- source files or units inspected;
+- Android UI files inspected;
+- UI/style/layout gaps identified;
 - source-target map status;
 - units processed in this run;
 - Android files changed;
-- structural improvements;
-- state-semantic improvements;
-- UI and product-identity improvements;
-- build or run stability improvements;
+- what improved visually;
+- what improved in component arrangement;
+- what improved in typography/theme/style;
 - whether all writes stayed inside Kikaria-Android;
 - whether the source repository stayed read-only;
-- whether real build validation was run or only static review was performed;
-- what remains for the next staged translation pass.
+- whether build/run was actually checked or only statically reviewed;
+- remaining UI gaps;
+- recommended next step.
