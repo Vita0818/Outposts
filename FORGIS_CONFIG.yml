@@ -1,109 +1,53 @@
 source_repo: Vita0818/Kikaria
-source_ref: main
-
+target_repo: Vita0818/Outposts
 target_subdir: Kikaria-Android
-task_prompt_path: FORGIS_TASK.md
 
-agent_backend: deepseek
+target_stack: Android Kotlin Jetpack Compose
 model: deepseek-v4-pro
-api_base: https://api.deepseek.com
-api_format: openai-compatible
-
-target_branch: forgis/kikaria-android-ui-layout-style
-target_base_branch: main
-
-run_log_path: Kikaria-Android/FORGIS_LOG.md
-
-dry_run: false
-run_agent: true
-confirm_real_run: true
-
-model_env:
-  DEEPSEEK_API_KEY: DEEPSEEK_API_KEY
 
 execution_mode: staged_translation
-
-max_iterations: 360
-max_tool_result_chars: 40000
-
 strict_mode: false
 
-validation_commands: []
-success_checks: []
+skills_enabled: true
+auto_select_skills: true
+selected_skills:
+  - migration_general
+  - swiftui_to_compose
+  - ui_style_preservation
+  - build_repair
 
-staged_translation:
-  min_total_iterations: 160
-  min_processed_units: 4
-  max_units_per_run: 10
+repair_loop_enabled: true
+max_repair_attempts: 2
+repair_requires_diff_check: true
+repair_requires_build_or_test: true
+repair_stop_on_success: true
 
-  phases:
-    overview:
-      min_iterations: 25
-      max_iterations: 80
+run_report_enabled: true
+run_report_output_dir: .forgis/reports
+run_report_include_events: true
+run_report_max_events: 100
+run_report_required: false
 
-    per_file:
-      min_iterations: 90
-      max_iterations: 240
+migration_scheduler_enabled: true
+max_migration_units: 50
+migration_unit_strategy: inventory
+migration_unit_prioritize_ui: true
+migration_unit_include_tests: true
+migration_unit_include_assets: true
 
-    stabilization:
-      min_iterations: 25
-      max_iterations: 80
+migration_plan_persistence_enabled: true
+migration_plan_output_dir: .forgis/reports
+migration_plan_filename: FORGIS_MIGRATION_PLAN.json
+migration_plan_resume_enabled: false
+migration_plan_required: false
 
-  enforce_micro_phases: true
-  require_source_read: true
-  require_compare_report: true
-  require_progress_update: true
-  require_target_effect_or_deferred_reason: true
+migration_plan_auto_update_enabled: true
+migration_plan_resume_summary_enabled: true
+migration_plan_event_log_max_events: 100
+migration_plan_auto_complete_on_success: false
 
-  per_file_micro_phases:
-    enabled: true
-    require_feed: true
-    require_write: true
-    require_compare_report: true
-    require_revision: true
+migration_plan_audit_summary_enabled: true
+migration_plan_audit_max_events: 10
 
-  low_impact_warning:
-    enabled: true
-    min_code_changed_paths: 1
-    ignore_report_only_changes: true
-
-  folder_batch_review:
-    enabled: true
-    max_bundle_chars: 80000
-    require_after_folder_complete: true
-
-  source_inventory:
-    include_globs:
-      - "README.md"
-      - "SPEC.md"
-      - "CODEX_CONTEXT.md"
-      - "Kikaria/ContentView.swift"
-      - "Kikaria/KikariaTypography.swift"
-      - "Kikaria/KikariaAdaptiveLayout.swift"
-      - "Kikaria/KikariaMathText.swift"
-      - "Kikaria/KikariaMathFormulaView.swift"
-      - "Kikaria/**/*.swift"
-    exclude_globs:
-      - ".git/**"
-      - "**/.DS_Store"
-      - "**/build/**"
-      - "**/.gradle/**"
-      - "**/DerivedData/**"
-      - "**/node_modules/**"
-      - "**/*.xcuserstate"
-      - "**/*.xcworkspace/**"
-      - "**/*.xcodeproj/project.xcworkspace/**"
-      - "**/*.xcodeproj/xcuserdata/**"
-      - "**/*.png"
-      - "**/*.jpg"
-      - "**/*.jpeg"
-      - "**/*.gif"
-      - "**/*.pdf"
-      - "**/*.zip"
-      - "**/*.lock"
-
-  progress_files:
-    plan: FORGIS_TRANSLATION_PLAN.md
-    source_target_map: FORGIS_SOURCE_TARGET_MAP.md
-    progress: FORGIS_TRANSLATION_PROGRESS.md
-    compare_report_dir: FORGIS_COMPARE_REPORTS
+build_command: []
+test_command: []
