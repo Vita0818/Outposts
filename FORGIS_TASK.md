@@ -1,3 +1,27 @@
+# Kikaria Android Migration Task
+
+Migrate the current Kikaria app into an Android application built with Kotlin and Jetpack Compose.
+
+Write all generated target code under Kikaria-Android only. Do not modify files outside that target subdirectory.
+
+Preserve Kikaria's existing information architecture, core user flows, naming intent, visual hierarchy, and interaction style. Do not hard-code Vita-specific personal data, local paths, secrets, or environment assumptions.
+
+First-run scope: create a clean Android/Kotlin/Compose foundation, migrate the primary navigation and first set of core screens, and leave clear TODOs for deferred areas.
+
+Important requirements:
+1. Use Kotlin and Jetpack Compose.
+2. Preserve Kikaria's original UI structure and visual style as much as possible.
+3. Do not redesign the product into a generic Material demo.
+4. Do not hard-code user names, avatars, local paths, or private data.
+5. Read source files before implementing corresponding target files.
+6. Keep target changes inside Kikaria-Android.
+7. Prefer shared models, state holders, repositories, and reusable Compose components.
+8. Do not configure or fake build/test results in this first run.
+9. Use git_diff to review target changes before final summary.
+10. Report migrated, deferred, and blocked areas clearly.
+
+
+
 本轮任务：将新版 Kikaria 迁移为 Android Kotlin Jetpack Compose 版本，目标写入 target_subdir：Kikaria-Android。
 
 严格范围：
