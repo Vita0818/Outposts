@@ -492,3 +492,57 @@ Now I have a thorough understanding of both the source project and the target. L
 ### Warnings
 
 - None.
+
+
+## Forgis Run - 2026-05-21T06:29:00Z
+
+| Field | Value |
+|---|---|
+| Run id | `26209272400` |
+| Run time | `2026-05-21T06:29:00Z` |
+| Run URL | `https://github.com/Vita0818/Forgis/actions/runs/26209272400` |
+| Target repo | `Vita0818/Outposts` |
+| Source repo | `Vita0818/Kikaria` |
+| Source ref | `main` |
+| Target base branch | `main` |
+| Target branch | `forgis/kikaria-android` |
+| Target subdir | `Kikaria-Android` |
+| Task file path | `FORGIS_TASK.md` |
+| Config path | `FORGIS_CONFIG.yml` |
+| Agent backend | `deepseek` |
+| Model | `deepseek-v4-pro` |
+| dry_run | `false` |
+| run_agent config value | `true` |
+| Effective run_agent | `true` |
+| confirm_real_run | `true` |
+| DeepSeek executed | `true` |
+| DeepSeek status | `completed` |
+| Tool call count | `29` |
+| Read tool count | `25` |
+| Write tool count | `1` |
+| Guardrail result | `See workflow logs.` |
+| validation_commands | `0 configured` |
+| success_checks | `0 configured` |
+| Run log path | `Kikaria-Android/FORGIS_LOG.md` |
+| Validation result | `See workflow logs.` |
+
+### Changed Paths
+
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/MainActivity.kt`
+
+### Read-Only Inputs
+
+- Source repository checkout
+- Target repository outside `Kikaria-Android/`
+- Config file: `FORGIS_CONFIG.yml`
+- Task file: `FORGIS_TASK.md`
+
+### Final Summary
+
+The `MainActivity.kt` migration unit is complete. My changes are minimal and focused: documentation improvements and a clear TODO for the deferred notification feature. The file was already well-migrated from the source `KikariaApp.swift` in a previous run.\n\n## final_summary\n\n### Files Modified\n\nOnly one file was changed in this session:\n\n- **`Kikaria-Android/app/src/main/java/com/vita0818/kikaria/MainActivity.kt`** — Added KDoc comments documenting the iOS→Android mapping (`MainActivity` ↔ `@main struct KikariaApp`, `KikariaApp()` ↔ `WindowGroup { ContentView() }`), and a TODO for Android notification channel/permission setup that mirrors the iOS `UNUserNotificationCenter` delegate.\n\n### Main Android Foundation\n\nThe project foundation was already in place from prior migration runs:\n\n| Layer | Files |\n|---|---|\n| Build system | `settings.gradle.kts`, `build.gradle.kts`, `app/build.gradle.kts`, `gradle-wrapper.properties` |\n| Manifest | `AndroidManifest.xml` |\n| Entry point | `MainActivity.kt` + `KikariaApp()` composable |\n| Navigation | `KikariaNavGraph.kt` (5 routes: HOME, REVIEW, SCOPE, REINFORCEMENT, MASTERED) |\n| Theme | `KikariaColors.kt`, `KikariaTheme.kt`, `KikariaTypography.kt` |\n| Data | `KnowledgePoint.kt`, `KnowledgePreset.kt`, `PresetStudyState.kt`, `StudyActivityRecord.kt`, `SamplePresets.kt` |\n| ViewModel | `KikariaViewModel.kt` |\n| Screens | `HomeScreen.kt`, `ReviewScreen.kt`, `ScopeSelectionScreen.kt`, `ReinforcementScreen.kt`, `MasteredScreen.kt` |\n| Components | `GlassComponents.kt` |\n| Util | `MarkdownParser.kt` |\n\n### Screens / Components Migrated (prior runs)\n\n- **HomeScreen** — Kikaria title, breathing start-review button with orbiting decorative bubbles, today-progress card, dashboard card (scope / reinforcement / mastered metrics + preset name)\n- **ReviewScreen** — Title → hint → content flow with three review modes (Normal, Reinforcement, Mastered) and distinct bottom action bars\n- **ScopeSelectionScreen** — Tag filter grid for scoped review\n- **ReinforcementScreen** — Important collection list sorted by reinforcement count\n- **MasteredScreen** — Mastered knowledge points list\n- **GlassComponents** — Liquid glass card/capsule/circle modifiers with gradient borders matching the iOS visual identity\n\n### Source Areas Inspected\n\n- `source/Kikaria/KikariaApp.swift` — App entry point and notification delegate\n- `source/Kikaria/ContentView.swift` — All screens, theme, glass modifiers, navigation, state management (~9900 lines)\n- `source/Kikaria/KnowledgePoint.swift` — Data models and markdown parser\n- `source/Kikaria/StudyTracking.swift` — Activity records and widget data\n- `source/Kikaria/KikariaTypography.swift` — Typography system\n- `source/Kikaria/KikariaAdaptiveLayout.swift` — Adaptive layout metrics\n\n### Deferred Areas\n\n1. **Notifications** — Study-progress warning scheduling (TODO added in MainActivity.kt)\n2. **Today Overview / Review History** — Calendar-based daily summary screen\n3. **Preset Management** — Create, edit, delete, import presets\n4. **Settings / Profile** — User profile editing, onboarding flow\n5. **LaTeX / Math Rendering** — Inline and block math formula display\n6. **Swipe Gestures** — Review navigation by swipe\n7. **Tablet-Adaptive Layout** — Two-column landscape layouts for larger screens\n8. **Persistent Storage** — App state serialization (currently in-memory only)\n9. **Widget** — Android AppWidget equivalent of iOS WidgetKit extension\n\n### Blocked Areas\n\nNone.\n\n### Build / Test\n\nNot run. The `run_build` tool has no configured build command, and Gradle is not in the conservative Forgis command allowlist. The task explicitly states not to add `build_command` or `test_command` to `FORGIS_CONFIG.yml` for this first run.\n\n### Suggested Next Migration Unit\n\nBased on the migration plan structure and the deferred areas above, the next logical unit would be the **Today Overview screen** (`TodayOverviewView` in the source `Con
+
+[Forgis log note: final_summary truncated after 4000 characters.]
+
+### Warnings
+
+- None.
