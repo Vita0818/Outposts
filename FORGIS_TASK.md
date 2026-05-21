@@ -2,85 +2,140 @@
 
 Migrate the current Kikaria app into an Android application built with Kotlin and Jetpack Compose.
 
-Write all generated target code under Kikaria-Android only. Do not modify files outside that target subdirectory.
+Write all generated target code under `Kikaria-Android` only. Do not modify files outside that target subdirectory.
 
-Preserve Kikaria's existing information architecture, core user flows, naming intent, visual hierarchy, and interaction style. Do not hard-code Vita-specific personal data, local paths, secrets, or environment assumptions.
+The target repository is provided externally by the Forgis workflow input. Do not assume or hard-code the target repository name inside generated code.
 
-First-run scope: create a clean Android/Kotlin/Compose foundation, migrate the primary navigation and first set of core screens, and leave clear TODOs for deferred areas.
+## Target platform
 
-Important requirements:
-1. Use Kotlin and Jetpack Compose.
-2. Preserve Kikaria's original UI structure and visual style as much as possible.
-3. Do not redesign the product into a generic Material demo.
-4. Do not hard-code user names, avatars, local paths, or private data.
-5. Read source files before implementing corresponding target files.
-6. Keep target changes inside Kikaria-Android.
-7. Prefer shared models, state holders, repositories, and reusable Compose components.
-8. Do not configure or fake build/test results in this first run.
-9. Use git_diff to review target changes before final summary.
-10. Report migrated, deferred, and blocked areas clearly.
+Use:
 
+- Android
+- Kotlin
+- Jetpack Compose
 
+Do not write platform information into `FORGIS_CONFIG.yml`. This task file is the authority for the target stack.
 
-本轮任务：将新版 Kikaria 迁移为 Android Kotlin Jetpack Compose 版本，目标写入 target_subdir：Kikaria-Android。
+## Product identity
 
-严格范围：
-1. 只允许读取 source repo 中的 Kikaria 源码、资源、配置和文档。
-2. 只允许写入 target repo 的 Kikaria-Android 目录。
-3. 不允许修改 target repo 中 Kikaria-Android 之外的任何目录。
-4. 不允许访问 source repo / target repo 之外的文件。
-5. 不允许访问桌面、下载、文档、其他项目、钥匙串、系统目录或个人文件。
-6. 不允许全盘搜索。
-7. 不允许写入 secrets、token、API key 或私人路径。
-8. 如果需要访问范围外文件，必须停止并说明原因。
+Kikaria is a local study and memorization app. It is not a generic flashcard demo and must not be redesigned into a generic Material sample app.
 
-迁移目标：
-把新版 Kikaria 的 iOS / SwiftUI 应用迁移为 Android 版本，技术栈为 Kotlin + Jetpack Compose。
+Preserve the existing Kikaria information architecture, naming intent, visual hierarchy, and interaction style as much as possible.
 
-第一轮目标不是完整迁移所有功能，而是建立可继续迭代的 Android 工程基础：
+Do not hard-code Vita-specific personal data, user names, avatars, local paths, secrets, API keys, or environment assumptions.
 
-1. 创建或补全 Kikaria-Android 的基础工程结构。
-2. 保持源项目的信息架构、主要页面、核心交互和视觉风格。
-3. 优先迁移核心模型、数据结构、主要页面骨架和导航关系。
-4. 优先迁移新版 Kikaria 的首页 / 学习入口 / 预设或知识点管理 / 背诵流程相关结构。
-5. 暂时无法完整迁移的功能，应记录为 deferred 或 TODO，不要随意重设计。
-6. 不要为了适配 Android 而改变产品结构。
-7. 不要引入无关功能。
-8. 不要引入复杂第三方依赖，除非 Android 基础工程必须。
+## First-run scope
 
-UI / UX 要求：
-1. 尽量保持 Kikaria 原有的简洁、精装书感、低噪声界面。
-2. 迁移 SwiftUI 到 Compose 时，优先保持布局层次、视觉密度、组件关系和交互意图。
-3. 不要把界面改成普通 Material Demo 风格。
-4. 不要随意增加多余按钮、提示、卡片、说明文字。
-5. 相似组件必须尽量复用，不要复制粘贴多个重复实现。
-6. 首页、复习页、设置页、知识点/预设管理页之间的标题字号、边距、按钮风格要统一。
-7. 圆形按钮优先使用系统图标，不要自造复杂图形。
-8. 动画保持克制，避免性能风险。
-9. 如果源项目中有细粒度字体管理逻辑，Android 版本也要建立集中式 typography / script-aware text 的基础，而不是到处硬编码 font。
+This is the first Android migration run. The goal is to create a clean Android/Kotlin/Compose foundation and migrate the primary structure and first set of core screens.
 
-重要产品规则：
-1. 用户名、昵称、头像等必须来自用户资料/设置，不得硬编码 “Vita”。
-2. 如果字符串中混合英文、数字、中文，应考虑未来做 script-aware typography，不要把所有文本粗暴套同一个字体。
-3. 重点集锦、已掌握、每日目标、倒数日、预设切换、知识点导入/管理等逻辑应尽量参考源项目。
-4. 如果某个功能源代码还没读到，不要猜测实现；先搜索/读取相关文件。
-5. 不要编造不存在的源项目行为。
+Prioritize:
 
-工程要求：
-1. Android 代码应使用 Kotlin + Jetpack Compose。
-2. 目录结构应清晰，便于后续继续迁移。
-3. 尽量建立 shared model / state / repository / UI component 分层。
-4. 不要一次性塞进巨大单文件。
-5. 不要提交不可解释的大范围重构。
-6. 每次修改后使用 git_diff 自查。
-7. 如果 build/test command 未配置，不要伪造构建结果；在报告中说明 skipped。
-8. 如果生成 migration plan，请围绕 active unit 工作，不要跳到无关文件。
-9. 不自动执行下一个 unit。
+1. Android project structure under `Kikaria-Android`
+2. Kotlin + Jetpack Compose app foundation
+3. Primary navigation structure
+4. Core data models
+5. Reusable UI components
+6. Home screen foundation
+7. Review / study session foundation
+8. Preset / knowledge item model foundation
+9. Settings/profile foundation where feasible
+10. Clear TODOs for deferred areas
 
-输出要求：
-1. 修改完成后生成清晰 final summary。
-2. 报告哪些 SwiftUI 文件已读取。
-3. 报告哪些 Android 文件已创建或修改。
-4. 报告哪些功能已迁移、哪些 deferred、哪些 blocked。
-5. 报告下一轮建议迁移的 unit。
-6. 不输出完整源码、完整 diff、secrets 或私人绝对路径。
+Do not pretend deferred features are complete. Clearly report migrated, deferred, and blocked areas.
+
+## Source-reading requirement
+
+Before implementing a target file, read the corresponding source files from the Kikaria source repository.
+
+Do not invent the product structure from memory. Inspect source files, source UI composition, models, navigation, assets, and naming before writing Android code.
+
+## Core Kikaria concepts to preserve
+
+Preserve these concepts when present in the source app:
+
+- Presets / knowledge sets
+- Knowledge point name, prompt/hint, content, and tags
+- Study/review flow
+- Randomized or shuffled study sessions
+- Daily goal / daily review progress
+- Countdown-day style home information
+- Important collection / key collection
+- Mastered list
+- Per-preset state where applicable
+- Profile/settings structure where applicable
+- Minimal, calm, study-oriented UI style
+
+## UI and visual requirements
+
+Preserve Kikaria's original visual direction as much as Compose reasonably allows.
+
+Important:
+
+1. Do not redesign it into a default Material demo.
+2. Prefer a minimal, clean, calm interface.
+3. Preserve visual hierarchy and spacing from the source app when possible.
+4. Prefer reusable Compose components instead of duplicating screen-specific styling.
+5. Centralize typography and color decisions.
+6. Do not hard-code user names such as “Vita”.
+7. If the source app uses refined serif-like typography or mixed-script font behavior, create a centralized typography layer and leave clear TODOs for exact font matching if Android font assets are not yet available.
+8. Avoid adding unnecessary UI elements, labels, buttons, or explanatory text.
+
+## Architecture requirements
+
+Prefer a maintainable Android structure.
+
+Use shared models, state holders, repositories, and reusable Compose components.
+
+Reasonable first-run structure may include:
+
+- `app/src/main/java/.../MainActivity.kt`
+- Compose navigation entry
+- screen package
+- component package
+- model package
+- state or viewmodel package
+- repository or sample data package
+- theme package
+
+Use placeholder/sample data only where necessary to make migrated screens coherent. Mark placeholders clearly.
+
+## Safety and boundaries
+
+All target changes must stay inside:
+
+`Kikaria-Android`
+
+Do not modify source repository files.
+
+Do not modify unrelated target repository files outside `Kikaria-Android`.
+
+Do not add secrets.
+
+Do not add real API keys.
+
+Do not add local absolute paths.
+
+Do not configure fake build/test results.
+
+Do not claim the Android project builds unless a real build was run successfully by Forgis.
+
+## Build/test requirement for first run
+
+Do not add `build_command` or `test_command` to `FORGIS_CONFIG.yml` for this first run.
+
+If build/test cannot be run because the Android project foundation is incomplete or the safe command runner does not allow the needed command, report that honestly.
+
+## Required final behavior
+
+Before final summary, use `git_diff` to review target changes.
+
+Final summary must include:
+
+1. Files created or modified
+2. Main Android foundation added
+3. Screens/components migrated
+4. Source areas inspected
+5. Deferred areas
+6. Blocked areas, if any
+7. Whether build/test was run
+8. Clear next suggested migration unit
