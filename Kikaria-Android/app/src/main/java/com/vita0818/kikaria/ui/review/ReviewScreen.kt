@@ -15,9 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
@@ -26,51 +24,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vita0818.kikaria.ui.components.KikariaCircularIconButton
+import com.vita0818.kikaria.ui.components.KikariaIcons
+import com.vita0818.kikaria.ui.components.KikariaPageShell
+import com.vita0818.kikaria.ui.components.kikariaGlassStroke
 import com.vita0818.kikaria.ui.theme.KikariaColors
+import com.vita0818.kikaria.ui.theme.KikariaTypography
 import com.vita0818.kikaria.viewmodel.KikariaViewModel
 import com.vita0818.kikaria.viewmodel.ReviewMode
-
-// ─── Glass stroke helpers ───
-
-private fun glassCardStrokeColors(isDark: Boolean): List<Color> {
-    val accent = if (isDark) KikariaColors.GlassStrokeAccentDark else KikariaColors.GlassStrokeAccent
-    return listOf(
-        Color.White.copy(alpha = if (isDark) 0.36f else 0.44f),
-        Color.White.copy(alpha = if (isDark) 0.08f else 0.10f),
-        accent.copy(alpha = if (isDark) 0.22f else 0.14f)
-    )
-}
-
-private fun Modifier.glassStroke(
-    shape: RoundedCornerShape,
-    isDark: Boolean,
-    lineWidth: Float = 1f
-): Modifier = this.drawBehind {
-    val strokeWidth = lineWidth * density
-    drawRoundRect(
-        brush = Brush.linearGradient(
-            colors = glassCardStrokeColors(isDark),
-            start = Offset.Zero,
-            end = Offset(size.width, size.height)
-        ),
-        cornerRadius = CornerRadius(
-            shape.topStart.toPx(size, this),
-            shape.topEnd.toPx(size, this)
-        ),
-        style = Stroke(width = strokeWidth)
-    )
-}
 
 // ─── Tone system (matches iOS ReviewActionTone) ───
 
@@ -88,7 +55,6 @@ private data class ToneColors(
 
 private fun toneColors(tone: ActionTone, isDark: Boolean, isPrimary: Boolean): ToneColors {
     val glass = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
-    val glassFill = Brush.linearGradient(listOf(glass.copy(alpha = 0f), glass.copy(alpha = 0f)))
     return when (tone) {
         ActionTone.Blue -> ToneColors(
             primaryFill = if (isDark) KikariaColors.ActionGradientDark else KikariaColors.ActionGradientLight,
@@ -171,7 +137,7 @@ private fun ReviewActionButton(
                 spotColor = colors.shadowColor.copy(alpha = colors.shadowOpacity))
             .clip(shape)
             .background(if (isPrimary) colors.primaryFill else colors.secondaryFill)
-            .glassStroke(shape, isDark)
+            .kikariaGlassStroke(shape, isDark)
             .clickable { onClick() }
             .padding(vertical = 19.dp),
         contentAlignment = Alignment.Center
@@ -197,41 +163,30 @@ fun ReviewScreen(
 ) {
     val point = viewModel.currentPoint
     val isDark = isSystemInDarkTheme()
-    val pageGradient = if (isDark) KikariaColors.PageGradientDark else KikariaColors.PageGradientLight
     val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
+    val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
+    val tertiaryText = if (isDark) KikariaColors.TertiaryTextDark else KikariaColors.TertiaryText
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(pageGradient)
-    ) {
+    KikariaPageShell {
         if (point == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    text = "没有可复习的知识点",
-                    color = if (isDark) KikariaColors.TertiaryTextDark else KikariaColors.TertiaryText,
-                    fontSize = 18.sp
+                    text = "\u6CA1\u6709\u53EF\u590D\u4E60\u7684\u77E5\u8BC6\u70B9",
+                    color = tertiaryText,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
                 )
             }
-            return@Box
+            return@KikariaPageShell
         }
 
-        // Back button overlay (glass circle, matches iOS KikariaAdaptiveBackButton)
-        Box(
-            modifier = Modifier
-                .padding(start = 24.dp, top = 12.dp)
-                .size(42.dp)
-                .shadow(10.dp, CircleShape,
-                    ambientColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = 0.08f),
-                    spotColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = 0.08f))
-                .clip(CircleShape)
-                .background(glassSurface.copy(alpha = 0.40f))
-                .clickable { onBack() },
-            contentAlignment = Alignment.Center
-        ) {
-            Text("‹", fontSize = 22.sp, fontWeight = FontWeight.SemiBold,
-                color = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText)
-        }
+        // Back button overlay
+        KikariaCircularIconButton(
+            onClick = onBack,
+            textIcon = KikariaIcons.TEXT_BACK,
+            modifier = Modifier.padding(start = 24.dp, top = 12.dp),
+            size = 42.dp
+        )
 
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(Modifier.height(12.dp))
@@ -259,24 +214,22 @@ fun ReviewScreen(
             ) {
                 // Title card (glass-styled, matches iOS titleGroup)
                 val titleCardShape = RoundedCornerShape(24.dp)
+                val shadowC = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = 0.12f)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .shadow(18.dp, titleCardShape,
-                            ambientColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = 0.12f),
-                            spotColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = 0.12f))
+                            ambientColor = shadowC,
+                            spotColor = shadowC)
                         .clip(titleCardShape)
                         .background(glassSurface.copy(alpha = 0.40f))
-                        .glassStroke(titleCardShape, isDark)
+                        .kikariaGlassStroke(titleCardShape, isDark)
                         .padding(24.dp)
                 ) {
                     Column {
                         Text(
-                            text = point.title,
-                            fontFamily = FontFamily.Serif,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText,
+                            text = KikariaTypography.mixedText(point.title, size = 24, weight = FontWeight.SemiBold),
+                            color = deepText,
                             lineHeight = 32.sp
                         )
 
@@ -289,51 +242,52 @@ fun ReviewScreen(
 
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = "该知识点今日复习 ${viewModel.todayReviewCount} 次",
-                            fontFamily = FontFamily.Serif,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = (if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText).copy(alpha = 0.78f)
+                            KikariaTypography.mixedText(
+                                "\u8BE5\u77E5\u8BC6\u70B9\u4ECA\u65E5\u590D\u4E60 ${viewModel.todayReviewCount} \u6B21",
+                                size = 12,
+                                weight = FontWeight.SemiBold
+                            ),
+                            color = deepText.copy(alpha = 0.78f)
                         )
                     }
                 }
 
                 Spacer(Modifier.height(14.dp))
 
-                // Hint card (glass-styled, matches iOS FloatingInfoCard)
+                // Hint card
                 AnimatedVisibility(
                     visible = viewModel.isHintShown,
                     enter = fadeIn() + slideInVertically { it / 2 }
                 ) {
-                    ReviewInfoCard(label = "提示", text = point.hint, isDark = isDark)
+                    ReviewInfoCard(label = "\u63D0\u793A", text = point.hint, isDark = isDark)
                 }
 
                 if (viewModel.isHintShown) {
                     Spacer(Modifier.height(12.dp))
                 }
 
-                // Content card (glass-styled)
+                // Content card
                 AnimatedVisibility(
                     visible = viewModel.isContentShown,
                     enter = fadeIn() + slideInVertically { it / 2 }
                 ) {
-                    ReviewInfoCard(label = "答案", text = point.content, isDark = isDark)
+                    ReviewInfoCard(label = "\u7B54\u6848", text = point.content, isDark = isDark)
                 }
 
-                // Reveal buttons (glass-styled, matches iOS revealButtons)
+                // Reveal buttons
                 if (!viewModel.isContentShown) {
                     Spacer(Modifier.height(16.dp))
 
                     if (!viewModel.isHintShown) {
                         ReviewActionButton(
-                            text = "查看提示",
+                            text = "\u67E5\u770B\u63D0\u793A",
                             tone = ActionTone.Blue,
                             isPrimary = false,
                             onClick = { viewModel.showHint() }
                         )
                     } else {
                         ReviewActionButton(
-                            text = "查看答案",
+                            text = "\u67E5\u770B\u7B54\u6848",
                             tone = ActionTone.Blue,
                             isPrimary = true,
                             onClick = { viewModel.showContent() }
@@ -344,7 +298,7 @@ fun ReviewScreen(
                 Spacer(Modifier.height(16.dp))
             }
 
-            // Bottom action bar (matches iOS answeredActionGrid)
+            // Bottom action bar
             if (viewModel.isContentShown) {
                 ReviewBottomActionBar(
                     viewModel = viewModel,
@@ -379,13 +333,13 @@ private fun ReviewBottomActionBar(
                 when (viewModel.reviewMode) {
                     ReviewMode.NORMAL -> {
                         ReviewActionButton(
-                            text = if (point?.isReinforced == true) "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
+                            text = if (point?.isReinforced == true) "\u518D\u6B21\u52A0\u5165 \u00D7${point.reinforcementCount}" else "\u52A0\u5165\u91CD\u70B9\u96C6\u9526",
                             tone = ActionTone.Amber,
                             isPrimary = true,
                             onClick = { viewModel.toggleReinforcement() }
                         )
                         ReviewActionButton(
-                            text = if (point?.isMastered == true) "已设定为掌握" else "加入已掌握",
+                            text = if (point?.isMastered == true) "\u5DF2\u8BBE\u5B9A\u4E3A\u638C\u63E1" else "\u52A0\u5165\u5DF2\u638C\u63E1",
                             tone = ActionTone.Green,
                             isPrimary = point?.isMastered != true,
                             onClick = { viewModel.toggleMastered() }
@@ -393,13 +347,13 @@ private fun ReviewBottomActionBar(
                     }
                     ReviewMode.REINFORCEMENT -> {
                         ReviewActionButton(
-                            text = "移出重点集锦",
+                            text = "\u79FB\u51FA\u91CD\u70B9\u96C6\u9526",
                             tone = ActionTone.Red,
                             isPrimary = true,
                             onClick = { viewModel.toggleReinforcement() }
                         )
                         ReviewActionButton(
-                            text = if (point?.isMastered == true) "已设定为掌握" else "加入已掌握",
+                            text = if (point?.isMastered == true) "\u5DF2\u8BBE\u5B9A\u4E3A\u638C\u63E1" else "\u52A0\u5165\u5DF2\u638C\u63E1",
                             tone = ActionTone.Green,
                             isPrimary = point?.isMastered != true,
                             onClick = { viewModel.toggleMastered() }
@@ -407,13 +361,13 @@ private fun ReviewBottomActionBar(
                     }
                     ReviewMode.MASTERED -> {
                         ReviewActionButton(
-                            text = if (point?.isReinforced == true) "再次加入 ×${point?.reinforcementCount}" else "加入重点集锦",
+                            text = if (point?.isReinforced == true) "\u518D\u6B21\u52A0\u5165 \u00D7${point.reinforcementCount}" else "\u52A0\u5165\u91CD\u70B9\u96C6\u9526",
                             tone = ActionTone.Amber,
                             isPrimary = true,
                             onClick = { viewModel.toggleReinforcement() }
                         )
                         ReviewActionButton(
-                            text = "移出已掌握",
+                            text = "\u79FB\u51FA\u5DF2\u638C\u63E1",
                             tone = ActionTone.Red,
                             isPrimary = true,
                             onClick = { viewModel.toggleMastered() }
@@ -423,11 +377,11 @@ private fun ReviewBottomActionBar(
             }
 
             ReviewActionButton(
-                text = "下一个",
+                text = "\u4E0B\u4E00\u4E2A",
                 tone = ActionTone.Amber,
                 isPrimary = false,
                 verticalContent = true,
-                icon = "⇄",
+                icon = "\u21C4",
                 onClick = { viewModel.nextPoint() },
                 modifier = Modifier.weight(0.8f).height(110.dp)
             )
@@ -452,7 +406,7 @@ private fun ReviewInfoCard(label: String, text: String, isDark: Boolean) {
                 spotColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = 0.14f))
             .clip(shape)
             .background(glassSurface.copy(alpha = 0.56f))
-            .glassStroke(shape, isDark)
+            .kikariaGlassStroke(shape, isDark)
             .padding(18.dp)
     ) {
         Column {
@@ -464,9 +418,7 @@ private fun ReviewInfoCard(label: String, text: String, isDark: Boolean) {
             )
             Spacer(Modifier.height(10.dp))
             Text(
-                text = text,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Normal,
+                text = KikariaTypography.mixedText(text, size = 17, weight = FontWeight.Normal),
                 color = deepText,
                 lineHeight = 26.sp
             )
