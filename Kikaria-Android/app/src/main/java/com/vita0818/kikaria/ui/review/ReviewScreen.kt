@@ -30,10 +30,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vita0818.kikaria.ui.components.KikariaCircularIconButton
-import com.vita0818.kikaria.ui.components.KikariaIcons
+import com.vita0818.kikaria.ui.components.KikariaBackButton
+import com.vita0818.kikaria.ui.components.KikariaGlassCard
 import com.vita0818.kikaria.ui.components.KikariaPageShell
-import com.vita0818.kikaria.ui.components.kikariaGlassStroke
+import com.vita0818.kikaria.ui.components.KikariaTagChip
 import com.vita0818.kikaria.ui.theme.KikariaColors
 import com.vita0818.kikaria.ui.theme.KikariaTypography
 import com.vita0818.kikaria.viewmodel.KikariaViewModel
@@ -85,7 +85,8 @@ private fun toneColors(tone: ActionTone, isDark: Boolean, isPrimary: Boolean): T
         ActionTone.Amber -> ToneColors(
             primaryFill = if (isDark) KikariaColors.NextGradientDark else KikariaColors.NextGradientLight,
             secondaryFill = Brush.linearGradient(listOf(
-                KikariaColors.NextAmber.copy(alpha = if (isDark) 0.72f else 0.68f),
+                (if (isDark) KikariaColors.NextAmberDark else KikariaColors.NextAmber).copy(
+                    alpha = if (isDark) 0.72f else 0.68f),
                 Color(0xFF9487CC).copy(alpha = if (isDark) 0.68f else 0.56f)
             )),
             foreground = Color.White.copy(alpha = 0.94f),
@@ -94,22 +95,18 @@ private fun toneColors(tone: ActionTone, isDark: Boolean, isPrimary: Boolean): T
             strokeAccent = if (isDark) KikariaColors.NextAmberDark else KikariaColors.NextAmber,
             strokeAccentOpacity = 0.16f
         )
-        ActionTone.Red -> {
-            val removeLight = Brush.linearGradient(listOf(Color(0xFFE66059), Color(0xFFFA9480)))
-            val removeDark = Brush.linearGradient(listOf(Color(0xFF942420), Color(0xFFDB4747)))
-            ToneColors(
-                primaryFill = if (isDark) removeDark else removeLight,
-                secondaryFill = Brush.linearGradient(listOf(
-                    KikariaColors.RemoveCoral.copy(alpha = if (isDark) 0.70f else 0.58f),
-                    Color(0xFFFA9480).copy(alpha = if (isDark) 0.56f else 0.46f)
-                )),
-                foreground = Color.White,
-                shadowColor = if (isDark) KikariaColors.RemoveCoralDark else KikariaColors.RemoveCoral,
-                shadowOpacity = if (isPrimary) 0.22f else 0.10f,
-                strokeAccent = if (isDark) KikariaColors.RemoveCoralDark else KikariaColors.RemoveCoral,
-                strokeAccentOpacity = 0.18f
-            )
-        }
+        ActionTone.Red -> ToneColors(
+            primaryFill = if (isDark) KikariaColors.RemoveGradientDark else KikariaColors.RemoveGradientLight,
+            secondaryFill = Brush.linearGradient(listOf(
+                KikariaColors.RemoveCoral.copy(alpha = if (isDark) 0.70f else 0.58f),
+                Color(0xFFFA9480).copy(alpha = if (isDark) 0.56f else 0.46f)
+            )),
+            foreground = Color.White,
+            shadowColor = if (isDark) KikariaColors.RemoveCoralDark else KikariaColors.RemoveCoral,
+            shadowOpacity = if (isPrimary) 0.22f else 0.10f,
+            strokeAccent = if (isDark) KikariaColors.RemoveCoralDark else KikariaColors.RemoveCoral,
+            strokeAccentOpacity = 0.18f
+        )
     }
 }
 
@@ -133,11 +130,11 @@ private fun ReviewActionButton(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(16.dp, shape, ambientColor = colors.shadowColor.copy(alpha = colors.shadowOpacity),
+            .shadow(16.dp, shape,
+                ambientColor = colors.shadowColor.copy(alpha = colors.shadowOpacity),
                 spotColor = colors.shadowColor.copy(alpha = colors.shadowOpacity))
             .clip(shape)
             .background(if (isPrimary) colors.primaryFill else colors.secondaryFill)
-            .kikariaGlassStroke(shape, isDark)
             .clickable { onClick() }
             .padding(vertical = 19.dp),
         contentAlignment = Alignment.Center
@@ -181,12 +178,7 @@ fun ReviewScreen(
         }
 
         // Back button overlay
-        KikariaCircularIconButton(
-            onClick = onBack,
-            textIcon = KikariaIcons.TEXT_BACK,
-            modifier = Modifier.padding(start = 24.dp, top = 12.dp),
-            size = 42.dp
-        )
+        KikariaBackButton(onClick = onBack)
 
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(Modifier.height(12.dp))
@@ -212,21 +204,13 @@ fun ReviewScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp)
             ) {
-                // Title card (glass-styled, matches iOS titleGroup)
-                val titleCardShape = RoundedCornerShape(24.dp)
-                val shadowC = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = 0.12f)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(18.dp, titleCardShape,
-                            ambientColor = shadowC,
-                            spotColor = shadowC)
-                        .clip(titleCardShape)
-                        .background(glassSurface.copy(alpha = 0.40f))
-                        .kikariaGlassStroke(titleCardShape, isDark)
-                        .padding(24.dp)
+                // Title card
+                KikariaGlassCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    cornerRadius = 24.dp,
+                    fillOpacity = 0.40f
                 ) {
-                    Column {
+                    Column(modifier = Modifier.padding(24.dp)) {
                         Text(
                             text = KikariaTypography.mixedText(point.title, size = 24, weight = FontWeight.SemiBold),
                             color = deepText,
@@ -236,13 +220,15 @@ fun ReviewScreen(
                         if (point.tags.isNotEmpty()) {
                             Spacer(Modifier.height(12.dp))
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                point.tags.forEach { tag -> ReviewTagChip(tag, isDark) }
+                                point.tags.forEach { tag ->
+                                    KikariaTagChip(tag = tag)
+                                }
                             }
                         }
 
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            KikariaTypography.mixedText(
+                            text = KikariaTypography.mixedText(
                                 "\u8BE5\u77E5\u8BC6\u70B9\u4ECA\u65E5\u590D\u4E60 ${viewModel.todayReviewCount} \u6B21",
                                 size = 12,
                                 weight = FontWeight.SemiBold
@@ -259,7 +245,26 @@ fun ReviewScreen(
                     visible = viewModel.isHintShown,
                     enter = fadeIn() + slideInVertically { it / 2 }
                 ) {
-                    ReviewInfoCard(label = "\u63D0\u793A", text = point.hint, isDark = isDark)
+                    KikariaGlassCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        cornerRadius = 26.dp,
+                        fillOpacity = 0.56f
+                    ) {
+                        Column(modifier = Modifier.padding(18.dp)) {
+                            Text(
+                                text = "\u63D0\u793A",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+                            )
+                            Spacer(Modifier.height(10.dp))
+                            Text(
+                                text = KikariaTypography.mixedText(point.hint, size = 17, weight = FontWeight.Normal),
+                                color = deepText,
+                                lineHeight = 26.sp
+                            )
+                        }
+                    }
                 }
 
                 if (viewModel.isHintShown) {
@@ -271,7 +276,26 @@ fun ReviewScreen(
                     visible = viewModel.isContentShown,
                     enter = fadeIn() + slideInVertically { it / 2 }
                 ) {
-                    ReviewInfoCard(label = "\u7B54\u6848", text = point.content, isDark = isDark)
+                    KikariaGlassCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        cornerRadius = 26.dp,
+                        fillOpacity = 0.56f
+                    ) {
+                        Column(modifier = Modifier.padding(18.dp)) {
+                            Text(
+                                text = "\u7B54\u6848",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+                            )
+                            Spacer(Modifier.height(10.dp))
+                            Text(
+                                text = KikariaTypography.mixedText(point.content, size = 17, weight = FontWeight.Normal),
+                                color = deepText,
+                                lineHeight = 26.sp
+                            )
+                        }
+                    }
                 }
 
                 // Reveal buttons
@@ -386,65 +410,5 @@ private fun ReviewBottomActionBar(
                 modifier = Modifier.weight(0.8f).height(110.dp)
             )
         }
-    }
-}
-
-// ─── ReviewInfoCard ───
-
-@Composable
-private fun ReviewInfoCard(label: String, text: String, isDark: Boolean) {
-    val shape = RoundedCornerShape(26.dp)
-    val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
-    val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
-    val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(18.dp, shape,
-                ambientColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = 0.14f),
-                spotColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = 0.14f))
-            .clip(shape)
-            .background(glassSurface.copy(alpha = 0.56f))
-            .kikariaGlassStroke(shape, isDark)
-            .padding(18.dp)
-    ) {
-        Column {
-            Text(
-                text = label,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = sky
-            )
-            Spacer(Modifier.height(10.dp))
-            Text(
-                text = KikariaTypography.mixedText(text, size = 17, weight = FontWeight.Normal),
-                color = deepText,
-                lineHeight = 26.sp
-            )
-        }
-    }
-}
-
-// ─── ReviewTagChip ───
-
-@Composable
-private fun ReviewTagChip(tag: String, isDark: Boolean) {
-    val capsuleShape = RoundedCornerShape(16.dp)
-    Box(
-        modifier = Modifier
-            .clip(capsuleShape)
-            .shadow(6.dp, capsuleShape,
-                ambientColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = 0.04f),
-                spotColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = 0.04f))
-            .background((if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface).copy(alpha = 0.38f))
-            .padding(horizontal = 11.dp, vertical = 6.dp)
-    ) {
-        Text(
-            text = tag,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
-        )
     }
 }

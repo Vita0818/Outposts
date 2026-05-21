@@ -61,6 +61,9 @@ class KikariaViewModel : ViewModel() {
 
     // --- UI state ---
     var toastMessage by mutableStateOf<String?>(null)
+    var userDisplayName by mutableStateOf("")
+    var countdownDays by mutableIntStateOf(0)
+    var countdownEndDate by mutableStateOf<Date?>(null)
 
     // --- Derived ---
     val masteredPoints: List<KnowledgePoint>

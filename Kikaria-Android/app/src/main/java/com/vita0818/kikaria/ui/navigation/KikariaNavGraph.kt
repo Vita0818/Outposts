@@ -46,6 +46,12 @@ fun KikariaNavGraph(
                 },
                 onOpenMastered = {
                     navController.navigate(Routes.MASTERED)
+                },
+                onOpenPresetSelection = {
+                    // TODO: navigate to preset selection when screen is added
+                },
+                onOpenSettings = {
+                    // TODO: navigate to settings when screen is added
                 }
             )
         }

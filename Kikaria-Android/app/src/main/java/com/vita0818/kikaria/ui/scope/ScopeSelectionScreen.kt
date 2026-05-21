@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -25,12 +24,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vita0818.kikaria.ui.components.KikariaCircularIconButton
-import com.vita0818.kikaria.ui.components.KikariaIcons
+import com.vita0818.kikaria.ui.components.KikariaBackButton
+import com.vita0818.kikaria.ui.components.KikariaGlassCard
 import com.vita0818.kikaria.ui.components.KikariaPageShell
+import com.vita0818.kikaria.ui.components.KikariaPageTitle
 import com.vita0818.kikaria.ui.theme.KikariaColors
 import com.vita0818.kikaria.ui.theme.KikariaTypography
 import com.vita0818.kikaria.viewmodel.KikariaViewModel
@@ -53,13 +52,7 @@ fun ScopeSelectionScreen(
 
     KikariaPageShell {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Back button
-            KikariaCircularIconButton(
-                onClick = onBack,
-                icon = KikariaIcons.back,
-                modifier = Modifier.padding(start = 24.dp, top = 12.dp),
-                size = 42.dp
-            )
+            KikariaBackButton(onClick = onBack)
 
             Column(
                 modifier = Modifier
@@ -68,21 +61,15 @@ fun ScopeSelectionScreen(
                     .padding(horizontal = 24.dp)
                     .padding(top = 70.dp)
             ) {
-                // Page title
-                Text(
-                    text = KikariaTypography.mixedText(
-                        "\u8303\u56F4\u9009\u62E9",
-                        size = 32,
-                        weight = FontWeight.Bold
-                    ),
-                    color = deepText
-                )
+                KikariaPageTitle(title = "\u8303\u56F4\u9009\u62E9")
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "\u9009\u62E9\u6807\u7B7E\u4EE5\u9650\u5B9A\u590D\u4E60\u8303\u56F4\u3002\u672A\u9009\u62E9\u4EFB\u4F55\u6807\u7B7E\u65F6\u5C06\u4F7F\u7528\u5168\u90E8\u77E5\u8BC6\u70B9\u3002",
-                    fontSize = 14.sp,
+                    text = if (selected.isEmpty())
+                        "\u672A\u9009\u62E9\u6807\u7B7E\u65F6\uFF0C\u4F1A\u9ED8\u8BA4\u4F7F\u7528\u5168\u90E8\u77E5\u8BC6\u70B9\u3002"
+                    else "\u5DF2\u9009\u62E9 ${selected.size} \u4E2A\u6807\u7B7E\u3002",
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                     color = softText
                 )
@@ -121,16 +108,17 @@ fun ScopeSelectionScreen(
                 ) {
                     allTags.forEach { tag ->
                         val isTagSelected = tag in selected
+                        val actionGrad = if (isDark) KikariaColors.ActionGradientDark else KikariaColors.ActionGradientLight
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(16.dp))
+                                .clip(RoundedCornerShape(20.dp))
                                 .shadow(
-                                    4.dp, RoundedCornerShape(16.dp),
-                                    ambientColor = sky.copy(alpha = 0.04f),
-                                    spotColor = sky.copy(alpha = 0.04f)
+                                    7.dp, RoundedCornerShape(20.dp),
+                                    ambientColor = sky.copy(alpha = if (isTagSelected) 0.18f else 0.06f),
+                                    spotColor = sky.copy(alpha = if (isTagSelected) 0.18f else 0.06f)
                                 )
                                 .background(
-                                    if (isTagSelected) sky.copy(alpha = 0.25f)
+                                    if (isTagSelected) actionGrad
                                     else mist.copy(alpha = 0.45f)
                                 )
                                 .clickable {
@@ -143,7 +131,7 @@ fun ScopeSelectionScreen(
                                 text = tag,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = if (isTagSelected) deepText else softText
+                                color = if (isTagSelected) Color.White else softText
                             )
                         }
                     }
