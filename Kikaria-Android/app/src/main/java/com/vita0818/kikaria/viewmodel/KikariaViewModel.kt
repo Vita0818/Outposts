@@ -64,6 +64,72 @@ class KikariaViewModel : ViewModel() {
     var userDisplayName by mutableStateOf("")
     var countdownDays by mutableIntStateOf(0)
     var countdownEndDate by mutableStateOf<Date?>(null)
+    var notificationsEnabled by mutableStateOf(false)
+    var notificationTime by mutableStateOf(
+        java.util.Calendar.getInstance().apply {
+            set(java.util.Calendar.HOUR_OF_DAY, 21)
+            set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }.time
+    )
+    var dangerPercent by mutableIntStateOf(80)
+    var countdownStartDate by mutableStateOf<Date?>(null)
+
+    // --- Countdown days calculation (matching iOS countdownDays helper) ---
+    fun recomputeCountdownDays() {
+        val end = countdownEndDate
+        if (end == null) {
+            countdownDays = 0
+            return
+        }
+        val cal = java.util.Calendar.getInstance()
+        val today = cal.apply {
+            set(java.util.Calendar.HOUR_OF_DAY, 0)
+            set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }.time
+        val target = java.util.Calendar.getInstance().apply { time = end }
+            .apply {
+                set(java.util.Calendar.HOUR_OF_DAY, 0)
+                set(java.util.Calendar.MINUTE, 0)
+                set(java.util.Calendar.SECOND, 0)
+                set(java.util.Calendar.MILLISECOND, 0)
+            }.time
+        val diffMs = target.time - today.time
+        val days = (diffMs / (24 * 60 * 60 * 1000)).toInt()
+        countdownDays = maxOf(0, days)
+    }
+
+    // --- Settings helpers ---
+    fun updateDailyGoal(value: Int) {
+        dailyGoal = value.coerceIn(1, 100)
+    }
+
+    fun updateDangerPercent(value: Int) {
+        dangerPercent = value.coerceIn(1, 100)
+    }
+
+    fun updateNotificationTime(time: Date) {
+        notificationTime = time
+    }
+
+    fun updateNotificationsEnabled(enabled: Boolean) {
+        notificationsEnabled = enabled
+    }
+
+    fun setCountdownRange(start: Date?, end: Date?) {
+        countdownStartDate = start
+        countdownEndDate = end
+        recomputeCountdownDays()
+    }
+
+    fun clearCountdown() {
+        countdownStartDate = null
+        countdownEndDate = null
+        countdownDays = 0
+    }
 
     // --- Derived ---
     val masteredPoints: List<KnowledgePoint>

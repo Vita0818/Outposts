@@ -4,9 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -26,22 +24,35 @@ import androidx.compose.ui.unit.dp
 import com.vita0818.kikaria.ui.theme.KikariaColors
 
 /**
- * Draws a glass card gradient stroke overlay matching iOS LiquidGlassCardModifier.
+ * Low-level glass-effect drawing helpers and simple glass composables.
+ *
+ * These provide the iOS LiquidGlassCardModifier / liquidGlassCapsule / liquidGlassCircle
+ * visual treatment: semi-transparent surface with gradient border strokes and soft shadows.
+ *
+ * For higher-level page/screen components (PageShell, PageTitle, KikariaGlassCard, etc.),
+ * see KikariaSharedComponents.kt.
  */
-private fun Modifier.glassCardStroke(
+
+// ── Glass stroke drawing modifier (reusable low-level primitive) ──
+
+private fun glassCardStrokeColors(isDark: Boolean): List<Color> {
+    val accent = if (isDark) KikariaColors.GlassStrokeAccentDark else KikariaColors.GlassStrokeAccent
+    return listOf(
+        Color.White.copy(alpha = if (isDark) 0.36f else 0.44f),
+        Color.White.copy(alpha = if (isDark) 0.08f else 0.10f),
+        accent.copy(alpha = if (isDark) 0.22f else 0.14f)
+    )
+}
+
+fun Modifier.glassCardStroke(
     shape: RoundedCornerShape,
     isDark: Boolean,
     lineWidth: Float = 1f
 ): Modifier = this.drawBehind {
     val strokeWidth = lineWidth * density
-    val accent = if (isDark) KikariaColors.GlassStrokeAccentDark else KikariaColors.GlassStrokeAccent
     drawRoundRect(
         brush = Brush.linearGradient(
-            colors = listOf(
-                Color.White.copy(alpha = if (isDark) 0.36f else 0.44f),
-                Color.White.copy(alpha = if (isDark) 0.08f else 0.10f),
-                accent.copy(alpha = if (isDark) 0.22f else 0.14f)
-            ),
+            colors = glassCardStrokeColors(isDark),
             start = Offset.Zero,
             end = Offset(size.width, size.height)
         ),
@@ -53,13 +64,8 @@ private fun Modifier.glassCardStroke(
     )
 }
 
-/**
- * Liquid-glass-style card modifier translated from the
- * LiquidGlassCardModifier / liquidGlassCard View extension in ContentView.swift.
- *
- * Provides a soft glass-morphism surface with subtle shadow,
- * preserving Kikaria's clean study-focused aesthetic.
- */
+// ── Simple glass composables (thin wrappers over the shadow+background+stroke pattern) ──
+
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
@@ -73,12 +79,7 @@ fun GlassCard(
 
     Box(
         modifier = modifier
-            .shadow(
-                elevation = 18.dp,
-                shape = shape,
-                ambientColor = shadowColor,
-                spotColor = shadowColor
-            )
+            .shadow(elevation = 18.dp, shape = shape, ambientColor = shadowColor, spotColor = shadowColor)
             .clip(shape)
             .background(glassSurface.copy(alpha = 0.48f))
             .glassCardStroke(shape, isDark)
@@ -98,13 +99,8 @@ fun GlassCapsule(
 
     Surface(
         modifier = modifier
-            .shadow(
-                elevation = 14.dp,
-                shape = CircleShape,
-                ambientColor = shadowColor,
-                spotColor = shadowColor
-            ),
-        shape = CircleShape,
+            .shadow(elevation = 14.dp, shape = androidx.compose.foundation.shape.CircleShape, ambientColor = shadowColor, spotColor = shadowColor),
+        shape = androidx.compose.foundation.shape.CircleShape,
         color = glassSurface.copy(alpha = 0.48f),
         tonalElevation = 1.dp
     ) {
@@ -123,13 +119,8 @@ fun GlassCircle(
 
     Surface(
         modifier = modifier
-            .shadow(
-                elevation = 14.dp,
-                shape = CircleShape,
-                ambientColor = shadowColor,
-                spotColor = shadowColor
-            ),
-        shape = CircleShape,
+            .shadow(elevation = 14.dp, shape = androidx.compose.foundation.shape.CircleShape, ambientColor = shadowColor, spotColor = shadowColor),
+        shape = androidx.compose.foundation.shape.CircleShape,
         color = glassSurface.copy(alpha = 0.44f),
         tonalElevation = 1.dp
     ) {
@@ -138,8 +129,8 @@ fun GlassCircle(
 }
 
 /**
- * Floating info card used for hint and content display in review,
- * mimicking the FloatingInfoCard style from ContentView.swift.
+ * Floating info card for review hint/answer.
+ * Legacy wrapper — for new code prefer KikariaInfoCard from KikariaSharedComponents.
  */
 @Composable
 fun InfoCard(

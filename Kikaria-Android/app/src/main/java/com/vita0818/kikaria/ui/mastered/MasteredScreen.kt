@@ -1,5 +1,9 @@
 package com.vita0818.kikaria.ui.mastered
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -46,7 +50,6 @@ fun MasteredScreen(
 ) {
     val points = viewModel.masteredPoints
     val isDark = isSystemInDarkTheme()
-    val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
 
     KikariaPageShell {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -59,7 +62,7 @@ fun MasteredScreen(
                     .padding(horizontal = 24.dp)
                     .padding(top = 70.dp)
             ) {
-                KikariaPageTitle(title = "\u5DF2\u638C\u63E1")
+                KikariaPageTitle(title = "已掌握")
 
                 Spacer(modifier = Modifier.height(18.dp))
 
@@ -70,15 +73,16 @@ fun MasteredScreen(
                         fillOpacity = 0.54f
                     ) {
                         KikariaEmptyState(
-                            title = "\u8FD8\u6CA1\u6709\u5DF2\u638C\u63E1",
-                            subtitle = "\u5728\u80CC\u8BF5\u65F6\u67E5\u770B\u7B54\u6848\u540E\uFF0C\u53EF\u4EE5\u628A\u771F\u6B63\u719F\u6089\u7684\u77E5\u8BC6\u70B9\u6807\u8BB0\u5230\u8FD9\u91CC\u3002"
+                            title = "还没有已掌握",
+                            subtitle = "在背诵时查看答案后，可以把真正熟悉的知识点标记到这里。"
                         )
                     }
                 } else {
-                    // Start review button
+                    // Start review button (green gradient, matching iOS MasteredStartButton)
                     MasteredStartButton(
                         count = points.size,
-                        onClick = onStartMasteredReview
+                        onClick = onStartMasteredReview,
+                        isDark = isDark
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -101,44 +105,44 @@ fun MasteredScreen(
 @Composable
 private fun MasteredStartButton(
     count: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    isDark: Boolean
 ) {
-    val isDark = isSystemInDarkTheme()
-    val masteredGrad = if (isDark) KikariaColors.MasteredGradientDark else KikariaColors.MasteredGradientLight
-    val shape = RoundedCornerShape(28.dp)
-
-    Box(
+    KikariaGlassCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .shadow(20.dp, shape,
-                ambientColor = (if (isDark) KikariaColors.MasteredGreenDark else KikariaColors.MasteredGreen).copy(alpha = 0.16f),
-                spotColor = (if (isDark) KikariaColors.MasteredGreenDark else KikariaColors.MasteredGreen).copy(alpha = 0.16f))
-            .clip(shape)
-            .background(masteredGrad)
-            .clickable { onClick() }
-            .padding(horizontal = 22.dp, vertical = 22.dp),
-        contentAlignment = Alignment.Center
+            .clickable { onClick() },
+        cornerRadius = 28.dp,
+        fillOpacity = 0.46f,
+        shadowElevation = 20.dp,
+        shadowOpacity = 0.16f
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 22.dp, vertical = 22.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "\u5F00\u59CB\u590D\u4E60",
+                text = "开始复习",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.White
+                color = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = KikariaTypography.mixedText("$count", size = 20, weight = FontWeight.Bold),
-                    color = Color.White
+                    color = if (isDark) KikariaColors.MasteredGreenDark else KikariaColors.MasteredGreen
                 )
-                Spacer(Modifier.padding(start = 12.dp))
-                Text("\u203A", fontSize = 18.sp, fontWeight = FontWeight.SemiBold,
-                    color = Color.White.copy(alpha = 0.72f))
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    "›",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray
+                )
             }
         }
     }
@@ -153,10 +157,15 @@ private fun MasteredItem(
     val isDark = isSystemInDarkTheme()
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
     val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
+    val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
     val masteredDeepGreen = if (isDark) KikariaColors.MasteredDeepGreenDark else KikariaColors.MasteredDeepGreen
+    val removeGrad = if (isDark) KikariaColors.RemoveGradientDark else KikariaColors.RemoveGradientLight
 
     KikariaGlassCard(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable { expanded = !expanded },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+            .clickable { expanded = !expanded },
         cornerRadius = 30.dp,
         fillOpacity = 0.42f,
         shadowElevation = 20.dp,
@@ -175,31 +184,48 @@ private fun MasteredItem(
                 )
             }
 
-            if (expanded) {
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    text = "\u63D0\u793A",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
-                )
-                Text(
-                    text = KikariaTypography.mixedText(point.hint, size = 15, weight = FontWeight.Medium),
-                    color = softText,
-                    lineHeight = 22.sp
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = "\u7B54\u6848",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
-                )
-                Text(
-                    text = KikariaTypography.mixedText(point.content, size = 15, weight = FontWeight.Medium),
-                    color = deepText,
-                    lineHeight = 22.sp
-                )
+            // Expanded preview
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                Column {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = "提示",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = sky
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = KikariaTypography.mixedText(
+                            point.hint.take(120) + if (point.hint.length > 120) "..." else "",
+                            size = 15,
+                            weight = FontWeight.Medium
+                        ),
+                        color = softText,
+                        lineHeight = 22.sp
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "答案",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = sky
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = KikariaTypography.mixedText(
+                            point.content.take(120) + if (point.content.length > 120) "..." else "",
+                            size = 15,
+                            weight = FontWeight.Medium
+                        ),
+                        color = deepText,
+                        lineHeight = 22.sp
+                    )
+                }
             }
 
             Spacer(Modifier.height(14.dp))
@@ -212,15 +238,13 @@ private fun MasteredItem(
                     .shadow(14.dp, RoundedCornerShape(16.dp),
                         ambientColor = (if (isDark) KikariaColors.RemoveCoralDark else KikariaColors.RemoveCoral).copy(alpha = 0.18f),
                         spotColor = (if (isDark) KikariaColors.RemoveCoralDark else KikariaColors.RemoveCoral).copy(alpha = 0.18f))
-                    .background(
-                        if (isDark) KikariaColors.RemoveGradientDark else KikariaColors.RemoveGradientLight
-                    )
+                    .background(removeGrad)
                     .clickable { onRemove() }
                     .padding(vertical = 14.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "\u79FB\u51FA\u5DF2\u638C\u63E1",
+                    text = "移出已掌握",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White

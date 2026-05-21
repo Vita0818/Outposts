@@ -19,28 +19,131 @@ import androidx.compose.ui.unit.sp
  *
  * This is a key brand-identity element — Kikaria uses serif for Latin text
  * and system fonts for Chinese/CJK characters.
+ *
+ * Token functions map to the iOS typography concept names:
+ *   appTitle       → "Kikaria" brand wordmark (serif)
+ *   pageTitle      → Page-level title (system, Bold, ~32sp)
+ *   largeDisplay   → Extra-large metric/hero numbers
+ *   cardTitle      → Card heading (serif, SemiBold)
+ *   knowledgeTitle → Knowledge point title (serif, SemiBold)
+ *   reviewPrompt   → Review prompt/question text
+ *   reviewAnswer   → Answer content in review
+ *   body           → Standard body text
+ *   secondaryBody  → Secondary/supporting body text
+ *   caption        → Small label/caption text
+ *   buttonText     → Button label text
+ *   settingsTitle  → Settings row title
+ *   settingsSubtitle → Settings row subtitle
+ *   tagText        → Tag chip text
  */
 object KikariaTypography {
 
-    // ── Named font styles (Compose equivalents of iOS Font helpers) ──
+    // ── Named token helpers (matching iOS semantics) ──
 
-    /** "Kikaria" app title — serif, 39sp, semibold */
-    val appTitle = FontStyle(
-        fontFamily = FontFamily.Serif,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 39.sp
-    )
-
-    fun appTitle(size: Int) = FontStyle(
+    /** "Kikaria" app title — serif, size-sp, semibold */
+    fun appTitle(size: Int = 39): SpanStyle = SpanStyle(
         fontFamily = FontFamily.Serif,
         fontWeight = FontWeight.SemiBold,
         fontSize = size.sp
     )
 
-    fun chineseLargeTitle(size: Int = 34) = FontStyle(
+    /** Page title — system font, bold */
+    fun pageTitle(size: Int = 32): SpanStyle = SpanStyle(
         fontWeight = FontWeight.Bold,
         fontSize = size.sp
     )
+
+    /** Large display / metric number — serif, bold */
+    fun largeDisplay(size: Int = 54): SpanStyle = SpanStyle(
+        fontFamily = FontFamily.Serif,
+        fontWeight = FontWeight.Bold,
+        fontSize = size.sp
+    )
+
+    /** Card title — serif, semibold */
+    fun cardTitle(size: Int = 20): SpanStyle = SpanStyle(
+        fontFamily = FontFamily.Serif,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = size.sp
+    )
+
+    /** Knowledge point title — serif, semibold */
+    fun knowledgeTitle(size: Int = 24): SpanStyle = SpanStyle(
+        fontFamily = FontFamily.Serif,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = size.sp
+    )
+
+    /** Review prompt text */
+    fun reviewPrompt(size: Int = 17): SpanStyle = SpanStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = size.sp
+    )
+
+    /** Review answer content */
+    fun reviewAnswer(size: Int = 17): SpanStyle = SpanStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = size.sp
+    )
+
+    /** Standard body text */
+    fun body(size: Int = 15): SpanStyle = SpanStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = size.sp
+    )
+
+    /** Secondary body text */
+    fun secondaryBody(size: Int = 14): SpanStyle = SpanStyle(
+        fontWeight = FontWeight.Medium,
+        fontSize = size.sp
+    )
+
+    /** Caption / small label text */
+    fun caption(size: Int = 12): SpanStyle = SpanStyle(
+        fontWeight = FontWeight.Medium,
+        fontSize = size.sp
+    )
+
+    /** Button label text */
+    fun buttonText(size: Int = 17): SpanStyle = SpanStyle(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = size.sp
+    )
+
+    /** Settings row title */
+    fun settingsTitle(size: Int = 16): SpanStyle = SpanStyle(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = size.sp
+    )
+
+    /** Settings row subtitle */
+    fun settingsSubtitle(size: Int = 13): SpanStyle = SpanStyle(
+        fontWeight = FontWeight.Medium,
+        fontSize = size.sp
+    )
+
+    /** Tag chip text */
+    fun tagText(size: Int = 12): SpanStyle = SpanStyle(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = size.sp
+    )
+
+    // ── Numbers / serif helpers ──
+
+    /** Metric/display number — serif, semibold */
+    fun metricNumber(size: Int): SpanStyle = SpanStyle(
+        fontFamily = FontFamily.Serif,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = size.sp
+    )
+
+    fun numberBold(size: Int): SpanStyle = SpanStyle(
+        fontFamily = FontFamily.Serif,
+        fontWeight = FontWeight.Bold,
+        fontSize = size.sp
+    )
+
+    // ── Legacy convenience (kept for backward compatibility) ──
 
     fun chineseTitle(size: Int = 32) = FontStyle(
         fontWeight = FontWeight.Bold,
@@ -64,18 +167,6 @@ object KikariaTypography {
 
     fun chineseCaption(size: Int = 12) = FontStyle(
         fontWeight = FontWeight.Medium,
-        fontSize = size.sp
-    )
-
-    fun tag(size: Int = 12) = FontStyle(
-        fontWeight = FontWeight.SemiBold,
-        fontSize = size.sp
-    )
-
-    /** Numbers use serif design for the Kikaria look */
-    fun number(size: Int) = FontStyle(
-        fontFamily = FontFamily.Serif,
-        fontWeight = FontWeight.SemiBold,
         fontSize = size.sp
     )
 
@@ -137,17 +228,26 @@ object KikariaTypography {
         )
     )
 
+    /** Build a serif-only AnnotatedString (no mixed-font splitting) */
+    fun serifText(
+        text: String,
+        size: Int,
+        weight: FontWeight = FontWeight.Normal
+    ): AnnotatedString = buildAnnotatedString {
+        withStyle(SpanStyle(
+            fontFamily = FontFamily.Serif,
+            fontSize = size.sp,
+            fontWeight = weight
+        )) {
+            append(text)
+        }
+    }
+
     // ── Chinese character detection ──
 
-    /**
-     * Detects whether a character is a Chinese/CJK character or Chinese punctuation.
-     * Uses the same Unicode ranges as the iOS KikariaTypography.
-     */
     fun isChineseCharacter(ch: Char): Boolean {
         val code = ch.code
-        // Chinese punctuation
         if (ch in CHINESE_PUNCTUATION) return true
-        // CJK Unified Ideographs and extensions
         return isCjkUnicode(code)
     }
 
@@ -158,16 +258,16 @@ object KikariaTypography {
     )
 
     private fun isCjkUnicode(code: Int): Boolean {
-        return code in 0x3400..0x4DBF ||      // CJK Extension A
-                code in 0x4E00..0x9FFF ||      // CJK Unified Ideographs
-                code in 0xF900..0xFAFF ||      // CJK Compatibility Ideographs
-                code in 0x20000..0x2A6DF ||    // CJK Extension B
-                code in 0x2A700..0x2B73F ||    // CJK Extension C
-                code in 0x2B740..0x2B81F ||    // CJK Extension D
-                code in 0x2B820..0x2CEAF ||    // CJK Extension E
-                code in 0x2CEB0..0x2EBEF ||    // CJK Extension F
-                code in 0x3000..0x303F ||      // CJK Symbols and Punctuation
-                code in 0xFF00..0xFFEF         // Halfwidth and Fullwidth Forms
+        return code in 0x3400..0x4DBF ||
+                code in 0x4E00..0x9FFF ||
+                code in 0xF900..0xFAFF ||
+                code in 0x20000..0x2A6DF ||
+                code in 0x2A700..0x2B73F ||
+                code in 0x2B740..0x2B81F ||
+                code in 0x2B820..0x2CEAF ||
+                code in 0x2CEB0..0x2EBEF ||
+                code in 0x3000..0x303F ||
+                code in 0xFF00..0xFFEF
     }
 }
 

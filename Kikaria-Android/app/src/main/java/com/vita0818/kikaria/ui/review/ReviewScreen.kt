@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,7 +26,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vita0818.kikaria.ui.components.KikariaBackButton
@@ -48,9 +49,7 @@ private data class ToneColors(
     val secondaryFill: Brush,
     val foreground: Color,
     val shadowColor: Color,
-    val shadowOpacity: Float,
-    val strokeAccent: Color,
-    val strokeAccentOpacity: Float
+    val shadowOpacity: Float
 )
 
 private fun toneColors(tone: ActionTone, isDark: Boolean, isPrimary: Boolean): ToneColors {
@@ -65,9 +64,7 @@ private fun toneColors(tone: ActionTone, isDark: Boolean, isPrimary: Boolean): T
             foreground = if (isPrimary) Color.White
                 else if (isDark) KikariaColors.DeepTextDark.copy(alpha = 0.92f) else KikariaColors.DeepText,
             shadowColor = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky,
-            shadowOpacity = if (isPrimary) 0.22f else 0.10f,
-            strokeAccent = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky,
-            strokeAccentOpacity = 0.18f
+            shadowOpacity = if (isPrimary) 0.22f else 0.10f
         )
         ActionTone.Green -> ToneColors(
             primaryFill = if (isDark) KikariaColors.MasteredGradientDark else KikariaColors.MasteredGradientLight,
@@ -78,22 +75,17 @@ private fun toneColors(tone: ActionTone, isDark: Boolean, isPrimary: Boolean): T
             foreground = if (isPrimary) Color.White
                 else if (isDark) KikariaColors.DeepTextDark.copy(alpha = 0.92f) else KikariaColors.DeepText,
             shadowColor = if (isDark) KikariaColors.MasteredGreenDark else KikariaColors.MasteredGreen,
-            shadowOpacity = if (isPrimary) 0.22f else 0.10f,
-            strokeAccent = if (isDark) KikariaColors.MasteredGreenDark else KikariaColors.MasteredGreen,
-            strokeAccentOpacity = 0.18f
+            shadowOpacity = if (isPrimary) 0.22f else 0.10f
         )
         ActionTone.Amber -> ToneColors(
             primaryFill = if (isDark) KikariaColors.NextGradientDark else KikariaColors.NextGradientLight,
             secondaryFill = Brush.linearGradient(listOf(
-                (if (isDark) KikariaColors.NextAmberDark else KikariaColors.NextAmber).copy(
-                    alpha = if (isDark) 0.72f else 0.68f),
+                (if (isDark) KikariaColors.NextAmberDark else KikariaColors.NextAmber).copy(alpha = if (isDark) 0.72f else 0.68f),
                 Color(0xFF9487CC).copy(alpha = if (isDark) 0.68f else 0.56f)
             )),
             foreground = Color.White.copy(alpha = 0.94f),
             shadowColor = if (isDark) KikariaColors.NextAmberDark else KikariaColors.NextAmber,
-            shadowOpacity = if (isPrimary) 0.12f else 0.055f,
-            strokeAccent = if (isDark) KikariaColors.NextAmberDark else KikariaColors.NextAmber,
-            strokeAccentOpacity = 0.16f
+            shadowOpacity = if (isPrimary) 0.12f else 0.055f
         )
         ActionTone.Red -> ToneColors(
             primaryFill = if (isDark) KikariaColors.RemoveGradientDark else KikariaColors.RemoveGradientLight,
@@ -103,14 +95,12 @@ private fun toneColors(tone: ActionTone, isDark: Boolean, isPrimary: Boolean): T
             )),
             foreground = Color.White,
             shadowColor = if (isDark) KikariaColors.RemoveCoralDark else KikariaColors.RemoveCoral,
-            shadowOpacity = if (isPrimary) 0.22f else 0.10f,
-            strokeAccent = if (isDark) KikariaColors.RemoveCoralDark else KikariaColors.RemoveCoral,
-            strokeAccentOpacity = 0.18f
+            shadowOpacity = if (isPrimary) 0.22f else 0.10f
         )
     }
 }
 
-// ─── ReviewActionButton ───
+// ─── ReviewActionButton (matches iOS ReviewActionButton) ───
 
 @Composable
 private fun ReviewActionButton(
@@ -160,16 +150,14 @@ fun ReviewScreen(
 ) {
     val point = viewModel.currentPoint
     val isDark = isSystemInDarkTheme()
-    val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
-    val tertiaryText = if (isDark) KikariaColors.TertiaryTextDark else KikariaColors.TertiaryText
 
     KikariaPageShell {
         if (point == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    text = "\u6CA1\u6709\u53EF\u590D\u4E60\u7684\u77E5\u8BC6\u70B9",
-                    color = tertiaryText,
+                    text = "没有可复习的知识点",
+                    color = if (isDark) KikariaColors.TertiaryTextDark else KikariaColors.TertiaryText,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -181,22 +169,6 @@ fun ReviewScreen(
         KikariaBackButton(onClick = onBack)
 
         Column(modifier = Modifier.fillMaxSize()) {
-            Spacer(Modifier.height(12.dp))
-
-            // Progress bar
-            LinearProgressIndicator(
-                progress = viewModel.reviewProgress,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp)),
-                color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky,
-                trackColor = if (isDark) KikariaColors.MistDark else KikariaColors.Mist,
-            )
-
-            Spacer(Modifier.height(16.dp))
-
             // Scrollable content
             Column(
                 modifier = Modifier
@@ -204,22 +176,34 @@ fun ReviewScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp)
             ) {
-                // Title card
+                Spacer(Modifier.height(60.dp))
+
+                // ── Knowledge title card (matching iOS titleGroup) ──
                 KikariaGlassCard(
                     modifier = Modifier.fillMaxWidth(),
-                    cornerRadius = 24.dp,
-                    fillOpacity = 0.40f
+                    cornerRadius = 26.dp,
+                    fillOpacity = 0.56f,
+                    shadowElevation = 18.dp,
+                    shadowOpacity = 0.14f
                 ) {
-                    Column(modifier = Modifier.padding(24.dp)) {
+                    Column(
+                        modifier = Modifier.padding(18.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         Text(
                             text = KikariaTypography.mixedText(point.title, size = 24, weight = FontWeight.SemiBold),
                             color = deepText,
-                            lineHeight = 32.sp
+                            textAlign = TextAlign.Center,
+                            lineHeight = 32.sp,
+                            modifier = Modifier.fillMaxWidth()
                         )
 
                         if (point.tags.isNotEmpty()) {
                             Spacer(Modifier.height(12.dp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
                                 point.tags.forEach { tag ->
                                     KikariaTagChip(tag = tag)
                                 }
@@ -227,51 +211,61 @@ fun ReviewScreen(
                         }
 
                         Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = KikariaTypography.mixedText(
-                                "\u8BE5\u77E5\u8BC6\u70B9\u4ECA\u65E5\u590D\u4E60 ${viewModel.todayReviewCount} \u6B21",
-                                size = 12,
-                                weight = FontWeight.SemiBold
-                            ),
-                            color = deepText.copy(alpha = 0.78f)
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(14.dp))
-
-                // Hint card
-                AnimatedVisibility(
-                    visible = viewModel.isHintShown,
-                    enter = fadeIn() + slideInVertically { it / 2 }
-                ) {
-                    KikariaGlassCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        cornerRadius = 26.dp,
-                        fillOpacity = 0.56f
-                    ) {
-                        Column(modifier = Modifier.padding(18.dp)) {
+                        // Today review count pill
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(
+                                    if (isDark) KikariaColors.GlassSurfaceDark.copy(alpha = 0.42f)
+                                    else KikariaColors.GlassSurface.copy(alpha = 0.42f)
+                                )
+                                .padding(horizontal = 18.dp, vertical = 8.dp)
+                        ) {
                             Text(
-                                text = "\u63D0\u793A",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
-                            )
-                            Spacer(Modifier.height(10.dp))
-                            Text(
-                                text = KikariaTypography.mixedText(point.hint, size = 17, weight = FontWeight.Normal),
-                                color = deepText,
-                                lineHeight = 26.sp
+                                text = "该知识点今日复习 ${viewModel.todayReviewCount} 次",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = deepText.copy(alpha = 0.78f)
                             )
                         }
                     }
                 }
 
-                if (viewModel.isHintShown) {
-                    Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(14.dp))
+
+                // ── Hint card (animated) ──
+                AnimatedVisibility(
+                    visible = viewModel.isHintShown,
+                    enter = fadeIn() + slideInVertically { it / 2 }
+                ) {
+                    Column {
+                        KikariaGlassCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            cornerRadius = 26.dp,
+                            fillOpacity = 0.56f,
+                            shadowElevation = 18.dp,
+                            shadowOpacity = 0.14f
+                        ) {
+                            Column(modifier = Modifier.padding(18.dp)) {
+                                Text(
+                                    text = "提示",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+                                )
+                                Spacer(Modifier.height(10.dp))
+                                Text(
+                                    text = KikariaTypography.mixedText(point.hint, size = 17, weight = FontWeight.Normal),
+                                    color = deepText,
+                                    lineHeight = 26.sp
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                    }
                 }
 
-                // Content card
+                // ── Answer card (animated) ──
                 AnimatedVisibility(
                     visible = viewModel.isContentShown,
                     enter = fadeIn() + slideInVertically { it / 2 }
@@ -279,11 +273,13 @@ fun ReviewScreen(
                     KikariaGlassCard(
                         modifier = Modifier.fillMaxWidth(),
                         cornerRadius = 26.dp,
-                        fillOpacity = 0.56f
+                        fillOpacity = 0.56f,
+                        shadowElevation = 18.dp,
+                        shadowOpacity = 0.14f
                     ) {
                         Column(modifier = Modifier.padding(18.dp)) {
                             Text(
-                                text = "\u7B54\u6848",
+                                text = "答案",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
@@ -298,20 +294,23 @@ fun ReviewScreen(
                     }
                 }
 
-                // Reveal buttons
+                // ── Reveal buttons (when answer not shown) ──
                 if (!viewModel.isContentShown) {
                     Spacer(Modifier.height(16.dp))
 
                     if (!viewModel.isHintShown) {
                         ReviewActionButton(
-                            text = "\u67E5\u770B\u63D0\u793A",
+                            text = "查看提示",
                             tone = ActionTone.Blue,
                             isPrimary = false,
                             onClick = { viewModel.showHint() }
                         )
-                    } else {
+                    }
+
+                    if (viewModel.isHintShown) {
+                        Spacer(Modifier.height(12.dp))
                         ReviewActionButton(
-                            text = "\u67E5\u770B\u7B54\u6848",
+                            text = "查看答案",
                             tone = ActionTone.Blue,
                             isPrimary = true,
                             onClick = { viewModel.showContent() }
@@ -322,7 +321,7 @@ fun ReviewScreen(
                 Spacer(Modifier.height(16.dp))
             }
 
-            // Bottom action bar
+            // ── Bottom action bar (when answer is revealed) ──
             if (viewModel.isContentShown) {
                 ReviewBottomActionBar(
                     viewModel = viewModel,
@@ -334,7 +333,7 @@ fun ReviewScreen(
     }
 }
 
-// ─── ReviewBottomActionBar ───
+// ─── ReviewBottomActionBar (matches iOS answeredActionGrid with tone system) ───
 
 @Composable
 private fun ReviewBottomActionBar(
@@ -342,13 +341,13 @@ private fun ReviewBottomActionBar(
     isDark: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val point = viewModel.currentPoint
+    val point = viewModel.currentPoint ?: return
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             Column(
                 modifier = Modifier.weight(1f),
@@ -357,41 +356,41 @@ private fun ReviewBottomActionBar(
                 when (viewModel.reviewMode) {
                     ReviewMode.NORMAL -> {
                         ReviewActionButton(
-                            text = if (point?.isReinforced == true) "\u518D\u6B21\u52A0\u5165 \u00D7${point.reinforcementCount}" else "\u52A0\u5165\u91CD\u70B9\u96C6\u9526",
+                            text = if (point.isReinforced) "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
                             tone = ActionTone.Amber,
                             isPrimary = true,
                             onClick = { viewModel.toggleReinforcement() }
                         )
                         ReviewActionButton(
-                            text = if (point?.isMastered == true) "\u5DF2\u8BBE\u5B9A\u4E3A\u638C\u63E1" else "\u52A0\u5165\u5DF2\u638C\u63E1",
+                            text = if (point.isMastered) "已设定为掌握" else "加入已掌握",
                             tone = ActionTone.Green,
-                            isPrimary = point?.isMastered != true,
+                            isPrimary = !point.isMastered,
                             onClick = { viewModel.toggleMastered() }
                         )
                     }
                     ReviewMode.REINFORCEMENT -> {
                         ReviewActionButton(
-                            text = "\u79FB\u51FA\u91CD\u70B9\u96C6\u9526",
+                            text = "移出重点集锦",
                             tone = ActionTone.Red,
                             isPrimary = true,
                             onClick = { viewModel.toggleReinforcement() }
                         )
                         ReviewActionButton(
-                            text = if (point?.isMastered == true) "\u5DF2\u8BBE\u5B9A\u4E3A\u638C\u63E1" else "\u52A0\u5165\u5DF2\u638C\u63E1",
+                            text = if (point.isMastered) "已设定为掌握" else "加入已掌握",
                             tone = ActionTone.Green,
-                            isPrimary = point?.isMastered != true,
+                            isPrimary = !point.isMastered,
                             onClick = { viewModel.toggleMastered() }
                         )
                     }
                     ReviewMode.MASTERED -> {
                         ReviewActionButton(
-                            text = if (point?.isReinforced == true) "\u518D\u6B21\u52A0\u5165 \u00D7${point.reinforcementCount}" else "\u52A0\u5165\u91CD\u70B9\u96C6\u9526",
+                            text = if (point.isReinforced) "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
                             tone = ActionTone.Amber,
                             isPrimary = true,
                             onClick = { viewModel.toggleReinforcement() }
                         )
                         ReviewActionButton(
-                            text = "\u79FB\u51FA\u5DF2\u638C\u63E1",
+                            text = "移出已掌握",
                             tone = ActionTone.Red,
                             isPrimary = true,
                             onClick = { viewModel.toggleMastered() }
@@ -400,15 +399,18 @@ private fun ReviewBottomActionBar(
                 }
             }
 
+            // "Next" button (vertical, amber tone)
             ReviewActionButton(
-                text = "\u4E0B\u4E00\u4E2A",
+                text = "下一个",
                 tone = ActionTone.Amber,
                 isPrimary = false,
                 verticalContent = true,
-                icon = "\u21C4",
+                icon = KikariaIcons_TEXT_NEXT,
                 onClick = { viewModel.nextPoint() },
                 modifier = Modifier.weight(0.8f).height(110.dp)
             )
         }
     }
 }
+
+private const val KikariaIcons_TEXT_NEXT = "\u21C4"

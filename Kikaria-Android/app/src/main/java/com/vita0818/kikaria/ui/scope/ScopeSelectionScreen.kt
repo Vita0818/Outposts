@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,6 +47,7 @@ fun ScopeSelectionScreen(
     val tertiaryText = if (isDark) KikariaColors.TertiaryTextDark else KikariaColors.TertiaryText
     val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
     val mist = if (isDark) KikariaColors.MistDark else KikariaColors.Mist
+    val actionGrad = if (isDark) KikariaColors.ActionGradientDark else KikariaColors.ActionGradientLight
     val masteredGreen = if (isDark) KikariaColors.MasteredGreenDark else KikariaColors.MasteredGreen
 
     KikariaPageShell {
@@ -61,14 +61,14 @@ fun ScopeSelectionScreen(
                     .padding(horizontal = 24.dp)
                     .padding(top = 70.dp)
             ) {
-                KikariaPageTitle(title = "\u8303\u56F4\u9009\u62E9")
+                KikariaPageTitle(title = "选择范围")
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = if (selected.isEmpty())
-                        "\u672A\u9009\u62E9\u6807\u7B7E\u65F6\uFF0C\u4F1A\u9ED8\u8BA4\u4F7F\u7528\u5168\u90E8\u77E5\u8BC6\u70B9\u3002"
-                    else "\u5DF2\u9009\u62E9 ${selected.size} \u4E2A\u6807\u7B7E\u3002",
+                        "未选择标签时，会默认使用全部知识点。"
+                    else "已选择 ${selected.size} 个标签。",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                     color = softText
@@ -76,39 +76,13 @@ fun ScopeSelectionScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Clear all button
-                if (selected.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .shadow(6.dp, RoundedCornerShape(12.dp),
-                                ambientColor = sky.copy(alpha = 0.06f),
-                                spotColor = sky.copy(alpha = 0.06f))
-                            .background(mist.copy(alpha = 0.6f))
-                            .clickable { viewModel.selectedTags.clear() }
-                            .padding(14.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "\u6E05\u9664\u5168\u90E8 (\u5F53\u524D\u9009\u4E2D ${selected.size})",
-                            color = deepText,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-
-                // Tag chips
+                // Tag chips matching iOS ScopeTagChip with action gradient fill for selected
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     allTags.forEach { tag ->
                         val isTagSelected = tag in selected
-                        val actionGrad = if (isDark) KikariaColors.ActionGradientDark else KikariaColors.ActionGradientLight
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
@@ -140,7 +114,7 @@ fun ScopeSelectionScreen(
                 if (allTags.isEmpty()) {
                     Spacer(modifier = Modifier.height(32.dp))
                     Text(
-                        text = "\u5F53\u524D\u9884\u8BBE\u6CA1\u6709\u6807\u7B7E\u3002\u77E5\u8BC6\u70B9\u5C06\u4EE5\u6807\u9898\u5F62\u5F0F\u5C55\u793A\u3002",
+                        text = "当前预设没有标签。知识点将以标题形式展示。",
                         color = tertiaryText,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
@@ -152,7 +126,7 @@ fun ScopeSelectionScreen(
                 // Preview: selected points count
                 val previewCount = viewModel.selectedKnowledgePoints.size
                 Text(
-                    text = "\u5C06\u590D\u4E60 $previewCount \u4E2A\u77E5\u8BC6\u70B9",
+                    text = "将复习 $previewCount 个知识点",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = masteredGreen

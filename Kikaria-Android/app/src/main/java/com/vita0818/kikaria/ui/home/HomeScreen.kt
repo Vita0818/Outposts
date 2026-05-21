@@ -1,5 +1,12 @@
 package com.vita0818.kikaria.ui.home
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,32 +16,32 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vita0818.kikaria.ui.components.KikariaGlassCard
+import com.vita0818.kikaria.ui.components.KikariaIcons
 import com.vita0818.kikaria.ui.components.KikariaPageShell
 import com.vita0818.kikaria.ui.components.KikariaProfileAvatar
-import com.vita0818.kikaria.ui.components.KikariaMetricLabel
-import com.vita0818.kikaria.ui.components.KikariaMetricValue
-import com.vita0818.kikaria.ui.components.KikariaGlassCard
 import com.vita0818.kikaria.ui.theme.KikariaColors
 import com.vita0818.kikaria.ui.theme.KikariaTypography
 import com.vita0818.kikaria.viewmodel.KikariaViewModel
@@ -60,7 +67,7 @@ fun HomeScreen(
         "${viewModel.allTags.size}" else "${viewModel.selectedTags.size}"
     val reinforcedCount = viewModel.reinforcedPoints.size
     val masteredCount = viewModel.masteredPoints.size
-    val presetName = viewModel.activePreset?.name ?: "\u65E0"
+    val presetName = viewModel.activePreset?.name ?: "无"
 
     val isDark = isSystemInDarkTheme()
 
@@ -69,8 +76,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
-                .padding(top = 14.dp),
+                .padding(horizontal = 24.dp, vertical = 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // ── Header: Kikaria title + profile avatar ──
@@ -80,7 +86,10 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = KikariaTypography.mixedText("Kikaria", size = 39, weight = FontWeight.SemiBold),
+                    text = "Kikaria",
+                    fontSize = 39.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = FontFamily.Serif,
                     color = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
                 )
 
@@ -93,24 +102,26 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // ── Central start bubble ──
+            // ── Central start bubble (matching iOS StartReviewButton) ──
             KikariaStartBubble(
                 onClick = onStartReview,
-                dailyGoal = viewModel.dailyGoal,
-                masteredCount = masteredCount,
-                countdownDays = countdownDays
+                masteredCount = masteredCount
             )
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // ── Progress card ──
+            // ── Progress card (today overview link) ──
             KikariaGlassCard(
-                modifier = Modifier.fillMaxWidth().clickable { /* today overview */ },
+                modifier = Modifier.fillMaxWidth(),
                 cornerRadius = 28.dp,
-                fillOpacity = 0.40f
+                fillOpacity = 0.42f,
+                shadowElevation = 17.dp,
+                shadowOpacity = 0.11f
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 20.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 20.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
@@ -120,9 +131,7 @@ fun HomeScreen(
                             maxLines = 1
                         )
                         Text(
-                            text = daysLeftText,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            text = KikariaTypography.mixedText(daysLeftText, size = 13, weight = FontWeight.SemiBold),
                             color = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText,
                             maxLines = 1
                         )
@@ -134,7 +143,7 @@ fun HomeScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "\u203A",
+                        KikariaIcons.TEXT_FORWARD,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = (if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray).copy(alpha = 0.52f)
@@ -148,12 +157,14 @@ fun HomeScreen(
             KikariaGlassCard(
                 modifier = Modifier.fillMaxWidth(),
                 cornerRadius = 28.dp,
-                fillOpacity = 0.40f
+                fillOpacity = 0.40f,
+                shadowElevation = 18.dp,
+                shadowOpacity = 0.12f
             ) {
                 Column {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         DashboardMetricColumn(
-                            title = "\u8303\u56F4",
+                            title = "范围",
                             value = scopeCountText,
                             tint = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky,
                             modifier = Modifier.weight(1f),
@@ -161,7 +172,7 @@ fun HomeScreen(
                         )
                         DashboardDivider()
                         DashboardMetricColumn(
-                            title = "\u91CD\u70B9\u96C6\u9526",
+                            title = "重点集锦",
                             value = "$reinforcedCount",
                             tint = if (isDark) KikariaColors.CyanDark else KikariaColors.Cyan,
                             modifier = Modifier.weight(1f),
@@ -169,7 +180,7 @@ fun HomeScreen(
                         )
                         DashboardDivider()
                         DashboardMetricColumn(
-                            title = "\u5DF2\u638C\u63E1",
+                            title = "已掌握",
                             value = "$masteredCount",
                             tint = if (isDark) KikariaColors.MasteredGreenDark else KikariaColors.MasteredGreen,
                             modifier = Modifier.weight(1f),
@@ -181,7 +192,10 @@ fun HomeScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 18.dp)
                             .height(1.dp)
-                            .background((if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray).copy(alpha = 0.12f))
+                            .background(
+                                (if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray)
+                                    .copy(alpha = 0.12f)
+                            )
                     )
                     Row(
                         Modifier
@@ -197,7 +211,7 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f, fill = false)
                         )
                         Text(
-                            " \u5F53\u524D\u9884\u8BBE",
+                            " 当前预设",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText,
@@ -205,7 +219,7 @@ fun HomeScreen(
                         )
                         Spacer(Modifier.weight(1f))
                         Text(
-                            "\u203A",
+                            KikariaIcons.TEXT_FORWARD,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = (if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray).copy(alpha = 0.58f)
@@ -219,54 +233,115 @@ fun HomeScreen(
     }
 }
 
-// ─── Start Bubble (matches iOS StartReviewButton) ───
+// ─── Start Bubble (matches iOS StartReviewButton with decorative bubbles and breathing animation) ───
 
 @Composable
 private fun KikariaStartBubble(
     onClick: () -> Unit,
-    dailyGoal: Int = 20,
-    masteredCount: Int = 0,
-    countdownDays: Int? = null
+    masteredCount: Int = 0
 ) {
     val isDark = isSystemInDarkTheme()
     val actionGrad = if (isDark) KikariaColors.ActionGradientDark else KikariaColors.ActionGradientLight
     val shadowC = if (isDark) KikariaColors.SkyDark.copy(alpha = 0.28f) else KikariaColors.Sky.copy(alpha = 0.28f)
 
+    // Breathing animation (matches iOS withAnimation(.easeInOut(duration: 5.4).repeatForever))
+    val infiniteTransition = rememberInfiniteTransition(label = "breathe")
+    val breatheScale by infiniteTransition.animateFloat(
+        initialValue = 0.992f,
+        targetValue = 1.018f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(5400),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "breatheScale"
+    )
+
     Box(
-        modifier = Modifier
-            .size(190.dp)
-            .shadow(28.dp, CircleShape, ambientColor = shadowC, spotColor = shadowC)
-            .clip(CircleShape)
-            .background(actionGrad)
-            .clickable { onClick() },
+        modifier = Modifier.size(272.dp),
         contentAlignment = Alignment.Center
     ) {
-        // Radial glass highlight — matches iOS radial gradient overlay
+        // Decorative orbiting bubbles (simplified from iOS TimelineView orbit)
+        // We draw the smaller decorative bubbles at static positions
+        val bubbleMint = if (isDark) KikariaColors.BubbleMintDark else KikariaColors.BubbleMint
+        val bubbleLavender = if (isDark) KikariaColors.BubbleLavenderDark else KikariaColors.BubbleLavender
+        val bubbleGreen = if (isDark) KikariaColors.BubbleGreenDark else KikariaColors.BubbleGreen
+
+        DecorativeBubble(
+            size = 92.dp,
+            colors = listOf(if (isDark) KikariaColors.CyanDark else KikariaColors.Cyan, bubbleMint),
+            modifier = Modifier.offset(x = (-96).dp, y = (-68).dp)
+        )
+        DecorativeBubble(
+            size = 80.dp,
+            colors = listOf(bubbleLavender, if (isDark) KikariaColors.MistDark else KikariaColors.Mist),
+            modifier = Modifier.offset(x = 102.dp, y = (-56).dp)
+        )
+        DecorativeBubble(
+            size = 78.dp,
+            colors = listOf(bubbleGreen, if (isDark) KikariaColors.CyanDark else KikariaColors.Cyan),
+            modifier = Modifier.offset(x = 92.dp, y = 80.dp)
+        )
+        DecorativeBubble(
+            size = 74.dp,
+            colors = listOf(if (isDark) KikariaColors.SkyDark else KikariaColors.Sky,
+                if (isDark) KikariaColors.BubbleWhiteDark else KikariaColors.BubbleWhite),
+            modifier = Modifier.offset(x = (-106).dp, y = 78.dp)
+        )
+
+        // Main center circle with gradient + radial highlight + arrow
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .size(190.dp)
+                .scale(breatheScale)
+                .shadow(28.dp, CircleShape, ambientColor = shadowC, spotColor = shadowC)
                 .clip(CircleShape)
-                .background(
-                    Brush.radialGradient(
-                        listOf(
-                            Color.White.copy(alpha = 0.30f),
-                            Color.White.copy(alpha = 0.10f),
-                            Color.White.copy(alpha = 0.02f)
-                        ),
-                        center = androidx.compose.ui.geometry.Offset(57f, 57f),
-                        radius = 150f
+                .background(actionGrad)
+                .clickable { onClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            // Radial glass highlight
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape)
+                    .background(
+                        Brush.radialGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.30f),
+                                Color.White.copy(alpha = 0.10f),
+                                Color.White.copy(alpha = 0.02f)
+                            ),
+                            center = androidx.compose.ui.geometry.Offset(57f, 57f),
+                            radius = 150f
+                        )
                     )
-                )
-        )
-        // Arrow icon (matches iOS "arrow.right" / "→")
-        Text(
-            KikariaIcons.TEXT_ARROW_RIGHT,
-            color = Color.White.copy(alpha = 0.96f),
-            fontSize = 70.sp,
-            fontWeight = FontWeight.Normal,
-            textAlign = TextAlign.Center
-        )
+            )
+            // Arrow icon (matches iOS "arrow.right")
+            Text(
+                KikariaIcons.TEXT_ARROW_RIGHT,
+                color = Color.White.copy(alpha = 0.96f),
+                fontSize = 70.sp,
+                fontWeight = FontWeight.Normal
+            )
+        }
     }
+}
+
+@Composable
+private fun DecorativeBubble(
+    size: androidx.compose.ui.unit.Dp,
+    colors: List<Color>,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .shadow(14.dp, CircleShape,
+                ambientColor = colors.first().copy(alpha = 0.10f),
+                spotColor = colors.first().copy(alpha = 0.10f))
+            .clip(CircleShape)
+            .background(Brush.linearGradient(colors))
+    )
 }
 
 // ─── Dashboard Helpers ───
@@ -279,7 +354,6 @@ private fun DashboardMetricColumn(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val isDark = isSystemInDarkTheme()
     Box(
         modifier
             .clickable { onClick() }
@@ -287,9 +361,19 @@ private fun DashboardMetricColumn(
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            KikariaMetricLabel(title)
+            Text(
+                text = title,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = if (isSystemInDarkTheme()) KikariaColors.SoftTextDark else KikariaColors.SoftText,
+                maxLines = 1
+            )
             Spacer(Modifier.height(8.dp))
-            KikariaMetricValue(value = value, tint = tint, fontSize = 24)
+            Text(
+                text = KikariaTypography.mixedText(value, size = 24, weight = FontWeight.Bold),
+                color = tint,
+                maxLines = 1
+            )
         }
     }
 }
@@ -320,6 +404,3 @@ private fun ordinalSuffix(day: Int): String {
     if (lastTwo == 11 || lastTwo == 12 || lastTwo == 13) return "th"
     return when (day % 10) { 1 -> "st"; 2 -> "nd"; 3 -> "rd"; else -> "th" }
 }
-
-// Import needed for TEXT_ARROW_RIGHT symbol
-private val KikariaIcons = com.vita0818.kikaria.ui.components.KikariaIcons

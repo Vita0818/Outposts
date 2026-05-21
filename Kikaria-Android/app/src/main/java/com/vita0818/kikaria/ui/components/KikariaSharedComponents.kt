@@ -22,9 +22,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -224,6 +228,28 @@ fun KikariaGlassCard(
     }
 }
 
+// ── Glass Capsule ──
+
+@Composable
+fun KikariaGlassCapsule(
+    modifier: Modifier = Modifier,
+    fillOpacity: Float = 0.48f,
+    content: @Composable () -> Unit
+) {
+    val isDark = isSystemInDarkTheme()
+    val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
+    val shadowColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = 0.10f)
+
+    Box(
+        modifier = modifier
+            .shadow(14.dp, CircleShape, ambientColor = shadowColor, spotColor = shadowColor)
+            .clip(CircleShape)
+            .background(glassSurface.copy(alpha = fillOpacity))
+    ) {
+        content()
+    }
+}
+
 // ── Profile Avatar (matches iOS ProfileAvatarView) ──
 
 /**
@@ -320,7 +346,6 @@ fun KikariaEmptyState(
     modifier: Modifier = Modifier
 ) {
     val isDark = isSystemInDarkTheme()
-    val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
     val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
 
@@ -408,4 +433,405 @@ fun KikariaMetricLabel(
         maxLines = 1,
         modifier = modifier
     )
+}
+
+// ── Action Button (primary / soft gradient button) ──
+
+/**
+ * Reusable action button matching iOS ReviewActionButton / onboarding buttons.
+ * Uses the Kikaria action gradient for primary, glass surface for secondary.
+ */
+@Composable
+fun KikariaActionButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isPrimary: Boolean = true,
+    textSize: Int = 17
+) {
+    val isDark = isSystemInDarkTheme()
+    val shape = RoundedCornerShape(26.dp)
+    val actionGrad = if (isDark) KikariaColors.ActionGradientDark else KikariaColors.ActionGradientLight
+    val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
+    val shadowColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(
+        alpha = if (isPrimary) 0.22f else 0.10f
+    )
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(18.dp, shape, ambientColor = shadowColor, spotColor = shadowColor)
+            .clip(shape)
+            .background(if (isPrimary) actionGrad else glassSurface.copy(alpha = 0.46f))
+            .clickable { onClick() }
+            .padding(vertical = 17.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            fontSize = textSize.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = if (isPrimary) Color.White
+                    else if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
+        )
+    }
+}
+
+// ── Settings Row ──
+
+/**
+ * Settings list row matching iOS SettingsListRow.
+ * Title on the left, optional value + chevron on the right.
+ */
+@Composable
+fun KikariaSettingsRow(
+    title: String,
+    modifier: Modifier = Modifier,
+    valueText: String = "",
+    showsChevron: Boolean = true,
+    onClick: (() -> Unit)? = null
+) {
+    val isDark = isSystemInDarkTheme()
+    val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
+    val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+    val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
+    val blueGray = if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray
+
+    val rowModifier = modifier
+        .fillMaxWidth()
+        .padding(horizontal = 18.dp)
+        .let { if (onClick != null) it.clickable { onClick() } else it }
+
+    Row(
+        modifier = rowModifier.height(58.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = KikariaTypography.mixedText(title, size = 16, weight = FontWeight.SemiBold),
+            color = deepText,
+            maxLines = 1,
+            modifier = Modifier.weight(1f)
+        )
+        if (valueText.isNotEmpty()) {
+            Text(
+                text = KikariaTypography.mixedText(valueText, size = 16, weight = FontWeight.SemiBold),
+                color = if (showsChevron) sky else softText,
+                maxLines = 1
+            )
+            Spacer(Modifier.width(8.dp))
+        }
+        if (showsChevron) {
+            Text(
+                text = KikariaIcons.TEXT_FORWARD,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = blueGray
+            )
+        }
+    }
+}
+
+// ── Settings Toggle Row ──
+
+/**
+ * Settings toggle row matching iOS SettingsToggleRow pattern.
+ */
+@Composable
+fun KikariaSettingsToggleRow(
+    title: String,
+    isChecked: Boolean,
+    modifier: Modifier = Modifier,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    val isDark = isSystemInDarkTheme()
+    val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
+    val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp)
+            .height(58.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = KikariaTypography.mixedText(title, size = 17, weight = FontWeight.SemiBold),
+            color = deepText,
+            modifier = Modifier.weight(1f)
+        )
+        androidx.compose.material3.Switch(
+            checked = isChecked,
+            onCheckedChange = onCheckedChange,
+            colors = androidx.compose.material3.SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = sky
+            )
+        )
+    }
+}
+
+// ── Settings Section Card ──
+
+/**
+ * Settings section card matching iOS SettingsSectionCard pattern.
+ */
+@Composable
+fun KikariaSettingsSection(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val isDark = isSystemInDarkTheme()
+    val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = KikariaTypography.mixedText(title, size = 13, weight = FontWeight.SemiBold),
+            color = softText,
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+        )
+        KikariaGlassCard(
+            modifier = Modifier.fillMaxWidth(),
+            cornerRadius = 28.dp,
+            fillOpacity = 0.32f,
+            shadowElevation = 15.dp,
+            shadowOpacity = 0.08f
+        ) {
+            Column { content() }
+        }
+    }
+}
+
+// ── Section Divider ──
+
+@Composable
+fun KikariaSectionDivider() {
+    val isDark = isSystemInDarkTheme()
+    val blueGray = if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .padding(start = 18.dp)
+            .height(1.dp)
+            .background(blueGray.copy(alpha = 0.10f))
+    )
+}
+
+// ── Info Card (for review hint/answer) ──
+
+/**
+ * Floating info card used for hint and content display in review,
+ * mimicking the FloatingInfoCard style from ContentView.swift.
+ */
+@Composable
+fun KikariaInfoCard(
+    label: String,
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    val isDark = isSystemInDarkTheme()
+    val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+    val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
+
+    KikariaGlassCard(
+        modifier = modifier.fillMaxWidth(),
+        cornerRadius = 26.dp,
+        fillOpacity = 0.56f,
+        shadowElevation = 18.dp,
+        shadowOpacity = 0.14f
+    ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Text(
+                text = label,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = sky
+            )
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = KikariaTypography.mixedText(text, size = 17, weight = FontWeight.Normal),
+                color = deepText,
+                lineHeight = 26.sp
+            )
+        }
+    }
+}
+
+// ── Preset Card (for preset selection) ──
+
+@Composable
+fun KikariaPresetCard(
+    name: String,
+    isCurrent: Boolean,
+    pointCount: Int,
+    modifier: Modifier = Modifier,
+    onSelect: () -> Unit,
+    onEdit: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null
+) {
+    val isDark = isSystemInDarkTheme()
+    val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
+    val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
+    val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+    val removeCoral = if (isDark) KikariaColors.RemoveCoralDark else KikariaColors.RemoveCoral
+
+    KikariaGlassCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onSelect() },
+        cornerRadius = 24.dp,
+        fillOpacity = if (isCurrent) 0.42f else 0.34f,
+        shadowElevation = 17.dp,
+        shadowOpacity = if (isCurrent) 0.12f else 0.08f
+    ) {
+        Row(
+            modifier = Modifier.padding(18.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = KikariaTypography.mixedText(name, size = 20, weight = FontWeight.SemiBold),
+                        color = deepText,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (isCurrent) {
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "当前",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = sky,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(
+                                    if (isDark) KikariaColors.GlassSurfaceDark.copy(alpha = 0.34f)
+                                    else KikariaColors.GlassSurface.copy(alpha = 0.34f)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "$pointCount 个知识点",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = softText
+                )
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (onEdit != null) {
+                    KikariaCircularIconButton(
+                        onClick = onEdit,
+                        icon = KikariaIcons.edit,
+                        size = 34.dp,
+                        iconSize = 15.dp
+                    )
+                }
+                if (onDelete != null) {
+                    KikariaCircularIconButton(
+                        onClick = onDelete,
+                        icon = KikariaIcons.delete,
+                        size = 34.dp,
+                        iconSize = 15.dp,
+                        modifier = Modifier
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ── Knowledge Item Row ──
+
+@Composable
+fun KikariaKnowledgeItemRow(
+    title: String,
+    tags: List<String>,
+    modifier: Modifier = Modifier,
+    onEdit: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null
+) {
+    val isDark = isSystemInDarkTheme()
+    val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
+    val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
+    val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+    val removeCoral = if (isDark) KikariaColors.RemoveCoralDark else KikariaColors.RemoveCoral
+
+    KikariaGlassCard(
+        modifier = modifier.fillMaxWidth(),
+        cornerRadius = 22.dp,
+        fillOpacity = 0.42f,
+        shadowElevation = 12.dp,
+        shadowOpacity = 0.08f
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = KikariaTypography.mixedText(title, size = 16, weight = FontWeight.SemiBold),
+                    color = deepText,
+                    maxLines = 1
+                )
+                if (tags.isNotEmpty()) {
+                    Text(
+                        text = tags.joinToString(", "),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = softText,
+                        maxLines = 2
+                    )
+                }
+            }
+            if (onEdit != null) {
+                KikariaCircularIconButton(
+                    onClick = onEdit,
+                    icon = KikariaIcons.edit,
+                    size = 34.dp,
+                    iconSize = 15.dp
+                )
+                Spacer(Modifier.width(8.dp))
+            }
+            if (onDelete != null) {
+                KikariaCircularIconButton(
+                    onClick = onDelete,
+                    icon = KikariaIcons.delete,
+                    size = 34.dp,
+                    iconSize = 15.dp
+                )
+            }
+        }
+    }
+}
+
+// ── Toast Layer ──
+
+@Composable
+fun KikariaToast(
+    message: String,
+    modifier: Modifier = Modifier
+) {
+    val isDark = isSystemInDarkTheme()
+    val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
+
+    KikariaGlassCard(
+        modifier = modifier,
+        cornerRadius = 22.dp,
+        fillOpacity = 0.52f,
+        shadowElevation = 18.dp,
+        shadowOpacity = 0.18f
+    ) {
+        Text(
+            text = KikariaTypography.mixedText(message, size = 14, weight = FontWeight.SemiBold),
+            color = deepText,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 13.dp)
+        )
+    }
 }

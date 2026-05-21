@@ -1,5 +1,9 @@
 package com.vita0818.kikaria.ui.reinforcement
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,7 +52,6 @@ fun ReinforcementScreen(
 ) {
     val points = viewModel.reinforcedPoints
     val isDark = isSystemInDarkTheme()
-    val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
 
     KikariaPageShell {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -60,7 +64,7 @@ fun ReinforcementScreen(
                     .padding(horizontal = 24.dp)
                     .padding(top = 70.dp)
             ) {
-                KikariaPageTitle(title = "\u91CD\u70B9\u96C6\u9526")
+                KikariaPageTitle(title = "重点集锦")
 
                 Spacer(modifier = Modifier.height(18.dp))
 
@@ -71,15 +75,16 @@ fun ReinforcementScreen(
                         fillOpacity = 0.54f
                     ) {
                         KikariaEmptyState(
-                            title = "\u8FD8\u6CA1\u6709\u91CD\u70B9",
-                            subtitle = "\u5728\u80CC\u8BF5\u65F6\u67E5\u770B\u7B54\u6848\u540E\uFF0C\u53EF\u4EE5\u628A\u77E5\u8BC6\u70B9\u52A0\u5165\u8FD9\u91CC\u3002"
+                            title = "还没有重点",
+                            subtitle = "在背诵时查看答案后，可以把知识点加入这里。"
                         )
                     }
                 } else {
-                    // Start review button
+                    // Start review button (amber gradient, matching iOS ReinforcementStartButton)
                     ReinforcementStartButton(
                         count = points.size,
-                        onClick = onStartReinforcementReview
+                        onClick = onStartReinforcementReview,
+                        isDark = isDark
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -102,44 +107,46 @@ fun ReinforcementScreen(
 @Composable
 private fun ReinforcementStartButton(
     count: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    isDark: Boolean
 ) {
-    val isDark = isSystemInDarkTheme()
-    val nextGrad = if (isDark) KikariaColors.NextGradientDark else KikariaColors.NextGradientLight
     val shape = RoundedCornerShape(28.dp)
 
-    Box(
+    KikariaGlassCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .shadow(20.dp, shape,
-                ambientColor = (if (isDark) KikariaColors.NextAmberDark else KikariaColors.NextAmber).copy(alpha = 0.16f),
-                spotColor = (if (isDark) KikariaColors.NextAmberDark else KikariaColors.NextAmber).copy(alpha = 0.16f))
-            .clip(shape)
-            .background(nextGrad)
-            .clickable { onClick() }
-            .padding(horizontal = 22.dp, vertical = 22.dp),
-        contentAlignment = Alignment.Center
+            .clickable { onClick() },
+        cornerRadius = 28.dp,
+        fillOpacity = 0.46f,
+        shadowElevation = 20.dp,
+        shadowOpacity = 0.16f
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 22.dp, vertical = 22.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "\u5F00\u59CB\u91CD\u70B9\u80CC\u8BF5",
+                text = "开始重点背诵",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.White
+                color = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = KikariaTypography.mixedText("$count", size = 20, weight = FontWeight.Bold),
-                    color = Color.White
+                    color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
                 )
-                Spacer(Modifier.padding(start = 12.dp))
-                Text("\u203A", fontSize = 18.sp, fontWeight = FontWeight.SemiBold,
-                    color = Color.White.copy(alpha = 0.72f))
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    "›",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray
+                )
             }
         }
     }
@@ -154,9 +161,14 @@ private fun ReinforcementItem(
     val isDark = isSystemInDarkTheme()
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
     val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
+    val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+    val removeGrad = if (isDark) KikariaColors.RemoveGradientDark else KikariaColors.RemoveGradientLight
 
     KikariaGlassCard(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable { expanded = !expanded },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+            .clickable { expanded = !expanded },
         cornerRadius = 30.dp,
         fillOpacity = 0.42f,
         shadowElevation = 20.dp,
@@ -174,13 +186,12 @@ private fun ReinforcementItem(
                         color = deepText
                     )
                     if (point.reinforcementCount > 0) {
+                        Spacer(Modifier.height(4.dp))
                         Text(
-                            text = KikariaTypography.mixedText(
-                                "\u00D7${point.reinforcementCount}",
-                                size = 14,
-                                weight = FontWeight.Bold
-                            ),
-                            color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+                            text = "×${point.reinforcementCount}",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = sky
                         )
                     }
                 }
@@ -195,36 +206,55 @@ private fun ReinforcementItem(
                 }
             }
 
-            if (expanded) {
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    text = "\u63D0\u793A",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
-                )
-                Text(
-                    text = KikariaTypography.mixedText(point.hint, size = 15, weight = FontWeight.Medium),
-                    color = softText,
-                    lineHeight = 22.sp
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = "\u7B54\u6848",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
-                )
-                Text(
-                    text = KikariaTypography.mixedText(point.content, size = 15, weight = FontWeight.Medium),
-                    color = deepText,
-                    lineHeight = 22.sp
-                )
+            // Expanded content with preview
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                Column {
+                    Spacer(Modifier.height(10.dp))
+                    // Hint preview
+                    Text(
+                        text = "提示",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = sky
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = KikariaTypography.mixedText(
+                            point.hint.take(120) + if (point.hint.length > 120) "..." else "",
+                            size = 15,
+                            weight = FontWeight.Medium
+                        ),
+                        color = softText,
+                        lineHeight = 22.sp
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    // Answer preview
+                    Text(
+                        text = "答案",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = sky
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = KikariaTypography.mixedText(
+                            point.content.take(120) + if (point.content.length > 120) "..." else "",
+                            size = 15,
+                            weight = FontWeight.Medium
+                        ),
+                        color = deepText,
+                        lineHeight = 22.sp
+                    )
+                }
             }
 
             Spacer(Modifier.height(14.dp))
 
-            // Remove button
+            // Remove button (matching iOS action button with remove gradient)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -232,15 +262,13 @@ private fun ReinforcementItem(
                     .shadow(14.dp, RoundedCornerShape(16.dp),
                         ambientColor = (if (isDark) KikariaColors.RemoveCoralDark else KikariaColors.RemoveCoral).copy(alpha = 0.18f),
                         spotColor = (if (isDark) KikariaColors.RemoveCoralDark else KikariaColors.RemoveCoral).copy(alpha = 0.18f))
-                    .background(
-                        if (isDark) KikariaColors.RemoveGradientDark else KikariaColors.RemoveGradientLight
-                    )
+                    .background(removeGrad)
                     .clickable { onRemove() }
                     .padding(vertical = 14.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "\u79FB\u51FA\u91CD\u70B9\u96C6\u9526",
+                    text = "移出重点集锦",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White

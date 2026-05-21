@@ -666,3 +666,69 @@ Here is the final summary:\n\n---\n\n## Final Summary: Kikaria Android Deep UI A
 ### Warnings
 
 - None.
+
+
+## Forgis Run - 2026-05-21T16:00:35Z
+
+| Field | Value |
+|---|---|
+| Run id | `26236074401` |
+| Run time | `2026-05-21T16:00:35Z` |
+| Run URL | `https://github.com/Vita0818/Forgis/actions/runs/26236074401` |
+| Target repo | `Vita0818/Outposts` |
+| Source repo | `Vita0818/Kikaria` |
+| Source ref | `main` |
+| Target base branch | `main` |
+| Target branch | `forgis/kikaria-android` |
+| Target subdir | `Kikaria-Android` |
+| Task file path | `FORGIS_TASK.md` |
+| Config path | `FORGIS_CONFIG.yml` |
+| Agent backend | `deepseek` |
+| Model | `deepseek-v4-pro` |
+| dry_run | `false` |
+| run_agent config value | `true` |
+| Effective run_agent | `true` |
+| confirm_real_run | `true` |
+| DeepSeek executed | `true` |
+| DeepSeek status | `completed` |
+| Tool call count | `70` |
+| Read tool count | `49` |
+| Write tool count | `18` |
+| Guardrail result | `See workflow logs.` |
+| validation_commands | `0 configured` |
+| success_checks | `0 configured` |
+| Run log path | `Kikaria-Android/FORGIS_LOG.md` |
+| Validation result | `See workflow logs.` |
+
+### Changed Paths
+
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/components/GlassComponents.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/components/KikariaSharedComponents.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/home/HomeScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/mastered/MasteredScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/navigation/KikariaNavGraph.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/presets/PresetSelectionScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/reinforcement/ReinforcementScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/review/ReviewScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/scope/ScopeSelectionScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/settings/SettingsScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/theme/KikariaTheme.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/theme/KikariaTypography.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/viewmodel/KikariaViewModel.kt`
+
+### Read-Only Inputs
+
+- Source repository checkout
+- Target repository outside `Kikaria-Android/`
+- Config file: `FORGIS_CONFIG.yml`
+- Task file: `FORGIS_TASK.md`
+
+### Final Summary
+
+## Kikaria Android Full Fidelity Reconstruction — Final Summary\n\n### Source Files Inspected\n- `source/Kikaria/KikariaApp.swift` — App entry point, navigation root\n- `source/Kikaria/ContentView.swift` (10,551 lines) — All screens: Home, Review, Settings, Scope, Reinforcement, Mastered, Preset management, Today Overview, Review History, Profile, Onboarding, Markdown editor. Full glass-morphism visual system, typography, icons, gestures, animations.\n- `source/Kikaria/KikariaTypography.swift` (149 lines) — Mixed Chinese/serif font system, CJK Unicode detection, token-based type styles\n- `source/Kikaria/KnowledgePoint.swift` (401 lines) — KnowledgePoint model, KnowledgePreset, MarkdownParser\n- `source/Kikaria/KikariaAdaptiveLayout.swift` (525 lines) — Adaptive layout: iPad portrait/landscape, two-column, scaling metrics\n- `source/Kikaria/StudyTracking.swift` (139 lines) — StudyActivityRecord, WidgetSnapshot, activity types\n\n### Target Files Modified (12) + Created (2)\n\n| File | Action | Description |\n|------|--------|-------------|\n| `ui/theme/KikariaTheme.kt` | Modified | Added `KikariaTokens` with `CompositionLocalProvider` for centralized typography tokens |\n| `ui/theme/KikariaTypography.kt` | Modified | Expanded with 15+ named token helpers (appTitle, pageTitle, largeDisplay, cardTitle, knowledgeTitle, reviewPrompt, reviewAnswer, body, secondaryBody, caption, buttonText, settingsTitle, settingsSubtitle, tagText, metricNumber) |\n| `ui/components/GlassComponents.kt` | Modified | Refactored to low-level glass primitives with shared `glassCardStrokeColors` helper |\n| `ui/components/KikariaSharedComponents.kt` | Modified | Expanded from 411→837 lines. Added: KikariaGlassCapsule, KikariaActionButton, KikariaSettingsRow, KikariaSettingsToggleRow, KikariaSettingsSection, KikariaSectionDivider, KikariaInfoCard, KikariaPresetCard, KikariaKnowledgeItemRow, KikariaToast |\n| `ui/home/HomeScreen.kt` | Modified | Breathing animation for start bubble, 4 decorative bubbles, serif "Kikaria" title, improved glass shadows |\n| `ui/review/ReviewScreen.kt` | Modified | ActionTone system (Blue/Green/Amber/Red), mode-specific action grids, animated info cards, review count pill |\n| `ui/reinforcement/ReinforcementScreen.kt` | Modified | Glass-card start button, expandable items with animated previews, reinforcement count badges |\n| `ui/mastered/MasteredScreen.kt` | Modified | Green-themed styling, mastered-green titles, animated expandable items |\n| `ui/scope/ScopeSelectionScreen.kt` | Modified | Action-gradient fill for selected tag chips, proper subtitle text |\n| `ui/navigation/KikariaNavGraph.kt` | Modified | Added SETTINGS and PRESETS routes, wired new screen callbacks |\n| `viewmodel/KikariaViewModel.kt` | Modified | Added: countdown computation, dailyGoal/dangerPercent updaters, notification state, countdown range management |\n| `ui/settings/SettingsScreen.kt` | **Created** | Full settings: profile avatar, current preset, daily goal, countdown, danger percent, notification toggle, about section |\n| `ui/presets/PresetSelectionScreen.kt` | **Created** | Preset switching with KikariaPresetCard, current badge, point count |\n\n### Reconstruction Status by Area\n\n| Area | Status |\n|------|--------|\n| Theme/tokens | ✅ Rebuilt with KikariaTokens + CompositionLocalProvider |\n| Typography system | ✅ 15+ named token helpers; serif/CJK mixed text; serif-only helper |\n| Icon mapping | ✅ Already centralized in KikariaIcons.kt |\n| Shared components | ✅ 20+ composables spanning all major patterns |\n| Home screen | ✅ Breathing animation, decorative bubbles, serif title, glass styling |\n| Review/Study screen | ✅ Tone system, mode-specific grids, animated cards |\n| Preset switching | ✅ PresetSelectionScreen with preset cards |\n| Important collection | ✅ Glass styling, animated expansions, amber gradient button |\n| Mastered list | ✅ Green-themed, animated expansions |\n| Settings/Profile | ✅ New SettingsScreen with profile/learnin
+
+[Forgis log note: final_summary truncated after 4000 characters.]
+
+### Warnings
+
+- None.
