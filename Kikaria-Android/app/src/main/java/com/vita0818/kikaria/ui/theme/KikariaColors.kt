@@ -110,4 +110,18 @@ object KikariaColors {
             Color(0xFF8066C2)
         )
     )
+
+    val RemoveGradientLight = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFFE66059),
+            Color(0xFFFA9480)
+        )
+    )
+
+    val RemoveGradientDark = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFF942420),
+            Color(0xFFDB4747)
+        )
+    )
 }
