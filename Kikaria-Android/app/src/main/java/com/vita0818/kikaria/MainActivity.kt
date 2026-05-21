@@ -13,6 +13,19 @@ import androidx.compose.ui.graphics.Color
 import com.vita0818.kikaria.ui.navigation.KikariaNavGraph
 import com.vita0818.kikaria.ui.theme.KikariaTheme
 
+/**
+ * Main entry point for the Kikaria Android app.
+ *
+ * Translated from the iOS [KikariaApp.swift] @main App struct:
+ * - [MainActivity] replaces the @main App entry point.
+ * - [KikariaApp] composable replaces the WindowGroup { ContentView() } scene.
+ *
+ * TODO: Android notification channel setup and study-progress scheduling.
+ * The iOS app sets UNUserNotificationCenter delegate in KikariaApp.init().
+ * On Android this requires creating a NotificationChannel, requesting
+ * POST_NOTIFICATIONS permission (API 33+), and scheduling alarms/work
+ * for daily study-progress warnings.
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,6 +36,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Root composable that wraps the navigation graph in the Kikaria theme.
+ *
+ * Each screen is responsible for its own page-gradient background,
+ * so the top-level [Surface] uses [Color.Transparent].
+ */
 @Composable
 fun KikariaApp() {
     KikariaTheme(
