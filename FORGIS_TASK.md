@@ -1,397 +1,544 @@
-# Kikaria Android Deep UI and Component Functionality Alignment Pass
+# Kikaria Android Full Fidelity Reconstruction Pass
 
-This is a focused UI and component functionality alignment pass for the existing Android/Kotlin/Jetpack Compose version of Kikaria.
+This is a large, exhaustive, source-informed reconstruction pass for the existing Kikaria Android project.
 
-This is not a fresh migration.
-
-The Android project already exists under `Kikaria-Android`. The current version has a rough shape, but its typography, icons, component placement, component identity, interaction details, and some component-level behaviors still do not match the original Kikaria source app closely enough.
-
-Your task is to inspect the original Kikaria source app and the current Android implementation, then repair the Android implementation so that it becomes much closer to the source app in both visual structure and component behavior.
-
-Write all changes under:
+The Android project already exists under:
 
 `Kikaria-Android`
 
-Do not modify files outside `Kikaria-Android`.
+However, the current Android version is still only a rough approximation. It has the general shape, but it does not yet faithfully reproduce the original Kikaria app's visual system, typography, icon system, component placement, component identity, screen structure, and interaction behavior.
+
+Your task is to perform a deep full-app fidelity reconstruction pass.
+
+This is not a small polish pass.
+
+This is not a new product design.
+
+This is not a generic Android Material rewrite.
+
+This is a source-informed Android reconstruction of Kikaria.
+
+## Absolute write boundary
+
+All generated or modified target files must stay under:
+
+`Kikaria-Android`
+
+Do not modify any file outside `Kikaria-Android`.
 
 Do not modify the source repository.
 
-Do not modify unrelated files in the target repository.
+Do not modify unrelated target repository files.
 
-## Core objective
+Do not add secrets, API keys, local absolute paths, personal data, or hard-coded user identity.
 
-Align the Android implementation with the original Kikaria app at the component and interaction level.
+Do not hard-code the visible username “Vita”.
 
-Do not merely make the Android version “look acceptable”.
+## Core mission
 
-The goal is source-informed parity:
+Reconstruct the Android implementation so that it matches the original Kikaria source app as closely as feasible in Kotlin and Jetpack Compose.
 
-1. Same product structure
-2. Same screen hierarchy
-3. Same title placement logic
-4. Same typography intent
-5. Same icon semantics
-6. Same component grouping
-7. Same card/button identity
-8. Same interaction behavior where feasible
-9. Same reusable component strategy
-10. Same minimal visual language
+You must align:
 
-Do not redesign Kikaria into a generic Material 3 app.
+1. Product information architecture
+2. Screen hierarchy
+3. Navigation structure
+4. Visual hierarchy
+5. Typography system
+6. Mixed text treatment
+7. Icon semantics
+8. Button identity
+9. Card identity
+10. Bubble/metric component identity
+11. Page title placement
+12. Top action placement
+13. Horizontal margins
+14. Vertical spacing
+15. Review/study interaction behavior
+16. Preset state behavior
+17. Important collection behavior
+18. Mastered list behavior
+19. Settings/profile structure
+20. Shared component architecture
 
-Do not create a visually unrelated Android interpretation.
+The final Android result should feel like Kikaria, not like a Material 3 demo.
 
-## Required source inspection
+## Do not finish early
 
-Before making meaningful edits, inspect the original Kikaria source files and the current Android files.
+Do not stop after fixing only one or two visible issues.
 
-You must inspect source-side files related to:
+Do not produce a final summary after a shallow typography-only or icon-only patch.
 
-1. Home screen
-2. Study/review screen
-3. Preset switching / preset management
-4. Knowledge item display and editing if present
-5. Important collection / key collection
-6. Mastered list
-7. Settings/profile page
-8. Shared typography
-9. Shared buttons
-10. Shared cards
-11. Shared icon usage
+Continue inspecting, comparing, and patching until you have addressed all major screens and shared UI systems that exist in the current Android project and source app.
+
+Before final summary, you must have inspected and acted on all applicable areas:
+
+1. Theme
+2. Typography
+3. Icons
+4. Shared components
+5. Home screen
+6. Review/study screen
+7. Preset switching / preset management
+8. Knowledge item representation
+9. Important collection
+10. Mastered list
+11. Settings/profile
 12. Navigation/page shell
-13. Gesture or state logic related to review flow
-14. Any source-level model/state definitions
+13. State/model/repository layer
+14. Placeholder/sample data boundaries
+15. Current target Android file organization
 
-Do not guess the source design from memory.
+If some area cannot be completed, explicitly mark it as deferred with a reason. Do not silently skip it.
 
-Do not infer UI from generic Android conventions.
+## Required source inspection strategy
 
-Read source files before changing corresponding Android files.
+You must begin by inspecting the current Android project under `Kikaria-Android`.
 
-## Current problems to fix
+Then inspect the source Kikaria repository.
 
-The current Android version has at least these problems:
+Search and read source files related to:
 
-1. Fonts are not aligned with Kikaria.
-2. Chinese, English, and numeric text do not have carefully controlled typography.
-3. Icons are not aligned with source semantics or source visual style.
-4. Some icons are wrapped in unnecessary circles or visually separated incorrectly.
-5. Component positions do not match the source layout.
-6. Page titles are not consistently positioned.
-7. Page margins and vertical spacing are inconsistent.
-8. Some components look like default Material samples.
-9. Shared component reuse is insufficient.
-10. Some screen-level components are duplicated instead of being centralized.
-11. Some interaction behavior may be functionally present but visually or structurally wrong.
-12. The Android implementation may preserve rough feature names but not component identity.
+1. App entry point
+2. Navigation
+3. Home page
+4. Study/review page
+5. Preset selection
+6. Knowledge item model
+7. Knowledge item editing or management
+8. Important collection
+9. Mastered list
+10. Settings
+11. Profile/avatar
+12. Daily goal
+13. Countdown day
+14. Typography
+15. Font usage
+16. Buttons
+17. Cards
+18. Bubbles
+19. Icons / SF Symbols / image assets
+20. Gestures
+21. Animations
+22. Persistence/state
 
-Fix these issues directly.
+Do not guess from memory.
 
-## Typography alignment requirements
+Do not rely on generic Android conventions.
 
-Create, repair, or strengthen a centralized Kikaria Android typography system.
+Do not rely only on the current Android implementation.
 
-Do not scatter font choices across screens.
+The source app is the authority.
+
+## Reconstruction strategy
+
+Use this order:
+
+1. Inspect current Android implementation.
+2. Inspect source Kikaria implementation.
+3. Build a concrete mismatch list.
+4. Repair or rebuild shared theme/tokens.
+5. Repair or rebuild typography system.
+6. Repair or rebuild icon mapping system.
+7. Repair or rebuild shared page shell.
+8. Repair or rebuild shared buttons/cards/rows/bubbles.
+9. Repair Home screen.
+10. Repair Review/Study screen.
+11. Repair Preset and knowledge management screens.
+12. Repair Important Collection and Mastered List screens.
+13. Repair Settings/Profile screens.
+14. Repair state/model/repository boundaries needed for component behavior.
+15. Remove or reduce generic Material demo styling.
+16. Run final git status and git diff review.
+17. Produce a grounded final summary.
+
+Do not invert this order by randomly editing screens first and leaving shared systems inconsistent.
+
+## Typography system requirements
+
+Create or repair a centralized Android typography system for Kikaria.
+
+Do not scatter font sizes or font families across screens.
 
 Do not use default Material typography blindly.
 
-Typography must be handled through shared tokens and reusable text components where appropriate.
-
-The typography system should define and consistently use tokens for at least:
+The typography system must include stable tokens for:
 
 1. App title
 2. Page title
-3. Section title
-4. Card title
-5. Body text
-6. Caption text
-7. Button text
-8. Large metric / display number
-9. Knowledge item title
-10. Review answer text
-11. Settings row text
+3. Large display text
+4. Metric number
+5. Card title
+6. Knowledge title
+7. Review prompt
+8. Review answer
+9. Body text
+10. Secondary body text
+11. Caption
+12. Button text
+13. Settings row title
+14. Settings row subtitle
+15. Tag text
 
-Important typography rules:
+Preserve Kikaria's calm, refined, study-oriented style.
 
-1. Preserve Kikaria's refined, calm, study-oriented typography direction.
-2. If the source app uses serif-like typography, preserve that intent on Android.
-3. If exact iOS fonts are unavailable, choose Android-safe approximations.
-4. Chinese text, English text, and numbers must not look randomly mixed.
-5. Do not hard-code the visible username “Vita”.
-6. Do not hard-code personal names, avatars, local paths, secrets, or private data.
-7. Avoid one-off font sizes inside individual screens.
-8. If Android cannot exactly reproduce the source font, centralize the approximation and document it briefly in code comments or TODOs.
+If the source app uses serif-like typography, preserve that direction.
 
-Prefer files such as:
+If exact iOS fonts are unavailable on Android, choose a stable Android approximation and centralize that approximation in the theme layer.
 
-- `ui/theme/KikariaTypography.kt`
-- `ui/theme/KikariaTheme.kt`
-- shared text components if needed
+Chinese, English, and numbers must not look randomly mixed.
 
-but adapt to the current Android project structure instead of creating parallel duplicate systems.
+If exact mixed-script rendering is too large to fully implement, create a clean text component boundary and TODO for exact mixed-script run splitting. Do not hard-code ad hoc per-screen font hacks.
 
-## Icon alignment requirements
+## Icon system requirements
 
-Create, repair, or strengthen a centralized icon mapping layer.
+Create or repair a centralized Kikaria icon mapping layer.
 
-Do not scatter arbitrary Material icons directly across screens when they represent stable Kikaria product actions.
+Do not scatter arbitrary Material icons across screens.
 
-Inspect the source app's icon semantics and map them intentionally to Android equivalents.
+For every important action icon, inspect the source app's icon usage and map it deliberately to Android.
 
-For each important source icon/action, define a stable Android mapping.
+Important actions include, where present:
 
-Important icon rules:
+1. Start review
+2. Settings
+3. Profile/avatar
+4. Add
+5. Edit
+6. Delete
+7. Back
+8. Close
+9. Confirm
+10. Important collection
+11. Mastered
+12. Preset switching
+13. Daily goal
+14. Countdown day
+15. Previous / next
+16. Show hint
+17. Show answer
 
-1. Do not wrap every icon in a circle unless the source does that.
-2. Do not add a second circular background around an icon already inside a circular button.
-3. Top-right icons that are visually grouped in the source should stay visually grouped.
+Rules:
+
+1. Do not wrap every icon in a circle.
+2. Do not add duplicate circular backgrounds.
+3. Do not visually separate icons that are grouped in the source.
 4. Equivalent icon buttons must share size, padding, icon size, and visual treatment.
-5. Use semantic mappings, not random approximate icons.
-6. Keep icon choices consistent across screens.
-7. If exact SF Symbols do not exist on Android, choose the closest semantic and visual equivalent.
+5. If exact SF Symbols are unavailable, choose the closest semantic and visual equivalent.
+6. Keep mappings centralized.
 
-Prefer a shared file such as:
+## Shared component reconstruction
 
-- `ui/components/KikariaIcons.kt`
-- or an existing equivalent shared component file
+Rebuild or repair shared Compose components so repeated UI is not duplicated.
 
-## Component identity requirements
+At minimum, centralize or repair these components if applicable:
 
-Repair the Android code so repeated visual elements are represented by shared components.
-
-Do not duplicate similar UI on each screen.
-
-Centralize at least these component types if present:
-
-1. Page shell / page container
-2. Page title
-3. Top action area
+1. Kikaria page shell
+2. Kikaria page title
+3. Top action row
 4. Circular icon button
 5. Soft/glass-like button
-6. Card container
-7. Metric bubble/card
-8. Settings row
-9. Preset row/card
-10. Knowledge item row/card
-11. Review action button
-12. Empty state
-13. Section header
-14. Profile/avatar display
+6. Primary start action
+7. Card container
+8. Metric bubble/card
+9. Home bubble
+10. Settings row
+11. Preset row/card
+12. Knowledge item row/card
+13. Review card
+14. Review action button
+15. Tag chip
+16. Empty state
+17. Profile/avatar block
+18. Section header
 
-If a component appears visually similar across screens, it should probably be the same shared component.
+A screen should consume shared components rather than duplicating local styling.
 
-The goal is source-level component consistency, not screenshot-level approximation.
+If the current Android project has one-off components that should be shared, refactor them into shared components inside `Kikaria-Android`.
 
-## Layout and placement requirements
+## Layout fidelity requirements
 
-Fix component positions by reading the source layout.
+Repair layout according to the source app.
 
-Pay special attention to:
+Pay attention to exact visual structure:
 
-1. Page title top offset
-2. Page title left offset
-3. Page horizontal margins
-4. Top-right action icon placement
-5. Top bar vertical alignment
-6. Home screen central composition
-7. Start/review primary action placement
-8. Card height and internal padding
-9. Review screen title/hint/answer vertical rhythm
-10. Settings page title and row spacing
-11. Preset page/list spacing
-12. Collection/mastered list spacing
-13. Bottom controls or floating controls
-14. Safe-area-like padding behavior
+1. Page top padding
+2. Page title position
+3. Page title font size
+4. Page title alignment
+5. Page horizontal margins
+6. Top-right icon position
+7. Top action grouping
+8. Card width
+9. Card internal padding
+10. Card corner radius
+11. Card vertical rhythm
+12. Button placement
+13. Bubble placement
+14. Review content vertical rhythm
+15. Settings row spacing
+16. Preset row spacing
+17. Bottom area spacing
+18. Gesture-friendly spacing
+19. Long-answer layout behavior
 
-Do not simply use default Material `TopAppBar` if the source layout is custom.
+Do not use default Android `TopAppBar` if the source app uses custom title placement.
 
-If the source app has custom title placement, reproduce it with custom Compose layout.
+Do not use default Material spacing if the source app has a different rhythm.
 
-## Home screen alignment
+## Home screen reconstruction
 
-Inspect the original Kikaria home screen carefully.
+Inspect the original Kikaria home screen deeply.
 
-Repair the Android home screen to better match the source in:
+Reconstruct the Android Home screen so that it better matches the source in:
 
-1. App title placement
-2. Profile/avatar area
-3. Central bubble or central visual system
-4. Primary start action
-5. Daily goal display
-6. Countdown-day display
-7. Preset display
-8. Bubble/card size and spacing
-9. Icon and text treatment
-10. Overall visual rhythm
+1. App title
+2. User/avatar location
+3. Central visual system
+4. Bubble/card system
+5. Daily goal component
+6. Countdown component
+7. Preset component
+8. Primary start action
+9. Secondary actions
+10. Icon sizes
+11. Text sizes
+12. Spacing
+13. Motion/animation placeholders if present
+14. Calm minimal visual style
 
-Do not turn the home screen into a generic dashboard.
+Do not make the Home screen a generic dashboard.
 
-## Review / study screen alignment
+## Review / Study screen reconstruction
 
-Inspect the original review/study source implementation carefully.
+Inspect the original review/study flow deeply.
 
-Repair the Android review/study screen to better match the source in:
+Repair Android so it matches source behavior and structure for:
 
-1. Knowledge point title placement
-2. Hint reveal behavior
-3. Answer reveal behavior
-4. Answer typography and spacing
-5. Important collection state
-6. Mastered state
-7. Button positions
-8. Gesture-related behavior if implemented
-9. State transitions
-10. Long answer handling
+1. Current knowledge item title
+2. Prompt/hint reveal
+3. Answer reveal
+4. Important collection state
+5. Mastered state
+6. Previous/next/random navigation
+7. Swipe or gesture semantics if present
+8. Long answer behavior
+9. Button/icon placement
+10. Review card style
+11. State transition visual hierarchy
+12. Minimal instructional text
 
-Do not add unnecessary instructional labels if the source does not have them.
+Do not add unnecessary labels.
 
-Do not make the review screen look like a generic flashcard demo.
+Do not make it a generic flashcard screen.
 
-## Preset and knowledge management alignment
+## Preset and knowledge management reconstruction
 
-Inspect source preset/knowledge management screens if present.
+Inspect the source implementation for preset and knowledge management.
 
-Repair Android implementation to better match:
+Repair Android structures for:
 
-1. Preset switching layout
-2. Preset row/card style
-3. Knowledge item row/card style
-4. Tags display
-5. Add/edit/delete entry points
-6. Empty states
-7. Title and margin system
-8. Shared row components
+1. Current preset display
+2. Preset switching
+3. Preset list row/card
+4. Knowledge item row/card
+5. Knowledge item tags
+6. Add/edit/delete entry points
+7. Per-preset state boundaries
+8. Empty states
+9. Shared list components
+10. Screen title and action placement
 
-Do not invent new management flows unless the source has them.
+Do not invent a different management model.
 
-## Important collection and mastered list alignment
+## Important collection and mastered list reconstruction
 
-Inspect the source implementation for important collection and mastered list behavior if present.
+Inspect source behavior and UI for important collection and mastered list.
 
-Repair Android implementation so that:
+Repair Android so that:
 
-1. Important collection is visually and behaviorally distinct from mastered list if the source distinguishes them.
-2. Add/remove state is reflected consistently.
-3. Row/card components are shared where appropriate.
-4. The same typography and icon tokens are used.
-5. Empty states follow the app style.
+1. Important collection and mastered list are separate concepts if source separates them.
+2. Their visual treatment follows source.
+3. Their row/card components are shared where appropriate.
+4. Add/remove state is reflected consistently.
+5. Empty states match Kikaria style.
+6. Gesture behavior is approximated or clearly deferred.
+7. Button state does not allow duplicate-add behavior if the source prevents it.
 
-## Settings/profile alignment
+## Settings/profile reconstruction
 
-Inspect the original Kikaria settings/profile source implementation.
+Inspect source settings/profile pages.
 
-Repair Android settings/profile UI to better match:
+Repair Android so that settings/profile matches source in:
 
-1. Title position
-2. Avatar/profile layout
-3. Row spacing
-4. Section spacing
-5. Icon treatment
-6. Typography hierarchy
-7. Daily goal / countdown / preset settings entry points if present
-8. Minimal visual style
+1. Page title position
+2. Profile/avatar structure
+3. User display name handling
+4. Daily goal setting entry
+5. Countdown setting entry
+6. Preset management entry
+7. Section spacing
+8. Settings row style
+9. Icon treatment
+10. Typography hierarchy
 
-Do not hard-code “Vita” as the visible user.
+Do not hard-code the visible display name.
 
-Use neutral placeholder text or source-appropriate default data if necessary.
+Use a placeholder from state/sample repository only if needed.
 
-## Interaction functionality alignment
+## State and component behavior requirements
 
-This pass is not only visual.
+This pass should improve component functionality, not just visuals.
 
-Also align component-level behavior where feasible.
+Inspect source state behavior and repair Android state boundaries where feasible.
 
-Inspect source state and interaction logic, then repair Android behavior for:
+Important state areas:
 
-1. Daily goal state
-2. Current preset state
-3. Review answer/hint reveal state
-4. Important collection add/remove state
-5. Mastered add/remove state
-6. Preset switching
-7. Previous/next/random study item behavior if present
-8. Settings row interactions
-9. Profile/avatar placeholder behavior if present
-10. State persistence placeholders or TODOs
+1. Current preset
+2. Daily goal
+3. Countdown day
+4. Study item list
+5. Current review item
+6. Hint visible / answer visible
+7. Important collection membership
+8. Mastered membership
+9. Per-preset important/mastered state if source has it
+10. Profile display data
+11. Settings changes
+12. Empty state conditions
 
-If full persistence is too large for this pass, create a clean shared state/repository boundary and leave explicit TODOs.
+If persistence is too large for this pass, create a clean repository/state-holder boundary and clearly mark persistence as deferred.
 
-Do not fake completed persistence.
+Do not fake persistence as complete.
 
-Do not claim unavailable features are complete.
+Do not claim incomplete behavior is complete.
 
-## Architecture constraints
+## Assets and visual resources
 
-Keep the Android project maintainable.
+Inspect source assets if present.
 
-Prefer:
+If equivalent assets are needed in Android:
 
-1. Shared theme layer
-2. Shared component layer
-3. Shared model layer
-4. Shared state holder or repository layer
-5. Screen files that consume shared components
-6. Minimal screen-specific styling
+1. Copy or recreate only what is necessary under `Kikaria-Android`.
+2. Do not use private absolute paths.
+3. Do not create fake unrelated assets.
+4. Do not reference missing resources.
+5. Prefer simple vector drawables or Compose shapes if they reproduce the source better than random Material icons.
+
+## Android project quality
+
+Keep the Android project coherent.
+
+Preferred structure:
+
+1. `ui/theme`
+2. `ui/components`
+3. `ui/screens`
+4. `model`
+5. `state`
+6. `repository`
+7. `navigation`
+
+Adapt to the existing project structure, but reduce chaos.
 
 Avoid:
 
-1. Massive single-file UI
-2. Per-screen duplicated card/button/title implementations
-3. Random one-off hard-coded padding
-4. Random one-off icon choices
-5. Random one-off font sizes
-6. Unrelated refactors
-7. Replacing the existing project with a new app
+1. Massive single-file app
+2. Per-screen duplicate styles
+3. Random hard-coded colors
+4. Random hard-coded font sizes
+5. Random hard-coded padding
+6. Random icon choices
+7. Unrelated architecture churn
+8. Fake test/build success
 
-## What not to do
+## Aggressive completion requirement
+
+Use the available iteration budget.
+
+Do not stop after a small patch.
+
+After each major area, continue to the next area unless all major areas have been addressed.
+
+A good run should include meaningful work across theme, components, and multiple screens.
+
+A bad run is one that only changes one theme file and then summarizes.
+
+Before final summary, verify that you have considered:
+
+1. Home screen
+2. Review screen
+3. Settings/profile
+4. Preset/knowledge management
+5. Important/mastered lists
+6. Shared typography
+7. Shared icons
+8. Shared components
+9. State/repository behavior
+10. Target file organization
+
+## Build/test policy
+
+Do not add `build_command` or `test_command` to `FORGIS_CONFIG.yml`.
+
+If existing safe tools can inspect project structure, use them.
+
+If a build cannot be run safely, say so.
+
+Do not claim build success unless a real build actually ran and passed.
+
+## Forbidden actions
 
 Do not:
 
 1. Modify files outside `Kikaria-Android`.
-2. Modify the source repo.
-3. Access secrets, API keys, local private paths, or personal files.
-4. Add real user-private data.
-5. Add build/test commands to `FORGIS_CONFIG.yml`.
-6. Claim build success unless a real build actually succeeds.
-7. Create fake screenshots.
-8. Create fake test results.
-9. Replace Kikaria with a generic Material 3 app.
-10. Start a new migration from scratch.
-11. Rewrite the entire Android project unless absolutely necessary and still only inside `Kikaria-Android`.
-12. Add unrelated features.
-13. Add arbitrary shell usage.
-14. Hard-code “Vita” as a visible user.
+2. Modify source repo files.
+3. Modify unrelated target repo files.
+4. Add secrets or API keys.
+5. Read private local files.
+6. Hard-code local paths.
+7. Hard-code “Vita” as visible username.
+8. Rewrite Kikaria into a generic Material 3 sample.
+9. Create fake screenshots.
+10. Create fake tests.
+11. Claim unrun tests passed.
+12. Restore Aider.
+13. Use arbitrary shell.
+14. Change Forgis runtime code.
+15. Change GitHub workflow code.
 
-## Required workflow
+## Required final checks
 
-Follow this workflow:
+Before final response, run or use available tools for:
 
-1. Inspect current Android files under `Kikaria-Android`.
-2. Inspect relevant original Kikaria source files.
-3. Identify concrete mismatches in typography, icons, layout, components, and behavior.
-4. Patch shared theme/tokens first.
-5. Patch shared components second.
-6. Patch screens third.
-7. Patch state/model/repository behavior only where needed for component functionality.
-8. Use `git_status` and `git_diff` before final summary.
-9. Final summary must be specific and file-grounded.
+1. `git_status`
+2. `git_diff`
+
+Review the diff and ensure all changes are under `Kikaria-Android`.
 
 ## Final summary requirements
 
-The final summary must include:
+The final summary must be specific and grounded.
 
-1. Source Kikaria files inspected
-2. Android target files modified
-3. Typography alignment changes
-4. Icon alignment changes
-5. Component placement changes
-6. Shared components created or repaired
-7. Component functionality changes
-8. Screens improved
-9. Remaining mismatches
-10. Deferred work
-11. Whether build/test was run
-12. Confirmation that all changes stayed inside `Kikaria-Android`
-13. Confirmation that the source repo was not modified
+Include:
 
-Be honest about incomplete areas.
+1. Source files inspected
+2. Target Android files inspected
+3. Target Android files modified
+4. Typography reconstruction completed
+5. Icon reconstruction completed
+6. Shared component reconstruction completed
+7. Home screen reconstruction completed
+8. Review/study reconstruction completed
+9. Preset/knowledge management reconstruction completed
+10. Important/mastered list reconstruction completed
+11. Settings/profile reconstruction completed
+12. State/repository behavior changes
+13. Remaining mismatches
+14. Deferred work
+15. Build/test status
+16. Confirmation that all writes stayed inside `Kikaria-Android`
+17. Confirmation that source repo was not modified
+18. Suggested next pass
+
+Be honest. Do not overclaim.
