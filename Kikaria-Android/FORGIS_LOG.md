@@ -546,3 +546,61 @@ The `MainActivity.kt` migration unit is complete. My changes are minimal and foc
 ### Warnings
 
 - None.
+
+
+## Forgis Run - 2026-05-21T14:01:07Z
+
+| Field | Value |
+|---|---|
+| Run id | `26229783107` |
+| Run time | `2026-05-21T14:01:07Z` |
+| Run URL | `https://github.com/Vita0818/Forgis/actions/runs/26229783107` |
+| Target repo | `Vita0818/Outposts` |
+| Source repo | `Vita0818/Kikaria` |
+| Source ref | `main` |
+| Target base branch | `main` |
+| Target branch | `forgis/kikaria-android` |
+| Target subdir | `Kikaria-Android` |
+| Task file path | `FORGIS_TASK.md` |
+| Config path | `FORGIS_CONFIG.yml` |
+| Agent backend | `deepseek` |
+| Model | `deepseek-v4-pro` |
+| dry_run | `false` |
+| run_agent config value | `true` |
+| Effective run_agent | `true` |
+| confirm_real_run | `true` |
+| DeepSeek executed | `true` |
+| DeepSeek status | `completed` |
+| Tool call count | `42` |
+| Read tool count | `32` |
+| Write tool count | `8` |
+| Guardrail result | `See workflow logs.` |
+| validation_commands | `0 configured` |
+| success_checks | `0 configured` |
+| Run log path | `Kikaria-Android/FORGIS_LOG.md` |
+| Validation result | `See workflow logs.` |
+
+### Changed Paths
+
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/components/KikariaIcons.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/components/KikariaSharedComponents.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/home/HomeScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/mastered/MasteredScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/reinforcement/ReinforcementScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/review/ReviewScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/scope/ScopeSelectionScreen.kt`
+
+### Read-Only Inputs
+
+- Source repository checkout
+- Target repository outside `Kikaria-Android/`
+- Config file: `FORGIS_CONFIG.yml`
+- Task file: `FORGIS_TASK.md`
+
+### Final Summary
+
+All my work is complete. Here is the final summary:\n\n---\n\n## Kikaria Android UI Fidelity Repair — Final Summary\n\n### 1. Source files inspected\n\n- `source/Kikaria/ContentView.swift` — full app including Home, Review, Settings, Scope, Preset, Mastered, Reinforcement screens, all glass modifiers, colors, and animations\n- `source/Kikaria/KikariaTypography.swift` — typography system with serif/CJK mixed text, font size tokens\n- `source/Kikaria/KikariaAdaptiveLayout.swift` — responsive layout metrics and page container\n- `source/Kikaria/KikariaApp.swift` — app entry point\n\n### 2. Android files modified/created\n\n**New files:**\n- `ui/components/KikariaIcons.kt` — centralized icon mapping from iOS SF Symbols to Android Material Icons\n- `ui/components/KikariaSharedComponents.kt` — shared `kikariaGlassStroke` modifier, `KikariaCircularIconButton`, `KikariaPageShell`, `KikariaPageTitle`, `KikariaProfileAvatar`, `KikariaEmptyState`\n\n**Modified files (5):**\n- `ui/home/HomeScreen.kt`\n- `ui/review/ReviewScreen.kt`\n- `ui/scope/ScopeSelectionScreen.kt`\n- `ui/mastered/MasteredScreen.kt`\n- `ui/reinforcement/ReinforcementScreen.kt`\n\n### 3. Typography changes\n\nAll screens now use `KikariaTypography.mixedText()` for Chinese/Latin mixed content, preserving the iOS serif-for-Latin + system-for-CJK identity. Raw `FontFamily.Serif` / `fontSize = XX.sp` scattered across screens were removed and replaced with centralized typography tokens.\n\n### 4. Icon changes\n\nCreated `KikariaIcons` mapping: `chevron.left` → `ArrowBack`, `chevron.right` → `ChevronRight`, `xmark` → `Close`, `play.fill` → `PlayArrow`, `person.crop.circle.fill` → `Person`, `sparkles` → `Star`, plus text fallbacks for delicate UI (`‹`, `›`, `⇄`, `▶`).\n\n### 5. Layout/position changes\n\n- All screens now use `KikariaPageShell` (gradient background) \n- Scope/Mastered/Reinforcement screens replaced Material3 `Scaffold`+`TopAppBar` with custom glass layout\n- Home screen spacing matches iOS source: title at 14dp, bubble at 32dp gap, progress card at 30dp gap\n- All glass cards use shared `kikariaGlassStroke` for consistent gradient borders\n\n### 6. Shared components introduced/repaired\n\nSix shared primitives: `kikariaGlassStroke`, `KikariaCircularIconButton`, `KikariaPageShell`, `KikariaPageTitle`, `KikariaProfileAvatar`, `KikariaEmptyState` — plus centralized `KikariaIcons`.\n\n### 7. Screens now closer to source\n\nAll five existing screens (Home, Review, Scope, Mastered, Reinforcement) now use consistent glass treatment, serif-mixed typography, and custom page layouts matching the iOS source instead of Material3 defaults.\n\n### 8. Visual differences remaining (deferred)\n\n- Orbital decorative bubbles around the home start button were simplified to the central circle\n- Settings, Preset management, Today Overview pages are not yet in the Android codebase\n- Notification scheduling is noted as TODO (platform feature, not UI)\n\n### 9. Build/test\n\nNo build or test commands are configured in `FORGIS_CONFIG.yml` — `run_build` was skipped.\n\n### 10. Confirmation\n\nAll changes are strictly inside `Kikaria-Android/`. No files outside `target_subdir` were touched. The source repo was read-only. No config or workflow files were modified.
+
+### Warnings
+
+- None.
