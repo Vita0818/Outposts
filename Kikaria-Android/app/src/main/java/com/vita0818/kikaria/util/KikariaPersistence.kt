@@ -1,0 +1,59 @@
+package com.vita0818.kikaria.util
+
+import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.vita0818.kikaria.data.KnowledgePoint
+import com.vita0818.kikaria.data.KnowledgePreset
+import com.vita0818.kikaria.data.PresetStudyState
+import com.vita0818.kikaria.data.StudyActivityRecord
+import java.util.Date
+
+/**
+ * Lightweight JSON persistence for Kikaria app state.
+ * Mirrors the iOS KikariaAppState storage via UserDefaults / JSON file.
+ *
+ * Uses Gson to serialize/deserialize presets, preset states, and user profile
+ * to a local JSON file in the app's internal storage.
+ */
+object KikariaPersistence {
+    private const val FILE_NAME = "kikaria_app_state.json"
+    private val gson = Gson()
+
+    data class AppState(
+        val schemaVersion: Int = 1,
+        val presets: List<KnowledgePreset> = emptyList(),
+        val currentPresetId: String = "",
+        val userDisplayName: String = "",
+        val userHandle: String = "user",
+        val dailyGoal: Int = 20,
+        val countdownEndDate: Date? = null,
+        val dangerPercent: Int = 80,
+        val notificationsEnabled: Boolean = false,
+        val notificationTimeText: String = "21:00"
+    )
+
+    fun save(context: Context, state: AppState) {
+        try {
+            val json = gson.toJson(state)
+            context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE).use {
+                it.write(json.toByteArray(Charsets.UTF_8))
+            }
+        } catch (_: Exception) {
+            // Silently fail - persistence is best-effort
+        }
+    }
+
+    fun load(context: Context): AppState? {
+        return try {
+            val json = context.openFileInput(FILE_NAME).bufferedReader(Charsets.UTF_8).readText()
+            gson.fromJson(json, AppState::class.java)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun clear(context: Context) {
+        context.deleteFile(FILE_NAME)
+    }
+}

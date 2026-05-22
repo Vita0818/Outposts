@@ -666,3 +666,64 @@ Here is the final summary:\n\n---\n\n## Final Summary: Kikaria Android Deep UI A
 ### Warnings
 
 - None.
+
+
+## Forgis Run - 2026-05-22T09:09:42Z
+
+| Field | Value |
+|---|---|
+| Run id | `26278190278` |
+| Run time | `2026-05-22T09:09:42Z` |
+| Run URL | `https://github.com/Vita0818/Forgis/actions/runs/26278190278` |
+| Target repo | `Vita0818/Outposts` |
+| Source repo | `Vita0818/Kikaria` |
+| Source ref | `main` |
+| Target base branch | `main` |
+| Target branch | `forgis/kikaria-android` |
+| Target subdir | `Kikaria-Android` |
+| Task file path | `FORGIS_TASK.md` |
+| Config path | `FORGIS_CONFIG.yml` |
+| Agent backend | `deepseek` |
+| Model | `deepseek-v4-pro` |
+| dry_run | `false` |
+| run_agent config value | `true` |
+| Effective run_agent | `true` |
+| confirm_real_run | `true` |
+| DeepSeek executed | `true` |
+| DeepSeek status | `completed` |
+| Tool call count | `80` |
+| Read tool count | `60` |
+| Write tool count | `18` |
+| Guardrail result | `See workflow logs.` |
+| validation_commands | `0 configured` |
+| success_checks | `0 configured` |
+| Run log path | `Kikaria-Android/FORGIS_LOG.md` |
+| Validation result | `See workflow logs.` |
+
+### Changed Paths
+
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/home/HomeScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/navigation/KikariaNavGraph.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/overview/ReviewHistoryScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/overview/TodayOverviewScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/preset/PresetSelectionScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/settings/SettingsScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/util/KikariaPersistence.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/viewmodel/KikariaViewModel.kt`
+
+### Read-Only Inputs
+
+- Source repository checkout
+- Target repository outside `Kikaria-Android/`
+- Config file: `FORGIS_CONFIG.yml`
+- Task file: `FORGIS_TASK.md`
+
+### Final Summary
+
+---\n\n## final_summary\n\n### Source iOS Files Inspected\n\n| File | Purpose |\n|---|---|\n| `ContentView.swift` (~10,551 lines) | Full app: KikariaTheme, glass modifiers, AppRoute, all screens (Home, Review, Scope, Settings, Today Overview, Review History, Preset Selection, Reinforcement, Mastered, Markdown Editor, etc.), KikariaAppState, PresetStudyState, UserProfile |\n| `KikariaTypography.swift` (149 lines) | Mixed serif/CJK typography: `appTitle`, `chineseTitle`, `chineseBody`, `number`, `mixedText` |\n| `KikariaAdaptiveLayout.swift` (525 lines) | Width-based adaptive layout for phone and tablet |\n| `KnowledgePoint.swift` (401 lines) | KnowledgePoint model, Markdown parser/exporter, KnowledgePreset model, built-in preset loading |\n| `StudyTracking.swift` (139 lines) | StudyActivityRecord, StudyActivityType, WidgetSnapshot |\n| `KikariaApp.swift` (22 lines) | App entry with notification delegate |\n\n### Android Files Changed (8 files)\n\n**Modified (3):**\n\n| File | Changes |\n|---|---|\n| `ui/home/HomeScreen.kt` | Added 4 decorative orbiting bubbles around start button (matching iOS DecorativeBubble/SoftBubble pattern); wired `onOpenTodayOverview` callback; replaced placeholder progress card click with today overview navigation; cleaned up imports |\n| `ui/navigation/KikariaNavGraph.kt` | Added routes for SETTINGS, TODAY_OVERVIEW, REVIEW_HISTORY, PRESET_SELECTION; wired all new screen composables with ViewModel data; removed old TODOs |\n| `viewmodel/KikariaViewModel.kt` | Added `userHandle`, `dangerPercent`, `notificationsEnabled`, `notificationTimeText` state fields; added `deletePreset()` method |\n\n**New (5):**\n\n| File | Lines | Description |\n|---|---|---|\n| `ui/settings/SettingsScreen.kt` | 384 | Full Settings screen: profile section with avatar/name/handle, current preset row, daily goal/countdown/danger percent rows with chevrons, notification toggle + time, help section (onboarding, markdown guide), about section (privacy, copyright, version). Uses KikariaGlassCard sections matching iOS SettingsSectionCard |\n| `ui/overview/TodayOverviewScreen.kt` | 279 | Today overview with: hero card (mastered count vs goal + progress message), 2×2 metric grid (reviewed answers, total mastered, hints viewed, countdown days), review history link. Matches iOS TodayOverviewView |\n| `ui/overview/ReviewHistoryScreen.kt` | 379 | Calendar grid with: month navigation, weekday headers, 7-column day cells with activity-based color heatmap (0→white, 1-2→cyan, 3-5→sky, 6+→mastered green), today/selected highlighting, day summary card with activity breakdown. Matches iOS ReviewHistoryView |\n| `ui/preset/PresetSelectionScreen.kt` | 415 | Preset list with: title + description, new preset upload button with gradient, per-preset cards showing name/subtitle/description, current preset badge, edit/delete action buttons, delete confirmation dialog, empty state. Matches iOS PresetSelectionView |\n| `util/KikariaPersistence.kt` | 62 | Lightweight JSON persistence via Gson: AppState data class (schema, presets, currentId, profile, settings), save/load/clear methods using Android internal storage |\n\n### What Was Achieved\n\n**New screens added (4):**\n- **Settings** — Fully functional settings page with profile display, learning settings (daily goal, countdown, danger percent), notification controls, help links, and about section\n- **Today Overview** — Study activity summary with mastered progress vs daily goal, 2×2 metric grid, and review history link\n- **Review History** — Calendar-based activity history with color-coded heatmap cells, month navigation, and per-day activity breakdown\n- **Preset Selection** — Full preset management with list, switching, edit/delete controls, and new preset upload button\n\n**Existing screen improvements:**\n- **HomeScreen** — Decorative orbiting bubbles added around start button (mint, lavender, green, white — matching iOS SoftBubble colors); progress card now navigates to Today Overview instead of be
+
+[Forgis log note: final_summary truncated after 4000 characters.]
+
+### Warnings
+
+- None.

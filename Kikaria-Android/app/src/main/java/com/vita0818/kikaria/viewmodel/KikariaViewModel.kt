@@ -62,8 +62,12 @@ class KikariaViewModel : ViewModel() {
     // --- UI state ---
     var toastMessage by mutableStateOf<String?>(null)
     var userDisplayName by mutableStateOf("")
+    var userHandle by mutableStateOf("user")
     var countdownDays by mutableIntStateOf(0)
     var countdownEndDate by mutableStateOf<Date?>(null)
+    var dangerPercent by mutableIntStateOf(80)
+    var notificationsEnabled by mutableStateOf(false)
+    var notificationTimeText by mutableStateOf("21:00")
 
     // --- Derived ---
     val masteredPoints: List<KnowledgePoint>
@@ -254,6 +258,22 @@ class KikariaViewModel : ViewModel() {
 
     fun clearToast() {
         toastMessage = null
+    }
+
+    fun deletePreset(presetId: String) {
+        val preset = presets.find { it.id == presetId } ?: return
+        if (preset.isBuiltIn) return
+        if (presets.size <= 1) {
+            toastMessage = "无法删除最后一个预设"
+            return
+        }
+        presets.remove(preset)
+        if (activePresetId == presetId) {
+            activePresetId = presets.first().id
+            loadPresetKnowledgePoints()
+            selectedTags.clear()
+            resetTodayCounts()
+        }
     }
 }
 
