@@ -1,21 +1,8 @@
-# Kikaria Android Compile Repair + Full Project Replica Night Pass
+# Kikaria Android Complete Migration Pass
 
-This is a long-running combined compile repair and full project replica pass for the existing Kikaria Android project under Kikaria-Android.
+This is a complete migration pass for Kikaria Android.
 
-The current Android project has already been merged into the target repository main branch. Continue from the current target main state.
-
-The Android project currently does not compile and is still incomplete compared with the original Kikaria source app.
-
-This pass has two ordered goals:
-
-1. First, repair the Android project until it compiles.
-2. After compilation is repaired, continue reconstructing the rest of Kikaria's UI, screens, components, state, data model, navigation, and interaction behavior as fully as possible.
-
-Do not skip the compilation stage.
-
-Do not do large UI reconstruction while known compiler errors remain.
-
-After the project compiles, do not stop early. Continue with full source-informed reconstruction across the whole app.
+The target Android project already exists under Kikaria-Android, but it is still incomplete and still has compilation errors. This pass must not be a small repair pass, a visual polish pass, or a partial migration pass. It must systematically migrate the full Kikaria source app into the Android/Kotlin/Jetpack Compose target.
 
 All writes must stay under Kikaria-Android.
 
@@ -31,87 +18,45 @@ Do not add secrets, API keys, private local paths, or hard-coded personal data.
 
 Do not hard-code the visible username "Vita".
 
-The source Kikaria app is the authority. The Android app should become a faithful Kotlin/Jetpack Compose reconstruction of Kikaria, not a generic Material 3 app.
+The source Kikaria app is the authority. The Android app must become a faithful Kotlin/Jetpack Compose reconstruction of Kikaria, not a generic Android Material sample.
 
-Current known compiler error:
+This pass has three required stages:
 
-e: file:///Users/vita/Vitemis/Outposts/Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/overview/ReviewHistoryScreen.kt:66:9 Unresolved reference: get
+Stage 1: repair compilation.
+Stage 2: inspect the entire source Kikaria app and build a complete migration inventory.
+Stage 3: implement all missing Android screens, components, state, data, navigation, and UI details under Kikaria-Android.
 
-Start by inspecting Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/overview/ReviewHistoryScreen.kt, especially the area around line 66.
+Do not skip any stage.
 
-Determine why get is unresolved.
+Do not stop after fixing one compiler error.
 
-Likely causes include:
+Do not stop after creating a few screens.
 
-1. A stray or isolated get(...)
-2. A Swift-style getter translated into invalid Kotlin
-3. A missing receiver such as a List, Map, State, repository, or ViewModel object
-4. Incorrect collection access
-5. A wrong ViewModel method or property reference
-6. A generated screen referring to state that does not exist
+Do not stop after a shallow UI approximation.
 
-Fix this with the smallest coherent change.
+Do not claim completion unless all major Kikaria source areas have been inspected and either migrated or explicitly listed as deferred with a precise reason.
 
-Stage 1: compile repair
+Current known situation:
 
-Compilation success is the first priority.
+The Android project still has compilation errors from previous runs. Treat compilation as a required acceptance condition, not an optional cleanup task.
 
-Before doing full UI reconstruction, repair the current Android project so it compiles.
+Start by inspecting the current Android project under Kikaria-Android.
 
-Inspect these files as needed:
+Then inspect the source Kikaria repository.
 
-Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/overview/ReviewHistoryScreen.kt
-Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/overview/TodayOverviewScreen.kt
-Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/guide/MarkdownFormatGuideScreen.kt
-Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/onboarding/OnboardingScreen.kt
-Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/preset/PresetSelectionScreen.kt
-Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/settings/EditProfileScreen.kt
-Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/settings/SettingsScreen.kt
-Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/navigation/KikariaNavGraph.kt
-Kikaria-Android/app/src/main/java/com/vita0818/kikaria/viewmodel/KikariaViewModel.kt
-Kikaria-Android/app/src/main/java/com/vita0818/kikaria/data/SamplePresets.kt
-Kikaria-Android/app/src/main/java/com/vita0818/kikaria/util/KikariaPersistence.kt
-Kikaria-Android/app/src/main/java/com/vita0818/kikaria/model/
-Kikaria-Android/app/build.gradle
-Kikaria-Android/app/build.gradle.kts
-Kikaria-Android/build.gradle
-Kikaria-Android/build.gradle.kts
-Kikaria-Android/settings.gradle
-Kikaria-Android/settings.gradle.kts
-Kikaria-Android/app/src/main/AndroidManifest.xml
+Do not rely on memory.
 
-Follow compiler errors in order.
+Do not infer from generic Android conventions.
 
-Fix:
+Do not rewrite Kikaria as a new product.
 
-1. Gradle configuration errors
-2. Kotlin compiler errors
-3. Missing imports
-4. Unresolved references
-5. Type mismatches
-6. Composable parameter mismatches
-7. Navigation route mismatches
-8. ViewModel method/property mismatches
-9. Data model field mismatches
-10. Material icon dependency or unavailable icon problems
-11. Resource reference errors
-12. Persistence API errors
+Stage 1: compilation repair
 
-Do not patch randomly.
+Before implementing more features, repair the current Android project until it compiles, or make the best possible progress and report the first remaining compiler error exactly.
 
-Do not delete large parts of the app just to hide errors.
+Use available Forgis build/test tools if possible.
 
-If a visually ambitious component blocks compilation, simplify it enough to compile while preserving its intended screen role.
-
-If persistence is incomplete, keep a clean repository/state-holder boundary and mark durable persistence as TODO. Do not fake production persistence.
-
-If a feature cannot be fully implemented in this pass, keep the API boundary coherent and mark it deferred.
-
-Build verification requirement:
-
-Use available Forgis tools to run compilation if possible.
-
-Prefer this command:
+Prefer this compile command if available:
 
 cd Kikaria-Android && ./gradlew :app:compileDebugKotlin --no-daemon --stacktrace
 
@@ -119,131 +64,193 @@ If that is unavailable, try:
 
 cd Kikaria-Android && ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
-If Forgis safe command policy cannot run Gradle, inspect available build logs and fix compiler errors from those logs.
+If Forgis safe command policy cannot run Gradle, inspect available compile logs and repair known Kotlin/Gradle errors from those logs.
 
 Do not claim build success unless a real build or compile command actually ran and passed.
 
-Stage 2: full Kikaria replica after compilation repair
+Fix compiler errors in this order:
 
-After the Android project compiles, continue reconstructing the Android implementation so it more fully matches the original Kikaria source app.
+1. Gradle configuration errors
+2. Android plugin / Kotlin plugin / Compose compiler configuration errors
+3. Missing dependencies
+4. Missing imports
+5. Unresolved references
+6. Type mismatches
+7. Composable parameter mismatches
+8. Navigation route mismatches
+9. ViewModel method or property mismatches
+10. Data model field mismatches
+11. Material icon dependency or unavailable icon problems
+12. Resource reference errors
+13. Persistence API errors
+14. Deprecated or unavailable Compose APIs
 
-This is not a new product design.
+Do not patch randomly.
 
-This is not a generic Android Material rewrite.
+Do not delete major app areas merely to hide errors.
 
-This is a source-informed Android reconstruction of Kikaria.
+If a component blocks compilation, simplify it enough to compile while preserving its intended role, then continue migration.
 
-The source Kikaria app is the authority.
+Stage 2: full source inspection and migration inventory
 
-Read source files before reconstructing corresponding Android screens or components.
+After the immediate compile repair pass, inspect the original Kikaria source app broadly and systematically.
 
-Do not rely on memory.
-
-Do not infer from generic Android conventions.
-
-Source inspection requirements:
-
-Inspect the original Kikaria source app for:
+You must inspect source areas for:
 
 1. App entry point
-2. Navigation
-3. Home page
-4. Review/study page
-5. Preset switching
-6. Preset management
-7. Knowledge item model
-8. Knowledge item editing or management
-9. Important collection
-10. Mastered list
-11. Settings
-12. Profile/avatar
-13. Daily goal
-14. Countdown day
-15. Typography
-16. Font usage
-17. Mixed Chinese, English, and number text handling
-18. Buttons
-19. Cards
-20. Bubbles
-21. Icons, SF Symbols, and image assets
-22. Gestures
-23. Animations
-24. Persistence and state
-25. Sample or preloaded data
+2. Navigation structure
+3. Home screen
+4. Review/study screen
+5. Range selection or tag selection flow if present
+6. Preset switching
+7. Preset management
+8. Knowledge item model
+9. Knowledge item import
+10. Knowledge item editing
+11. Knowledge item deletion
+12. Knowledge item tags
+13. Hint/prompt display
+14. Answer/content display
+15. Important collection / key collection
+16. Mastered list
+17. Daily goal
+18. Countdown day
+19. Review progress
+20. Review history
+21. Profile page
+22. Avatar handling
+23. Settings page
+24. Daily goal settings
+25. Countdown settings
+26. Preset settings
+27. Markdown/import format guide if present
+28. Onboarding or guide screens if present
+29. Empty states
+30. Error states
+31. Toast/snackbar/temporary prompt behavior
+32. Gesture behavior
+33. Animations and transitions
+34. Typography
+35. Mixed Chinese, English, and number font handling
+36. Colors
+37. Cards
+38. Buttons
+39. Icon usage / SF Symbols / image assets
+40. Bubbles / metric cards / floating components
+41. Persistence and state storage
+42. Sample or bundled data
+43. Per-preset state
+44. Important/mastered duplicate prevention
+45. Session randomization or shuffle behavior
 
-Do not skip source inspection.
+Create a concrete internal migration checklist from the inspected source. Use that checklist to drive implementation. Do not only inspect one or two source files.
 
-The final summary must list the source files inspected.
+The final summary must list the important source files inspected.
 
-Full reconstruction priorities:
+Stage 3: complete Android migration
 
-After compile repair, reconstruct and align:
+After compile repair and source inspection, implement the full Android migration under Kikaria-Android.
 
-1. Product information architecture
-2. Screen hierarchy
-3. Navigation structure
-4. Visual hierarchy
-5. Typography system
-6. Mixed text treatment
-7. Icon semantics
-8. Button identity
-9. Card identity
-10. Bubble and metric component identity
-11. Page title placement
-12. Top action placement
-13. Horizontal margins
-14. Vertical spacing
-15. Review and study interaction behavior
-16. Preset state behavior
-17. Important collection behavior
-18. Mastered list behavior
-19. Settings and profile structure
-20. Shared component architecture
-21. Placeholder and sample data boundaries
-22. Persistence boundary
+The Android app must include all core Kikaria concepts that exist in the source app.
 
-The Android result should feel like Kikaria, not like a Material 3 sample.
+Required product concepts:
 
-Typography reconstruction:
+1. Presets / knowledge sets
+2. Knowledge item name
+3. Prompt or hint
+4. Answer or content
+5. Tags
+6. Study/review flow
+7. Range or tag-based selection if present in source
+8. Randomized or shuffled session behavior if present in source
+9. Daily goal
+10. Countdown day
+11. Current preset display
+12. Important collection / key collection
+13. Mastered list
+14. Per-preset state where source supports it
+15. Profile/settings
+16. Knowledge management
+17. Import or format guide if present
+18. Review history or daily overview if present
+19. Empty states
+20. Durable persistence boundary or clear TODO if persistence is incomplete
 
-Create or repair a centralized typography system.
+Do not fake completed functionality.
+
+If full durable persistence is too large for this pass, create a clean repository/state-holder boundary and mark durable persistence as TODO. The UI and ViewModel should still be coherent and compile.
+
+Architecture requirements:
+
+Keep the Android project coherent and maintainable.
+
+Use or create these layers where appropriate:
+
+1. ui/theme
+2. ui/components
+3. ui/navigation
+4. ui/screens
+5. model
+6. state or viewmodel
+7. repository or persistence
+8. data/sample or bundled presets
+
+Avoid:
+
+1. Massive single-file UI
+2. Duplicated per-screen components
+3. Random hard-coded paddings
+4. Random hard-coded font sizes
+5. Random icon choices
+6. Fake data wired directly into every screen
+7. Unrelated architecture churn
+8. Generic Material sample structure
+9. Hard-coded user-private data
+
+Typography requirements:
+
+Create or repair a centralized Kikaria typography system.
 
 Do not scatter font sizes and font families across screens.
 
-The typography system should include stable tokens for:
+Define stable typography tokens for:
 
 1. App title
 2. Page title
 3. Section title
 4. Card title
 5. Body text
-6. Caption
-7. Button text
-8. Large metric text
-9. Knowledge item title
-10. Review prompt
-11. Review answer
-12. Settings row title
-13. Settings row subtitle
-14. Tag text
+6. Secondary body text
+7. Caption
+8. Button text
+9. Large metric text
+10. Bubble text
+11. Knowledge item title
+12. Review prompt
+13. Review answer
+14. Settings row title
+15. Settings row subtitle
+16. Tag text
 
 Preserve Kikaria's calm, refined, study-oriented visual direction.
 
+If the source app uses serif-like typography, preserve that direction on Android as closely as feasible.
+
 If exact iOS fonts cannot be used on Android, choose a stable Android approximation and centralize it.
 
-Chinese, English, and numbers should not look randomly mixed.
+Chinese, English, and numbers must not look randomly mixed.
 
-Avoid one-off font hacks inside screens.
+If exact mixed-script rendering is too large to implement fully, create a clean text component boundary and add a TODO for precise mixed-script run splitting. Do not scatter font hacks across screens.
 
-Icon reconstruction:
+Icon requirements:
 
-Create or repair a centralized icon mapping layer.
+Create or repair a centralized Kikaria icon mapping layer.
 
 Do not scatter arbitrary Material icons across screens.
 
 Map source Kikaria icon semantics to Android equivalents intentionally.
 
-Important actions include:
+Important icon actions include:
 
 1. Start review
 2. Settings
@@ -259,9 +266,13 @@ Important actions include:
 12. Preset switching
 13. Daily goal
 14. Countdown day
-15. Previous and next
-16. Show hint
-17. Show answer
+15. Previous
+16. Next
+17. Random
+18. Show hint
+19. Show answer
+20. Import
+21. Guide/help
 
 Do not wrap every icon in a visible circle.
 
@@ -269,7 +280,9 @@ Do not add duplicate circular backgrounds.
 
 Equivalent icon buttons must share size, padding, icon size, and visual treatment.
 
-Shared component reconstruction:
+If an exact SF Symbol is unavailable on Android, choose the closest semantic and visual equivalent.
+
+Shared component requirements:
 
 Repair or rebuild shared Compose components so repeated UI is not duplicated.
 
@@ -279,122 +292,134 @@ Centralize or repair:
 2. Page title
 3. Top action row
 4. Circular icon button
-5. Soft or glass-like button
+5. Soft/glass-like button
 6. Primary start action
 7. Card container
-8. Metric bubble or card
+8. Metric bubble/card
 9. Home bubble
 10. Settings row
-11. Preset row or card
-12. Knowledge item row or card
+11. Preset row/card
+12. Knowledge item row/card
 13. Review card
 14. Review action button
 15. Tag chip
 16. Empty state
-17. Profile or avatar block
+17. Profile/avatar block
 18. Section header
+19. Collection/mastered item row
+20. Import/guide row
 
 Screens should consume shared components rather than duplicating local styling.
 
-Home screen reconstruction:
+Home screen requirements:
 
 Inspect the original Kikaria home screen deeply.
 
-Repair the Android home screen to better match:
+Reconstruct the Android home screen to match source intent for:
 
-1. App title
-2. User/avatar location
+1. App title placement
+2. Profile/avatar location
 3. Central visual system
-4. Bubble or card system
+4. Bubble/card system
 5. Daily goal component
 6. Countdown component
-7. Preset component
+7. Current preset component
 8. Primary start action
 9. Secondary actions
 10. Icon sizes
 11. Text sizes
 12. Spacing
-13. Motion or animation placeholders if present
+13. Animation or motion placeholders if present
 14. Calm minimal visual style
 
 Do not make the Home screen a generic dashboard.
 
-Review and study reconstruction:
+Review/study requirements:
 
-Inspect the original review and study flow deeply.
+Inspect the original review/study flow deeply.
 
-Repair Android so it matches source behavior and structure for:
+Reconstruct Android review/study behavior and UI for:
 
 1. Current knowledge item title
-2. Prompt or hint reveal
+2. Prompt/hint reveal
 3. Answer reveal
 4. Important collection state
 5. Mastered state
-6. Previous, next, or random navigation
-7. Swipe or gesture semantics if present
-8. Long answer behavior
-9. Button and icon placement
-10. Review card style
-11. State transition visual hierarchy
-12. Minimal instructional text
+6. Previous item behavior
+7. Next or random item behavior
+8. Swipe or gesture semantics if present
+9. Long answer handling
+10. Button/icon placement
+11. Review card style
+12. State transition visual hierarchy
+13. Minimal instructional text
+14. Duplicate prevention for important/mastered actions
+15. Session ordering or shuffle behavior if present
 
 Do not make it a generic flashcard screen.
 
-Preset and knowledge management reconstruction:
+Preset and knowledge management requirements:
 
 Inspect the source implementation for preset and knowledge management.
 
-Repair Android structures for:
+Reconstruct Android structures for:
 
 1. Current preset display
 2. Preset switching
-3. Preset list row or card
-4. Knowledge item row or card
-5. Knowledge item tags
-6. Add, edit, and delete entry points
-7. Per-preset state boundaries
-8. Empty states
-9. Shared list components
-10. Screen title and action placement
+3. Preset list row/card
+4. Preset creation if present
+5. Preset editing if present
+6. Knowledge item list
+7. Knowledge item details
+8. Knowledge item add/edit/delete if present
+9. Knowledge item tags
+10. Tag or range selection
+11. Per-preset state boundaries
+12. Empty states
+13. Shared list components
+14. Screen title and action placement
 
 Do not invent a different management model.
 
-Important collection and mastered list reconstruction:
+Important collection and mastered list requirements:
 
 Inspect source behavior and UI for important collection and mastered list.
 
-Repair Android so that:
+Reconstruct Android so that:
 
 1. Important collection and mastered list are separate concepts if source separates them.
 2. Their visual treatment follows source.
-3. Their row or card components are shared where appropriate.
+3. Their row/card components are shared where appropriate.
 4. Add/remove state is reflected consistently.
 5. Empty states match Kikaria style.
 6. Gesture behavior is approximated or clearly deferred.
-7. Button state does not allow duplicate-add behavior if the source prevents it.
+7. Button state prevents duplicate-add behavior if the source prevents it.
+8. Per-preset important/mastered state is preserved if source supports it.
 
-Settings and profile reconstruction:
+Settings/profile requirements:
 
 Inspect source settings and profile pages.
 
-Repair Android so settings and profile match source in:
+Reconstruct Android settings/profile for:
 
 1. Page title position
 2. Profile/avatar structure
 3. User display name handling
-4. Daily goal setting entry
-5. Countdown setting entry
-6. Preset management entry
-7. Section spacing
-8. Settings row style
-9. Icon treatment
-10. Typography hierarchy
+4. Avatar placeholder behavior
+5. Daily goal setting entry
+6. Countdown setting entry
+7. Preset management entry
+8. Import/format guide entry if present
+9. Section spacing
+10. Settings row style
+11. Icon treatment
+12. Typography hierarchy
 
 Do not hard-code the visible display name.
 
 Use neutral placeholder text or state/sample repository data only if needed.
 
-State and repository reconstruction:
+State and repository requirements:
 
 Improve component functionality, not just visuals.
 
@@ -405,21 +430,25 @@ Inspect source state behavior and repair Android state boundaries for:
 3. Countdown day
 4. Study item list
 5. Current review item
-6. Hint visible and answer visible
-7. Important collection membership
-8. Mastered membership
-9. Per-preset important/mastered state if source has it
-10. Profile display data
-11. Settings changes
-12. Empty state conditions
-13. Review history
-14. Today's overview and daily progress
+6. Hint visible state
+7. Answer visible state
+8. Important collection membership
+9. Mastered membership
+10. Per-preset important/mastered state if source has it
+11. Profile display data
+12. Settings changes
+13. Empty state conditions
+14. Review history
+15. Today's overview / daily progress
+16. Knowledge item add/edit/delete where feasible
+17. Preset switching and selection
+18. Import/guide placeholder
 
 If durable persistence is too large for this pass, create a clean repository/state-holder boundary and clearly mark persistence as deferred.
 
 Do not fake persistence as complete.
 
-Assets:
+Assets requirements:
 
 Inspect source assets if present.
 
@@ -431,6 +460,28 @@ If equivalent assets are needed in Android:
 4. Do not reference missing resources.
 5. Prefer simple vector drawables or Compose shapes if they reproduce the source better than random Material icons.
 
+Compilation and validation requirement:
+
+This pass must actively try to leave the project in a compilable state.
+
+Before final summary, use available tools for:
+
+1. git_status
+2. git_diff
+3. compile/build if available
+
+Prefer compile command:
+
+cd Kikaria-Android && ./gradlew :app:compileDebugKotlin --no-daemon --stacktrace
+
+If unavailable, try:
+
+cd Kikaria-Android && ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+If compilation still fails, report the exact first remaining compiler error and what was attempted.
+
+Do not claim build success unless it actually passed.
+
 Completion requirement:
 
 Use the available iteration budget.
@@ -439,21 +490,27 @@ Do not stop after fixing only the first compiler error.
 
 Do not stop after changing only one or two files.
 
-After compile repair, continue to full reconstruction.
+Do not stop after making only visual changes.
+
+Do not stop until all major Kikaria areas have been inspected and either migrated or explicitly deferred.
 
 Before final summary, ensure you have considered:
 
-1. Home screen
-2. Review/study screen
-3. Settings/profile
-4. Preset/knowledge management
-5. Important/mastered lists
-6. Shared typography
-7. Shared icons
-8. Shared components
-9. State/repository behavior
-10. Target file organization
-11. Compilation status
+1. Compilation status
+2. Home screen
+3. Review/study screen
+4. Settings/profile
+5. Preset/knowledge management
+6. Important/mastered lists
+7. Daily goal
+8. Countdown day
+9. Review history / today overview
+10. Shared typography
+11. Shared icons
+12. Shared components
+13. State/repository behavior
+14. Target file organization
+15. Source inspected coverage
 
 Forbidden actions:
 
@@ -474,17 +531,7 @@ Do not:
 13. Restore Aider.
 14. Use arbitrary shell.
 15. Change source/target write boundaries.
-
-Required final checks:
-
-Before final response, use available tools for:
-
-1. git_status
-2. git_diff
-
-If compilation was run, report the exact command and result.
-
-If compilation could not be run, report why and provide the first remaining compiler error if known.
+16. Modify unrelated target repository files.
 
 Final summary requirements:
 
@@ -492,23 +539,26 @@ The final summary must include:
 
 1. Whether compilation was actually verified
 2. Exact compile/build command and result, if run
-3. Source Kikaria files inspected
-4. Android files inspected
-5. Android files modified
-6. Compiler errors fixed
-7. Typography reconstruction completed
-8. Icon reconstruction completed
-9. Shared component reconstruction completed
-10. Home screen reconstruction completed
-11. Review/study reconstruction completed
-12. Preset/knowledge management reconstruction completed
-13. Important/mastered list reconstruction completed
-14. Settings/profile reconstruction completed
-15. State/repository behavior changes
-16. Remaining mismatches
-17. Deferred work
-18. Confirmation that all writes stayed inside Kikaria-Android
-19. Confirmation that source repo was not modified
-20. Suggested next pass
+3. First remaining compiler error if compilation still fails
+4. Source Kikaria files inspected
+5. Android files inspected
+6. Android files modified
+7. Compiler errors fixed
+8. Features migrated
+9. Screens migrated or repaired
+10. Typography reconstruction completed
+11. Icon reconstruction completed
+12. Shared component reconstruction completed
+13. Home screen reconstruction completed
+14. Review/study reconstruction completed
+15. Preset/knowledge management reconstruction completed
+16. Important/mastered list reconstruction completed
+17. Settings/profile reconstruction completed
+18. State/repository behavior changes
+19. Remaining mismatches
+20. Deferred work with reasons
+21. Confirmation that all writes stayed inside Kikaria-Android
+22. Confirmation that source repo was not modified
+23. Suggested next pass
 
 Be honest. Do not overclaim.
