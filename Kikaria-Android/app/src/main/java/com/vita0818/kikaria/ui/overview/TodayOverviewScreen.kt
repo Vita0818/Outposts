@@ -42,7 +42,7 @@ fun TodayOverviewScreen(
     todayReviewCount: Int,
     totalMasteredCount: Int,
     dailyGoal: Int,
-    countdownDays: Int?,
+    countdownDays: Int,
     onBack: () -> Unit,
     onOpenHistory: () -> Unit = {}
 ) {
@@ -178,7 +178,7 @@ fun TodayOverviewScreen(
                     )
                     OverviewMetricCard(
                         title = "倒数",
-                        value = countdownDays?.let { "${it}天" } ?: "--",
+                        value = if (countdownDays > 0) "${countdownDays}天" else "--",
                         modifier = Modifier.weight(1f)
                     )
                 }

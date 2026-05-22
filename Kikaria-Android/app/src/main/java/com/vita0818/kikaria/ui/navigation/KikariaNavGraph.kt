@@ -12,6 +12,7 @@ import com.vita0818.kikaria.ui.mastered.MasteredScreen
 import com.vita0818.kikaria.ui.onboarding.OnboardingScreen
 import com.vita0818.kikaria.ui.overview.ReviewHistoryScreen
 import com.vita0818.kikaria.ui.overview.TodayOverviewScreen
+import com.vita0818.kikaria.ui.preset.NewPresetScreen
 import com.vita0818.kikaria.ui.preset.PresetSelectionScreen
 import com.vita0818.kikaria.ui.reinforcement.ReinforcementScreen
 import com.vita0818.kikaria.ui.review.ReviewScreen
@@ -34,6 +35,7 @@ object Routes {
     const val EDIT_PROFILE = "edit_profile"
     const val ONBOARDING = "onboarding"
     const val MARKDOWN_GUIDE = "markdown_guide"
+    const val NEW_PRESET = "new_preset"
 }
 
 @Composable
@@ -123,7 +125,8 @@ fun KikariaNavGraph(
                 userHandle = viewModel.userHandle,
                 presetName = viewModel.activePreset?.name ?: "无",
                 dailyGoal = viewModel.dailyGoal,
-                countdownDays = viewModel.countdownDays.takeIf { it > 0 },
+                countdownDays = viewModel.countdownDays,
+                countdownEndDate = viewModel.countdownEndDate,
                 dangerPercent = viewModel.dangerPercent,
                 notificationsEnabled = viewModel.notificationsEnabled,
                 notificationTimeText = viewModel.notificationTimeText,
@@ -131,21 +134,15 @@ fun KikariaNavGraph(
                 onEditProfile = {
                     navController.navigate(Routes.EDIT_PROFILE)
                 },
-                onOpenDailyGoalPicker = {
-                    // TODO: show daily goal picker dialog
+                onSetDailyGoal = { viewModel.setDailyGoal(it) },
+                onSetCountdownRange = { start, end ->
+                    viewModel.setCountdownRange(start, end)
                 },
-                onOpenCountdownPicker = {
-                    // TODO: show countdown date picker dialog
-                },
-                onOpenDangerPicker = {
-                    // TODO: show danger percent picker dialog
-                },
+                onSetDangerPercent = { viewModel.setDangerPercent(it) },
                 onToggleNotifications = { enabled ->
-                    viewModel.notificationsEnabled = enabled
+                    viewModel.setNotificationsEnabled(enabled)
                 },
-                onOpenNotificationTimePicker = {
-                    // TODO: show notification time picker dialog
-                },
+                onSetNotificationTime = { viewModel.setNotificationTime(it) },
                 onOpenOnboarding = {
                     navController.navigate(Routes.ONBOARDING)
                 },
@@ -166,7 +163,7 @@ fun KikariaNavGraph(
                 todayReviewCount = viewModel.todayReviewCount,
                 totalMasteredCount = viewModel.masteredPoints.size,
                 dailyGoal = viewModel.dailyGoal,
-                countdownDays = viewModel.countdownDays.takeIf { it > 0 },
+                countdownDays = viewModel.countdownDays,
                 onBack = { navController.popBackStack() },
                 onOpenHistory = {
                     navController.navigate(Routes.REVIEW_HISTORY)
@@ -191,7 +188,7 @@ fun KikariaNavGraph(
                     navController.popBackStack()
                 },
                 onNewPreset = {
-                    // TODO: navigate to new preset / markdown editor
+                    navController.navigate(Routes.NEW_PRESET)
                 },
                 onEditPreset = {
                     // TODO: navigate to edit preset / markdown editor
@@ -208,8 +205,7 @@ fun KikariaNavGraph(
                 initialHandle = viewModel.userHandle,
                 onBack = { navController.popBackStack() },
                 onSave = { displayName, handle ->
-                    viewModel.userDisplayName = displayName
-                    viewModel.userHandle = handle
+                    viewModel.updateProfile(displayName, handle)
                 }
             )
         }
@@ -225,6 +221,16 @@ fun KikariaNavGraph(
         composable(Routes.MARKDOWN_GUIDE) {
             MarkdownFormatGuideScreen(
                 onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.NEW_PRESET) {
+            NewPresetScreen(
+                onBack = { navController.popBackStack() },
+                onCreatePreset = { name, category, markdownText ->
+                    viewModel.createPreset(name, category, markdownText)
+                    navController.popBackStack()
+                }
             )
         }
     }
