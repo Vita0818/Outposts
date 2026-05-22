@@ -1,5 +1,7 @@
 package com.vita0818.kikaria.ui.home
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,14 +12,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,11 +30,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vita0818.kikaria.ui.components.KikariaPageShell
-import com.vita0818.kikaria.ui.components.KikariaProfileAvatar
+import com.vita0818.kikaria.ui.components.KikariaGlassCard
 import com.vita0818.kikaria.ui.components.KikariaMetricLabel
 import com.vita0818.kikaria.ui.components.KikariaMetricValue
-import com.vita0818.kikaria.ui.components.KikariaGlassCard
+import com.vita0818.kikaria.ui.components.KikariaPageShell
+import com.vita0818.kikaria.ui.components.KikariaProfileAvatar
 import com.vita0818.kikaria.ui.theme.KikariaColors
 import com.vita0818.kikaria.ui.theme.KikariaTypography
 import com.vita0818.kikaria.viewmodel.KikariaViewModel
@@ -50,7 +50,8 @@ fun HomeScreen(
     onOpenReinforcement: () -> Unit,
     onOpenMastered: () -> Unit,
     onOpenPresetSelection: () -> Unit = {},
-    onOpenSettings: () -> Unit = {}
+    onOpenSettings: () -> Unit = {},
+    onOpenTodayOverview: () -> Unit = {}
 ) {
     val dateTitle = rememberDateTitle()
     val countdownDays = viewModel.countdownDays
@@ -105,7 +106,7 @@ fun HomeScreen(
 
             // ── Progress card ──
             KikariaGlassCard(
-                modifier = Modifier.fillMaxWidth().clickable { /* today overview */ },
+                modifier = Modifier.fillMaxWidth().clickable { onOpenTodayOverview() },
                 cornerRadius = 28.dp,
                 fillOpacity = 0.40f
             ) {
@@ -232,40 +233,104 @@ private fun KikariaStartBubble(
     val actionGrad = if (isDark) KikariaColors.ActionGradientDark else KikariaColors.ActionGradientLight
     val shadowC = if (isDark) KikariaColors.SkyDark.copy(alpha = 0.28f) else KikariaColors.Sky.copy(alpha = 0.28f)
 
+    // Decorative bubble colors matching iOS SoftBubble
+    val bubbleColors = listOf(
+        if (isDark) KikariaColors.BubbleMintDark else KikariaColors.BubbleMint,
+        if (isDark) KikariaColors.BubbleLavenderDark else KikariaColors.BubbleLavender,
+        if (isDark) KikariaColors.BubbleGreenDark else KikariaColors.BubbleGreen,
+        if (isDark) KikariaColors.BubbleWhiteDark else KikariaColors.BubbleWhite
+    )
+
     Box(
-        modifier = Modifier
-            .size(190.dp)
-            .shadow(28.dp, CircleShape, ambientColor = shadowC, spotColor = shadowC)
-            .clip(CircleShape)
-            .background(actionGrad)
-            .clickable { onClick() },
+        modifier = Modifier.size(220.dp),
         contentAlignment = Alignment.Center
     ) {
-        // Radial glass highlight — matches iOS radial gradient overlay
+        // ── Decorative orbiting bubbles (matches iOS DecorativeBubble pattern) ──
+        // Top-right bubble
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .align(Alignment.TopEnd)
+                .padding(end = 14.dp, top = 10.dp)
+                .size(36.dp)
+                .shadow(12.dp, CircleShape,
+                    ambientColor = bubbleColors[0].copy(alpha = 0.18f),
+                    spotColor = bubbleColors[0].copy(alpha = 0.18f))
                 .clip(CircleShape)
-                .background(
-                    Brush.radialGradient(
-                        listOf(
-                            Color.White.copy(alpha = 0.30f),
-                            Color.White.copy(alpha = 0.10f),
-                            Color.White.copy(alpha = 0.02f)
-                        ),
-                        center = androidx.compose.ui.geometry.Offset(57f, 57f),
-                        radius = 150f
+                .background(bubbleColors[0].copy(alpha = 0.55f))
+        )
+        // Bottom-left bubble
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 12.dp, bottom = 14.dp)
+                .size(44.dp)
+                .shadow(14.dp, CircleShape,
+                    ambientColor = bubbleColors[1].copy(alpha = 0.20f),
+                    spotColor = bubbleColors[1].copy(alpha = 0.20f))
+                .clip(CircleShape)
+                .background(bubbleColors[1].copy(alpha = 0.50f))
+        )
+        // Top-left small bubble
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 8.dp, top = 4.dp)
+                .size(28.dp)
+                .shadow(9.dp, CircleShape,
+                    ambientColor = bubbleColors[2].copy(alpha = 0.16f),
+                    spotColor = bubbleColors[2].copy(alpha = 0.16f))
+                .clip(CircleShape)
+                .background(bubbleColors[2].copy(alpha = 0.48f))
+        )
+        // Bottom-right small bubble
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 6.dp, bottom = 6.dp)
+                .size(32.dp)
+                .shadow(10.dp, CircleShape,
+                    ambientColor = bubbleColors[3].copy(alpha = 0.17f),
+                    spotColor = bubbleColors[3].copy(alpha = 0.17f))
+                .clip(CircleShape)
+                .background(bubbleColors[3].copy(alpha = 0.50f))
+        )
+
+        // ── Central start circle ──
+        Box(
+            modifier = Modifier
+                .size(190.dp)
+                .shadow(28.dp, CircleShape, ambientColor = shadowC, spotColor = shadowC)
+                .clip(CircleShape)
+                .background(actionGrad)
+                .clickable { onClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            // Radial glass highlight — matches iOS radial gradient overlay
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape)
+                    .background(
+                        Brush.radialGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.30f),
+                                Color.White.copy(alpha = 0.10f),
+                                Color.White.copy(alpha = 0.02f)
+                            ),
+                            center = androidx.compose.ui.geometry.Offset(57f, 57f),
+                            radius = 150f
+                        )
                     )
-                )
-        )
-        // Arrow icon (matches iOS "arrow.right" / "→")
-        Text(
-            KikariaIcons.TEXT_ARROW_RIGHT,
-            color = Color.White.copy(alpha = 0.96f),
-            fontSize = 70.sp,
-            fontWeight = FontWeight.Normal,
-            textAlign = TextAlign.Center
-        )
+            )
+            // Arrow icon (matches iOS "arrow.right" / "→")
+            Text(
+                KikariaIcons.TEXT_ARROW_RIGHT,
+                color = Color.White.copy(alpha = 0.96f),
+                fontSize = 70.sp,
+                fontWeight = FontWeight.Normal,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
