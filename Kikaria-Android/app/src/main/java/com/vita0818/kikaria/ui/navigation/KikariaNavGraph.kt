@@ -6,14 +6,17 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.vita0818.kikaria.ui.guide.MarkdownFormatGuideScreen
 import com.vita0818.kikaria.ui.home.HomeScreen
 import com.vita0818.kikaria.ui.mastered.MasteredScreen
+import com.vita0818.kikaria.ui.onboarding.OnboardingScreen
 import com.vita0818.kikaria.ui.overview.ReviewHistoryScreen
 import com.vita0818.kikaria.ui.overview.TodayOverviewScreen
 import com.vita0818.kikaria.ui.preset.PresetSelectionScreen
 import com.vita0818.kikaria.ui.reinforcement.ReinforcementScreen
 import com.vita0818.kikaria.ui.review.ReviewScreen
 import com.vita0818.kikaria.ui.scope.ScopeSelectionScreen
+import com.vita0818.kikaria.ui.settings.EditProfileScreen
 import com.vita0818.kikaria.ui.settings.SettingsScreen
 import com.vita0818.kikaria.viewmodel.KikariaViewModel
 import com.vita0818.kikaria.viewmodel.ReviewMode
@@ -28,6 +31,9 @@ object Routes {
     const val TODAY_OVERVIEW = "today_overview"
     const val REVIEW_HISTORY = "review_history"
     const val PRESET_SELECTION = "preset_selection"
+    const val EDIT_PROFILE = "edit_profile"
+    const val ONBOARDING = "onboarding"
+    const val MARKDOWN_GUIDE = "markdown_guide"
 }
 
 @Composable
@@ -123,7 +129,7 @@ fun KikariaNavGraph(
                 notificationTimeText = viewModel.notificationTimeText,
                 onBack = { navController.popBackStack() },
                 onEditProfile = {
-                    // TODO: navigate to edit profile
+                    navController.navigate(Routes.EDIT_PROFILE)
                 },
                 onOpenDailyGoalPicker = {
                     // TODO: show daily goal picker dialog
@@ -141,10 +147,10 @@ fun KikariaNavGraph(
                     // TODO: show notification time picker dialog
                 },
                 onOpenOnboarding = {
-                    // TODO: navigate to onboarding
+                    navController.navigate(Routes.ONBOARDING)
                 },
                 onOpenMarkdownGuide = {
-                    // TODO: navigate to markdown guide
+                    navController.navigate(Routes.MARKDOWN_GUIDE)
                 },
                 onOpenPrivacyPolicy = {
                     // TODO: show privacy policy
@@ -193,6 +199,32 @@ fun KikariaNavGraph(
                 onDeletePreset = { preset ->
                     viewModel.deletePreset(preset.id)
                 }
+            )
+        }
+
+        composable(Routes.EDIT_PROFILE) {
+            EditProfileScreen(
+                initialDisplayName = viewModel.userDisplayName,
+                initialHandle = viewModel.userHandle,
+                onBack = { navController.popBackStack() },
+                onSave = { displayName, handle ->
+                    viewModel.userDisplayName = displayName
+                    viewModel.userHandle = handle
+                }
+            )
+        }
+
+        composable(Routes.ONBOARDING) {
+            OnboardingScreen(
+                onComplete = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Routes.MARKDOWN_GUIDE) {
+            MarkdownFormatGuideScreen(
+                onBack = { navController.popBackStack() }
             )
         }
     }
