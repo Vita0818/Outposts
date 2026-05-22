@@ -1,7 +1,7 @@
 source_repo: Vita0818/Kikaria
 source_ref: main
 
-target_branch: forgis/kikaria-android
+target_branch: forgis/kikaria-android-compile-repair
 target_base_branch: main
 target_subdir: Kikaria-Android
 task_prompt_path: FORGIS_TASK.md
@@ -18,9 +18,9 @@ dry_run: false
 run_agent: true
 confirm_real_run: true
 
-max_iterations: 4500
-max_tool_result_chars: 4500000
-max_command_output_chars: 1800000
+max_iterations: 1500
+max_tool_result_chars: 3000000
+max_command_output_chars: 1500000
 
 skills_enabled: true
 auto_select_skills: false
@@ -32,10 +32,14 @@ selected_skills:
 
 run_report_enabled: true
 run_report_include_events: true
-run_report_max_events: 9000
-run_report_max_chars: 18000000
+run_report_max_events: 6000
+run_report_max_chars: 12000000
 
-repair_loop_enabled: false
+repair_loop_enabled: true
+max_repair_attempts: 5
+repair_requires_diff_check: true
+repair_requires_build_or_test: true
+repair_stop_on_success: true
 
 migration_scheduler_enabled: false
 
