@@ -55,7 +55,7 @@ fun HomeScreen(
 ) {
     val dateTitle = rememberDateTitle()
     val countdownDays = viewModel.countdownDays
-    val daysLeftText = if (countdownDays != null) "$countdownDays Days Left" else "-- Days Left"
+    val daysLeftText = if (countdownDays > 0) "$countdownDays Days Left" else "-- Days Left"
     val progressText = "${viewModel.todayMasteredCount}/${viewModel.dailyGoal}"
     val scopeCountText = if (viewModel.selectedTags.isEmpty())
         "${viewModel.allTags.size}" else "${viewModel.selectedTags.size}"

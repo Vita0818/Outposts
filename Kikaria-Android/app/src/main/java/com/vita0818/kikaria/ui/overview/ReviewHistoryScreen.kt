@@ -62,13 +62,12 @@ fun ReviewHistoryScreen(
     val calendar = Calendar.getInstance()
 
     // Month title
-    val monthTitle: String
-        get() {
-            val cal = Calendar.getInstance().apply { time = visibleMonth }
-            val year = cal.get(Calendar.YEAR)
-            val month = cal.get(Calendar.MONTH) + 1
-            return "${year}年 ${month}月"
-        }
+    fun monthTitle(): String {
+        val cal = Calendar.getInstance().apply { time = visibleMonth }
+        val year = cal.get(Calendar.YEAR)
+        val month = cal.get(Calendar.MONTH) + 1
+        return "${year}年 ${month}月"
+    }
 
     // Month cells
     fun monthCells(): List<Date?> {
@@ -177,7 +176,7 @@ fun ReviewHistoryScreen(
 
                             Text(
                                 text = KikariaTypography.mixedText(
-                                    monthTitle,
+                                    monthTitle(),
                                     size = 20,
                                     weight = FontWeight.SemiBold
                                 ),
