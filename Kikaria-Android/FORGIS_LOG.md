@@ -843,3 +843,61 @@ Now let me provide the comprehensive final summary.\n\n---\n\n## final_summary\n
 ### Warnings
 
 - None.
+
+
+## Forgis Run - 2026-05-22T11:30:21Z
+
+| Field | Value |
+|---|---|
+| Run id | `26284732096` |
+| Run time | `2026-05-22T11:30:21Z` |
+| Run URL | `https://github.com/Vita0818/Forgis/actions/runs/26284732096` |
+| Target repo | `Vita0818/Outposts` |
+| Source repo | `Vita0818/Kikaria` |
+| Source ref | `main` |
+| Target base branch | `main` |
+| Target branch | `forgis/kikaria-android-complete-migration` |
+| Target subdir | `Kikaria-Android` |
+| Task file path | `FORGIS_TASK.md` |
+| Config path | `FORGIS_CONFIG.yml` |
+| Agent backend | `deepseek` |
+| Model | `deepseek-v4-pro` |
+| dry_run | `false` |
+| run_agent config value | `true` |
+| Effective run_agent | `true` |
+| confirm_real_run | `true` |
+| DeepSeek executed | `true` |
+| DeepSeek status | `completed` |
+| Tool call count | `109` |
+| Read tool count | `72` |
+| Write tool count | `25` |
+| Guardrail result | `See workflow logs.` |
+| validation_commands | `0 configured` |
+| success_checks | `0 configured` |
+| Run log path | `Kikaria-Android/FORGIS_LOG.md` |
+| Validation result | `See workflow logs.` |
+
+### Changed Paths
+
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/navigation/KikariaNavGraph.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/overview/TodayOverviewScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/preset/NewPresetScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/settings/SettingsScreen.kt`
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/viewmodel/KikariaViewModel.kt`
+
+### Read-Only Inputs
+
+- Source repository checkout
+- Target repository outside `Kikaria-Android/`
+- Config file: `FORGIS_CONFIG.yml`
+- Task file: `FORGIS_TASK.md`
+
+### Final Summary
+
+The `final_summary` tool is not available, so I'll provide my comprehensive final summary here.\n\n---\n\n## Final Summary: Kikaria Android Complete Migration Pass\n\n### 1. Compilation Status\n\n**Build was NOT verified by real compilation.** The `run_build` and `run_tests` tools are not configured, and `./gradlew` is not in the Forgis command allowlist. All fixes were based on thorough static analysis of every Kotlin source file in the project (20 files, ~4500 lines of code).\n\n### 2. Source Kikaria Files Inspected (all 11)\n\n- `ContentView.swift` (~10,551 lines) — Full app: all screens, theme, glass modifiers, navigation, state management\n- `KikariaTypography.swift`, `KikariaAdaptiveLayout.swift`, `KnowledgePoint.swift`, `StudyTracking.swift`, `KikariaApp.swift`, `KikariaMathText.swift`, `KikariaMathFormulaView.swift`, `KikariaLatexParser.swift`, `LatexToken.swift`, `SPEC.md`\n\n### 3. Android Files Modified (5 files)\n\n| File | Type | Key Changes |\n|------|------|-------------|\n| `viewmodel/KikariaViewModel.kt` | Modified | `AndroidViewModel`, persistence wiring, computed countdown, toast system, settings methods, `createPreset()`, duplicate removal |\n| `ui/navigation/KikariaNavGraph.kt` | Modified | NEW_PRESET route, new Settings callbacks, countdown wiring, `NewPresetScreen` destination |\n| `ui/settings/SettingsScreen.kt` | Modified | Inline picker dialogs (daily goal, countdown, danger%, notification time), `PickerDialog/PickerWheel/DateRangePicker/TimePicker` composables |\n| `ui/overview/TodayOverviewScreen.kt` | Modified | `countdownDays: Int?` → `Int` |\n| `ui/preset/NewPresetScreen.kt` | **Created** | Markdown editor for preset creation (name, category, monospace text editor with placeholder, validation, create button) |\n\n### 4. Compiler Errors Fixed (6)\n\n1. Type mismatch: `countdownDays: Int?` → `Int` in TodayOverviewScreen and SettingsScreen\n2. Missing persistence: `viewModel.notificationsEnabled = enabled` → `viewModel.setNotificationsEnabled(enabled)`\n3. Direct field mutation: `viewModel.userDisplayName = ` → `viewModel.updateProfile()`\n4. Duplicate methods: removed duplicate `clearToast()` and `deletePreset()` in ViewModel\n5. Missing imports: Added `mutableStateOf`, `remember`, `Date`, `Calendar` to SettingsScreen\n6. Unused variables: Removed `softText` from PickerWheel and DateRangePicker\n\n### 5. Features Migrated\n\n- **Persistence**: `KikariaPersistence` wired to ViewModel — JSON save/load on all state changes\n- **Countdown**: Proper date-range based countdown with computed `countdownDays` getter\n- **Toast system**: Centralized `showToast()` / `clearToast()` in ViewModel\n- **Settings dialogs**: 4 functional glass-styled pickers (daily goal, countdown dates, danger%, notification time)\n- **Preset creation**: New `createPreset()` method + `NewPresetScreen` with markdown editor\n- **Profile**: `updateProfile()` with persistence\n\n### 6. Screens Status\n\n| Screen | Status |\n|--------|--------|\n| Home | Complete (prior runs) |\n| Review | Complete (prior runs) |\n| Scope Selection | Complete (prior runs) |\n| Reinforcement | Complete (prior runs) |\n| Mastered | Complete (prior runs) |\n| Settings | **Enhanced** with functional picker dialogs |\n| Today Overview | Fixed countdown type |\n| Review History | Complete (prior runs) |\n| Preset Selection | Complete (prior runs) |\n| New Preset | **Created** — markdown editor |\n| Edit Profile | Complete (prior runs) |\n| Onboarding | Complete (prior runs) |\n| Markdown Format Guide | Complete (prior runs) |\n\n### 7. Shared Systems Status\n\n- **Typography**: Complete — `KikariaTypography` with mixed Chinese/serif, named styles\n- **Icons**: Complete — `KikariaIcons` with 35+ SF Symbol mappings\n- **Components**: Complete — 10 shared composables (GlassCard, PageShell, ProfileAvatar, etc.)\n- **Theme**: Complete — `KikariaColors` with full light/dark palette and gradients\n- **Navigation**: Complete — 12 routes with NavHost\n\n### 8. Deferre
+
+[Forgis log note: final_summary truncated after 4000 characters.]
+
+### Warnings
+
+- None.
