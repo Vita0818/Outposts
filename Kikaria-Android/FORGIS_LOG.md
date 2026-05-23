@@ -901,3 +901,55 @@ The `final_summary` tool is not available, so I'll provide my comprehensive fina
 ### Warnings
 
 - None.
+
+
+## Forgis Run - 2026-05-23T06:01:37Z
+
+| Field | Value |
+|---|---|
+| Run id | `26325209429` |
+| Run time | `2026-05-23T06:01:37Z` |
+| Run URL | `https://github.com/Vita0818/Forgis/actions/runs/26325209429` |
+| Target repo | `Vita0818/Outposts` |
+| Source repo | `Vita0818/Kikaria` |
+| Source ref | `main` |
+| Target base branch | `main` |
+| Target branch | `forgis/kikaria-android-complete-migration` |
+| Target subdir | `Kikaria-Android` |
+| Task file path | `FORGIS_TASK.md` |
+| Config path | `FORGIS_CONFIG.yml` |
+| Agent backend | `deepseek` |
+| Model | `deepseek-v4-pro` |
+| dry_run | `false` |
+| run_agent config value | `true` |
+| Effective run_agent | `true` |
+| confirm_real_run | `true` |
+| DeepSeek executed | `true` |
+| DeepSeek status | `completed` |
+| Tool call count | `20` |
+| Read tool count | `16` |
+| Write tool count | `2` |
+| Guardrail result | `See workflow logs.` |
+| validation_commands | `0 configured` |
+| success_checks | `0 configured` |
+| Run log path | `Kikaria-Android/FORGIS_LOG.md` |
+| Validation result | `See workflow logs.` |
+
+### Changed Paths
+
+- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/guide/MarkdownFormatGuideScreen.kt`
+
+### Read-Only Inputs
+
+- Source repository checkout
+- Target repository outside `Kikaria-Android/`
+- Config file: `FORGIS_CONFIG.yml`
+- Task file: `FORGIS_TASK.md`
+
+### Final Summary
+
+Only `MarkdownFormatGuideScreen.kt` is modified — no other files touched.\n\n---\n\n## Final Summary\n\n### 1. Kotlin files inspected\n- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/guide/MarkdownFormatGuideScreen.kt`\n- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/scope/ScopeSelectionScreen.kt`\n- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/settings/SettingsScreen.kt`\n- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/data/SamplePresets.kt`\n- `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/util/MarkdownParser.kt`\n\n### 2. Kotlin files modified\n- **Only**: `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/guide/MarkdownFormatGuideScreen.kt` (2 edits)\n\n### 3. All string interpolation errors fixed\nTwo raw triple-quoted strings had `\$` patterns that Kotlin treats as `\` + interpolation start (because backslash does **not** escape `$` in raw strings):\n\n- **Edit 1 (lines 147–154):** The LaTeX example `CodeBlock`. Changed:\n  - `\$f(x)=x^2\$` → `${'$'}f(x)=x^2${'$'}`\n  - `\$2x\$` → `${'$'}2x${'$'}`\n  - `\$\$` (opening and closing) → `${'$'}${'$'}`\n\n- **Edit 2 (lines 232–233):** The AI prompt `CodeBlock`. Changed:\n  - `\$...\$` → `${'$'}...${'$'}`\n  - `\$\$...\$\$` → `${'$'}${'$'}...${'$'}${'$'}`\n\nThe `RuleText` calls on lines 138-140 use `\$` in **regular** (non-raw) strings, where `\$` is valid Kotlin escaping. Those were left unchanged.\n\n### 4. Exact reason the old code failed\nIn Kotlin raw triple-quoted strings (`"""..."""`), a backslash does **not** escape `$`. So `\$f(x)=x^2\$` was parsed as literal `\` followed by the interpolation expression `$f(x)=x^2` followed by literal `\`. The identifier `f` is not in scope, producing `Unresolved reference: f`. Similarly, `$2x` and `$$` produced invalid or unresolved interpolation expressions.\n\n### 5. Exact compile command run\n`./gradlew :app:compileDebugKotlin --no-daemon --stacktrace` — attempted but not available in this environment (not in the Forgis allowlist). The `run_build` command is also not configured.\n\n### 6. Whether compileDebugKotlin passed\nCould not be verified — neither `run_build` nor direct Gradle execution is available in this environment. The fixes are structurally correct per Kotlin language rules.\n\n### 7. If compilation still fails, the first remaining compiler error\nCannot confirm; no build tooling is accessible.\n\n### 8. Confirmation that all writes stayed inside Kikaria-Android\nConfirmed. Only `Kikaria-Android/app/src/main/java/com/vita0818/kikaria/ui/guide/MarkdownFormatGuideScreen.kt` was modified. No files outside `Kikaria-Android/` were touched.
+
+### Warnings
+
+- None.
