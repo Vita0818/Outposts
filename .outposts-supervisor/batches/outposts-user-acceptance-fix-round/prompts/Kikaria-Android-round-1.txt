@@ -1,0 +1,47 @@
+OUTPOSTS FORMAL TASK - USER ACCEPTANCE FIX ROUND
+
+Mandatory preflight first:
+MODEL_CHECK_RESULT: Confirm current active model route is DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop immediately.
+PATH_CHECK_RESULT: Current working directory must be exactly /Users/vita/Vitemis/Outposts/Kikaria-Android. If not, stop immediately.
+SOURCE_READONLY_CHECK: Apple source path /Users/vita/Vitemis/Vela/Kikaria is read-only. Do not modify Apple source. All writes must stay inside /Users/vita/Vitemis/Outposts/Kikaria-Android. Do not access unrelated directories. Do not read or transmit secrets, tokens, private keys, .env, p12, provisioning profiles, SSH keys, API keys, or Keychain content.
+
+PROJECT_NAME: Kikaria-Android
+ROUND_INDEX: 1
+TARGET_PATH: /Users/vita/Vitemis/Outposts/Kikaria-Android
+SOURCE_READONLY_PATH: /Users/vita/Vitemis/Vela/Kikaria
+BATCH_NAME: outposts-user-acceptance-fix-round
+
+Highest priority user acceptance feedback:
+The user says the interface layout has not visibly improved across many rounds. Stop polishing small edges if that has no visible effect. If local patching is insufficient, you may propose and execute a broader UI shell/page layout/navigation restructuring. The goal is a visible Apple-side layout convergence, not another ordinary Material-style Android design.
+
+Required work:
+1. Deep-read the Apple Kikaria iOS/iPadOS source UI pages, read-only.
+2. Explicitly list the real Apple layout structure for Home, Review, Settings, preset/goal/countdown-related pages.
+3. Compare against current Android implementation and diagnose why prior rounds did not visibly improve the UI.
+4. If small patches will not obviously improve layout, do a larger UI shell/page layout/navigation refactor guided by Apple structure.
+5. Preserve existing state machine behavior and passing tests.
+6. Keep assembleDebug / testDebug or available Android tests passing.
+7. If visual validation cannot run, output a precise emulator/device validation checklist.
+
+Do not commit, push, create PR, clean/reset/restore/checkout, or modify Apple source.
+
+Final report must include:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+USER_ACCEPTANCE_FEEDBACK_ADDRESSED
+APPLE_SOURCE_MODULES_REVIEWED
+APPLE_UI_PARITY_CHECKLIST
+UI_LAYOUT_ALIGNMENT_PROGRESS
+FUNCTIONAL_PARITY_PROGRESS
+BUILD_RESULT
+TEST_RESULT
+VISUAL_OR_UI_VALIDATION_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+BLOCKERS
+REGRESSION_RISKS
+NEXT_ROUND_RECOMMENDATION

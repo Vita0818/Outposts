@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Rokurics.Views.MacAIChatPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Background="{StaticResource RokuricsPageGradientBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Conversation area -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Recent conversations sidebar — Mac: RecentConversationsPopover width 320 -->
+            <Border Grid.Column="0"
+                    x:Name="RecentPanel"
+                    Width="320"
+                    Style="{StaticResource RokuricsCardStyle}"
+                    Margin="0,0,8,0"
+                    Padding="12"
+                    Visibility="Collapsed">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="最近对话"
+                               Style="{StaticResource ChineseHeadlineStyle}"
+                               Margin="0,0,0,8" />
+                    <ListView x:Name="ConversationsList"
+                              SelectionChanged="OnConversationSelected"
+                              Background="Transparent" />
+                </StackPanel>
+            </Border>
+
+            <!-- Messages — Mac: horizontalPadding 30, contentMaxWidth 780 -->
+            <ScrollViewer Grid.Column="1" x:Name="MessagesScroll" Padding="30,16">
+                <StackPanel Spacing="22" MaxWidth="780">
+                    <!-- Greeting — Mac: 24pt semibold, top padding 140 -->
+                    <TextBlock x:Name="GreetingText"
+                               Style="{StaticResource ChatGreetingStyle}"
+                               Margin="0,140,0,20"
+                               Text="{x:Bind Greeting, Mode=OneWay}" />
+
+                    <!-- Messages list -->
+                    <ItemsControl x:Name="MessagesList" />
+
+                    <!-- Loading -->
+                    <ProgressBar x:Name="LoadingBar"
+                                 IsIndeterminate="True"
+                                 Height="2"
+                                 Visibility="Collapsed" />
+
+                    <!-- Error -->
+                    <Border x:Name="ErrorBanner"
+                            Background="#22FF453A"
+                            CornerRadius="8"
+                            Padding="12"
+                            Visibility="Collapsed">
+                        <TextBlock Foreground="#FF453A" FontSize="12" />
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Input bar (mirrors ChatInputBar + ChatConversationButtonGroup) -->
+        <Border Grid.Row="1"
+                Style="{StaticResource RokuricsCardStyle}"
+                Margin="24,12,24,20"
+                Padding="8">
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Conversation buttons: recent + new -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="2">
+                    <Button Content="☰"
+                            Style="{StaticResource RokuricsIconButtonStyle}"
+                            Click="ToggleRecent_Click"
+                            ToolTipService.ToolTip="最近对话" />
+                    <Button Content="✚"
+                            Style="{StaticResource RokuricsIconButtonStyle}"
+                            Click="NewConversation_Click"
+                            ToolTipService.ToolTip="新建对话" />
+                </StackPanel>
+
+                <!-- Attachment button -->
+                <Button x:Name="AttachButton"
+                        Grid.Column="1"
+                        Content="📎"
+                        Style="{StaticResource RokuricsIconButtonStyle}"
+                        Click="Attach_Click"
+                        ToolTipService.ToolTip="导入学习库内容" />
+
+                <!-- Text input -->
+                <TextBox Grid.Column="2"
+                         x:Name="MessageInput"
+                         PlaceholderText="消息"
+                         Style="{StaticResource RokuricsTextBoxStyle}"
+                         AcceptsReturn="True"
+                         MaxHeight="120" />
+
+                <!-- Send button -->
+                <Button Grid.Column="3"
+                        Content="↑"
+                        Style="{StaticResource RokuricsAccentButtonStyle}"
+                        Width="40" Height="40" FontSize="18"
+                        Click="Send_Click" />
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

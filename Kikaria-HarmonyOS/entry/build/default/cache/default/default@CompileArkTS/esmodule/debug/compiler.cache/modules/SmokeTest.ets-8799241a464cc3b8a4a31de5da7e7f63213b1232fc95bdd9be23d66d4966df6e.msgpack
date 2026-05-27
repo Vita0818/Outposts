@@ -1,0 +1,1108 @@
+Ôr@Ÿªassertions¤code´customTransformCache¬dependencies¢id¤meta±moduleSideEffects¬originalCode±originalSourcemap«resolvedIds®sourcemapChainµsyntheticNamedExportsµtransformDependencies®transformFiles¨cacheAstÔrAÚ3©/**
+ * SmokeTest - Minimal manual smoke-test harness for core data model.
+ * Call runSmokeTests() to validate parseMarkdown, markdownTextFromPoints,
+ * KnowledgePoint CRUD, and countdownDays.
+ */
+import { KnowledgePoint, KnowledgePreset, parseMarkdown, markdownTextFromPoints, countdownDays, generateId, ordinalSuffix } from './KnowledgePoint';
+class TestRunner {
+    constructor() {
+        this.passed = 0;
+        this.failed = 0;
+        this.failures = [];
+    }
+    check(name, condition) {
+        if (condition) {
+            this.passed++;
+        }
+        else {
+            this.failed++;
+            this.failures.push(`FAIL: ${name}`);
+        }
+    }
+    result() {
+        return { passed: this.passed, failed: this.failed, failures: this.failures };
+    }
+}
+export function runSmokeTests() {
+    const t = new TestRunner();
+    // Test 1: parseMarkdown basic parsing
+    const md = `# Test Point 1
+
+tags: math, calculus
+
+hint:
+This is a hint
+
+content:
+This is the answer content
+
+---
+
+# Test Point 2
+
+tags: physics
+
+hint:
+Another hint here
+
+content:
+More answer text here
+`;
+    const points = parseMarkdown(md);
+    t.check('parseMarkdown returns 2 points', points.length === 2);
+    t.check('point title parsed', points.length >= 1 && points[0].title === 'Test Point 1');
+    t.check('point tags parsed', points.length >= 1 && points[0].tags.length === 2 &&
+        points[0].tags[0] === 'math' && points[0].tags[1] === 'calculus');
+    t.check('point hint parsed', points.length >= 1 && points[0].hint === 'This is a hint');
+    t.check('point content parsed', points.length >= 1 && points[0].content === 'This is the answer content');
+    // Test 2: markdownTextFromPoints roundtrip
+    if (points.length >= 1) {
+        const regenerated = markdownTextFromPoints([points[0]]);
+        const reParsed = parseMarkdown(regenerated);
+        t.check('markdownTextFromPoints roundtrip', reParsed.length === 1 &&
+            reParsed[0].title === 'Test Point 1');
+    }
+    // Test 3: parseMarkdown handles empty input
+    t.check('parseMarkdown empty input', parseMarkdown('').length === 0);
+    // Test 4: parseMarkdown handles malformed input
+    t.check('parseMarkdown malformed input returns empty', parseMarkdown('Just some random text\nwithout proper markers').length === 0);
+    // Test 5: parseMarkdown handles missing sections
+    t.check('parseMarkdown missing sections returns empty', parseMarkdown('# Just a title\n\nNo hint or content here').length === 0);
+    // Test 6: KnowledgePoint reinforcement
+    const kp = new KnowledgePoint(generateId(), 'Test', ['tag1'], 'hint', 'content');
+    t.check('KP initial isReinforced=false', !kp.isReinforced);
+    t.check('KP initial reinforcementCount=0', kp.reinforcementCount === 0);
+    kp.addReinforcement();
+    t.check('KP after addReinforcement isReinforced=true', kp.isReinforced);
+    t.check('KP after addReinforcement count=1', kp.reinforcementCount === 1);
+    kp.addReinforcement();
+    t.check('KP after 2nd addReinforcement count=2', kp.reinforcementCount === 2);
+    kp.clearReinforcement();
+    t.check('KP after clearReinforcement isReinforced=false', !kp.isReinforced);
+    t.check('KP after clearReinforcement count=0', kp.reinforcementCount === 0);
+    // Test 7: KnowledgePoint mastered
+    t.check('KP initial isMastered=false', !kp.isMastered);
+    kp.isMastered = true;
+    t.check('KP isMastered toggle', kp.isMastered);
+    // Test 8: countdownDays
+    const futureDate = Date.now() + 7 * 24 * 60 * 60 * 1000;
+    const days = countdownDays(futureDate);
+    t.check('countdownDays future non-null', days !== null);
+    t.check('countdownDays future is 6 or 7', days === 6 || days === 7);
+    const pastDays = countdownDays(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    t.check('countdownDays past returns 0', pastDays === 0);
+    t.check('countdownDays null returns null', countdownDays(null) === null);
+    // Test 9: generateId unique
+    t.check('generateId unique', generateId() !== generateId());
+    // Test 10: parseMarkdown multiline hint and content
+    const mlMd = `# Multiline Test
+
+tags: lang
+
+hint:
+Line one of hint.
+Line two of hint.
+
+Even a blank line above this one.
+
+content:
+Answer line one.
+Answer line two.
+
+Final paragraph of answer.
+`;
+    const mlPoints = parseMarkdown(mlMd);
+    t.check('parseMarkdown multiline returns 1 point', mlPoints.length === 1);
+    if (mlPoints.length >= 1) {
+        t.check('multiline hint contains first line', mlPoints[0].hint.includes('Line one of hint.'));
+        t.check('multiline hint contains second line', mlPoints[0].hint.includes('Line two of hint.'));
+        t.check('multiline hint contains blank line separator', mlPoints[0].hint.includes('Even a blank line'));
+        t.check('multiline content contains first line', mlPoints[0].content.includes('Answer line one.'));
+        t.check('multiline content contains final paragraph', mlPoints[0].content.includes('Final paragraph of answer.'));
+    }
+    // Test 11: parseMarkdown with special characters (Markdown syntax literals)
+    const scMd = `# Special *Chars* _Test_
+
+tags: markdown, special
+
+hint:
+This hint has **bold** and *italic* and \`inline code\`.
+
+content:
+Answer with <angle brackets> and [square brackets] and (parens).
+Also has a URL: https://example.com/path?q=1&v=2
+`;
+    const scPoints = parseMarkdown(scMd);
+    t.check('parseMarkdown special chars returns 1 point', scPoints.length === 1);
+    if (scPoints.length >= 1) {
+        t.check('special chars title preserved', scPoints[0].title.includes('*Chars*') && scPoints[0].title.includes('_Test_'));
+        t.check('special chars hint has bold marker', scPoints[0].hint.includes('**bold**'));
+        t.check('special chars hint has backtick', scPoints[0].hint.includes('`inline code`'));
+        t.check('special chars content has angle brackets', scPoints[0].content.includes('<angle brackets>'));
+        t.check('special chars content has URL', scPoints[0].content.includes('https://example.com'));
+    }
+    // Test 12: parseMarkdown with empty tags
+    const emptyTagsMd = `# Empty Tags
+
+tags:
+
+hint:
+Just a hint.
+
+content:
+Just some content.
+`;
+    const emptyTagsPoints = parseMarkdown(emptyTagsMd);
+    t.check('parseMarkdown empty tags returns 1 point', emptyTagsPoints.length === 1);
+    if (emptyTagsPoints.length >= 1) {
+        t.check('empty tags array is empty', emptyTagsPoints[0].tags.length === 0);
+    }
+    // Test 13: parseMarkdown with tags having spaces around commas
+    const spacedTagsMd = `# Spaced Tags
+
+tags:  alpha , beta , gamma
+
+hint:
+Test hint.
+
+content:
+Test content.
+`;
+    const spacedPoints = parseMarkdown(spacedTagsMd);
+    t.check('parseMarkdown spaced tags returns 1 point', spacedPoints.length === 1);
+    if (spacedPoints.length >= 1) {
+        t.check('spaced tags trimmed correctly', spacedPoints[0].tags.length >= 2);
+    }
+    // Test 14: parseMarkdown Unicode (Chinese/Japanese/emoji) roundtrip
+    const unicodeMd = `# Unicode ãƒ†ã‚¹ãƒˆ ğŸ‰
+
+tags: æ•°å­¦, ç‰©ç†, Î±Î²Î³
+
+hint:
+æç¤ºï¼šè¿™æ˜¯ä¸­æ–‡æç¤ºå†…å®¹ã€‚
+æ—¥æœ¬èªã®ãƒ’ãƒ³ãƒˆã‚‚å«ã¾ã‚Œã¦ã„ã¾ã™ã€‚
+Emoji: ğŸ¯â­ğŸ“š
+
+content:
+ç­”æ¡ˆï¼šE = mcÂ² æ˜¯çˆ±å› æ–¯å¦çš„è´¨èƒ½æ–¹ç¨‹ã€‚
+æ—¥æœ¬èªã®ç­”ãˆï¼šã“ã‚Œã¯ç­”ãˆã§ã™ã€‚
+ä¸­æ–‡ã€æ—¥æœ¬èªã€English æ··åˆã€‚
+`;
+    const uniPoints = parseMarkdown(unicodeMd);
+    t.check('parseMarkdown unicode returns 1 point', uniPoints.length === 1);
+    if (uniPoints.length >= 1) {
+        t.check('unicode title preserved', uniPoints[0].title.includes('ãƒ†ã‚¹ãƒˆ'));
+        t.check('unicode title has emoji', uniPoints[0].title.includes('ğŸ‰'));
+        t.check('unicode tags Chinese', uniPoints[0].tags.length >= 1 && uniPoints[0].tags.includes('æ•°å­¦'));
+        t.check('unicode tags Greek', uniPoints[0].tags.length >= 2 && uniPoints[0].tags.includes('Î±Î²Î³'));
+        t.check('unicode hint contains Chinese', uniPoints[0].hint.includes('ä¸­æ–‡æç¤ºå†…å®¹'));
+        t.check('unicode hint contains Japanese', uniPoints[0].hint.includes('æ—¥æœ¬èª'));
+        t.check('unicode content contains formula', uniPoints[0].content.includes('E = mcÂ²'));
+        t.check('unicode content mixed script', uniPoints[0].content.includes('English'));
+        // Roundtrip
+        const rt = markdownTextFromPoints([uniPoints[0]]);
+        const rtParsed = parseMarkdown(rt);
+        t.check('unicode roundtrip', rtParsed.length === 1 && rtParsed[0].title.includes('ãƒ†ã‚¹ãƒˆ'));
+    }
+    // Test 15: parseMarkdown single point without separator
+    const singleMd = `# Solo Point
+
+tags: solo
+
+hint:
+Solo hint.
+
+content:
+Solo answer.
+`;
+    const singlePoints = parseMarkdown(singleMd);
+    t.check('parseMarkdown single point no separator', singlePoints.length === 1);
+    if (singlePoints.length >= 1) {
+        t.check('single point title', singlePoints[0].title === 'Solo Point');
+        t.check('single point tags', singlePoints[0].tags.length === 1 && singlePoints[0].tags[0] === 'solo');
+    }
+    // Test 16: parseMarkdown hint-only tags (no spaces between commas)
+    const tightTagsMd = `# Tight Tags
+
+tags: a,b,c,d
+
+hint:
+Hint.
+
+content:
+Content.
+`;
+    const tightPoints = parseMarkdown(tightTagsMd);
+    t.check('parseMarkdown tight tags returns 1 point', tightPoints.length === 1);
+    if (tightPoints.length >= 1) {
+        t.check('tight tags count 4', tightPoints[0].tags.length === 4);
+    }
+    // Test 17: parseMarkdown with trailing whitespace on section markers
+    const trailingWsMd = `# Trailing WS Title
+
+tags:   ws1, ws2
+
+hint:
+Hint with trailing marker space.
+
+content:
+Content with trailing marker space.
+`;
+    const wsPoints = parseMarkdown(trailingWsMd);
+    t.check('parseMarkdown trailing whitespace', wsPoints.length === 1);
+    if (wsPoints.length >= 1) {
+        t.check('trailing ws title trimmed', wsPoints[0].title === 'Trailing WS Title');
+        t.check('trailing ws hint parsed', wsPoints[0].hint.length > 0);
+        t.check('trailing ws content parsed', wsPoints[0].content.length > 0);
+    }
+    // Test 18: markdownTextFromPoints with multiple points produces correct separator
+    if (points.length >= 2) {
+        const multiMd = markdownTextFromPoints(points);
+        t.check('markdownTextFromPoints multi includes separator', multiMd.includes('\n\n---\n\n'));
+    }
+    // Test 19: markdownTextFromPoints round-trip
+    const rtMd = markdownTextFromPoints(points);
+    const rtParsed = parseMarkdown(rtMd);
+    t.check('roundtrip preserves count', rtParsed.length === points.length);
+    // Test 20: addReinforcement increments count
+    const kpA = new KnowledgePoint('a1', 'A', ['math'], 'h', 'c');
+    t.check('initial reinforcementCount 0', kpA.reinforcementCount === 0);
+    t.check('initial isReinforced false', !kpA.isReinforced);
+    const rc = kpA.addReinforcement();
+    t.check('addReinforcement returns 1', rc === 1);
+    t.check('isReinforced after add', kpA.isReinforced);
+    // Test 21: clearReinforcement resets
+    kpA.clearReinforcement();
+    t.check('clear sets count 0', kpA.reinforcementCount === 0);
+    t.check('clear sets isReinforced false', !kpA.isReinforced);
+    // Test 22: negative reinforcement in constructor clamped
+    const kpNeg = new KnowledgePoint('neg', 'N', [], 'h', 'c', false, false, 0, 0, -5, null);
+    t.check('negative reinforcementCount clamped', kpNeg.reinforcementCount === 0);
+    // Test 23: countdownDays edge cases
+    t.check('countdownDays null returns null', countdownDays(null) === null);
+    const future = Date.now() + 7 * 86400000;
+    const fDays = countdownDays(future);
+    t.check('countdownDays future positive', fDays !== null && fDays >= 0);
+    const past = Date.now() - 7 * 86400000;
+    t.check('countdownDays past returns 0', countdownDays(past) === 0);
+    // Test 24: generateId unique
+    const idA = generateId();
+    const idB = generateId();
+    t.check('generateId unique', idA !== idB);
+    // Test 25: KnowledgePreset knowledgePointCount
+    const tp = new KnowledgePreset('tp', 'TP', 's', 'd', 'cat', md, false);
+    t.check('preset kpCount > 0', tp.knowledgePointCount > 0);
+    t.check('preset kpCount matches parse', tp.knowledgePointCount === points.length);
+    // Test 26: ordinalSuffix coverage
+    t.check('ordinal 1st', ordinalSuffix(1) === 'st');
+    t.check('ordinal 2nd', ordinalSuffix(2) === 'nd');
+    t.check('ordinal 3rd', ordinalSuffix(3) === 'rd');
+    t.check('ordinal 11th', ordinalSuffix(11) === 'th');
+    t.check('ordinal 21st', ordinalSuffix(21) === 'st');
+    // Test 27: empty/edge parseMarkdown
+    t.check('parseMarkdown empty', parseMarkdown('').length === 0);
+    t.check('parseMarkdown separators only', parseMarkdown('---\n---').length === 0);
+    return t.result();
+}
+export function runSmokeTestsAndLog() {
+    const result = runSmokeTests();
+    console.info(`[Kikaria Smoke] ${result.passed} passed, ${result.failed} failed`);
+    for (const f of result.failures) {
+        console.error(`[Kikaria Smoke] ${f}`);
+    }
+    return result.failed === 0;
+}
+//# sourceMappingURL=SmokeTest.js.mapÂ‘ÙZ/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/model/KnowledgePoint.etsÙU/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/model/SmokeTest.etsÔrB›ªmoduleName±isLocalDependency¯isNodeEntryFile§pkgPath±belongProjectPath§pkgNameªpkgVersion±dependencyPkgInfo¯hostModulesInfo°belongModulePath¬shouldEmitJs¥entryÃÂÙ4/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entryÙ./Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS¥entry¥1.0.0Ô  ‘ÔrC’²hostDependencyName®hostModuleName²../model/SmokeTest¥entryÙ4/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entryÃÃÚ0÷/**
+ * SmokeTest - Minimal manual smoke-test harness for core data model.
+ * Call runSmokeTests() to validate parseMarkdown, markdownTextFromPoints,
+ * KnowledgePoint CRUD, and countdownDays.
+ */
+import { KnowledgePoint, KnowledgePreset, parseMarkdown, markdownTextFromPoints, countdownDays, generateId, ordinalSuffix } from './KnowledgePoint'
+
+export interface SmokeTestResult {
+  passed: number
+  failed: number
+  failures: string[]
+}
+
+class TestRunner {
+  passed: number = 0
+  failed: number = 0
+  failures: string[] = []
+
+  check(name: string, condition: boolean): void {
+    if (condition) {
+      this.passed++
+    } else {
+      this.failed++
+      this.failures.push(`FAIL: ${name}`)
+    }
+  }
+
+  result(): SmokeTestResult {
+    return { passed: this.passed, failed: this.failed, failures: this.failures }
+  }
+}
+
+export function runSmokeTests(): SmokeTestResult {
+  const t = new TestRunner()
+
+  // Test 1: parseMarkdown basic parsing
+  const md = `# Test Point 1
+
+tags: math, calculus
+
+hint:
+This is a hint
+
+content:
+This is the answer content
+
+---
+
+# Test Point 2
+
+tags: physics
+
+hint:
+Another hint here
+
+content:
+More answer text here
+`
+  const points = parseMarkdown(md)
+  t.check('parseMarkdown returns 2 points', points.length === 2)
+  t.check('point title parsed', points.length >= 1 && points[0].title === 'Test Point 1')
+  t.check('point tags parsed', points.length >= 1 && points[0].tags.length === 2 &&
+    points[0].tags[0] === 'math' && points[0].tags[1] === 'calculus')
+  t.check('point hint parsed', points.length >= 1 && points[0].hint === 'This is a hint')
+  t.check('point content parsed', points.length >= 1 && points[0].content === 'This is the answer content')
+
+  // Test 2: markdownTextFromPoints roundtrip
+  if (points.length >= 1) {
+    const regenerated = markdownTextFromPoints([points[0]])
+    const reParsed = parseMarkdown(regenerated)
+    t.check('markdownTextFromPoints roundtrip', reParsed.length === 1 &&
+      reParsed[0].title === 'Test Point 1')
+  }
+
+  // Test 3: parseMarkdown handles empty input
+  t.check('parseMarkdown empty input', parseMarkdown('').length === 0)
+
+  // Test 4: parseMarkdown handles malformed input
+  t.check('parseMarkdown malformed input returns empty',
+    parseMarkdown('Just some random text\nwithout proper markers').length === 0)
+
+  // Test 5: parseMarkdown handles missing sections
+  t.check('parseMarkdown missing sections returns empty',
+    parseMarkdown('# Just a title\n\nNo hint or content here').length === 0)
+
+  // Test 6: KnowledgePoint reinforcement
+  const kp = new KnowledgePoint(generateId(), 'Test', ['tag1'], 'hint', 'content')
+  t.check('KP initial isReinforced=false', !kp.isReinforced)
+  t.check('KP initial reinforcementCount=0', kp.reinforcementCount === 0)
+
+  kp.addReinforcement()
+  t.check('KP after addReinforcement isReinforced=true', kp.isReinforced)
+  t.check('KP after addReinforcement count=1', kp.reinforcementCount === 1)
+
+  kp.addReinforcement()
+  t.check('KP after 2nd addReinforcement count=2', kp.reinforcementCount === 2)
+
+  kp.clearReinforcement()
+  t.check('KP after clearReinforcement isReinforced=false', !kp.isReinforced)
+  t.check('KP after clearReinforcement count=0', kp.reinforcementCount === 0)
+
+  // Test 7: KnowledgePoint mastered
+  t.check('KP initial isMastered=false', !kp.isMastered)
+  kp.isMastered = true
+  t.check('KP isMastered toggle', kp.isMastered)
+
+  // Test 8: countdownDays
+  const futureDate = Date.now() + 7 * 24 * 60 * 60 * 1000
+  const days = countdownDays(futureDate)
+  t.check('countdownDays future non-null', days !== null)
+  t.check('countdownDays future is 6 or 7', days === 6 || days === 7)
+
+  const pastDays = countdownDays(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  t.check('countdownDays past returns 0', pastDays === 0)
+
+  t.check('countdownDays null returns null', countdownDays(null) === null)
+
+  // Test 9: generateId unique
+  t.check('generateId unique', generateId() !== generateId())
+
+  // Test 10: parseMarkdown multiline hint and content
+  const mlMd = `# Multiline Test
+
+tags: lang
+
+hint:
+Line one of hint.
+Line two of hint.
+
+Even a blank line above this one.
+
+content:
+Answer line one.
+Answer line two.
+
+Final paragraph of answer.
+`
+  const mlPoints = parseMarkdown(mlMd)
+  t.check('parseMarkdown multiline returns 1 point', mlPoints.length === 1)
+  if (mlPoints.length >= 1) {
+    t.check('multiline hint contains first line', mlPoints[0].hint.includes('Line one of hint.'))
+    t.check('multiline hint contains second line', mlPoints[0].hint.includes('Line two of hint.'))
+    t.check('multiline hint contains blank line separator', mlPoints[0].hint.includes('Even a blank line'))
+    t.check('multiline content contains first line', mlPoints[0].content.includes('Answer line one.'))
+    t.check('multiline content contains final paragraph', mlPoints[0].content.includes('Final paragraph of answer.'))
+  }
+
+  // Test 11: parseMarkdown with special characters (Markdown syntax literals)
+  const scMd = `# Special *Chars* _Test_
+
+tags: markdown, special
+
+hint:
+This hint has **bold** and *italic* and \`inline code\`.
+
+content:
+Answer with <angle brackets> and [square brackets] and (parens).
+Also has a URL: https://example.com/path?q=1&v=2
+`
+  const scPoints = parseMarkdown(scMd)
+  t.check('parseMarkdown special chars returns 1 point', scPoints.length === 1)
+  if (scPoints.length >= 1) {
+    t.check('special chars title preserved', scPoints[0].title.includes('*Chars*') && scPoints[0].title.includes('_Test_'))
+    t.check('special chars hint has bold marker', scPoints[0].hint.includes('**bold**'))
+    t.check('special chars hint has backtick', scPoints[0].hint.includes('`inline code`'))
+    t.check('special chars content has angle brackets', scPoints[0].content.includes('<angle brackets>'))
+    t.check('special chars content has URL', scPoints[0].content.includes('https://example.com'))
+  }
+
+  // Test 12: parseMarkdown with empty tags
+  const emptyTagsMd = `# Empty Tags
+
+tags:
+
+hint:
+Just a hint.
+
+content:
+Just some content.
+`
+  const emptyTagsPoints = parseMarkdown(emptyTagsMd)
+  t.check('parseMarkdown empty tags returns 1 point', emptyTagsPoints.length === 1)
+  if (emptyTagsPoints.length >= 1) {
+    t.check('empty tags array is empty', emptyTagsPoints[0].tags.length === 0)
+  }
+
+  // Test 13: parseMarkdown with tags having spaces around commas
+  const spacedTagsMd = `# Spaced Tags
+
+tags:  alpha , beta , gamma
+
+hint:
+Test hint.
+
+content:
+Test content.
+`
+  const spacedPoints = parseMarkdown(spacedTagsMd)
+  t.check('parseMarkdown spaced tags returns 1 point', spacedPoints.length === 1)
+  if (spacedPoints.length >= 1) {
+    t.check('spaced tags trimmed correctly', spacedPoints[0].tags.length >= 2)
+  }
+
+  // Test 14: parseMarkdown Unicode (Chinese/Japanese/emoji) roundtrip
+  const unicodeMd = `# Unicode ãƒ†ã‚¹ãƒˆ ğŸ‰
+
+tags: æ•°å­¦, ç‰©ç†, Î±Î²Î³
+
+hint:
+æç¤ºï¼šè¿™æ˜¯ä¸­æ–‡æç¤ºå†…å®¹ã€‚
+æ—¥æœ¬èªã®ãƒ’ãƒ³ãƒˆã‚‚å«ã¾ã‚Œã¦ã„ã¾ã™ã€‚
+Emoji: ğŸ¯â­ğŸ“š
+
+content:
+ç­”æ¡ˆï¼šE = mcÂ² æ˜¯çˆ±å› æ–¯å¦çš„è´¨èƒ½æ–¹ç¨‹ã€‚
+æ—¥æœ¬èªã®ç­”ãˆï¼šã“ã‚Œã¯ç­”ãˆã§ã™ã€‚
+ä¸­æ–‡ã€æ—¥æœ¬èªã€English æ··åˆã€‚
+`
+  const uniPoints = parseMarkdown(unicodeMd)
+  t.check('parseMarkdown unicode returns 1 point', uniPoints.length === 1)
+  if (uniPoints.length >= 1) {
+    t.check('unicode title preserved', uniPoints[0].title.includes('ãƒ†ã‚¹ãƒˆ'))
+    t.check('unicode title has emoji', uniPoints[0].title.includes('ğŸ‰'))
+    t.check('unicode tags Chinese', uniPoints[0].tags.length >= 1 && uniPoints[0].tags.includes('æ•°å­¦'))
+    t.check('unicode tags Greek', uniPoints[0].tags.length >= 2 && uniPoints[0].tags.includes('Î±Î²Î³'))
+    t.check('unicode hint contains Chinese', uniPoints[0].hint.includes('ä¸­æ–‡æç¤ºå†…å®¹'))
+    t.check('unicode hint contains Japanese', uniPoints[0].hint.includes('æ—¥æœ¬èª'))
+    t.check('unicode content contains formula', uniPoints[0].content.includes('E = mcÂ²'))
+    t.check('unicode content mixed script', uniPoints[0].content.includes('English'))
+    // Roundtrip
+    const rt = markdownTextFromPoints([uniPoints[0]])
+    const rtParsed = parseMarkdown(rt)
+    t.check('unicode roundtrip', rtParsed.length === 1 && rtParsed[0].title.includes('ãƒ†ã‚¹ãƒˆ'))
+  }
+
+  // Test 15: parseMarkdown single point without separator
+  const singleMd = `# Solo Point
+
+tags: solo
+
+hint:
+Solo hint.
+
+content:
+Solo answer.
+`
+  const singlePoints = parseMarkdown(singleMd)
+  t.check('parseMarkdown single point no separator', singlePoints.length === 1)
+  if (singlePoints.length >= 1) {
+    t.check('single point title', singlePoints[0].title === 'Solo Point')
+    t.check('single point tags', singlePoints[0].tags.length === 1 && singlePoints[0].tags[0] === 'solo')
+  }
+
+  // Test 16: parseMarkdown hint-only tags (no spaces between commas)
+  const tightTagsMd = `# Tight Tags
+
+tags: a,b,c,d
+
+hint:
+Hint.
+
+content:
+Content.
+`
+  const tightPoints = parseMarkdown(tightTagsMd)
+  t.check('parseMarkdown tight tags returns 1 point', tightPoints.length === 1)
+  if (tightPoints.length >= 1) {
+    t.check('tight tags count 4', tightPoints[0].tags.length === 4)
+  }
+
+  // Test 17: parseMarkdown with trailing whitespace on section markers
+  const trailingWsMd = `# Trailing WS Title
+
+tags:   ws1, ws2
+
+hint:
+Hint with trailing marker space.
+
+content:
+Content with trailing marker space.
+`
+  const wsPoints = parseMarkdown(trailingWsMd)
+  t.check('parseMarkdown trailing whitespace', wsPoints.length === 1)
+  if (wsPoints.length >= 1) {
+    t.check('trailing ws title trimmed', wsPoints[0].title === 'Trailing WS Title')
+    t.check('trailing ws hint parsed', wsPoints[0].hint.length > 0)
+    t.check('trailing ws content parsed', wsPoints[0].content.length > 0)
+  }
+
+  // Test 18: markdownTextFromPoints with multiple points produces correct separator
+  if (points.length >= 2) {
+    const multiMd = markdownTextFromPoints(points)
+    t.check('markdownTextFromPoints multi includes separator', multiMd.includes('\n\n---\n\n'))
+  }
+
+  // Test 19: markdownTextFromPoints round-trip
+  const rtMd = markdownTextFromPoints(points)
+  const rtParsed = parseMarkdown(rtMd)
+  t.check('roundtrip preserves count', rtParsed.length === points.length)
+
+  // Test 20: addReinforcement increments count
+  const kpA = new KnowledgePoint('a1', 'A', ['math'], 'h', 'c')
+  t.check('initial reinforcementCount 0', kpA.reinforcementCount === 0)
+  t.check('initial isReinforced false', !kpA.isReinforced)
+  const rc = kpA.addReinforcement()
+  t.check('addReinforcement returns 1', rc === 1)
+  t.check('isReinforced after add', kpA.isReinforced)
+
+  // Test 21: clearReinforcement resets
+  kpA.clearReinforcement()
+  t.check('clear sets count 0', kpA.reinforcementCount === 0)
+  t.check('clear sets isReinforced false', !kpA.isReinforced)
+
+  // Test 22: negative reinforcement in constructor clamped
+  const kpNeg = new KnowledgePoint('neg', 'N', [], 'h', 'c', false, false, 0, 0, -5, null)
+  t.check('negative reinforcementCount clamped', kpNeg.reinforcementCount === 0)
+
+  // Test 23: countdownDays edge cases
+  t.check('countdownDays null returns null', countdownDays(null) === null)
+  const future = Date.now() + 7 * 86400000
+  const fDays = countdownDays(future)
+  t.check('countdownDays future positive', fDays !== null && (fDays as number) >= 0)
+  const past = Date.now() - 7 * 86400000
+  t.check('countdownDays past returns 0', countdownDays(past) === 0)
+
+  // Test 24: generateId unique
+  const idA = generateId()
+  const idB = generateId()
+  t.check('generateId unique', idA !== idB)
+
+  // Test 25: KnowledgePreset knowledgePointCount
+  const tp = new KnowledgePreset('tp', 'TP', 's', 'd', 'cat', md, false)
+  t.check('preset kpCount > 0', tp.knowledgePointCount > 0)
+  t.check('preset kpCount matches parse', tp.knowledgePointCount === points.length)
+
+  // Test 26: ordinalSuffix coverage
+  t.check('ordinal 1st', ordinalSuffix(1) === 'st')
+  t.check('ordinal 2nd', ordinalSuffix(2) === 'nd')
+  t.check('ordinal 3rd', ordinalSuffix(3) === 'rd')
+  t.check('ordinal 11th', ordinalSuffix(11) === 'th')
+  t.check('ordinal 21st', ordinalSuffix(21) === 'st')
+
+  // Test 27: empty/edge parseMarkdown
+  t.check('parseMarkdown empty', parseMarkdown('').length === 0)
+  t.check('parseMarkdown separators only', parseMarkdown('---\n---').length === 0)
+
+  return t.result()
+}
+
+export function runSmokeTestsAndLog(): boolean {
+  const result = runSmokeTests()
+  console.info(`[Kikaria Smoke] ${result.passed} passed, ${result.failed} failed`)
+  for (const f of result.failures) {
+    console.error(`[Kikaria Smoke] ${f}`)
+  }
+  return result.failed === 0
+}
+ÀÔrD‘°./KnowledgePointÔrE—ªassertions¨external¢id¤meta±moduleSideEffectsªresolvedByµsyntheticNamedExportsAÂÙZ/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/model/KnowledgePoint.etsAÃªoh-resolveÂ“ÔrF–§version¤fileªsourceRoot§sources¥names¨mappings¬SmokeTest.js ‘­SmokeTest.etsÜ:‘”    ‘” Ü ”   ” ”	 	” ” ”( (”* *”7 7”9 9”ÌO ÌO”ÌQ ÌQ”Ì^ Ì^”Ì` Ì`”Ìj Ìj”Ìl Ìl”Ìy Ìy”Ì{ Ì{”Ì Ì”Ì“ Ì“”Ì” Ì““”   ” ” ‘”  •” ” ” ” ” •” ” ” ” ” •” ” 
+” ” ” ’”  ” –” ”	 ”
+ ” ” ” (”” ” ” ” –” ” 
+” ” ” ” ‘”	 ‘” –” ” 
+” ” ” ” œ” ” 
+” ” ” ” ” ”( "”, &”. (”/ )”0 )‘”	 ’” ” ’” ”
+ Ü ” ” ” ” ” ” ” ”$  ”& "”, (”. *”2 .”3 /”9 5”; 7”ÌC ?”ÌE ÌA”ÌI ÌE”ÌJ ÌF”ÌR ÌN”ÌT ÌP”ÌU ÌP’” ” ‘” ””    ”  ”  ”  ˜” !”
+ !” !	” !” !” !” !” !’” #”* #(”” $”
+ $” $
+” $’” 9” 9™” :”
+ :” :” :”  :”! :”# :!”$ :"”% :"” ;” ;” ;” ;	” ;
+”, ;*”. ;,”4 ;2”5 ;3”; ;9”Ì@ ;>”ÌA ;?”ÌB ;Ì@”ÌC ;Ì@Ü ” <” <” <” <	” <
+”  <”" < ”( <&”) <'”/ <-”3 <1”4 <2”8 <6”> <<”? <=”Ì@ <>”ÌA <?”ÌB <Ì@”ÌG <ÌE”ÌL <ÌJ”ÌZ <ÌX”Ì[ <ÌY”Ì\ <ÌYÜ ” =” =” =” =	” =
+” =”! =”' =%”( =&”. =,”2 =0”3 =1”7 =5”= =;”> =<”? ==”Ì@ =>”ÌA =?”ÌE =ÌC”ÌF =ÌD”ÌL =ÌJ”ÌQ =ÌO”ÌR =ÌPÜ ” >” >
+” >” >” >” >” >” >” >” >” >”$ > ”( >$”. >*”/ >+”0 >,”1 >-”2 >.”6 >2”7 >3”8 >4”9 >5”> >:”ÌH >ÌD”ÌI >ÌE”ÌJ >ÌEÜ ” ?” ?” ?” ?	” ?
+” ?”! ?”' ?%”( ?&”. ?,”2 ?0”3 ?1”7 ?5”= ?;”> ?<”? ?=”Ì@ ?>”ÌA ??”ÌE ?ÌC”ÌJ ?ÌH”ÌZ ?ÌX”Ì[ ?ÌY”Ì\ ?ÌYÜ ” Ì@” Ì@” Ì@” Ì@	” Ì@
+”" Ì@ ”$ Ì@"”* Ì@(”+ Ì@)”1 Ì@/”5 Ì@3”6 Ì@4”: Ì@8”Ì@ Ì@>”ÌA Ì@?”ÌB Ì@Ì@”ÌC Ì@ÌA”ÌD Ì@ÌB”ÌK Ì@ÌI”ÌP Ì@ÌN”Ìl Ì@Ìj”Ìm Ì@Ìk”Ìn Ì@Ìk’” ÌB”/ ÌB-˜” ÌC” ÌC” ÌC” ÌC” ÌC” ÌC” ÌC” ÌC” ÌD” ÌD
+” ÌD” ÌD”2 ÌD.”3 ÌD/”4 ÌD0”: ÌD6”; ÌD7”< ÌD8”= ÌD9”> ÌD:”? ÌD;”Ì@ ÌD;™” ÌE” ÌE
+” ÌE” ÌE”& ÌE"”' ÌE#”2 ÌE.”3 ÌE/”4 ÌE/œ” ÌF”	 ÌF”
+ ÌF” ÌF” ÌF”2 ÌF.”4 ÌF0”< ÌF8”= ÌF9”ÌC ÌF?”ÌH ÌFÌD”ÌI ÌFÌE›” ÌG” ÌG” ÌG” ÌG” ÌG” ÌG” ÌG”" ÌG”0 ÌG*”1 ÌG+”2 ÌG+‘” ÌH’” ÌJ”0 ÌJ.Ü ” ÌK” ÌK” ÌK” ÌK	” ÌK
+”' ÌK%”) ÌK'”6 ÌK4”7 ÌK5”9 ÌK7”: ÌK8”; ÌK9”ÌA ÌK?”ÌF ÌKÌD”ÌG ÌKÌE”ÌH ÌKÌF”ÌI ÌKÌF’” ÌM”4 ÌM2Ü ” ÌN” ÌN” ÌN” ÌN	” ÌN
+”9 ÌN7”; ÌO”ÌH ÌO”ÌI ÌO”Ìx ÌOÌA”Ìy ÌOÌB”Ìz ÌOÌC”Ì€ ÌOÌI”Ì… ÌOÌN”Ì† ÌOÌO”Ì‡ ÌOÌP”Ìˆ ÌOÌP’” ÌQ”5 ÌQ3Ü ” ÌR” ÌR” ÌR” ÌR	” ÌR
+”: ÌR8”< ÌS”ÌI ÌS”ÌJ ÌS”Ìu ÌS=”Ìv ÌS>”Ìw ÌS?”Ì} ÌSÌE”Ì‚ ÌSÌJ”Ìƒ ÌSÌK”Ì„ ÌSÌL”Ì… ÌSÌL’” ÌU”+ ÌU)Ü ” ÌV”
+ ÌV” ÌV
+” ÌV” ÌV”! ÌV”" ÌV ”, ÌV*”. ÌV,”0 ÌV.”6 ÌV4”8 ÌV6”9 ÌV7”? ÌV=”Ì@ ÌV>”ÌB ÌVÌ@”ÌH ÌVÌF”ÌJ ÌVÌH”ÌS ÌVÌQ”ÌT ÌVÌR”ÌU ÌVÌR” ÌW” ÌW” ÌW” ÌW	” ÌW
+”+ ÌW)”- ÌW+”. ÌW,”0 ÌW.”1 ÌW/”= ÌW;”> ÌW<”? ÌW<” ÌX” ÌX” ÌX” ÌX	” ÌX
+”- ÌX+”/ ÌX-”1 ÌX/”2 ÌX0”ÌD ÌXÌB”ÌI ÌXÌG”ÌJ ÌXÌH”ÌK ÌXÌI”ÌL ÌXÌI–” ÌZ” ÌZ” ÌZ” ÌZ” ÌZ” ÌZœ” Ì[” Ì[” Ì[” Ì[	” Ì[
+”9 Ì[7”; Ì[9”= Ì[;”> Ì[<”ÌJ Ì[ÌH”ÌK Ì[ÌI”ÌL Ì[ÌI” Ì\” Ì\” Ì\” Ì\	” Ì\
+”/ Ì\-”1 Ì\/”3 Ì\1”4 Ì\2”ÌF Ì\ÌD”ÌK Ì\ÌI”ÌL Ì\ÌJ”ÌM Ì\ÌK”ÌN Ì\ÌK–” Ì^” Ì^” Ì^” Ì^” Ì^” Ì^” Ì_” Ì_” Ì_” Ì_	” Ì_
+”3 Ì_1”5 Ì_3”7 Ì_5”8 Ì_6”ÌJ Ì_ÌH”ÌO Ì_ÌM”ÌP Ì_ÌN”ÌQ Ì_ÌO”ÌR Ì_ÌO–” Ìa” Ìa” Ìa” Ìa” Ìa” Ìa” Ìb” Ìb” Ìb” Ìb	” Ìb
+”< Ìb:”> Ìb<”? Ìb=”ÌA Ìb?”ÌB ÌbÌ@”ÌN ÌbÌL”ÌO ÌbÌM”ÌP ÌbÌM” Ìc” Ìc” Ìc” Ìc	” Ìc
+”1 Ìc/”3 Ìc1”5 Ìc3”6 Ìc4”ÌH ÌcÌF”ÌM ÌcÌK”ÌN ÌcÌL”ÌO ÌcÌM”ÌP ÌcÌM’” Ìe”& Ìe$” Ìf” Ìf” Ìf” Ìf	” Ìf
+”) Ìf'”+ Ìf)”, Ìf*”. Ìf,”/ Ìf-”9 Ìf7”: Ìf8”; Ìf8—” Ìg” Ìg” Ìg” Ìg” Ìg” Ìg” Ìgœ” Ìh” Ìh” Ìh” Ìh	” Ìh
+”" Ìh ”$ Ìh"”& Ìh$”' Ìh%”1 Ìh/”2 Ìh0”3 Ìh0’” Ìj” ÌjÜ ” Ìk”
+ Ìk” Ìk” Ìk” Ìk” Ìk” Ìk”! Ìk”$ Ìk"”% Ìk#”( Ìk&”* Ìk(”- Ìk+”/ Ìk-”2 Ìk0”4 Ìk2”7 Ìk5”; Ìk9”< Ìk9™” Ìl”
+ Ìl” Ìl” Ìl” Ìl” Ìl”) Ìl'”* Ìl(”+ Ìl(œ” Ìm” Ìm” Ìm” Ìm	” Ìm
+”+ Ìm)”- Ìm+”1 Ìm/”6 Ìm4”: Ìm8”; Ìm9”< Ìm9Ü ” Ìn” Ìn” Ìn” Ìn	” Ìn
+”, Ìn*”. Ìn,”2 Ìn0”7 Ìn5”8 Ìn6”< Ìn:”Ì@ Ìn>”ÌE ÌnÌC”ÌF ÌnÌD”ÌG ÌnÌE”ÌH ÌnÌEÜ ” Ìp”
+ Ìp” Ìp” Ìp”" Ìp ”# Ìp!”' Ìp%”( Ìp&”+ Ìp)”- Ìp+”0 Ìp.”1 Ìp/”4 Ìp2”6 Ìp4”9 Ìp7”; Ìp9”> Ìp<”Ì@ Ìp>”ÌC ÌpÌA”ÌG ÌpÌE”ÌH ÌpÌF”ÌI ÌpÌFœ” Ìq” Ìq” Ìq” Ìq	” Ìq
+”* Ìq(”, Ìq*”4 Ìq2”9 Ìq7”: Ìq8”; Ìq9”< Ìq9Ÿ” Ìs” Ìs” Ìs” Ìs	” Ìs
+”- Ìs+”/ Ìs-”< Ìs:”= Ìs;”ÌA Ìs?”ÌB ÌsÌ@”ÌG ÌsÌE”ÌK ÌsÌI”ÌL ÌsÌJ”ÌM ÌsÌJ’” Ìu”  Ìu” Ìv” Ìv” Ìv” Ìv	” Ìv
+” Ìv”! Ìv”+ Ìv)”- Ìv+”2 Ìv0”< Ìv:”> Ìv<”? Ìv=”Ì@ Ìv=’” Ìx”8 Ìx6”” Ìy”
+ Ìy” Ìy” Ìy’” Ìˆ” Ìˆ™” Ì‰”
+ Ì‰” Ì‰” Ì‰”" Ì‰ ”# Ì‰!”' Ì‰%”( Ì‰&”) Ì‰&” ÌŠ” ÌŠ” ÌŠ” ÌŠ	” ÌŠ
+”5 ÌŠ3”7 ÌŠ5”? ÌŠ=”Ì@ ÌŠ>”ÌF ÌŠÌD”ÌK ÌŠÌI”ÌL ÌŠÌJ”ÌM ÌŠÌK”ÌN ÌŠÌK˜” Ì‹” Ì‹” Ì‹” Ì‹” Ì‹” Ì‹” Ì‹” Ì‹Ü ” ÌŒ”	 ÌŒ”
+ ÌŒ” ÌŒ” ÌŒ”4 ÌŒ0”6 ÌŒ2”> ÌŒ:”? ÌŒ;”Ì@ ÌŒ<”ÌA ÌŒ=”ÌB ÌŒ>”ÌF ÌŒÌB”ÌG ÌŒÌC”ÌO ÌŒÌK”ÌP ÌŒÌL”Ìc ÌŒÌ_”Ìd ÌŒÌ`”Ìe ÌŒÌa”Ìf ÌŒÌaÜ ” Ì”	 Ì”
+ Ì” Ì” Ì”5 Ì1”7 Ì3”? Ì;”Ì@ Ì<”ÌA Ì=”ÌB Ì>”ÌC Ì?”ÌG ÌÌC”ÌH ÌÌD”ÌP ÌÌL”ÌQ ÌÌM”Ìd ÌÌ`”Ìe ÌÌa”Ìf ÌÌb”Ìg ÌÌbÜ ” Ì”	 Ì”
+ Ì” Ì” Ì”> Ì:”Ì@ Ì<”ÌH ÌÌD”ÌI ÌÌE”ÌJ ÌÌF”ÌK ÌÌG”ÌL ÌÌH”ÌP ÌÌL”ÌQ ÌÌM”ÌY ÌÌU”ÌZ ÌÌV”Ìm ÌÌi”Ìn ÌÌj”Ìo ÌÌk”Ìp ÌÌkÜ ” Ì”	 Ì”
+ Ì” Ì” Ì”7 Ì3”9 Ì5”ÌA Ì=”ÌB Ì>”ÌC Ì?”ÌD ÌÌ@”ÌE ÌÌA”ÌL ÌÌH”ÌM ÌÌI”ÌU ÌÌQ”ÌV ÌÌR”Ìh ÌÌd”Ìi ÌÌe”Ìj ÌÌf”Ìk ÌÌfÜ ” Ì”	 Ì”
+ Ì” Ì” Ì”< Ì8”> Ì:”ÌF ÌÌB”ÌG ÌÌC”ÌH ÌÌD”ÌI ÌÌE”ÌJ ÌÌF”ÌQ ÌÌM”ÌR ÌÌN”ÌZ ÌÌV”Ì[ ÌÌW”Ìw ÌÌs”Ìx ÌÌt”Ìy ÌÌu”Ìz ÌÌu‘” Ì‘’” Ì“”ÌP Ì“ÌN”” Ì””
+ Ì”” Ì”” Ì”’” Ì” Ì™” ÌŸ”
+ ÌŸ” ÌŸ” ÌŸ”" ÌŸ ”# ÌŸ!”' ÌŸ%”( ÌŸ&”) ÌŸ&” Ì ” Ì ” Ì ” Ì 	” Ì 
+”9 Ì 7”; Ì 9”ÌC Ì ÌA”ÌD Ì ÌB”ÌJ Ì ÌH”ÌO Ì ÌM”ÌP Ì ÌN”ÌQ Ì ÌO”ÌR Ì ÌO˜” Ì¡” Ì¡” Ì¡” Ì¡” Ì¡” Ì¡” Ì¡” Ì¡Ü  ” Ì¢”	 Ì¢”
+ Ì¢” Ì¢” Ì¢”/ Ì¢+”1 Ì¢-”9 Ì¢5”: Ì¢6”; Ì¢7”< Ì¢8”= Ì¢9”ÌB Ì¢>”ÌC Ì¢?”ÌK Ì¢ÌG”ÌL Ì¢ÌH”ÌU Ì¢ÌQ”ÌV Ì¢ÌR”ÌZ Ì¢ÌV”Ìb Ì¢Ì^”Ìc Ì¢Ì_”Ìd Ì¢Ì`”Ìe Ì¢Ìa”Ìf Ì¢Ìb”Ìk Ì¢Ìg”Ìl Ì¢Ìh”Ìt Ì¢Ìp”Ìu Ì¢Ìq”Ì} Ì¢Ìy”Ì~ Ì¢Ìz”Ì Ì¢Ì{”Ì€ Ì¢Ì{Ü ” Ì£”	 Ì£”
+ Ì£” Ì£” Ì£”4 Ì£0”6 Ì£2”> Ì£:”? Ì£;”Ì@ Ì£<”ÌA Ì£=”ÌB Ì£>”ÌF Ì£ÌB”ÌG Ì£ÌC”ÌO Ì£ÌK”ÌP Ì£ÌL”ÌZ Ì£ÌV”Ì[ Ì£ÌW”Ì\ Ì£ÌX”Ì] Ì£ÌXÜ ” Ì¤”	 Ì¤”
+ Ì¤” Ì¤” Ì¤”1 Ì¤-”3 Ì¤/”; Ì¤7”< Ì¤8”= Ì¤9”> Ì¤:”? Ì¤;”ÌC Ì¤?”ÌD Ì¤Ì@”ÌL Ì¤ÌH”ÌM Ì¤ÌI”Ì\ Ì¤ÌX”Ì] Ì¤ÌY”Ì^ Ì¤ÌZ”Ì_ Ì¤ÌZÜ ” Ì¥”	 Ì¥”
+ Ì¥” Ì¥” Ì¥”: Ì¥6”< Ì¥8”ÌD Ì¥Ì@”ÌE Ì¥ÌA”ÌF Ì¥ÌB”ÌG Ì¥ÌC”ÌH Ì¥ÌD”ÌO Ì¥ÌK”ÌP Ì¥ÌL”ÌX Ì¥ÌT”ÌY Ì¥ÌU”Ìk Ì¥Ìg”Ìl Ì¥Ìh”Ìm Ì¥Ìi”Ìn Ì¥ÌiÜ ” Ì¦”	 Ì¦”
+ Ì¦” Ì¦” Ì¦”/ Ì¦+”1 Ì¦-”9 Ì¦5”: Ì¦6”; Ì¦7”< Ì¦8”= Ì¦9”ÌD Ì¦Ì@”ÌE Ì¦ÌA”ÌM Ì¦ÌI”ÌN Ì¦ÌJ”Ìc Ì¦Ì_”Ìd Ì¦Ì`”Ìe Ì¦Ìa”Ìf Ì¦Ìa‘” Ì§’” Ì©”- Ì©+”” Ìª”
+ Ìª” Ìª” Ìª’” Ì³” Ì³™” Ì´”
+ Ì´” Ì´” Ì´”) Ì´'”* Ì´(”5 Ì´3”6 Ì´4”7 Ì´4” Ìµ” Ìµ” Ìµ” Ìµ	” Ìµ
+”6 Ìµ4”8 Ìµ6”ÌG ÌµÌE”ÌH ÌµÌF”ÌN ÌµÌL”ÌS ÌµÌQ”ÌT ÌµÌR”ÌU ÌµÌS”ÌV ÌµÌS˜” Ì¶” Ì¶” Ì¶” Ì¶” Ì¶”" Ì¶ ”# Ì¶!”% Ì¶#Ü ” Ì·”	 Ì·”
+ Ì·” Ì·” Ì·”+ Ì·'”- Ì·)”< Ì·8”= Ì·9”> Ì·:”? Ì·;”Ì@ Ì·<”ÌD Ì·Ì@”ÌE Ì·ÌA”ÌK Ì·ÌG”ÌP Ì·ÌL”ÌQ Ì·ÌM”ÌR Ì·ÌN”ÌS Ì·ÌN‘” Ì¸’” Ìº”ÌC ÌºÌA”” Ì»”
+ Ì»” Ì»” Ì»’” ÌÄ” ÌÄ™” ÌÅ”
+ ÌÅ” ÌÅ” ÌÅ”& ÌÅ$”' ÌÅ%”3 ÌÅ1”4 ÌÅ2”5 ÌÅ2” ÌÆ” ÌÆ” ÌÆ” ÌÆ	” ÌÆ
+”7 ÌÆ5”9 ÌÆ7”ÌE ÌÆÌC”ÌF ÌÆÌD”ÌL ÌÆÌJ”ÌQ ÌÆÌO”ÌR ÌÆÌP”ÌS ÌÆÌQ”ÌT ÌÆÌQ˜” ÌÇ” ÌÇ” ÌÇ” ÌÇ” ÌÇ” ÌÇ”  ÌÇ”" ÌÇ Ü ” ÌÈ”	 ÌÈ”
+ ÌÈ” ÌÈ” ÌÈ”/ ÌÈ+”1 ÌÈ-”= ÌÈ9”> ÌÈ:”? ÌÈ;”Ì@ ÌÈ<”ÌA ÌÈ=”ÌE ÌÈÌA”ÌF ÌÈÌB”ÌL ÌÈÌH”ÌP ÌÈÌL”ÌQ ÌÈÌM”ÌR ÌÈÌN”ÌS ÌÈÌN‘” ÌÉ’” ÌË”ÌH ÌËÌF”” ÌÌ”
+ ÌÌ” ÌÌ” ÌÌ’” ÌÙ” ÌÙ™” ÌÚ”
+ ÌÚ” ÌÚ” ÌÚ”# ÌÚ!”$ ÌÚ"”- ÌÚ+”. ÌÚ,”/ ÌÚ,” ÌÛ” ÌÛ” ÌÛ” ÌÛ	” ÌÛ
+”3 ÌÛ1”5 ÌÛ3”> ÌÛ<”? ÌÛ=”ÌE ÌÛÌC”ÌJ ÌÛÌH”ÌK ÌÛÌI”ÌL ÌÛÌJ”ÌM ÌÛÌJ˜” ÌÜ” ÌÜ” ÌÜ” ÌÜ” ÌÜ” ÌÜ” ÌÜ” ÌÜÜ ” Ìİ”	 Ìİ”
+ Ìİ” Ìİ” Ìİ”) Ìİ%”+ Ìİ'”4 Ìİ0”5 Ìİ1”6 Ìİ2”7 Ìİ3”8 Ìİ4”= Ìİ9”> Ìİ:”ÌF ÌİÌB”ÌG ÌİÌC”ÌL ÌİÌH”ÌM ÌİÌI”ÌN ÌİÌJ”ÌO ÌİÌJÜ ” ÌŞ”	 ÌŞ”
+ ÌŞ” ÌŞ” ÌŞ”) ÌŞ%”+ ÌŞ'”4 ÌŞ0”5 ÌŞ1”6 ÌŞ2”7 ÌŞ3”8 ÌŞ4”= ÌŞ9”> ÌŞ:”ÌF ÌŞÌB”ÌG ÌŞÌC”ÌK ÌŞÌG”ÌL ÌŞÌH”ÌM ÌŞÌI”ÌN ÌŞÌIÜ ” Ìß”	 Ìß”
+ Ìß” Ìß” Ìß”& Ìß"”( Ìß$”1 Ìß-”2 Ìß.”3 Ìß/”4 Ìß0”5 Ìß1”9 Ìß5”: Ìß6”Ì@ Ìß<”ÌD ÌßÌ@”ÌE ÌßÌA”ÌI ÌßÌE”ÌR ÌßÌN”ÌS ÌßÌO”ÌT ÌßÌP”ÌU ÌßÌQ”ÌV ÌßÌR”ÌZ ÌßÌV”Ì[ ÌßÌW”Ìc ÌßÌ_”Ìd ÌßÌ`”Ìh ÌßÌd”Ìi ÌßÌe”Ìj ÌßÌf”Ìk ÌßÌfÜ ” Ìà”	 Ìà”
+ Ìà” Ìà” Ìà”$ Ìà ”& Ìà"”/ Ìà+”0 Ìà,”1 Ìà-”2 Ìà.”3 Ìà/”7 Ìà3”8 Ìà4”> Ìà:”ÌB Ìà>”ÌC Ìà?”ÌG ÌàÌC”ÌP ÌàÌL”ÌQ ÌàÌM”ÌR ÌàÌN”ÌS ÌàÌO”ÌT ÌàÌP”ÌX ÌàÌT”ÌY ÌàÌU”Ìa ÌàÌ]”Ìb ÌàÌ^”Ìg ÌàÌc”Ìh ÌàÌd”Ìi ÌàÌe”Ìj ÌàÌeÜ ” Ìá”	 Ìá”
+ Ìá” Ìá” Ìá”/ Ìá+”1 Ìá-”: Ìá6”; Ìá7”< Ìá8”= Ìá9”> Ìá:”ÌB Ìá>”ÌC Ìá?”ÌK ÌáÌG”ÌL ÌáÌH”ÌT ÌáÌP”ÌU ÌáÌQ”ÌV ÌáÌR”ÌW ÌáÌRÜ ” Ìâ”	 Ìâ”
+ Ìâ” Ìâ” Ìâ”0 Ìâ,”2 Ìâ.”; Ìâ7”< Ìâ8”= Ìâ9”> Ìâ:”? Ìâ;”ÌC Ìâ?”ÌD ÌâÌ@”ÌL ÌâÌH”ÌM ÌâÌI”ÌR ÌâÌN”ÌS ÌâÌO”ÌT ÌâÌP”ÌU ÌâÌPÜ ” Ìã”	 Ìã”
+ Ìã” Ìã” Ìã”2 Ìã.”4 Ìã0”= Ìã9”> Ìã:”? Ìã;”Ì@ Ìã<”ÌA Ìã=”ÌH ÌãÌD”ÌI ÌãÌE”ÌQ ÌãÌM”ÌR ÌãÌN”Ì[ ÌãÌW”Ì\ ÌãÌX”Ì] ÌãÌY”Ì^ ÌãÌYÜ ” Ìä”	 Ìä”
+ Ìä” Ìä” Ìä”. Ìä*”0 Ìä,”9 Ìä5”: Ìä6”; Ìä7”< Ìä8”= Ìä9”ÌD ÌäÌ@”ÌE ÌäÌA”ÌM ÌäÌI”ÌN ÌäÌJ”ÌW ÌäÌS”ÌX ÌäÌT”ÌY ÌäÌU”ÌZ ÌäÌU’” Ìå” Ìå” Ìæ” Ìæ
+” Ìæ” Ìæ”) Ìæ%”* Ìæ&”+ Ìæ'”4 Ìæ0”5 Ìæ1”6 Ìæ2”7 Ìæ3”8 Ìæ4”9 Ìæ5”: Ìæ5™” Ìç” Ìç
+” Ìç” Ìç”& Ìç"”' Ìç#”) Ìç%”* Ìç&”+ Ìç&Ü ” Ìè”	 Ìè”
+ Ìè” Ìè” Ìè”# Ìè”% Ìè!”- Ìè)”. Ìè*”4 Ìè0”9 Ìè5”: Ìè6”> Ìè:”ÌF ÌèÌB”ÌG ÌèÌC”ÌH ÌèÌD”ÌI ÌèÌE”ÌJ ÌèÌF”ÌO ÌèÌK”ÌP ÌèÌL”ÌX ÌèÌT”ÌY ÌèÌU”Ì^ ÌèÌZ”Ì_ ÌèÌ[”Ì` ÌèÌ\”Ìa ÌèÌ\‘” Ìé’” Ìë”< Ìë:”” Ìì”
+ Ìì” Ìì” Ìì’” Ìõ” Ìõ™” Ìö”
+ Ìö” Ìö” Ìö”& Ìö$”' Ìö%”/ Ìö-”0 Ìö.”1 Ìö.” Ì÷” Ì÷” Ì÷” Ì÷	” Ì÷
+”5 Ì÷3”7 Ì÷5”ÌC Ì÷ÌA”ÌD Ì÷ÌB”ÌJ Ì÷ÌH”ÌO Ì÷ÌM”ÌP Ì÷ÌN”ÌQ Ì÷ÌO”ÌR Ì÷ÌO˜” Ìø” Ìø” Ìø” Ìø” Ìø” Ìø”  Ìø”" Ìø Ü ” Ìù”	 Ìù”
+ Ìù” Ìù” Ìù”$ Ìù ”& Ìù"”2 Ìù.”3 Ìù/”4 Ìù0”5 Ìù1”6 Ìù2”; Ìù7”Ì@ Ìù<”ÌL ÌùÌH”ÌM ÌùÌI”ÌN ÌùÌIÜ ” Ìú”	 Ìú”
+ Ìú” Ìú” Ìú”# Ìú”% Ìú!”1 Ìú-”2 Ìú.”3 Ìú/”4 Ìú0”5 Ìú1”9 Ìú5”: Ìú6”Ì@ Ìú<”ÌE ÌúÌA”ÌF ÌúÌB”ÌJ ÌúÌF”ÌV ÌúÌR”ÌW ÌúÌS”ÌX ÌúÌT”ÌY ÌúÌU”ÌZ ÌúÌV”Ì^ ÌúÌZ”Ì_ ÌúÌ[”Ì` ÌúÌ\”Ìa ÌúÌ]”Ìf ÌúÌb”Ìl ÌúÌh”Ìm ÌúÌi”Ìn ÌúÌi‘” Ìû’” Ìı”ÌG ÌıÌE”” Ìş”
+ Ìş” Ìş” Ìş’” Í” Í™” Í”
+ Í” Í” Í”% Í#”& Í$”1 Í/”2 Í0”3 Í0” Í	” Í	” Í	” Í		” Í	
+”6 Í	4”8 Í	6”ÌC Í	ÌA”ÌD Í	ÌB”ÌJ Í	ÌH”ÌO Í	ÌM”ÌP Í	ÌN”ÌQ Í	ÌO”ÌR Í	ÌO˜” Í
+” Í
+” Í
+” Í
+” Í
+” Í
+” Í
+”! Í
+Ü ” Í”	 Í”
+ Í” Í” Í”$ Í ”& Í"”1 Í-”2 Í.”3 Í/”4 Í0”5 Í1”9 Í5”: Í6”Ì@ Í<”ÌE ÍÌA”ÌF ÍÌB”ÌG ÍÌC”ÌH ÍÌC‘” Í’” Í”ÌI ÍÌG”” Í”
+ Í” Í” Í’” Í” Í™” Í”
+ Í” Í” Í”" Í ”# Í!”/ Í-”0 Í.”1 Í.” Í” Í” Í” Í	” Í
+”/ Í-”1 Í/”9 Í7”: Í8”Ì@ Í>”ÌE ÍÌC”ÌF ÍÌD”ÌG ÍÌE”ÌH ÍÌE˜” Í” Í” Í” Í” Í” Í” Í” ÍÜ ” Í”	 Í”
+ Í” Í” Í”+ Í'”- Í)”5 Í1”6 Í2”7 Í3”8 Í4”9 Í5”> Í:”ÌC Í?”ÌV ÍÌR”ÌW ÍÌS”ÌX ÍÌSÜ ” Í”	 Í”
+ Í” Í” Í”) Í%”+ Í'”3 Í/”4 Í0”5 Í1”6 Í2”7 Í3”; Í7”< Í8”ÌB Í>”ÌE ÍÌA”ÌF ÍÌB”ÌG ÍÌC”ÌH ÍÌCÜ ” Í”	 Í”
+ Í” Í” Í”, Í(”. Í*”6 Í2”7 Í3”8 Í4”9 Í5”: Í6”ÌA Í=”ÌB Í>”ÌH ÍÌD”ÌK ÍÌG”ÌL ÍÌH”ÌM ÍÌI”ÌN ÍÌI‘” Í’” Í!”ÌV Í!ÌT˜” Í"” Í"” Í"” Í"” Í"” Í"” Í"” Í"™” Í#” Í#
+” Í#” Í#”. Í#*”/ Í#+”5 Í#1”6 Í#2”7 Í#2Ÿ” Í$”	 Í$”
+ Í$” Í$” Í$”ÌA Í$=”ÌC Í$?”ÌJ Í$ÌF”ÌK Í$ÌG”ÌS Í$ÌO”ÌT Í$ÌP”Ìa Í$Ì]”Ìb Í$Ì^”Ìc Í$Ì_”Ìd Í$Ì_‘” Í%’” Í'”1 Í'/™” Í(”
+ Í(” Í(” Í(”' Í(%”( Í(&”. Í(,”/ Í(-”0 Í(-™” Í)”
+ Í)” Í)” Í)”" Í) ”# Í)!”' Í)%”( Í)&”) Í)&Ü ” Í*” Í*” Í*” Í*	” Í*
+”' Í*%”) Í*'”1 Í*/”2 Í*0”8 Í*6”= Í*;”ÌC Í*ÌA”ÌD Í*ÌB”ÌJ Í*ÌH”ÌK Í*ÌI”ÌL Í*ÌI’” Í,”1 Í,/Ü ” Í-”
+ Í-” Í-” Í-” Í-”" Í- ”# Í-!”' Í-%”) Í-'”, Í-*”. Í-,”/ Í--”5 Í-3”6 Í-4”8 Í-6”; Í-9”= Í-;”Ì@ Í->”ÌA Í-?”ÌB Í-?” Í.” Í.” Í.” Í.	” Í.
+”* Í.(”, Í.*”/ Í.-”0 Í..”ÌB Í.Ì@”ÌG Í.ÌE”ÌH Í.ÌF”ÌI Í.ÌG”ÌJ Í.ÌG” Í/” Í/” Í/” Í/	” Í/
+”( Í/&”* Í/(”+ Í/)”. Í/,”/ Í/-”; Í/9”< Í/:”= Í/:™” Í0”
+ Í0” Í0
+” Í0” Í0” Í0”# Í0!”% Í0#”& Í0#œ” Í1” Í1” Í1” Í1	” Í1
+”( Í1&”* Í1(”, Í1*”1 Í1/”2 Í10”3 Í11”4 Í11œ” Í2” Í2” Í2” Í2	” Í2
+”$ Í2"”& Í2$”) Í2'”* Í2(”6 Í24”7 Í25”8 Í25’” Í4”) Í4'–” Í5” Í5” Í5” Í5” Í5” Í5” Í6” Í6” Í6” Í6	” Í6
+”  Í6”" Í6 ”% Í6#”& Í6$”8 Í66”= Í6;”> Í6<”? Í6=”Ì@ Í6=” Í7” Í7” Í7” Í7	” Í7
+”+ Í7)”- Í7+”. Í7,”1 Í7/”2 Í70”> Í7<”? Í7=”Ì@ Í7=’” Í9”= Í9;Ü ” Í:”
+ Í:” Í:” Í:” Í:”$ Í:"”% Í:#”* Í:(”, Í:*”/ Í:-”1 Í:/”3 Í:1”5 Í:3”8 Í:6”: Í:8”= Í:;”? Í:=”ÌD Í:ÌB”ÌF Í:ÌD”ÌK Í:ÌI”ÌM Í:ÌK”ÌN Í:ÌL”ÌP Í:ÌN”ÌQ Í:ÌO”ÌS Í:ÌQ”ÌT Í:ÌR”ÌU Í:ÌS”ÌW Í:ÌU”Ì[ Í:ÌY”Ì\ Í:ÌZ”Ì] Í:ÌZ” Í;” Í;” Í;” Í;	” Í;
+”1 Í;/”3 Í;1”8 Í;6”9 Í;7”ÌK Í;ÌI”ÌP Í;ÌN”ÌQ Í;ÌO”ÌR Í;ÌP”ÌS Í;ÌP’” Í=”( Í=&Ÿ” Í>” Í>” Í>” Í>	” Í>
+”- Í>+”/ Í>-”< Í>:”= Í>;”ÌA Í>?”ÌB Í>Ì@”ÌG Í>ÌE”ÌK Í>ÌI”ÌL Í>ÌJ”ÌM Í>ÌJ” Í?”
+ Í?” Í?” Í?” Í?” Í?” Í?” Í?”  Í?”! Í?”$ Í?"”, Í?*”- Í?*™” Í@”
+ Í@” Í@” Í@” Í@”  Í@”& Í@$”' Í@%”( Í@%Ü ” ÍA” ÍA” ÍA” ÍA	” ÍA
+”+ ÍA)”- ÍA+”2 ÍA0”7 ÍA5”; ÍA9”? ÍA>”ÌD ÍAÌN”ÌH ÍAÌR”ÌI ÍAÌS”ÌJ ÍAÌT”ÌK ÍAÌT” ÍB”
+ ÍB” ÍB” ÍB” ÍB” ÍB” ÍB” ÍB” ÍB” ÍB”" ÍB ”* ÍB(”+ ÍB(Ÿ” ÍC” ÍC” ÍC” ÍC	” ÍC
+”* ÍC(”, ÍC*”9 ÍC7”: ÍC8”> ÍC<”? ÍC=”ÌD ÍCÌB”ÌE ÍCÌC”ÌF ÍCÌD”ÌG ÍCÌD’” ÍE”! ÍE—” ÍF”
+ ÍF” ÍF” ÍF” ÍF” ÍF” ÍF—” ÍG”
+ ÍG” ÍG” ÍG” ÍG” ÍG” ÍGœ” ÍH” ÍH” ÍH” ÍH	” ÍH
+” ÍH”! ÍH”$ ÍH"”) ÍH'”, ÍH*”- ÍH+”. ÍH+’” ÍJ”3 ÍJ1Ü ” ÍK”
+ ÍK” ÍK
+” ÍK” ÍK”" ÍK ”# ÍK!”' ÍK%”) ÍK'”- ÍK+”/ ÍK-”2 ÍK0”4 ÍK2”7 ÍK5”9 ÍK7”> ÍK<”Ì@ ÍK>”ÌB ÍKÌ@”ÌD ÍKÌB”ÌI ÍKÌG”ÌJ ÍKÌH”ÌK ÍKÌH” ÍL” ÍL” ÍL” ÍL	” ÍL
+”  ÍL”" ÍL ”$ ÍL"”% ÍL#”8 ÍL6”; ÍL9”< ÍL:”= ÍL;”> ÍL;Ü ” ÍM” ÍM” ÍM” ÍM	” ÍM
+”* ÍM(”, ÍM*”. ÍM,”/ ÍM-”ÌB ÍMÌ@”ÌG ÍMÌE”ÌM ÍMÌK”ÌN ÍMÌL”ÌT ÍMÌR”ÌU ÍMÌS”ÌV ÍMÌS’” ÍO”& ÍO$Ÿ” ÍP” ÍP” ÍP” ÍP	” ÍP
+” ÍP” ÍP”( ÍP&”) ÍP'”* ÍP(”+ ÍP)”0 ÍP.”4 ÍP2”5 ÍP3”6 ÍP3Ÿ” ÍQ” ÍQ” ÍQ” ÍQ	” ÍQ
+” ÍQ” ÍQ”( ÍQ&”) ÍQ'”* ÍQ(”+ ÍQ)”0 ÍQ.”4 ÍQ2”5 ÍQ3”6 ÍQ3Ÿ” ÍR” ÍR” ÍR” ÍR	” ÍR
+” ÍR” ÍR”( ÍR&”) ÍR'”* ÍR(”+ ÍR)”0 ÍR.”4 ÍR2”5 ÍR3”6 ÍR3Ÿ” ÍS” ÍS” ÍS” ÍS	” ÍS
+” ÍS” ÍS”) ÍS'”* ÍS(”, ÍS*”- ÍS+”2 ÍS0”6 ÍS4”7 ÍS5”8 ÍS5Ÿ” ÍT” ÍT” ÍT” ÍT	” ÍT
+” ÍT” ÍT”) ÍT'”* ÍT(”, ÍT*”- ÍT+”2 ÍT0”6 ÍT4”7 ÍT5”8 ÍT5’” ÍV”( ÍV&Ü ” ÍW” ÍW” ÍW” ÍW	” ÍW
+”! ÍW”# ÍW!”0 ÍW.”1 ÍW/”3 ÍW1”4 ÍW2”5 ÍW3”; ÍW9”Ì@ ÍW>”ÌA ÍW?”ÌB ÍWÌ@”ÌC ÍWÌ@Ü ” ÍX” ÍX” ÍX” ÍX	” ÍX
+”+ ÍX)”- ÍX+”: ÍX8”; ÍX9”ÌE ÍXÌC”ÌF ÍXÌD”ÌG ÍXÌE”ÌM ÍXÌK”ÌR ÍXÌP”ÌS ÍXÌQ”ÌT ÍXÌR”ÌU ÍXÌR—” ÍZ” ÍZ	” ÍZ
+” ÍZ” ÍZ” ÍZ” ÍZ’”  Í[ ” Í[””  Í] ” Í]” Í]”# Í]#—” Í^”
+ Í^” Í^” Í^”  Í^”" Í^ ”# Í^ Ü ” Í_” Í_	” Í_
+” Í_” Í_”$ Í_"”* Í_(”+ Í_)”1 Í_/”= Í_;”ÌC Í_ÌA”ÌD Í_ÌB”ÌJ Í_ÌH”ÌS Í_ÌQ”ÌT Í_ÌR”ÌU Í_ÌR™” Í`”	 Í`” Í`” Í`” Í`” Í`” Í`”# Í`!”% Í`#š” Ía” Ía” Ía” Ía” Ía”) Ía%”* Ía&”, Ía(”- Ía)”. Ía)‘” Íb˜” Íc” Íc	” Íc” Íc” Íc” Íc” Íc” Íc’”  Íd ” ÍdÔrG–§version¤file§sources®sourcesContent¥names¨mappingsÀ‘À‘ÀÜ;‘”    ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”  	 ‘”  
+ ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”    ‘”  ! ‘”  " ‘”  # ‘”  $ ‘”  % ‘”  & ‘”  ' ‘”  ( ‘”  ) ‘”  * ‘”  + ‘”  , ‘”  - ‘”  . ‘”  / ‘”  0 ‘”  1 ‘”  2 ‘”  3 ‘”  4 ‘”  5 ‘”  6 ‘”  7 ‘”  8 ‘”  9 ‘”  : ‘”  ; ‘”  < ‘”  = ‘”  > ‘”  ? ‘”  Ì@ ‘”  ÌA ‘”  ÌB ‘”  ÌC ‘”  ÌD ‘”  ÌE ‘”  ÌF ‘”  ÌG ‘”  ÌH ‘”  ÌI ‘”  ÌJ ‘”  ÌK ‘”  ÌL ‘”  ÌM ‘”  ÌN ‘”  ÌO ‘”  ÌP ‘”  ÌQ ‘”  ÌR ‘”  ÌS ‘”  ÌT ‘”  ÌU ‘”  ÌV ‘”  ÌW ‘”  ÌX ‘”  ÌY ‘”  ÌZ ‘”  Ì[ ‘”  Ì\ ‘”  Ì] ‘”  Ì^ ‘”  Ì_ ‘”  Ì` ‘”  Ìa ‘”  Ìb ‘”  Ìc ‘”  Ìd ‘”  Ìe ‘”  Ìf ‘”  Ìg ‘”  Ìh ‘”  Ìi ‘”  Ìj ‘”  Ìk ‘”  Ìl ‘”  Ìm ‘”  Ìn ‘”  Ìo ‘”  Ìp ‘”  Ìq ‘”  Ìr ‘”  Ìs ‘”  Ìt ‘”  Ìu ‘”  Ìv ‘”  Ìw ‘”  Ìx ‘”  Ìy ‘”  Ìz ‘”  Ì{ ‘”  Ì| ‘”  Ì} ‘”  Ì~ ‘”  Ì ‘”  Ì€ ‘”  Ì ‘”  Ì‚ ‘”  Ìƒ ‘”  Ì„ ‘”  Ì… ‘”  Ì† ‘”  Ì‡ ‘”  Ìˆ ‘”  Ì‰ ‘”  ÌŠ ‘”  Ì‹ ‘”  ÌŒ ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì‘ ‘”  Ì’ ‘”  Ì“ ‘”  Ì” ‘”  Ì• ‘”  Ì– ‘”  Ì— ‘”  Ì˜ ‘”  Ì™ ‘”  Ìš ‘”  Ì› ‘”  Ìœ ‘”  Ì ‘”  Ì ‘”  ÌŸ ‘”  Ì  ‘”  Ì¡ ‘”  Ì¢ ‘”  Ì£ ‘”  Ì¤ ‘”  Ì¥ ‘”  Ì¦ ‘”  Ì§ ‘”  Ì¨ ‘”  Ì© ‘”  Ìª ‘”  Ì« ‘”  Ì¬ ‘”  Ì­ ‘”  Ì® ‘”  Ì¯ ‘”  Ì° ‘”  Ì± ‘”  Ì² ‘”  Ì³ ‘”  Ì´ ‘”  Ìµ ‘”  Ì¶ ‘”  Ì· ‘”  Ì¸ ‘”  Ì¹ ‘”  Ìº ‘”  Ì» ‘”  Ì¼ ‘”  Ì½ ‘”  Ì¾ ‘”  Ì¿ ‘”  ÌÀ ‘”  ÌÁ ‘”  ÌÂ ‘”  ÌÃ ‘”  ÌÄ ‘”  ÌÅ ‘”  ÌÆ ‘”  ÌÇ ‘”  ÌÈ ‘”  ÌÉ ‘”  ÌÊ ‘”  ÌË ‘”  ÌÌ ‘”  ÌÍ ‘”  ÌÎ ‘”  ÌÏ ‘”  ÌĞ ‘”  ÌÑ ‘”  ÌÒ ‘”  ÌÓ ‘”  ÌÔ ‘”  ÌÕ ‘”  ÌÖ ‘”  Ì× ‘”  ÌØ ‘”  ÌÙ ‘”  ÌÚ ‘”  ÌÛ ‘”  ÌÜ ‘”  Ìİ ‘”  ÌŞ ‘”  Ìß ‘”  Ìà ‘”  Ìá ‘”  Ìâ ‘”  Ìã ‘”  Ìä ‘”  Ìå ‘”  Ìæ ‘”  Ìç ‘”  Ìè ‘”  Ìé ‘”  Ìê ‘”  Ìë ‘”  Ìì ‘”  Ìí ‘”  Ìî ‘”  Ìï ‘”  Ìğ ‘”  Ìñ ‘”  Ìò ‘”  Ìó ‘”  Ìô ‘”  Ìõ ‘”  Ìö ‘”  Ì÷ ‘”  Ìø ‘”  Ìù ‘”  Ìú ‘”  Ìû ‘”  Ìü ‘”  Ìı ‘”  Ìş ‘”  Ìÿ ‘”  Í  ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í	 ‘”  Í
+ ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í  ‘”  Í! ‘”  Í" ‘”  Í# ‘”  Í$ ‘”  Í% ‘”  Í& ‘”  Í' ‘”  Í( ‘”  Í) ‘”  Í* ‘”  Í+ ‘”  Í, ‘”  Í- ‘”  Í. ‘”  Í/ ‘”  Í0 ‘”  Í1 ‘”  Í2 ‘”  Í3 ‘”  Í4 ‘”  Í5 ‘”  Í6 ‘”  Í7 ‘”  Í8 ‘”  Í9 ‘”  Í: ÔrH’§missing¦pluginÃ¦genAbcÂÔ  ÔrI”²dynamicImportCache¹exportAllDeclarationCache»exportNamedDeclarationCache«importCache’ÔrJ–¤type¥start£end«declarationªspecifiers¦source¶ExportNamedDeclarationÍ Í1’ÔrK™¤type¥start£end¢idªexpression©generator¥async¦params¤body³FunctionDeclarationÍ'Í1’ÔrL”¤type¥start£end¤nameªIdentifierÍ0Í=­runSmokeTestsÂÂÂÔrM”¤type¥start£end¤body®BlockStatementÍ@Í1’Ü eÔrN•¤type¥start£end¬declarations¤kind³VariableDeclarationÍGÍb‘ÔrO•¤type¥start£end¢id¤init²VariableDeclaratorÍMÍaLªIdentifierÍMÍN¡tÔrP•¤type¥start£end¦callee©arguments­NewExpressionÍQÍaLªIdentifierÍUÍ_ªTestRunner¥constN³VariableDeclarationÍ”Í_‘O²VariableDeclaratorÍšÍ^LªIdentifierÍšÍœ¢mdÔrQ•¤type¥start£end«expressions¦quasis¯TemplateLiteralÍŸÍ^‘ÔrR•¤type¥start£end¥value¤tail¯TemplateElementÍ Í]ÔrS’£raw¦cookedÙ½# Test Point 1
+
+tags: math, calculus
+
+hint:
+This is a hint
+
+content:
+This is the answer content
+
+---
+
+# Test Point 2
+
+tags: physics
+
+hint:
+Another hint here
+
+content:
+More answer text here
+Ù½# Test Point 1
+
+tags: math, calculus
+
+hint:
+This is a hint
+
+content:
+This is the answer content
+
+---
+
+# Test Point 2
+
+tags: physics
+
+hint:
+Another hint here
+
+content:
+More answer text here
+Ã¥constN³VariableDeclarationÍeÍ†‘O²VariableDeclaratorÍkÍ…LªIdentifierÍkÍq¦pointsÔrT–¤type¥start£end¦callee©arguments¨optional®CallExpressionÍtÍ…LªIdentifierÍtÍ­parseMarkdown‘LªIdentifierÍ‚Í„¢mdÂ¥constÔrU”¤type¥start£endªexpression³ExpressionStatementÍŒÍËT®CallExpressionÍŒÍÊÔrV—¤type¥start£end¦object¨property¨computed¨optional°MemberExpressionÍŒÍ“LªIdentifierÍŒÍ¡tLªIdentifierÍÍ“¥checkÂÂ’ÔrW•¤type¥start£end¥value£raw§LiteralÍ”Í´¾parseMarkdown returns 2 pointsÙ 'parseMarkdown returns 2 points'ÔrX–¤type¥start£end¤left¨operator¥right°BinaryExpressionÍ¶ÍÉV°MemberExpressionÍ¶ÍÃLªIdentifierÍ¶Í¼¦pointsLªIdentifierÍ½ÍÃ¦lengthÂÂ£===W§LiteralÍÈÍÉ¡2ÂU³ExpressionStatementÍÑÍ)T®CallExpressionÍÑÍ(V°MemberExpressionÍÑÍØLªIdentifierÍÑÍÒ¡tLªIdentifierÍÓÍØ¥checkÂÂ’W§LiteralÍÙÍí²point title parsed´'point title parsed'X±LogicalExpressionÍïÍ'X°BinaryExpressionÍïÍV°MemberExpressionÍïÍüLªIdentifierÍïÍõ¦pointsLªIdentifierÍöÍü¦lengthÂÂ¢>=W§LiteralÍ Í¡1¢&&X°BinaryExpressionÍÍ'V°MemberExpressionÍÍV°MemberExpressionÍÍLªIdentifierÍÍ¦pointsW§LiteralÍÍ ¡0ÃÂLªIdentifierÍÍ¥titleÂÂ£===W§LiteralÍÍ'¬Test Point 1®'Test Point 1'ÂU³ExpressionStatementÍ/ÍÌT®CallExpressionÍ/ÍËV°MemberExpressionÍ/Í6LªIdentifierÍ/Í0¡tLªIdentifierÍ1Í6¥checkÂÂ’W§LiteralÍ7ÍJ±point tags parsed³'point tags parsed'X±LogicalExpressionÍLÍÊX±LogicalExpressionÍLÍ¦X±LogicalExpressionÍLÍ}X°BinaryExpressionÍLÍ^V°MemberExpressionÍLÍYLªIdentifierÍLÍR¦pointsLªIdentifierÍSÍY¦lengthÂÂ¢>=W§LiteralÍ]Í^¡1¢&&X°BinaryExpressionÍbÍ}V°MemberExpressionÍbÍwV°MemberExpressionÍbÍpV°MemberExpressionÍbÍkLªIdentifierÍbÍh¦pointsW§LiteralÍiÍj ¡0ÃÂLªIdentifierÍlÍp¤tagsÂÂLªIdentifierÍqÍw¦lengthÂÂ£===W§LiteralÍ|Í}¡2¢&&X°BinaryExpressionÍŠÍ¦V°MemberExpressionÍŠÍ›V°MemberExpressionÍŠÍ˜V°MemberExpressionÍŠÍ“LªIdentifierÍŠÍ¦pointsW§LiteralÍ‘Í’ ¡0ÃÂLªIdentifierÍ”Í˜¤tagsÂÂW§LiteralÍ™Íš ¡0ÃÂ£===W§LiteralÍ Í¦¤math¦'math'¢&&X°BinaryExpressionÍªÍÊV°MemberExpressionÍªÍ»V°MemberExpressionÍªÍ¸V°MemberExpressionÍªÍ³LªIdentifierÍªÍ°¦pointsW§LiteralÍ±Í² ¡0ÃÂLªIdentifierÍ´Í¸¤tagsÂÂW§LiteralÍ¹Íº¡1ÃÂ£===W§LiteralÍÀÍÊ¨calculusª'calculus'ÂU³ExpressionStatementÍÒÍ*T®CallExpressionÍÒÍ)V°MemberExpressionÍÒÍÙLªIdentifierÍÒÍÓ¡tLªIdentifierÍÔÍÙ¥checkÂÂ’W§LiteralÍÚÍí±point hint parsed³'point hint parsed'X±LogicalExpressionÍïÍ(X°BinaryExpressionÍïÍV°MemberExpressionÍïÍüLªIdentifierÍïÍõ¦pointsLªIdentifierÍöÍü¦lengthÂÂ¢>=W§LiteralÍ Í¡1¢&&X°BinaryExpressionÍÍ(V°MemberExpressionÍÍV°MemberExpressionÍÍLªIdentifierÍÍ¦pointsW§LiteralÍÍ ¡0ÃÂLªIdentifierÍÍ¤hintÂÂ£===W§LiteralÍÍ(®This is a hint°'This is a hint'ÂU³ExpressionStatementÍ0ÍšT®CallExpressionÍ0Í™V°MemberExpressionÍ0Í7LªIdentifierÍ0Í1¡tLªIdentifierÍ2Í7¥checkÂÂ’W§LiteralÍ8ÍN´point content parsed¶'point content parsed'X±LogicalExpressionÍPÍ˜X°BinaryExpressionÍPÍbV°MemberExpressionÍPÍ]LªIdentifierÍPÍV¦pointsLªIdentifierÍWÍ]¦lengthÂÂ¢>=W§LiteralÍaÍb¡1¢&&X°BinaryExpressionÍfÍ˜V°MemberExpressionÍfÍwV°MemberExpressionÍfÍoLªIdentifierÍfÍl¦pointsW§LiteralÍmÍn ¡0ÃÂLªIdentifierÍpÍw§contentÂÂ£===W§LiteralÍ|Í˜ºThis is the answer content¼'This is the answer content'ÂÔrY–¤type¥start£end¤testªconsequent©alternate«IfStatementÍÑÍëX°BinaryExpressionÍÕÍçV°MemberExpressionÍÕÍâLªIdentifierÍÕÍÛ¦pointsLªIdentifierÍÜÍâ¦lengthÂÂ¢>=W§LiteralÍæÍç¡1M®BlockStatementÍéÍë“N³VariableDeclarationÍôÍ,‘O²VariableDeclaratorÍúÍ+LªIdentifierÍúÍ«regeneratedT®CallExpressionÍÍ+LªIdentifierÍÍ¶markdownTextFromPoints‘ÔrZ”¤type¥start£end¨elements¯ArrayExpressionÍÍ*‘V°MemberExpressionÍ Í)LªIdentifierÍ Í&¦pointsW§LiteralÍ'Í( ¡0ÃÂÂ¥constN³VariableDeclarationÍ6Íb‘O²VariableDeclaratorÍ<ÍaLªIdentifierÍ<ÍD¨reParsedT®CallExpressionÍGÍaLªIdentifierÍGÍT­parseMarkdown‘LªIdentifierÍUÍ`«regeneratedÂ¥constU³ExpressionStatementÍlÍäT®CallExpressionÍlÍãV°MemberExpressionÍlÍsLªIdentifierÍlÍm¡tLªIdentifierÍnÍs¥checkÂÂ’W§LiteralÍtÍ–Ù markdownTextFromPoints roundtripÙ"'markdownTextFromPoints roundtrip'X±LogicalExpressionÍ˜ÍâX°BinaryExpressionÍ˜Í­V°MemberExpressionÍ˜Í§LªIdentifierÍ˜Í ¨reParsedLªIdentifierÍ¡Í§¦lengthÂÂ£===W§LiteralÍ¬Í­¡1¢&&X°BinaryExpressionÍ¾ÍâV°MemberExpressionÍ¾ÍÏV°MemberExpressionÍ¾ÍÉLªIdentifierÍ¾ÍÆ¨reParsedW§LiteralÍÇÍÈ ¡0ÃÂLªIdentifierÍÊÍÏ¥titleÂÂ£===W§LiteralÍÔÍâ¬Test Point 1®'Test Point 1'ÂÀU³ExpressionStatementÍ#ÍhT®CallExpressionÍ#ÍgV°MemberExpressionÍ#Í*LªIdentifierÍ#Í$¡tLªIdentifierÍ%Í*¥checkÂÂ’W§LiteralÍ+ÍF¹parseMarkdown empty input»'parseMarkdown empty input'X°BinaryExpressionÍHÍfV°MemberExpressionÍHÍ`T®CallExpressionÍHÍYLªIdentifierÍHÍU­parseMarkdown‘W§LiteralÍVÍX ¢''ÂLªIdentifierÍZÍ`¦lengthÂÂ£===W§LiteralÍeÍf ¡0ÂU³ExpressionStatementÍ¤Í	(T®CallExpressionÍ¤Í	'V°MemberExpressionÍ¤Í«LªIdentifierÍ¤Í¥¡tLªIdentifierÍ¦Í«¥checkÂÂ’W§LiteralÍ¬ÍÙÙ+parseMarkdown malformed input returns emptyÙ-'parseMarkdown malformed input returns empty'X°BinaryExpressionÍÛÍ	&V°MemberExpressionÍÛÍ	 T®CallExpressionÍÛÍ	LªIdentifierÍÛÍè­parseMarkdown‘W§LiteralÍéÍ	Ù,Just some random text
+without proper markersÙ/'Just some random text\nwithout proper markers'ÂLªIdentifierÍ	Í	 ¦lengthÂÂ£===W§LiteralÍ	%Í	& ¡0ÂU³ExpressionStatementÍ	eÍ	æT®CallExpressionÍ	eÍ	åV°MemberExpressionÍ	eÍ	lLªIdentifierÍ	eÍ	f¡tLªIdentifierÍ	gÍ	l¥checkÂÂ’W§LiteralÍ	mÍ	›Ù,parseMarkdown missing sections returns emptyÙ.'parseMarkdown missing sections returns empty'X°BinaryExpressionÍ	Í	äV°MemberExpressionÍ	Í	ŞT®CallExpressionÍ	Í	×LªIdentifierÍ	Í	ª­parseMarkdown‘W§LiteralÍ	«Í	ÖÙ'# Just a title
+
+No hint or content hereÙ+'# Just a title\n\nNo hint or content here'ÂLªIdentifierÍ	ØÍ	Ş¦lengthÂÂ£===W§LiteralÍ	ãÍ	ä ¡0ÂN³VariableDeclarationÍ
+Í
+j‘O²VariableDeclaratorÍ
+Í
+iLªIdentifierÍ
+Í
+!¢kpP­NewExpressionÍ
+$Í
+iLªIdentifierÍ
+(Í
+6®KnowledgePoint•T®CallExpressionÍ
+7Í
+CLªIdentifierÍ
+7Í
+AªgenerateIdÂW§LiteralÍ
+EÍ
+K¤Test¦'Test'Z¯ArrayExpressionÍ
+MÍ
+U‘W§LiteralÍ
+NÍ
+T¤tag1¦'tag1'W§LiteralÍ
+WÍ
+]¤hint¦'hint'W§LiteralÍ
+_Í
+h§content©'content'¥constU³ExpressionStatementÍ
+pÍ
+«T®CallExpressionÍ
+pÍ
+ªV°MemberExpressionÍ
+pÍ
+wLªIdentifierÍ
+pÍ
+q¡tLªIdentifierÍ
+rÍ
+w¥checkÂÂ’W§LiteralÍ
+xÍ
+—½KP initial isReinforced=false¿'KP initial isReinforced=false'Ôr[–¤type¥start£end¨operator¦prefix¨argument¯UnaryExpressionÍ
+™Í
+©¡!ÃV°MemberExpressionÍ
+šÍ
+©LªIdentifierÍ
+šÍ
+œ¢kpLªIdentifierÍ
+Í
+©¬isReinforcedÂÂÂU³ExpressionStatementÍ
+±Í
+ùT®CallExpressionÍ
+±Í
+øV°MemberExpressionÍ
+±Í
+¸LªIdentifierÍ
+±Í
+²¡tLªIdentifierÍ
+³Í
+¸¥checkÂÂ’W§LiteralÍ
+¹Í
+Ú¿KP initial reinforcementCount=0Ù!'KP initial reinforcementCount=0'X°BinaryExpressionÍ
+ÜÍ
+÷V°MemberExpressionÍ
+ÜÍ
+ñLªIdentifierÍ
+ÜÍ
+Ş¢kpLªIdentifierÍ
+ßÍ
+ñ²reinforcementCountÂÂ£===W§LiteralÍ
+öÍ
+÷ ¡0ÂU³ExpressionStatementÍ
+ÿÍT®CallExpressionÍ
+ÿÍV°MemberExpressionÍ
+ÿÍLªIdentifierÍ
+ÿÍ¢kpLªIdentifierÍÍ°addReinforcementÂÂÂU³ExpressionStatementÍÍcT®CallExpressionÍÍbV°MemberExpressionÍÍ"LªIdentifierÍÍ¡tLªIdentifierÍÍ"¥checkÂÂ’W§LiteralÍ#ÍPÙ+KP after addReinforcement isReinforced=trueÙ-'KP after addReinforcement isReinforced=true'V°MemberExpressionÍRÍaLªIdentifierÍRÍT¢kpLªIdentifierÍUÍa¬isReinforcedÂÂÂU³ExpressionStatementÍiÍ³T®CallExpressionÍiÍ²V°MemberExpressionÍiÍpLªIdentifierÍiÍj¡tLªIdentifierÍkÍp¥checkÂÂ’W§LiteralÍqÍ”Ù!KP after addReinforcement count=1Ù#'KP after addReinforcement count=1'X°BinaryExpressionÍ–Í±V°MemberExpressionÍ–Í«LªIdentifierÍ–Í˜¢kpLªIdentifierÍ™Í«²reinforcementCountÂÂ£===W§LiteralÍ°Í±¡1ÂU³ExpressionStatementÍ¹ÍÏT®CallExpressionÍ¹ÍÎV°MemberExpressionÍ¹ÍÌLªIdentifierÍ¹Í»¢kpLªIdentifierÍ¼ÍÌ°addReinforcementÂÂÂU³ExpressionStatementÍÕÍ#T®CallExpressionÍÕÍ"V°MemberExpressionÍÕÍÜLªIdentifierÍÕÍÖ¡tLªIdentifierÍ×ÍÜ¥checkÂÂ’W§LiteralÍİÍÙ%KP after 2nd addReinforcement count=2Ù''KP after 2nd addReinforcement count=2'X°BinaryExpressionÍÍ!V°MemberExpressionÍÍLªIdentifierÍÍ¢kpLªIdentifierÍ	Í²reinforcementCountÂÂ£===W§LiteralÍ Í!¡2ÂU³ExpressionStatementÍ)ÍAT®CallExpressionÍ)Í@V°MemberExpressionÍ)Í>LªIdentifierÍ)Í+¢kpLªIdentifierÍ,Í>²clearReinforcementÂÂÂU³ExpressionStatementÍGÍ“T®CallExpressionÍGÍ’V°MemberExpressionÍGÍNLªIdentifierÍGÍH¡tLªIdentifierÍIÍN¥checkÂÂ’W§LiteralÍOÍÙ.KP after clearReinforcement isReinforced=falseÙ0'KP after clearReinforcement isReinforced=false'[¯UnaryExpressionÍÍ‘¡!ÃV°MemberExpressionÍ‚Í‘LªIdentifierÍ‚Í„¢kpLªIdentifierÍ…Í‘¬isReinforcedÂÂÂU³ExpressionStatementÍ™ÍåT®CallExpressionÍ™ÍäV°MemberExpressionÍ™Í LªIdentifierÍ™Íš¡tLªIdentifierÍ›Í ¥checkÂÂ’W§LiteralÍ¡ÍÆÙ#KP after clearReinforcement count=0Ù%'KP after clearReinforcement count=0'X°BinaryExpressionÍÈÍãV°MemberExpressionÍÈÍİLªIdentifierÍÈÍÊ¢kpLªIdentifierÍËÍİ²reinforcementCountÂÂ£===W§LiteralÍâÍã ¡0ÂU³ExpressionStatementÍÍJT®CallExpressionÍÍIV°MemberExpressionÍÍLªIdentifierÍÍ¡tLªIdentifierÍÍ¥checkÂÂ’W§LiteralÍÍ8»KP initial isMastered=false½'KP initial isMastered=false'[¯UnaryExpressionÍ:ÍH¡!ÃV°MemberExpressionÍ;ÍHLªIdentifierÍ;Í=¢kpLªIdentifierÍ>ÍHªisMasteredÂÂÂU³ExpressionStatementÍPÍeÔr\–¤type¥start£end¨operator¤left¥right´AssignmentExpressionÍPÍd¡=V°MemberExpressionÍPÍ]LªIdentifierÍPÍR¢kpLªIdentifierÍSÍ]ªisMasteredÂÂW§LiteralÍ`ÍdÃ¤trueU³ExpressionStatementÍkÍšT®CallExpressionÍkÍ™V°MemberExpressionÍkÍrLªIdentifierÍkÍl¡tLªIdentifierÍmÍr¥checkÂÂ’W§LiteralÍsÍ‰´KP isMastered toggle¶'KP isMastered toggle'V°MemberExpressionÍ‹Í˜LªIdentifierÍ‹Í¢kpLªIdentifierÍÍ˜ªisMasteredÂÂÂN³VariableDeclarationÍ¾Íö‘O²VariableDeclaratorÍÄÍõLªIdentifierÍÄÍÎªfutureDateX°BinaryExpressionÍÑÍõT®CallExpressionÍÑÍÛV°MemberExpressionÍÑÍÙLªIdentifierÍÑÍÕ¤DateLªIdentifierÍÖÍÙ£nowÂÂÂ¡+X°BinaryExpressionÍŞÍõX°BinaryExpressionÍŞÍîX°BinaryExpressionÍŞÍéX°BinaryExpressionÍŞÍäW§LiteralÍŞÍß¡7¡*W§LiteralÍâÍä¢24¡*W§LiteralÍçÍé<¢60¡*W§LiteralÍìÍî<¢60¡*W§LiteralÍñÍõÍè¤1000¥constN³VariableDeclarationÍüÍ#‘O²VariableDeclaratorÍÍ"LªIdentifierÍÍ¤daysT®CallExpressionÍ	Í"LªIdentifierÍ	Í­countdownDays‘LªIdentifierÍÍ!ªfutureDateÂ¥constU³ExpressionStatementÍ)ÍaT®CallExpressionÍ)Í`V°MemberExpressionÍ)Í0LªIdentifierÍ)Í*¡tLªIdentifierÍ+Í0¥checkÂÂ’W§LiteralÍ1ÍP½countdownDays future non-null¿'countdownDays future non-null'X°BinaryExpressionÍRÍ_LªIdentifierÍRÍV¤days£!==W§LiteralÍ[Í_À¤nullÂU³ExpressionStatementÍgÍ«T®CallExpressionÍgÍªV°MemberExpressionÍgÍnLªIdentifierÍgÍh¡tLªIdentifierÍiÍn¥checkÂÂ’W§LiteralÍoÍ¾countdownDays future is 6 or 7Ù 'countdownDays future is 6 or 7'X±LogicalExpressionÍ‘Í©X°BinaryExpressionÍ‘Í›LªIdentifierÍ‘Í•¤days£===W§LiteralÍšÍ›¡6¢||X°BinaryExpressionÍŸÍ©LªIdentifierÍŸÍ£¤days£===W§LiteralÍ¨Í©¡7ÂN³VariableDeclarationÍ±Íö‘O²VariableDeclaratorÍ·ÍõLªIdentifierÍ·Í¿¨pastDaysT®CallExpressionÍÂÍõLªIdentifierÍÂÍÏ­countdownDays‘X°BinaryExpressionÍĞÍôT®CallExpressionÍĞÍÚV°MemberExpressionÍĞÍØLªIdentifierÍĞÍÔ¤DateLªIdentifierÍÕÍØ£nowÂÂÂ¡-X°BinaryExpressionÍİÍôX°BinaryExpressionÍİÍíX°BinaryExpressionÍİÍèX°BinaryExpressionÍİÍãW§LiteralÍİÍŞ¡7¡*W§LiteralÍáÍã¢24¡*W§LiteralÍæÍè<¢60¡*W§LiteralÍëÍí<¢60¡*W§LiteralÍğÍôÍè¤1000Â¥constU³ExpressionStatementÍüÍ4T®CallExpressionÍüÍ3V°MemberExpressionÍüÍLªIdentifierÍüÍı¡tLªIdentifierÍşÍ¥checkÂÂ’W§LiteralÍÍ"¼countdownDays past returns 0¾'countdownDays past returns 0'X°BinaryExpressionÍ$Í2LªIdentifierÍ$Í,¨pastDays£===W§LiteralÍ1Í2 ¡0ÂU³ExpressionStatementÍ:ÍƒT®CallExpressionÍ:Í‚V°MemberExpressionÍ:ÍALªIdentifierÍ:Í;¡tLªIdentifierÍ<ÍA¥checkÂÂ’W§LiteralÍBÍc¿countdownDays null returns nullÙ!'countdownDays null returns null'X°BinaryExpressionÍeÍT®CallExpressionÍeÍxLªIdentifierÍeÍr­countdownDays‘W§LiteralÍsÍwÀ¤nullÂ£===W§LiteralÍ}ÍÀ¤nullÂU³ExpressionStatementÍ«ÍçT®CallExpressionÍ«ÍæV°MemberExpressionÍ«Í²LªIdentifierÍ«Í¬¡tLªIdentifierÍ­Í²¥checkÂÂ’W§LiteralÍ³ÍÆ±generateId unique³'generateId unique'X°BinaryExpressionÍÈÍåT®CallExpressionÍÈÍÔLªIdentifierÍÈÍÒªgenerateIdÂ£!==T®CallExpressionÍÙÍåLªIdentifierÍÙÍãªgenerateIdÂÂN³VariableDeclarationÍ'Íê‘O²VariableDeclaratorÍ-ÍéLªIdentifierÍ-Í1¤mlMdQ¯TemplateLiteralÍ4Íé‘R¯TemplateElementÍ5ÍèSÙ³# Multiline Test
+
+tags: lang
+
+hint:
+Line one of hint.
+Line two of hint.
+
+Even a blank line above this one.
+
+content:
+Answer line one.
+Answer line two.
+
+Final paragraph of answer.
+Ù³# Multiline Test
+
+tags: lang
+
+hint:
+Line one of hint.
+Line two of hint.
+
+Even a blank line above this one.
+
+content:
+Answer line one.
+Answer line two.
+
+Final paragraph of answer.
+Ã¥constN³VariableDeclarationÍğÍ‘O²VariableDeclaratorÍöÍLªIdentifierÍöÍş¨mlPointsT®CallExpressionÍÍLªIdentifierÍÍ­parseMarkdown‘LªIdentifierÍÍ¤mlMdÂ¥constU³ExpressionStatementÍÍeT®CallExpressionÍÍdV°MemberExpressionÍÍ"LªIdentifierÍÍ¡tLªIdentifierÍÍ"¥checkÂÂ’W§LiteralÍ#ÍLÙ'parseMarkdown multiline returns 1 pointÙ)'parseMarkdown multiline returns 1 point'X°BinaryExpressionÍNÍcV°MemberExpressionÍNÍ]LªIdentifierÍNÍV¨mlPointsLªIdentifierÍWÍ]¦lengthÂÂ£===W§LiteralÍbÍc¡1ÂY«IfStatementÍkÍ¹X°BinaryExpressionÍoÍƒV°MemberExpressionÍoÍ~LªIdentifierÍoÍw¨mlPointsLªIdentifierÍxÍ~¦lengthÂÂ¢>=W§LiteralÍ‚Íƒ¡1M®BlockStatementÍ…Í¹•U³ExpressionStatementÍÍîT®CallExpressionÍÍíV°MemberExpressionÍÍ—LªIdentifierÍÍ‘¡tLªIdentifierÍ’Í—¥checkÂÂ’W§LiteralÍ˜Í¼Ù"multiline hint contains first lineÙ$'multiline hint contains first line'T®CallExpressionÍ¾ÍìV°MemberExpressionÍ¾Í×V°MemberExpressionÍ¾ÍÎV°MemberExpressionÍ¾ÍÉLªIdentifierÍ¾ÍÆ¨mlPointsW§LiteralÍÇÍÈ ¡0ÃÂLªIdentifierÍÊÍÎ¤hintÂÂLªIdentifierÍÏÍ×¨includesÂÂ‘W§LiteralÍØÍë±Line one of hint.³'Line one of hint.'ÂÂU³ExpressionStatementÍøÍWT®CallExpressionÍøÍVV°MemberExpressionÍøÍÿLªIdentifierÍøÍù¡tLªIdentifierÍúÍÿ¥checkÂÂ’W§LiteralÍ Í%Ù#multiline hint contains second lineÙ%'multiline hint contains second line'T®CallExpressionÍ'ÍUV°MemberExpressionÍ'Í@V°MemberExpressionÍ'Í7V°MemberExpressionÍ'Í2LªIdentifierÍ'Í/¨mlPointsW§LiteralÍ0Í1 ¡0ÃÂLªIdentifierÍ3Í7¤hintÂÂLªIdentifierÍ8Í@¨includesÂÂ‘W§LiteralÍAÍT±Line two of hint.³'Line two of hint.'ÂÂU³ExpressionStatementÍaÍÉT®CallExpressionÍaÍÈV°MemberExpressionÍaÍhLªIdentifierÍaÍb¡tLªIdentifierÍcÍh¥checkÂÂ’W§LiteralÍiÍ—Ù,multiline hint contains blank line separatorÙ.'multiline hint contains blank line separator'T®CallExpressionÍ™ÍÇV°MemberExpressionÍ™Í²V°MemberExpressionÍ™Í©V°MemberExpressionÍ™Í¤LªIdentifierÍ™Í¡¨mlPointsW§LiteralÍ¢Í£ ¡0ÃÂLªIdentifierÍ¥Í©¤hintÂÂLªIdentifierÍªÍ²¨includesÂÂ‘W§LiteralÍ³ÍÆ±Even a blank line³'Even a blank line'ÂÂU³ExpressionStatementÍÓÍ6T®CallExpressionÍÓÍ5V°MemberExpressionÍÓÍÚLªIdentifierÍÓÍÔ¡tLªIdentifierÍÕÍÚ¥checkÂÂ’W§LiteralÍÛÍÙ%multiline content contains first lineÙ''multiline content contains first line'T®CallExpressionÍÍ4V°MemberExpressionÍÍ V°MemberExpressionÍÍV°MemberExpressionÍÍLªIdentifierÍÍ¨mlPointsW§LiteralÍÍ ¡0ÃÂLªIdentifierÍÍ§contentÂÂLªIdentifierÍÍ ¨includesÂÂ‘W§LiteralÍ!Í3°Answer line one.²'Answer line one.'ÂÂU³ExpressionStatementÍ@Í²T®CallExpressionÍ@Í±V°MemberExpressionÍ@ÍGLªIdentifierÍ@ÍA¡tLªIdentifierÍBÍG¥checkÂÂ’W§LiteralÍHÍtÙ*multiline content contains final paragraphÙ,'multiline content contains final paragraph'T®CallExpressionÍvÍ°V°MemberExpressionÍvÍ’V°MemberExpressionÍvÍ‰V°MemberExpressionÍvÍLªIdentifierÍvÍ~¨mlPointsW§LiteralÍÍ€ ¡0ÃÂLªIdentifierÍ‚Í‰§contentÂÂLªIdentifierÍŠÍ’¨includesÂÂ‘W§LiteralÍ“Í¯ºFinal paragraph of answer.¼'Final paragraph of answer.'ÂÂÀN³VariableDeclarationÍÍ‘O²VariableDeclaratorÍÍLªIdentifierÍÍ¤scMdQ¯TemplateLiteralÍÍ‘R¯TemplateElementÍÍSÙî# Special *Chars* _Test_
+
+tags: markdown, special
+
+hint:
+This hint has **bold** and *italic* and \`inline code\`.
+
+content:
+Answer with <angle brackets> and [square brackets] and (parens).
+Also has a URL: https://example.com/path?q=1&v=2
+Ùì# Special *Chars* _Test_
+
+tags: markdown, special
+
+hint:
+This hint has **bold** and *italic* and `inline code`.
+
+content:
+Answer with <angle brackets> and [square brackets] and (parens).
+Also has a URL: https://example.com/path?q=1&v=2
+Ã¥constN³VariableDeclarationÍÍ:‘O²VariableDeclaratorÍÍ9LªIdentifierÍÍ#¨scPointsT®CallExpressionÍ&Í9LªIdentifierÍ&Í3­parseMarkdown‘LªIdentifierÍ4Í8¤scMdÂ¥constU³ExpressionStatementÍ@ÍT®CallExpressionÍ@ÍV°MemberExpressionÍ@ÍGLªIdentifierÍ@ÍA¡tLªIdentifierÍBÍG¥checkÂÂ’W§LiteralÍHÍuÙ+parseMarkdown special chars returns 1 pointÙ-'parseMarkdown special chars returns 1 point'X°BinaryExpressionÍwÍŒV°MemberExpressionÍwÍ†LªIdentifierÍwÍ¨scPointsLªIdentifierÍ€Í†¦lengthÂÂ£===W§LiteralÍ‹ÍŒ¡1ÂY«IfStatementÍ”ÍĞX°BinaryExpressionÍ˜Í¬V°MemberExpressionÍ˜Í§LªIdentifierÍ˜Í ¨scPointsLªIdentifierÍ¡Í§¦lengthÂÂ¢>=W§LiteralÍ«Í¬¡1M®BlockStatementÍ®ÍĞ•U³ExpressionStatementÍ¹Í1T®CallExpressionÍ¹Í0V°MemberExpressionÍ¹ÍÀLªIdentifierÍ¹Íº¡tLªIdentifierÍ»ÍÀ¥checkÂÂ’W§LiteralÍÁÍà½special chars title preserved¿'special chars title preserved'X±LogicalExpressionÍâÍ/T®CallExpressionÍâÍV°MemberExpressionÍâÍüV°MemberExpressionÍâÍóV°MemberExpressionÍâÍíLªIdentifierÍâÍê¨scPointsW§LiteralÍëÍì ¡0ÃÂLªIdentifierÍîÍó¥titleÂÂLªIdentifierÍôÍü¨includesÂÂ‘W§LiteralÍıÍ§*Chars*©'*Chars*'Â¢&&T®CallExpressionÍÍ/V°MemberExpressionÍÍ%V°MemberExpressionÍÍV°MemberExpressionÍÍLªIdentifierÍÍ¨scPointsW§LiteralÍÍ ¡0ÃÂLªIdentifierÍÍ¥titleÂÂLªIdentifierÍÍ%¨includesÂÂ‘W§LiteralÍ&Í.¦_Test_¨'_Test_'ÂÂU³ExpressionStatementÍ;ÍT®CallExpressionÍ;ÍV°MemberExpressionÍ;ÍBLªIdentifierÍ;Í<¡tLªIdentifierÍ=ÍB¥checkÂÂ’W§LiteralÍCÍgÙ"special chars hint has bold markerÙ$'special chars hint has bold marker'T®CallExpressionÍiÍV°MemberExpressionÍiÍ‚V°MemberExpressionÍiÍyV°MemberExpressionÍiÍtLªIdentifierÍiÍq¨scPointsW§LiteralÍrÍs ¡0ÃÂLªIdentifierÍuÍy¤hintÂÂLªIdentifierÍzÍ‚¨includesÂÂ‘W§LiteralÍƒÍ¨**bold**ª'**bold**'ÂÂU³ExpressionStatementÍšÍñT®CallExpressionÍšÍğV°MemberExpressionÍšÍ¡LªIdentifierÍšÍ›¡tLªIdentifierÍœÍ¡¥checkÂÂ’W§LiteralÍ¢ÍÃ¿special chars hint has backtickÙ!'special chars hint has backtick'T®CallExpressionÍÅÍïV°MemberExpressionÍÅÍŞV°MemberExpressionÍÅÍÕV°MemberExpressionÍÅÍĞLªIdentifierÍÅÍÍ¨scPointsW§LiteralÍÎÍÏ ¡0ÃÂLªIdentifierÍÑÍÕ¤hintÂÂLªIdentifierÍÖÍŞ¨includesÂÂ‘W§LiteralÍßÍî­`inline code`¯'`inline code`'ÂÂU³ExpressionStatementÍûÍaT®CallExpressionÍûÍ`V°MemberExpressionÍûÍLªIdentifierÍûÍü¡tLªIdentifierÍıÍ¥checkÂÂ’W§LiteralÍÍ-Ù(special chars content has angle bracketsÙ*'special chars content has angle brackets'T®CallExpressionÍ/Í_V°MemberExpressionÍ/ÍKV°MemberExpressionÍ/ÍBV°MemberExpressionÍ/Í:LªIdentifierÍ/Í7¨scPointsW§LiteralÍ8Í9 ¡0ÃÂLªIdentifierÍ;ÍB§contentÂÂLªIdentifierÍCÍK¨includesÂÂ‘W§LiteralÍLÍ^°<angle brackets>²'<angle brackets>'ÂÂU³ExpressionStatementÍkÍÉT®CallExpressionÍkÍÈV°MemberExpressionÍkÍrLªIdentifierÍkÍl¡tLªIdentifierÍmÍr¥checkÂÂ’W§LiteralÍsÍ’½special chars content has URL¿'special chars content has URL'T®CallExpressionÍ”ÍÇV°MemberExpressionÍ”Í°V°MemberExpressionÍ”Í§V°MemberExpressionÍ”ÍŸLªIdentifierÍ”Íœ¨scPointsW§LiteralÍÍ ¡0ÃÂLªIdentifierÍ Í§§contentÂÂLªIdentifierÍ¨Í°¨includesÂÂ‘W§LiteralÍ±ÍÆ³https://example.comµ'https://example.com'ÂÂÀN³VariableDeclarationÍÍa‘O²VariableDeclaratorÍÍ`LªIdentifierÍÍ«emptyTagsMdQ¯TemplateLiteralÍÍ`‘R¯TemplateElementÍÍ_SÙE# Empty Tags
+
+tags:
+
+hint:
+Just a hint.
+
+content:
+Just some content.
+ÙE# Empty Tags
+
+tags:
+
+hint:
+Just a hint.
+
+content:
+Just some content.
+Ã¥constN³VariableDeclarationÍgÍš‘O²VariableDeclaratorÍmÍ™LªIdentifierÍmÍ|¯emptyTagsPointsT®CallExpressionÍÍ™LªIdentifierÍÍŒ­parseMarkdown‘LªIdentifierÍÍ˜«emptyTagsMdÂ¥constU³ExpressionStatementÍ ÍòT®CallExpressionÍ ÍñV°MemberExpressionÍ Í§LªIdentifierÍ Í¡¡tLªIdentifierÍ¢Í§¥checkÂÂ’W§LiteralÍ¨ÍÒÙ(parseMarkdown empty tags returns 1 pointÙ*'parseMarkdown empty tags returns 1 point'X°BinaryExpressionÍÔÍğV°MemberExpressionÍÔÍêLªIdentifierÍÔÍã¯emptyTagsPointsLªIdentifierÍäÍê¦lengthÂÂ£===W§LiteralÍïÍğ¡1ÂY«IfStatementÍøÍvX°BinaryExpressionÍüÍV°MemberExpressionÍüÍLªIdentifierÍüÍ¯emptyTagsPointsLªIdentifierÍÍ¦lengthÂÂ¢>=W§LiteralÍÍ¡1M®BlockStatementÍÍv‘U³ExpressionStatementÍ$ÍoT®CallExpressionÍ$ÍnV°MemberExpressionÍ$Í+LªIdentifierÍ$Í%¡tLªIdentifierÍ&Í+¥checkÂÂ’W§LiteralÍ,ÍG¹empty tags array is empty»'empty tags array is empty'X°BinaryExpressionÍIÍmV°MemberExpressionÍIÍgV°MemberExpressionÍIÍ`V°MemberExpressionÍIÍ[LªIdentifierÍIÍX¯emptyTagsPointsW§LiteralÍYÍZ ¡0ÃÂLªIdentifierÍ\Í`¤tagsÂÂLªIdentifierÍaÍg¦lengthÂÂ£===W§LiteralÍlÍm ¡0ÂÀN³VariableDeclarationÍÁÍ.‘O²VariableDeclaratorÍÇÍ-LªIdentifierÍÇÍÓ¬spacedTagsMdQ¯TemplateLiteralÍÖÍ-‘R¯TemplateElementÍ×Í,SÙU# Spaced Tags
+
+tags:  alpha , beta , gamma
+
+hint:
+Test hint.
+
+content:
+Test content.
+ÙU# Spaced Tags
+
+tags:  alpha , beta , gamma
+
+hint:
+Test hint.
+
+content:
+Test content.
+Ã¥constN³VariableDeclarationÍ4Íe‘O²VariableDeclaratorÍ:ÍdLªIdentifierÍ:ÍF¬spacedPointsT®CallExpressionÍIÍdLªIdentifierÍIÍV­parseMarkdown‘LªIdentifierÍWÍc¬spacedTagsMdÂ¥constU³ExpressionStatementÍkÍ»T®CallExpressionÍkÍºV°MemberExpressionÍkÍrLªIdentifierÍkÍl¡tLªIdentifierÍmÍr¥checkÂÂ’W§LiteralÍsÍÙ)parseMarkdown spaced tags returns 1 pointÙ+'parseMarkdown spaced tags returns 1 point'X°BinaryExpressionÍ Í¹V°MemberExpressionÍ Í³LªIdentifierÍ Í¬¬spacedPointsLªIdentifierÍ­Í³¦lengthÂÂ£===W§LiteralÍ¸Í¹¡1ÂY«IfStatementÍÁÍ<X°BinaryExpressionÍÅÍİV°MemberExpressionÍÅÍØLªIdentifierÍÅÍÑ¬spacedPointsLªIdentifierÍÒÍØ¦lengthÂÂ¢>=W§LiteralÍÜÍİ¡1M®BlockStatementÍßÍ<‘U³ExpressionStatementÍêÍ5T®CallExpressionÍêÍ4V°MemberExpressionÍêÍñLªIdentifierÍêÍë¡tLªIdentifierÍìÍñ¥checkÂÂ’W§LiteralÍòÍ½spaced tags trimmed correctly¿'spaced tags trimmed correctly'X°BinaryExpressionÍÍ3V°MemberExpressionÍÍ.V°MemberExpressionÍÍ'V°MemberExpressionÍÍ"LªIdentifierÍÍ¬spacedPointsW§LiteralÍ Í! ¡0ÃÂLªIdentifierÍ#Í'¤tagsÂÂLªIdentifierÍ(Í.¦lengthÂÂ¢>=W§LiteralÍ2Í3¡2ÂÀN³VariableDeclarationÍŒÍ;‘O²VariableDeclaratorÍ’Í:LªIdentifierÍ’Í›©unicodeMdQ¯TemplateLiteralÍÍ:‘R¯TemplateElementÍŸÍ9SÚ:# Unicode ãƒ†ã‚¹ãƒˆ ğŸ‰
+
+tags: æ•°å­¦, ç‰©ç†, Î±Î²Î³
+
+hint:
+æç¤ºï¼šè¿™æ˜¯ä¸­æ–‡æç¤ºå†…å®¹ã€‚
+æ—¥æœ¬èªã®ãƒ’ãƒ³ãƒˆã‚‚å«ã¾ã‚Œã¦ã„ã¾ã™ã€‚
+Emoji: ğŸ¯â­ğŸ“š
+
+content:
+ç­”æ¡ˆï¼šE = mcÂ² æ˜¯çˆ±å› æ–¯å¦çš„è´¨èƒ½æ–¹ç¨‹ã€‚
+æ—¥æœ¬èªã®ç­”ãˆï¼šã“ã‚Œã¯ç­”ãˆã§ã™ã€‚
+ä¸­æ–‡ã€æ—¥æœ¬èªã€English æ··åˆã€‚
+Ú:# Unicode ãƒ†ã‚¹ãƒˆ ğŸ‰
+
+tags: æ•°å­¦, ç‰©ç†, Î±Î²Î³
+
+hint:
+æç¤ºï¼šè¿™æ˜¯ä¸­æ–‡æç¤ºå†…å®¹ã€‚
+æ—¥æœ¬èªã®ãƒ’ãƒ³ãƒˆã‚‚å«ã¾ã‚Œã¦ã„ã¾ã™ã€‚
+Emoji: ğŸ¯â­ğŸ“š
+
+content:
+ç­”æ¡ˆï¼šE = mcÂ² æ˜¯çˆ±å› æ–¯å¦çš„è´¨èƒ½æ–¹ç¨‹ã€‚
+æ—¥æœ¬èªã®ç­”ãˆï¼šã“ã‚Œã¯ç­”ãˆã§ã™ã€‚
+ä¸­æ–‡ã€æ—¥æœ¬èªã€English æ··åˆã€‚
+Ã¥constN³VariableDeclarationÍAÍl‘O²VariableDeclaratorÍGÍkLªIdentifierÍGÍP©uniPointsT®CallExpressionÍSÍkLªIdentifierÍSÍ`­parseMarkdown‘LªIdentifierÍaÍj©unicodeMdÂ¥constU³ExpressionStatementÍrÍ»T®CallExpressionÍrÍºV°MemberExpressionÍrÍyLªIdentifierÍrÍs¡tLªIdentifierÍtÍy¥checkÂÂ’W§LiteralÍzÍ¡Ù%parseMarkdown unicode returns 1 pointÙ''parseMarkdown unicode returns 1 point'X°BinaryExpressionÍ£Í¹V°MemberExpressionÍ£Í³LªIdentifierÍ£Í¬©uniPointsLªIdentifierÍ­Í³¦lengthÂÂ£===W§LiteralÍ¸Í¹¡1ÂY«IfStatementÍÁÍ ¬X°BinaryExpressionÍÅÍÚV°MemberExpressionÍÅÍÕLªIdentifierÍÅÍÎ©uniPointsLªIdentifierÍÏÍÕ¦lengthÂÂ¢>=W§LiteralÍÙÍÚ¡1M®BlockStatementÍÜÍ ¬›U³ExpressionStatementÍçÍ.T®CallExpressionÍçÍ-V°MemberExpressionÍçÍîLªIdentifierÍçÍè¡tLªIdentifierÍéÍî¥checkÂÂ’W§LiteralÍïÍ·unicode title preserved¹'unicode title preserved'T®CallExpressionÍ
+Í,V°MemberExpressionÍ
+Í%V°MemberExpressionÍ
+ÍV°MemberExpressionÍ
+ÍLªIdentifierÍ
+Í©uniPointsW§LiteralÍÍ ¡0ÃÂLªIdentifierÍÍ¥titleÂÂLªIdentifierÍÍ%¨includesÂÂ‘W§LiteralÍ&Í+©ãƒ†ã‚¹ãƒˆ«'ãƒ†ã‚¹ãƒˆ'ÂÂU³ExpressionStatementÍ8Í~T®CallExpressionÍ8Í}V°MemberExpressionÍ8Í?LªIdentifierÍ8Í9¡tLªIdentifierÍ:Í?¥checkÂÂ’W§LiteralÍ@ÍY·unicode title has emoji¹'unicode title has emoji'T®CallExpressionÍ[Í|V°MemberExpressionÍ[ÍvV°MemberExpressionÍ[ÍmV°MemberExpressionÍ[ÍgLªIdentifierÍ[Íd©uniPointsW§LiteralÍeÍf ¡0ÃÂLªIdentifierÍhÍm¥titleÂÂLªIdentifierÍnÍv¨includesÂÂ‘W§LiteralÍwÍ{¤ğŸ‰¦'ğŸ‰'ÂÂU³ExpressionStatementÍˆÍëT®CallExpressionÍˆÍêV°MemberExpressionÍˆÍLªIdentifierÍˆÍ‰¡tLªIdentifierÍŠÍ¥checkÂÂ’W§LiteralÍÍ¦´unicode tags Chinese¶'unicode tags Chinese'X±LogicalExpressionÍ¨ÍéX°BinaryExpressionÍ¨ÍÅV°MemberExpressionÍ¨ÍÀV°MemberExpressionÍ¨Í¹V°MemberExpressionÍ¨Í´LªIdentifierÍ¨Í±©uniPointsW§LiteralÍ²Í³ ¡0ÃÂLªIdentifierÍµÍ¹¤tagsÂÂLªIdentifierÍºÍÀ¦lengthÂÂ¢>=W§LiteralÍÄÍÅ¡1¢&&T®CallExpressionÍÉÍéV°MemberExpressionÍÉÍãV°MemberExpressionÍÉÍÚV°MemberExpressionÍÉÍÕLªIdentifierÍÉÍÒ©uniPointsW§LiteralÍÓÍÔ ¡0ÃÂLªIdentifierÍÖÍÚ¤tagsÂÂLªIdentifierÍÛÍã¨includesÂÂ‘W§LiteralÍäÍè¦æ•°å­¦¨'æ•°å­¦'ÂÂU³ExpressionStatementÍõÍWT®CallExpressionÍõÍVV°MemberExpressionÍõÍüLªIdentifierÍõÍö¡tLªIdentifierÍ÷Íü¥checkÂÂ’W§LiteralÍıÍ²unicode tags Greek´'unicode tags Greek'X±LogicalExpressionÍÍUX°BinaryExpressionÍÍ0V°MemberExpressionÍÍ+V°MemberExpressionÍÍ$V°MemberExpressionÍÍLªIdentifierÍÍ©uniPointsW§LiteralÍÍ ¡0ÃÂLªIdentifierÍ Í$¤tagsÂÂLªIdentifierÍ%Í+¦lengthÂÂ¢>=W§LiteralÍ/Í0¡2¢&&T®CallExpressionÍ4ÍUV°MemberExpressionÍ4ÍNV°MemberExpressionÍ4ÍEV°MemberExpressionÍ4Í@LªIdentifierÍ4Í=©uniPointsW§LiteralÍ>Í? ¡0ÃÂLªIdentifierÍAÍE¤tagsÂÂLªIdentifierÍFÍN¨includesÂÂ‘W§LiteralÍOÍT¦Î±Î²Î³¨'Î±Î²Î³'ÂÂU³ExpressionStatementÍaÍ°T®CallExpressionÍaÍ¯V°MemberExpressionÍaÍhLªIdentifierÍaÍb¡tLªIdentifierÍcÍh¥checkÂÂ’W§LiteralÍiÍˆ½unicode hint contains Chinese¿'unicode hint contains Chinese'T®CallExpressionÍŠÍ®V°MemberExpressionÍŠÍ¤V°MemberExpressionÍŠÍ›V°MemberExpressionÍŠÍ–LªIdentifierÍŠÍ“©uniPointsW§LiteralÍ”Í• ¡0ÃÂLªIdentifierÍ—Í›¤hintÂÂLªIdentifierÍœÍ¤¨includesÂÂ‘W§LiteralÍ¥Í­²ä¸­æ–‡æç¤ºå†…å®¹´'ä¸­æ–‡æç¤ºå†…å®¹'ÂÂU³ExpressionStatementÍºÍT®CallExpressionÍºÍV°MemberExpressionÍºÍÁLªIdentifierÍºÍ»¡tLªIdentifierÍ¼ÍÁ¥checkÂÂ’W§LiteralÍÂÍâ¾unicode hint contains JapaneseÙ 'unicode hint contains Japanese'T®CallExpressionÍäÍV°MemberExpressionÍäÍşV°MemberExpressionÍäÍõV°MemberExpressionÍäÍğLªIdentifierÍäÍí©uniPointsW§LiteralÍîÍï ¡0ÃÂLªIdentifierÍñÍõ¤hintÂÂLªIdentifierÍöÍş¨includesÂÂ‘W§LiteralÍÿÍ©æ—¥æœ¬èª«'æ—¥æœ¬èª'ÂÂU³ExpressionStatementÍÍgT®CallExpressionÍÍfV°MemberExpressionÍÍLªIdentifierÍÍ¡tLªIdentifierÍÍ¥checkÂÂ’W§LiteralÍÍ;Ù unicode content contains formulaÙ"'unicode content contains formula'T®CallExpressionÍ=ÍeV°MemberExpressionÍ=ÍZV°MemberExpressionÍ=ÍQV°MemberExpressionÍ=ÍILªIdentifierÍ=ÍF©uniPointsW§LiteralÍGÍH ¡0ÃÂLªIdentifierÍJÍQ§contentÂÂLªIdentifierÍRÍZ¨includesÂÂ‘W§LiteralÍ[Íd¨E = mcÂ²ª'E = mcÂ²'ÂÂU³ExpressionStatementÍqÍÃT®CallExpressionÍqÍÂV°MemberExpressionÍqÍxLªIdentifierÍqÍr¡tLªIdentifierÍsÍx¥checkÂÂ’W§LiteralÍyÍ—¼unicode content mixed script¾'unicode content mixed script'T®CallExpressionÍ™ÍÁV°MemberExpressionÍ™Í¶V°MemberExpressionÍ™Í­V°MemberExpressionÍ™Í¥LªIdentifierÍ™Í¢©uniPointsW§LiteralÍ£Í¤ ¡0ÃÂLªIdentifierÍ¦Í­§contentÂÂLªIdentifierÍ®Í¶¨includesÂÂ‘W§LiteralÍ·ÍÀ§English©'English'ÂÂN³VariableDeclarationÍãÍ ‘O²VariableDeclaratorÍéÍ LªIdentifierÍéÍë¢rtT®CallExpressionÍîÍ LªIdentifierÍîÍ ¶markdownTextFromPoints‘Z¯ArrayExpressionÍ Í ‘V°MemberExpressionÍ Í LªIdentifierÍ Í ©uniPointsW§LiteralÍ Í  ¡0ÃÂÂ¥constN³VariableDeclarationÍ Í B‘O²VariableDeclaratorÍ %Í ALªIdentifierÍ %Í -¨rtParsedT®CallExpressionÍ 0Í ALªIdentifierÍ 0Í =­parseMarkdown‘LªIdentifierÍ >Í @¢rtÂ¥constU³ExpressionStatementÍ LÍ ¥T®CallExpressionÍ LÍ ¤V°MemberExpressionÍ LÍ SLªIdentifierÍ LÍ M¡tLªIdentifierÍ NÍ S¥checkÂÂ’W§LiteralÍ TÍ g±unicode roundtrip³'unicode roundtrip'X±LogicalExpressionÍ iÍ £X°BinaryExpressionÍ iÍ ~V°MemberExpressionÍ iÍ xLªIdentifierÍ iÍ q¨rtParsedLªIdentifierÍ rÍ x¦lengthÂÂ£===W§LiteralÍ }Í ~¡1¢&&T®CallExpressionÍ ‚Í £V°MemberExpressionÍ ‚Í œV°MemberExpressionÍ ‚Í “V°MemberExpressionÍ ‚Í LªIdentifierÍ ‚Í Š¨rtParsedW§LiteralÍ ‹Í Œ ¡0ÃÂLªIdentifierÍ Í “¥titleÂÂLªIdentifierÍ ”Í œ¨includesÂÂ‘W§LiteralÍ Í ¢©ãƒ†ã‚¹ãƒˆ«'ãƒ†ã‚¹ãƒˆ'ÂÂÀN³VariableDeclarationÍ ğÍ!F‘O²VariableDeclaratorÍ öÍ!ELªIdentifierÍ öÍ ş¨singleMdQ¯TemplateLiteralÍ!Í!E‘R¯TemplateElementÍ!Í!DSÙB# Solo Point
+
+tags: solo
+
+hint:
+Solo hint.
+
+content:
+Solo answer.
+ÙB# Solo Point
+
+tags: solo
+
+hint:
+Solo hint.
+
+content:
+Solo answer.
+Ã¥constN³VariableDeclarationÍ!LÍ!y‘O²VariableDeclaratorÍ!RÍ!xLªIdentifierÍ!RÍ!^¬singlePointsT®CallExpressionÍ!aÍ!xLªIdentifierÍ!aÍ!n­parseMarkdown‘LªIdentifierÍ!oÍ!w¨singleMdÂ¥constU³ExpressionStatementÍ!Í!ÍT®CallExpressionÍ!Í!ÌV°MemberExpressionÍ!Í!†LªIdentifierÍ!Í!€¡tLªIdentifierÍ!Í!†¥checkÂÂ’W§LiteralÍ!‡Í!°Ù'parseMarkdown single point no separatorÙ)'parseMarkdown single point no separator'X°BinaryExpressionÍ!²Í!ËV°MemberExpressionÍ!²Í!ÅLªIdentifierÍ!²Í!¾¬singlePointsLªIdentifierÍ!¿Í!Å¦lengthÂÂ£===W§LiteralÍ!ÊÍ!Ë¡1ÂY«IfStatementÍ!ÓÍ"¹X°BinaryExpressionÍ!×Í!ïV°MemberExpressionÍ!×Í!êLªIdentifierÍ!×Í!ã¬singlePointsLªIdentifierÍ!äÍ!ê¦lengthÂÂ¢>=W§LiteralÍ!îÍ!ï¡1M®BlockStatementÍ!ñÍ"¹’U³ExpressionStatementÍ!üÍ"BT®CallExpressionÍ!üÍ"AV°MemberExpressionÍ!üÍ"LªIdentifierÍ!üÍ!ı¡tLªIdentifierÍ!şÍ"¥checkÂÂ’W§LiteralÍ"Í"²single point title´'single point title'X°BinaryExpressionÍ"Í"@V°MemberExpressionÍ"Í"/V°MemberExpressionÍ"Í")LªIdentifierÍ"Í"&¬singlePointsW§LiteralÍ"'Í"( ¡0ÃÂLªIdentifierÍ"*Í"/¥titleÂÂ£===W§LiteralÍ"4Í"@ªSolo Point¬'Solo Point'ÂU³ExpressionStatementÍ"LÍ"²T®CallExpressionÍ"LÍ"±V°MemberExpressionÍ"LÍ"SLªIdentifierÍ"LÍ"M¡tLªIdentifierÍ"NÍ"S¥checkÂÂ’W§LiteralÍ"TÍ"g±single point tags³'single point tags'X±LogicalExpressionÍ"iÍ"°X°BinaryExpressionÍ"iÍ"ŠV°MemberExpressionÍ"iÍ"„V°MemberExpressionÍ"iÍ"}V°MemberExpressionÍ"iÍ"xLªIdentifierÍ"iÍ"u¬singlePointsW§LiteralÍ"vÍ"w ¡0ÃÂLªIdentifierÍ"yÍ"}¤tagsÂÂLªIdentifierÍ"~Í"„¦lengthÂÂ£===W§LiteralÍ"‰Í"Š¡1¢&&X°BinaryExpressionÍ"Í"°V°MemberExpressionÍ"Í"¥V°MemberExpressionÍ"Í"¢V°MemberExpressionÍ"Í"LªIdentifierÍ"Í"š¬singlePointsW§LiteralÍ"›Í"œ ¡0ÃÂLªIdentifierÍ"Í"¢¤tagsÂÂW§LiteralÍ"£Í"¤ ¡0ÃÂ£===W§LiteralÍ"ªÍ"°¤solo¦'solo'ÂÀN³VariableDeclarationÍ#Í#[‘O²VariableDeclaratorÍ#Í#ZLªIdentifierÍ#Í#«tightTagsMdQ¯TemplateLiteralÍ#Í#Z‘R¯TemplateElementÍ#Í#YSÙ<# Tight Tags
+
+tags: a,b,c,d
+
+hint:
+Hint.
+
+content:
+Content.
+Ù<# Tight Tags
+
+tags: a,b,c,d
+
+hint:
+Hint.
+
+content:
+Content.
+Ã¥constN³VariableDeclarationÍ#aÍ#‘O²VariableDeclaratorÍ#gÍ#LªIdentifierÍ#gÍ#r«tightPointsT®CallExpressionÍ#uÍ#LªIdentifierÍ#uÍ#‚­parseMarkdown‘LªIdentifierÍ#ƒÍ#«tightTagsMdÂ¥constU³ExpressionStatementÍ#–Í#äT®CallExpressionÍ#–Í#ãV°MemberExpressionÍ#–Í#LªIdentifierÍ#–Í#—¡tLªIdentifierÍ#˜Í#¥checkÂÂ’W§LiteralÍ#Í#ÈÙ(parseMarkdown tight tags returns 1 pointÙ*'parseMarkdown tight tags returns 1 point'X°BinaryExpressionÍ#ÊÍ#âV°MemberExpressionÍ#ÊÍ#ÜLªIdentifierÍ#ÊÍ#Õ«tightPointsLªIdentifierÍ#ÖÍ#Ü¦lengthÂÂ£===W§LiteralÍ#áÍ#â¡1ÂY«IfStatementÍ#êÍ$YX°BinaryExpressionÍ#îÍ$V°MemberExpressionÍ#îÍ$ LªIdentifierÍ#îÍ#ù«tightPointsLªIdentifierÍ#úÍ$ ¦lengthÂÂ¢>=W§LiteralÍ$Í$¡1M®BlockStatementÍ$Í$Y‘U³ExpressionStatementÍ$Í$RT®CallExpressionÍ$Í$QV°MemberExpressionÍ$Í$LªIdentifierÍ$Í$¡tLªIdentifierÍ$Í$¥checkÂÂ’W§LiteralÍ$Í$.²tight tags count 4´'tight tags count 4'X°BinaryExpressionÍ$0Í$PV°MemberExpressionÍ$0Í$JV°MemberExpressionÍ$0Í$CV°MemberExpressionÍ$0Í$>LªIdentifierÍ$0Í$;«tightPointsW§LiteralÍ$<Í$= ¡0ÃÂLªIdentifierÍ$?Í$C¤tagsÂÂLªIdentifierÍ$DÍ$J¦lengthÂÂ£===W§LiteralÍ$OÍ$P¡4ÂÀN³VariableDeclarationÍ$ªÍ%>‘O²VariableDeclaratorÍ$°Í%=LªIdentifierÍ$°Í$¼¬trailingWsMdQ¯TemplateLiteralÍ$¿Í%=‘R¯TemplateElementÍ$ÀÍ%<SÙ|# Trailing WS Title
+
+tags:   ws1, ws2
+
+hint:
+Hint with trailing marker space.
+
+content:
+Content with trailing marker space.
+Ù|# Trailing WS Title
+
+tags:   ws1, ws2
+
+hint:
+Hint with trailing marker space.
+
+content:
+Content with trailing marker space.
+Ã¥constN³VariableDeclarationÍ%DÍ%q‘O²VariableDeclaratorÍ%JÍ%pLªIdentifierÍ%JÍ%R¨wsPointsT®CallExpressionÍ%UÍ%pLªIdentifierÍ%UÍ%b­parseMarkdown‘LªIdentifierÍ%cÍ%o¬trailingWsMdÂ¥constU³ExpressionStatementÍ%wÍ%»T®CallExpressionÍ%wÍ%ºV°MemberExpressionÍ%wÍ%~LªIdentifierÍ%wÍ%x¡tLªIdentifierÍ%yÍ%~¥checkÂÂ’W§LiteralÍ%Í%¢Ù!parseMarkdown trailing whitespaceÙ#'parseMarkdown trailing whitespace'X°BinaryExpressionÍ%¤Í%¹V°MemberExpressionÍ%¤Í%³LªIdentifierÍ%¤Í%¬¨wsPointsLªIdentifierÍ%­Í%³¦lengthÂÂ£===W§LiteralÍ%¸Í%¹¡1ÂY«IfStatementÍ%ÁÍ&×X°BinaryExpressionÍ%ÅÍ%ÙV°MemberExpressionÍ%ÅÍ%ÔLªIdentifierÍ%ÅÍ%Í¨wsPointsLªIdentifierÍ%ÎÍ%Ô¦lengthÂÂ¢>=W§LiteralÍ%ØÍ%Ù¡1M®BlockStatementÍ%ÛÍ&×“U³ExpressionStatementÍ%æÍ&6T®CallExpressionÍ%æÍ&5V°MemberExpressionÍ%æÍ%íLªIdentifierÍ%æÍ%ç¡tLªIdentifierÍ%èÍ%í¥checkÂÂ’W§LiteralÍ%îÍ&	¹trailing ws title trimmed»'trailing ws title trimmed'X°BinaryExpressionÍ&Í&4V°MemberExpressionÍ&Í&V°MemberExpressionÍ&Í&LªIdentifierÍ&Í&¨wsPointsW§LiteralÍ&Í& ¡0ÃÂLªIdentifierÍ&Í&¥titleÂÂ£===W§LiteralÍ&!Í&4±Trailing WS Title³'Trailing WS Title'ÂU³ExpressionStatementÍ&@Í&€T®CallExpressionÍ&@Í&V°MemberExpressionÍ&@Í&GLªIdentifierÍ&@Í&A¡tLªIdentifierÍ&BÍ&G¥checkÂÂ’W§LiteralÍ&HÍ&a·trailing ws hint parsed¹'trailing ws hint parsed'X°BinaryExpressionÍ&cÍ&~V°MemberExpressionÍ&cÍ&zV°MemberExpressionÍ&cÍ&sV°MemberExpressionÍ&cÍ&nLªIdentifierÍ&cÍ&k¨wsPointsW§LiteralÍ&lÍ&m ¡0ÃÂLªIdentifierÍ&oÍ&s¤hintÂÂLªIdentifierÍ&tÍ&z¦lengthÂÂ¡>W§LiteralÍ&}Í&~ ¡0ÂU³ExpressionStatementÍ&ŠÍ&ĞT®CallExpressionÍ&ŠÍ&ÏV°MemberExpressionÍ&ŠÍ&‘LªIdentifierÍ&ŠÍ&‹¡tLªIdentifierÍ&ŒÍ&‘¥checkÂÂ’W§LiteralÍ&’Í&®ºtrailing ws content parsed¼'trailing ws content parsed'X°BinaryExpressionÍ&°Í&ÎV°MemberExpressionÍ&°Í&ÊV°MemberExpressionÍ&°Í&ÃV°MemberExpressionÍ&°Í&»LªIdentifierÍ&°Í&¸¨wsPointsW§LiteralÍ&¹Í&º ¡0ÃÂLªIdentifierÍ&¼Í&Ã§contentÂÂLªIdentifierÍ&ÄÍ&Ê¦lengthÂÂ¡>W§LiteralÍ&ÍÍ&Î ¡0ÂÀY«IfStatementÍ'5Í'ôX°BinaryExpressionÍ'9Í'KV°MemberExpressionÍ'9Í'FLªIdentifierÍ'9Í'?¦pointsLªIdentifierÍ'@Í'F¦lengthÂÂ¢>=W§LiteralÍ'JÍ'K¡2M®BlockStatementÍ'MÍ'ô’N³VariableDeclarationÍ'XÍ'‡‘O²VariableDeclaratorÍ'^Í'†LªIdentifierÍ'^Í'e§multiMdT®CallExpressionÍ'hÍ'†LªIdentifierÍ'hÍ'~¶markdownTextFromPoints‘LªIdentifierÍ'Í'…¦pointsÂ¥constU³ExpressionStatementÍ'‘Í'íT®CallExpressionÍ'‘Í'ìV°MemberExpressionÍ'‘Í'˜LªIdentifierÍ'‘Í'’¡tLªIdentifierÍ'“Í'˜¥checkÂÂ’W§LiteralÍ'™Í'ÊÙ/markdownTextFromPoints multi includes separatorÙ1'markdownTextFromPoints multi includes separator'T®CallExpressionÍ'ÌÍ'ëV°MemberExpressionÍ'ÌÍ'ÜLªIdentifierÍ'ÌÍ'Ó§multiMdLªIdentifierÍ'ÔÍ'Ü¨includesÂÂ‘W§LiteralÍ'İÍ'ê§
+
+---
+
+­'\n\n---\n\n'ÂÂÀN³VariableDeclarationÍ(-Í(Y‘O²VariableDeclaratorÍ(3Í(XLªIdentifierÍ(3Í(7¤rtMdT®CallExpressionÍ(:Í(XLªIdentifierÍ(:Í(P¶markdownTextFromPoints‘LªIdentifierÍ(QÍ(W¦pointsÂ¥constN³VariableDeclarationÍ(_Í(„‘O²VariableDeclaratorÍ(eÍ(ƒLªIdentifierÍ(eÍ(m¨rtParsedT®CallExpressionÍ(pÍ(ƒLªIdentifierÍ(pÍ(}­parseMarkdown‘LªIdentifierÍ(~Í(‚¤rtMdÂ¥constU³ExpressionStatementÍ(ŠÍ(ÒT®CallExpressionÍ(ŠÍ(ÑV°MemberExpressionÍ(ŠÍ(‘LªIdentifierÍ(ŠÍ(‹¡tLªIdentifierÍ(ŒÍ(‘¥checkÂÂ’W§LiteralÍ(’Í(­¹roundtrip preserves count»'roundtrip preserves count'X°BinaryExpressionÍ(¯Í(ĞV°MemberExpressionÍ(¯Í(¾LªIdentifierÍ(¯Í(·¨rtParsedLªIdentifierÍ(¸Í(¾¦lengthÂÂ£===V°MemberExpressionÍ(ÃÍ(ĞLªIdentifierÍ(ÃÍ(É¦pointsLªIdentifierÍ(ÊÍ(Ğ¦lengthÂÂÂN³VariableDeclarationÍ)Í)I‘O²VariableDeclaratorÍ)Í)HLªIdentifierÍ)Í)£kpAP­NewExpressionÍ)Í)HLªIdentifierÍ)Í))®KnowledgePoint•W§LiteralÍ)*Í).¢a1¤'a1'W§LiteralÍ)0Í)3¡A£'A'Z¯ArrayExpressionÍ)5Í)=‘W§LiteralÍ)6Í)<¤math¦'math'W§LiteralÍ)?Í)B¡h£'h'W§LiteralÍ)DÍ)G¡c£'c'¥constU³ExpressionStatementÍ)OÍ)•T®CallExpressionÍ)OÍ)”V°MemberExpressionÍ)OÍ)VLªIdentifierÍ)OÍ)P¡tLªIdentifierÍ)QÍ)V¥checkÂÂ’W§LiteralÍ)WÍ)u¼initial reinforcementCount 0¾'initial reinforcementCount 0'X°BinaryExpressionÍ)wÍ)“V°MemberExpressionÍ)wÍ)LªIdentifierÍ)wÍ)z£kpALªIdentifierÍ){Í)²reinforcementCountÂÂ£===W§LiteralÍ)’Í)“ ¡0ÂU³ExpressionStatementÍ)›Í)ÔT®CallExpressionÍ)›Í)ÓV°MemberExpressionÍ)›Í)¢LªIdentifierÍ)›Í)œ¡tLªIdentifierÍ)Í)¢¥checkÂÂ’W§LiteralÍ)£Í)¿ºinitial isReinforced false¼'initial isReinforced false'[¯UnaryExpressionÍ)ÁÍ)Ò¡!ÃV°MemberExpressionÍ)ÂÍ)ÒLªIdentifierÍ)ÂÍ)Å£kpALªIdentifierÍ)ÆÍ)Ò¬isReinforcedÂÂÂN³VariableDeclarationÍ)ÚÍ)ü‘O²VariableDeclaratorÍ)àÍ)ûLªIdentifierÍ)àÍ)â¢rcT®CallExpressionÍ)åÍ)ûV°MemberExpressionÍ)åÍ)ùLªIdentifierÍ)åÍ)è£kpALªIdentifierÍ)éÍ)ù°addReinforcementÂÂÂ¥constU³ExpressionStatementÍ*Í*2T®CallExpressionÍ*Í*1V°MemberExpressionÍ*Í*	LªIdentifierÍ*Í*¡tLªIdentifierÍ*Í*	¥checkÂÂ’W§LiteralÍ*
+Í*&ºaddReinforcement returns 1¼'addReinforcement returns 1'X°BinaryExpressionÍ*(Í*0LªIdentifierÍ*(Í**¢rc£===W§LiteralÍ*/Í*0¡1ÂU³ExpressionStatementÍ*8Í*lT®CallExpressionÍ*8Í*kV°MemberExpressionÍ*8Í*?LªIdentifierÍ*8Í*9¡tLªIdentifierÍ*:Í*?¥checkÂÂ’W§LiteralÍ*@Í*X¶isReinforced after add¸'isReinforced after add'V°MemberExpressionÍ*ZÍ*jLªIdentifierÍ*ZÍ*]£kpALªIdentifierÍ*^Í*j¬isReinforcedÂÂÂU³ExpressionStatementÍ*Í*¶T®CallExpressionÍ*Í*µV°MemberExpressionÍ*Í*³LªIdentifierÍ*Í* £kpALªIdentifierÍ*¡Í*³²clearReinforcementÂÂÂU³ExpressionStatementÍ*¼Í*øT®CallExpressionÍ*¼Í*÷V°MemberExpressionÍ*¼Í*ÃLªIdentifierÍ*¼Í*½¡tLªIdentifierÍ*¾Í*Ã¥checkÂÂ’W§LiteralÍ*ÄÍ*Ø²clear sets count 0´'clear sets count 0'X°BinaryExpressionÍ*ÚÍ*öV°MemberExpressionÍ*ÚÍ*ğLªIdentifierÍ*ÚÍ*İ£kpALªIdentifierÍ*ŞÍ*ğ²reinforcementCountÂÂ£===W§LiteralÍ*õÍ*ö ¡0ÂU³ExpressionStatementÍ*şÍ+:T®CallExpressionÍ*şÍ+9V°MemberExpressionÍ*şÍ+LªIdentifierÍ*şÍ*ÿ¡tLªIdentifierÍ+ Í+¥checkÂÂ’W§LiteralÍ+Í+%½clear sets isReinforced false¿'clear sets isReinforced false'[¯UnaryExpressionÍ+'Í+8¡!ÃV°MemberExpressionÍ+(Í+8LªIdentifierÍ+(Í++£kpALªIdentifierÍ+,Í+8¬isReinforcedÂÂÂN³VariableDeclarationÍ+Í+Ø‘O²VariableDeclaratorÍ+…Í+×LªIdentifierÍ+…Í+Š¥kpNegP­NewExpressionÍ+Í+×LªIdentifierÍ+‘Í+Ÿ®KnowledgePoint›W§LiteralÍ+ Í+¥£neg¥'neg'W§LiteralÍ+§Í+ª¡N£'N'Z¯ArrayExpressionÍ+¬Í+®W§LiteralÍ+°Í+³¡h£'h'W§LiteralÍ+µÍ+¸¡c£'c'W§LiteralÍ+ºÍ+¿Â¥falseW§LiteralÍ+ÁÍ+ÆÂ¥falseW§LiteralÍ+ÈÍ+É ¡0W§LiteralÍ+ËÍ+Ì ¡0[¯UnaryExpressionÍ+ÎÍ+Ğ¡-ÃW§LiteralÍ+ÏÍ+Ğ¡5W§LiteralÍ+ÒÍ+ÖÀ¤null¥constU³ExpressionStatementÍ+ŞÍ,-T®CallExpressionÍ+ŞÍ,,V°MemberExpressionÍ+ŞÍ+åLªIdentifierÍ+ŞÍ+ß¡tLªIdentifierÍ+àÍ+å¥checkÂÂ’W§LiteralÍ+æÍ,Ù#negative reinforcementCount clampedÙ%'negative reinforcementCount clamped'X°BinaryExpressionÍ,Í,+V°MemberExpressionÍ,Í,%LªIdentifierÍ,Í,¥kpNegLªIdentifierÍ,Í,%²reinforcementCountÂÂ£===W§LiteralÍ,*Í,+ ¡0ÂU³ExpressionStatementÍ,]Í,¦T®CallExpressionÍ,]Í,¥V°MemberExpressionÍ,]Í,dLªIdentifierÍ,]Í,^¡tLªIdentifierÍ,_Í,d¥checkÂÂ’W§LiteralÍ,eÍ,†¿countdownDays null returns nullÙ!'countdownDays null returns null'X°BinaryExpressionÍ,ˆÍ,¤T®CallExpressionÍ,ˆÍ,›LªIdentifierÍ,ˆÍ,•­countdownDays‘W§LiteralÍ,–Í,šÀ¤nullÂ£===W§LiteralÍ, Í,¤À¤nullÂN³VariableDeclarationÍ,¬Í,Õ‘O²VariableDeclaratorÍ,²Í,ÔLªIdentifierÍ,²Í,¸¦futureX°BinaryExpressionÍ,»Í,ÔT®CallExpressionÍ,»Í,ÅV°MemberExpressionÍ,»Í,ÃLªIdentifierÍ,»Í,¿¤DateLªIdentifierÍ,ÀÍ,Ã£nowÂÂÂ¡+X°BinaryExpressionÍ,ÈÍ,ÔW§LiteralÍ,ÈÍ,É¡7¡*W§LiteralÍ,ÌÍ,ÔÎ&\ ¨86400000¥constN³VariableDeclarationÍ,ÛÍ,ÿ‘O²VariableDeclaratorÍ,áÍ,şLªIdentifierÍ,áÍ,æ¥fDaysT®CallExpressionÍ,éÍ,şLªIdentifierÍ,éÍ,ö­countdownDays‘LªIdentifierÍ,÷Í,ı¦futureÂ¥constU³ExpressionStatementÍ-Í-LT®CallExpressionÍ-Í-KV°MemberExpressionÍ-Í-LªIdentifierÍ-Í-¡tLªIdentifierÍ-Í-¥checkÂÂ’W§LiteralÍ-Í-,½countdownDays future positive¿'countdownDays future positive'X±LogicalExpressionÍ-.Í-JX°BinaryExpressionÍ-.Í-<LªIdentifierÍ-.Í-3¥fDays£!==W§LiteralÍ-8Í-<À¤null¢&&X°BinaryExpressionÍ-@Í-JLªIdentifierÍ-@Í-E¥fDays¢>=W§LiteralÍ-IÍ-J ¡0ÂN³VariableDeclarationÍ-RÍ-y‘O²VariableDeclaratorÍ-XÍ-xLªIdentifierÍ-XÍ-\¤pastX°BinaryExpressionÍ-_Í-xT®CallExpressionÍ-_Í-iV°MemberExpressionÍ-_Í-gLªIdentifierÍ-_Í-c¤DateLªIdentifierÍ-dÍ-g£nowÂÂÂ¡-X°BinaryExpressionÍ-lÍ-xW§LiteralÍ-lÍ-m¡7¡*W§LiteralÍ-pÍ-xÎ&\ ¨86400000¥constU³ExpressionStatementÍ-Í-ÂT®CallExpressionÍ-Í-ÁV°MemberExpressionÍ-Í-†LªIdentifierÍ-Í-€¡tLªIdentifierÍ-Í-†¥checkÂÂ’W§LiteralÍ-‡Í-¥¼countdownDays past returns 0¾'countdownDays past returns 0'X°BinaryExpressionÍ-§Í-ÀT®CallExpressionÍ-§Í-ºLªIdentifierÍ-§Í-´­countdownDays‘LªIdentifierÍ-µÍ-¹¤pastÂ£===W§LiteralÍ-¿Í-À ¡0ÂN³VariableDeclarationÍ-ëÍ.‘O²VariableDeclaratorÍ-ñÍ.LªIdentifierÍ-ñÍ-ô£idAT®CallExpressionÍ-÷Í.LªIdentifierÍ-÷Í.ªgenerateIdÂ¥constN³VariableDeclarationÍ.
+Í.#‘O²VariableDeclaratorÍ.Í."LªIdentifierÍ.Í.£idBT®CallExpressionÍ.Í."LªIdentifierÍ.Í. ªgenerateIdÂ¥constU³ExpressionStatementÍ.)Í.ST®CallExpressionÍ.)Í.RV°MemberExpressionÍ.)Í.0LªIdentifierÍ.)Í.*¡tLªIdentifierÍ.+Í.0¥checkÂÂ’W§LiteralÍ.1Í.D±generateId unique³'generateId unique'X°BinaryExpressionÍ.FÍ.QLªIdentifierÍ.FÍ.I£idA£!==LªIdentifierÍ.NÍ.Q£idBÂN³VariableDeclarationÍ.Í.Õ‘O²VariableDeclaratorÍ.”Í.ÔLªIdentifierÍ.”Í.–¢tpP­NewExpressionÍ.™Í.ÔLªIdentifierÍ.Í.¬¯KnowledgePreset—W§LiteralÍ.­Í.±¢tp¤'tp'W§LiteralÍ.³Í.·¢TP¤'TP'W§LiteralÍ.¹Í.¼¡s£'s'W§LiteralÍ.¾Í.Á¡d£'d'W§LiteralÍ.ÃÍ.È£cat¥'cat'LªIdentifierÍ.ÊÍ.Ì¢mdW§LiteralÍ.ÎÍ.ÓÂ¥false¥constU³ExpressionStatementÍ.ÛÍ/T®CallExpressionÍ.ÛÍ/V°MemberExpressionÍ.ÛÍ.âLªIdentifierÍ.ÛÍ.Ü¡tLªIdentifierÍ.İÍ.â¥checkÂÂ’W§LiteralÍ.ãÍ.÷²preset kpCount > 0´'preset kpCount > 0'X°BinaryExpressionÍ.ùÍ/V°MemberExpressionÍ.ùÍ/LªIdentifierÍ.ùÍ.û¢tpLªIdentifierÍ.üÍ/³knowledgePointCountÂÂ¡>W§LiteralÍ/Í/ ¡0ÂU³ExpressionStatementÍ/Í/mT®CallExpressionÍ/Í/lV°MemberExpressionÍ/Í/"LªIdentifierÍ/Í/¡tLªIdentifierÍ/Í/"¥checkÂÂ’W§LiteralÍ/#Í/A¼preset kpCount matches parse¾'preset kpCount matches parse'X°BinaryExpressionÍ/CÍ/kV°MemberExpressionÍ/CÍ/YLªIdentifierÍ/CÍ/E¢tpLªIdentifierÍ/FÍ/Y³knowledgePointCountÂÂ£===V°MemberExpressionÍ/^Í/kLªIdentifierÍ/^Í/d¦pointsLªIdentifierÍ/eÍ/k¦lengthÂÂÂU³ExpressionStatementÍ/›Í/ÍT®CallExpressionÍ/›Í/ÌV°MemberExpressionÍ/›Í/¢LªIdentifierÍ/›Í/œ¡tLªIdentifierÍ/Í/¢¥checkÂÂ’W§LiteralÍ/£Í/°«ordinal 1st­'ordinal 1st'X°BinaryExpressionÍ/²Í/ËT®CallExpressionÍ/²Í/ÂLªIdentifierÍ/²Í/¿­ordinalSuffix‘W§LiteralÍ/ÀÍ/Á¡1Â£===W§LiteralÍ/ÇÍ/Ë¢st¤'st'ÂU³ExpressionStatementÍ/ÓÍ0T®CallExpressionÍ/ÓÍ0V°MemberExpressionÍ/ÓÍ/ÚLªIdentifierÍ/ÓÍ/Ô¡tLªIdentifierÍ/ÕÍ/Ú¥checkÂÂ’W§LiteralÍ/ÛÍ/è«ordinal 2nd­'ordinal 2nd'X°BinaryExpressionÍ/êÍ0T®CallExpressionÍ/êÍ/úLªIdentifierÍ/êÍ/÷­ordinalSuffix‘W§LiteralÍ/øÍ/ù¡2Â£===W§LiteralÍ/ÿÍ0¢nd¤'nd'ÂU³ExpressionStatementÍ0Í0=T®CallExpressionÍ0Í0<V°MemberExpressionÍ0Í0LªIdentifierÍ0Í0¡tLªIdentifierÍ0Í0¥checkÂÂ’W§LiteralÍ0Í0 «ordinal 3rd­'ordinal 3rd'X°BinaryExpressionÍ0"Í0;T®CallExpressionÍ0"Í02LªIdentifierÍ0"Í0/­ordinalSuffix‘W§LiteralÍ00Í01¡3Â£===W§LiteralÍ07Í0;¢rd¤'rd'ÂU³ExpressionStatementÍ0CÍ0wT®CallExpressionÍ0CÍ0vV°MemberExpressionÍ0CÍ0JLªIdentifierÍ0CÍ0D¡tLªIdentifierÍ0EÍ0J¥checkÂÂ’W§LiteralÍ0KÍ0Y¬ordinal 11th®'ordinal 11th'X°BinaryExpressionÍ0[Í0uT®CallExpressionÍ0[Í0lLªIdentifierÍ0[Í0h­ordinalSuffix‘W§LiteralÍ0iÍ0k¢11Â£===W§LiteralÍ0qÍ0u¢th¤'th'ÂU³ExpressionStatementÍ0}Í0±T®CallExpressionÍ0}Í0°V°MemberExpressionÍ0}Í0„LªIdentifierÍ0}Í0~¡tLªIdentifierÍ0Í0„¥checkÂÂ’W§LiteralÍ0…Í0“¬ordinal 21st®'ordinal 21st'X°BinaryExpressionÍ0•Í0¯T®CallExpressionÍ0•Í0¦LªIdentifierÍ0•Í0¢­ordinalSuffix‘W§LiteralÍ0£Í0¥¢21Â£===W§LiteralÍ0«Í0¯¢st¤'st'ÂU³ExpressionStatementÍ0áÍ1 T®CallExpressionÍ0áÍ1V°MemberExpressionÍ0áÍ0èLªIdentifierÍ0áÍ0â¡tLªIdentifierÍ0ãÍ0è¥checkÂÂ’W§LiteralÍ0éÍ0ş³parseMarkdown emptyµ'parseMarkdown empty'X°BinaryExpressionÍ1 Í1V°MemberExpressionÍ1 Í1T®CallExpressionÍ1 Í1LªIdentifierÍ1 Í1­parseMarkdown‘W§LiteralÍ1Í1 ¢''ÂLªIdentifierÍ1Í1¦lengthÂÂ£===W§LiteralÍ1Í1 ¡0ÂU³ExpressionStatementÍ1&Í1wT®CallExpressionÍ1&Í1vV°MemberExpressionÍ1&Í1-LªIdentifierÍ1&Í1'¡tLªIdentifierÍ1(Í1-¥checkÂÂ’W§LiteralÍ1.Í1M½parseMarkdown separators only¿'parseMarkdown separators only'X°BinaryExpressionÍ1OÍ1uV°MemberExpressionÍ1OÍ1oT®CallExpressionÍ1OÍ1hLªIdentifierÍ1OÍ1\­parseMarkdown‘W§LiteralÍ1]Í1g§---
+---ª'---\n---'ÂLªIdentifierÍ1iÍ1o¦lengthÂÂ£===W§LiteralÍ1tÍ1u ¡0ÂÔr]”¤type¥start£end¨argument¯ReturnStatementÍ1}Í1T®CallExpressionÍ1„Í1V°MemberExpressionÍ1„Í1ŒLªIdentifierÍ1„Í1…¡tLªIdentifierÍ1†Í1Œ¦resultÂÂÂÀJ¶ExportNamedDeclarationÍ1”Í2ºK³FunctionDeclarationÍ1›Í2ºLªIdentifierÍ1¤Í1·³runSmokeTestsAndLogÂÂÂM®BlockStatementÍ1ºÍ2º”N³VariableDeclarationÍ1ÁÍ1à‘O²VariableDeclaratorÍ1ÇÍ1ßLªIdentifierÍ1ÇÍ1Í¦resultT®CallExpressionÍ1ĞÍ1ßLªIdentifierÍ1ĞÍ1İ­runSmokeTestsÂ¥constU³ExpressionStatementÍ1æÍ27T®CallExpressionÍ1æÍ26V°MemberExpressionÍ1æÍ1òLªIdentifierÍ1æÍ1í§consoleLªIdentifierÍ1îÍ1ò¤infoÂÂ‘Q¯TemplateLiteralÍ1óÍ25’V°MemberExpressionÍ2Í2LªIdentifierÍ2Í2¦resultLªIdentifierÍ2Í2¦passedÂÂV°MemberExpressionÍ2Í2,LªIdentifierÍ2Í2%¦resultLªIdentifierÍ2&Í2,¦failedÂÂ“R¯TemplateElementÍ1ôÍ2S°[Kikaria Smoke] °[Kikaria Smoke] ÂR¯TemplateElementÍ2Í2S© passed, © passed, ÂR¯TemplateElementÍ2-Í24S§ failed§ failedÃÂÔr^—¤type¥start£end¥await¤left¥right¤body®ForOfStatementÍ2=Í2–ÂN³VariableDeclarationÍ2BÍ2I‘O²VariableDeclaratorÍ2HÍ2ILªIdentifierÍ2HÍ2I¡fÀ¥constV°MemberExpressionÍ2MÍ2\LªIdentifierÍ2MÍ2S¦resultLªIdentifierÍ2TÍ2\¨failuresÂÂM®BlockStatementÍ2^Í2–‘U³ExpressionStatementÍ2iÍ2T®CallExpressionÍ2iÍ2V°MemberExpressionÍ2iÍ2vLªIdentifierÍ2iÍ2p§consoleLªIdentifierÍ2qÍ2v¥errorÂÂ‘Q¯TemplateLiteralÍ2wÍ2‘LªIdentifierÍ2ŠÍ2‹¡f’R¯TemplateElementÍ2xÍ2ˆS°[Kikaria Smoke] °[Kikaria Smoke] ÂR¯TemplateElementÍ2ŒÍ2ŒS  ÃÂ]¯ReturnStatementÍ2œÍ2·X°BinaryExpressionÍ2£Í2¶V°MemberExpressionÍ2£Í2°LªIdentifierÍ2£Í2©¦resultLªIdentifierÍ2ªÍ2°¦failedÂÂ£===W§LiteralÍ2µÍ2¶ ¡0À‘Ôr_•¤type¥start£endªspecifiers¦source±ImportDeclarationÌÉÍ]—Ôr`•¤type¥start£end¨imported¥local¯ImportSpecifierÌÒÌàLªIdentifierÌÒÌà®KnowledgePointLªIdentifierÌÒÌà®KnowledgePoint`¯ImportSpecifierÌâÌñLªIdentifierÌâÌñ¯KnowledgePresetLªIdentifierÌâÌñ¯KnowledgePreset`¯ImportSpecifierÌóÍ LªIdentifierÌóÍ ­parseMarkdownLªIdentifierÌóÍ ­parseMarkdown`¯ImportSpecifierÍÍLªIdentifierÍÍ¶markdownTextFromPointsLªIdentifierÍÍ¶markdownTextFromPoints`¯ImportSpecifierÍÍ'LªIdentifierÍÍ'­countdownDaysLªIdentifierÍÍ'­countdownDays`¯ImportSpecifierÍ)Í3LªIdentifierÍ)Í3ªgenerateIdLªIdentifierÍ)Í3ªgenerateId`¯ImportSpecifierÍ5ÍBLªIdentifierÍ5ÍB­ordinalSuffixLªIdentifierÍ5ÍB­ordinalSuffixW§LiteralÍJÍ\°./KnowledgePoint²'./KnowledgePoint'

@@ -1,0 +1,780 @@
+if (!("finalizeConstruction" in ViewPU.prototype)) {
+    Reflect.set(ViewPU.prototype, "finalizeConstruction", () => { });
+}
+interface HomePage_Params {
+    recordingManager?: RecordingManager;
+    state?: RecordingState;
+    isActive?: boolean;
+    breathePhase?: number;
+    orbScale?: number;
+    headerScale?: number;
+    isMacPaired?: boolean;
+    connectionStatus?: string;
+}
+import display from "@ohos:display";
+import { getSharedRecordingManager } from "@bundle:com.vita0818.rokurics/entry/ets/services/RecordingManager";
+import type { RecordingManager } from "@bundle:com.vita0818.rokurics/entry/ets/services/RecordingManager";
+import { RecordingState } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
+import { formatClock } from "@bundle:com.vita0818.rokurics/entry/ets/utils/FormatHelpers";
+import { RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity, glassStrokeMidOpacity } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { GearIcon, BooksIcon, ChatIcon, ConnectionIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
+import { hapticLight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/HapticFeedback";
+class HomePage extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.recordingManager = getSharedRecordingManager(getContext(this));
+        this.__state = new ObservedPropertySimplePU(RecordingState.IDLE, this, "state");
+        this.__isActive = new ObservedPropertySimplePU(false, this, "isActive");
+        this.__breathePhase = new ObservedPropertySimplePU(0, this, "breathePhase");
+        this.__orbScale = new ObservedPropertySimplePU(0.84, this, "orbScale");
+        this.__headerScale = new ObservedPropertySimplePU(1, this, "headerScale");
+        this.__isMacPaired = new ObservedPropertySimplePU(false, this, "isMacPaired");
+        this.__connectionStatus = new ObservedPropertySimplePU('offline', this, "connectionStatus");
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params: HomePage_Params) {
+        if (params.recordingManager !== undefined) {
+            this.recordingManager = params.recordingManager;
+        }
+        if (params.state !== undefined) {
+            this.state = params.state;
+        }
+        if (params.isActive !== undefined) {
+            this.isActive = params.isActive;
+        }
+        if (params.breathePhase !== undefined) {
+            this.breathePhase = params.breathePhase;
+        }
+        if (params.orbScale !== undefined) {
+            this.orbScale = params.orbScale;
+        }
+        if (params.headerScale !== undefined) {
+            this.headerScale = params.headerScale;
+        }
+        if (params.isMacPaired !== undefined) {
+            this.isMacPaired = params.isMacPaired;
+        }
+        if (params.connectionStatus !== undefined) {
+            this.connectionStatus = params.connectionStatus;
+        }
+    }
+    updateStateVars(params: HomePage_Params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+        this.__state.purgeDependencyOnElmtId(rmElmtId);
+        this.__isActive.purgeDependencyOnElmtId(rmElmtId);
+        this.__breathePhase.purgeDependencyOnElmtId(rmElmtId);
+        this.__orbScale.purgeDependencyOnElmtId(rmElmtId);
+        this.__headerScale.purgeDependencyOnElmtId(rmElmtId);
+        this.__isMacPaired.purgeDependencyOnElmtId(rmElmtId);
+        this.__connectionStatus.purgeDependencyOnElmtId(rmElmtId);
+    }
+    aboutToBeDeleted() {
+        this.__state.aboutToBeDeleted();
+        this.__isActive.aboutToBeDeleted();
+        this.__breathePhase.aboutToBeDeleted();
+        this.__orbScale.aboutToBeDeleted();
+        this.__headerScale.aboutToBeDeleted();
+        this.__isMacPaired.aboutToBeDeleted();
+        this.__connectionStatus.aboutToBeDeleted();
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    private recordingManager: RecordingManager;
+    private __state: ObservedPropertySimplePU<RecordingState>;
+    get state() {
+        return this.__state.get();
+    }
+    set state(newValue: RecordingState) {
+        this.__state.set(newValue);
+    }
+    private __isActive: ObservedPropertySimplePU<boolean>;
+    get isActive() {
+        return this.__isActive.get();
+    }
+    set isActive(newValue: boolean) {
+        this.__isActive.set(newValue);
+    }
+    private __breathePhase: ObservedPropertySimplePU<number>;
+    get breathePhase() {
+        return this.__breathePhase.get();
+    }
+    set breathePhase(newValue: number) {
+        this.__breathePhase.set(newValue);
+    }
+    private __orbScale: ObservedPropertySimplePU<number>;
+    get orbScale() {
+        return this.__orbScale.get();
+    }
+    set orbScale(newValue: number) {
+        this.__orbScale.set(newValue);
+    }
+    private __headerScale: ObservedPropertySimplePU<number>;
+    get headerScale() {
+        return this.__headerScale.get();
+    }
+    set headerScale(newValue: number) {
+        this.__headerScale.set(newValue);
+    }
+    private __isMacPaired: ObservedPropertySimplePU<boolean>;
+    get isMacPaired() {
+        return this.__isMacPaired.get();
+    }
+    set isMacPaired(newValue: boolean) {
+        this.__isMacPaired.set(newValue);
+    }
+    private __connectionStatus: ObservedPropertySimplePU<string>;
+    get connectionStatus() {
+        return this.__connectionStatus.get();
+    }
+    set connectionStatus(newValue: string) {
+        this.__connectionStatus.set(newValue);
+    }
+    aboutToAppear(): void {
+        this.recordingManager.onStateChange((s: RecordingState) => {
+            this.state = s;
+            this.isActive = this.isActiveState(s);
+        });
+        this.state = this.recordingManager.state;
+        this.isActive = this.isActiveState(this.state);
+        this.recordingManager.reloadRecordings();
+        this.calibrateScale();
+        this.startBreathing();
+    }
+    private calibrateScale(): void {
+        const w = display.getDefaultDisplaySync().width;
+        const h = display.getDefaultDisplaySync().height;
+        if (w < 360 || h < 760) {
+            this.orbScale = 0.78;
+            this.headerScale = 0.92;
+        }
+        else if (h < 820) {
+            this.orbScale = 0.88;
+            this.headerScale = 0.96;
+        }
+        else {
+            this.orbScale = 1;
+            this.headerScale = 1;
+        }
+    }
+    private startBreathing(): void {
+        const update = () => {
+            const t = Date.now() / 1000;
+            this.breathePhase = Math.sin(t * Math.PI / 2.4) * 0.5 + 0.5;
+            setTimeout(update, 50);
+        };
+        update();
+    }
+    private isActiveState(s: RecordingState): boolean {
+        return s === RecordingState.REQUESTING_PERMISSION ||
+            s === RecordingState.CONFIGURING_SESSION ||
+            s === RecordingState.RECORDING ||
+            s === RecordingState.PAUSED ||
+            s === RecordingState.STOPPING ||
+            s === RecordingState.SAVING;
+    }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create();
+            Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(72:5)", "entry");
+            Stack.width('100%');
+            Stack.height('100%');
+            Stack.backgroundColor(RokuricsColors.pageBackground);
+        }, Stack);
+        // Ambient background bubbles
+        this.AmbientBackground.bind(this)();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+            Column.debugLine("entry/src/main/ets/pages/HomePage.ets(76:7)", "entry");
+            Column.width('100%');
+            Column.height('100%');
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Header
+            Row.create();
+            Row.debugLine("entry/src/main/ets/pages/HomePage.ets(78:9)", "entry");
+            // Header
+            Row.width('100%');
+            // Header
+            Row.padding({
+                left: 24 * this.headerScale,
+                right: 24 * this.headerScale,
+                top: 18 * this.headerScale + 42
+            });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Rokurics');
+            Text.debugLine("entry/src/main/ets/pages/HomePage.ets(79:11)", "entry");
+            Text.fontSize(39 * this.headerScale);
+            Text.fontWeight(FontWeight.Medium);
+            Text.fontColor(RokuricsColors.deepText);
+            Text.fontFamily('serif');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.debugLine("entry/src/main/ets/pages/HomePage.ets(85:11)", "entry");
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Profile avatar button (glass circle)
+            Button.createWithChild();
+            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(88:11)", "entry");
+            // Profile avatar button (glass circle)
+            Button.width(46 * this.headerScale);
+            // Profile avatar button (glass circle)
+            Button.height(46 * this.headerScale);
+            // Profile avatar button (glass circle)
+            Button.borderRadius(23 * this.headerScale);
+            // Profile avatar button (glass circle)
+            Button.backgroundColor(RokuricsColors.glassSurface + '5C');
+            // Profile avatar button (glass circle)
+            Button.shadow({
+                color: RokuricsColors.shadowColor + '14',
+                radius: 12,
+                offsetY: 6
+            });
+            // Profile avatar button (glass circle)
+            Button.border({
+                width: 1,
+                color: {
+                    colors: [
+                        [0xFFFFFF, 0.50],
+                        [0xEFFAF8, 0.16],
+                        [0x59C7C2, 0.14]
+                    ],
+                    direction: GradientDirection.RightBottom
+                },
+                radius: 23 * this.headerScale
+            } as BorderOptions);
+            // Profile avatar button (glass circle)
+            Button.onClick(() => {
+                this.getUIContext().getRouter().pushUrl({ url: 'pages/SettingsPage' });
+            });
+        }, Button);
+        GearIcon.bind(this)(18 * this.headerScale, RokuricsColors.aqua);
+        // Profile avatar button (glass circle)
+        Button.pop();
+        // Header
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.debugLine("entry/src/main/ets/pages/HomePage.ets(123:9)", "entry");
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Recording Orb
+            Button.createWithChild();
+            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(126:9)", "entry");
+            // Recording Orb
+            Button.width(272 * this.orbScale);
+            // Recording Orb
+            Button.height(286 * this.orbScale);
+            // Recording Orb
+            Button.backgroundColor(Color.Transparent);
+            // Recording Orb
+            Button.onClick(() => {
+                hapticLight();
+                this.getUIContext().getRouter().pushUrl({ url: 'pages/RecordingSessionPage' });
+            });
+        }, Button);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create();
+            Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(127:11)", "entry");
+            Stack.width(272 * this.orbScale);
+            Stack.height(286 * this.orbScale);
+            Stack.scale({
+                x: (this.isActive ? 1.018 : 0.992) + this.breathePhase * 0.008,
+                y: (this.isActive ? 1.018 : 0.992) + this.breathePhase * 0.008
+            });
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Orbiting ambient satellites (animated)
+            Stack.create();
+            Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(129:13)", "entry");
+            // Orbiting ambient satellites (animated)
+            Stack.width(272 * this.orbScale);
+            // Orbiting ambient satellites (animated)
+            Stack.height(286 * this.orbScale);
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Satellite 1
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(131:15)", "entry");
+            // Satellite 1
+            Circle.width(88 * this.orbScale);
+            // Satellite 1
+            Circle.height(88 * this.orbScale);
+            // Satellite 1
+            Circle.fill(RokuricsColors.mint + '40');
+            // Satellite 1
+            Circle.position({
+                x: (94 - this.breathePhase * 6) * this.orbScale + '%',
+                y: (28 + this.breathePhase * 4) * this.orbScale + '%'
+            });
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Satellite 2
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(141:15)", "entry");
+            // Satellite 2
+            Circle.width(76 * this.orbScale);
+            // Satellite 2
+            Circle.height(76 * this.orbScale);
+            // Satellite 2
+            Circle.fill(RokuricsColors.skyCyan + '32');
+            // Satellite 2
+            Circle.position({
+                x: (60 + this.breathePhase * 5) * this.orbScale + '%',
+                y: (32 - this.breathePhase * 3) * this.orbScale + '%'
+            });
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Satellite 3
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(151:15)", "entry");
+            // Satellite 3
+            Circle.width(74 * this.orbScale);
+            // Satellite 3
+            Circle.height(74 * this.orbScale);
+            // Satellite 3
+            Circle.fill(RokuricsColors.aqua + '28');
+            // Satellite 3
+            Circle.position({
+                x: (50 - this.breathePhase * 4) * this.orbScale + '%',
+                y: (68 + this.breathePhase * 3) * this.orbScale + '%'
+            });
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Satellite 4
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(161:15)", "entry");
+            // Satellite 4
+            Circle.width(68 * this.orbScale);
+            // Satellite 4
+            Circle.height(68 * this.orbScale);
+            // Satellite 4
+            Circle.fill(RokuricsColors.mistGreen + '34');
+            // Satellite 4
+            Circle.position({
+                x: (28 + this.breathePhase * 5) * this.orbScale + '%',
+                y: (62 - this.breathePhase * 3) * this.orbScale + '%'
+            });
+        }, Circle);
+        // Orbiting ambient satellites (animated)
+        Stack.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Sound ripple (animated breathing)
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(174:13)", "entry");
+            // Sound ripple (animated breathing)
+            Circle.width(238 * this.orbScale);
+            // Sound ripple (animated breathing)
+            Circle.height(238 * this.orbScale);
+            // Sound ripple (animated breathing)
+            Circle.stroke(RokuricsColors.aqua + '08');
+            // Sound ripple (animated breathing)
+            Circle.strokeWidth(1.4);
+            // Sound ripple (animated breathing)
+            Circle.fill(Color.Transparent);
+            // Sound ripple (animated breathing)
+            Circle.opacity(0.07 + this.breathePhase * 0.05);
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(182:13)", "entry");
+            Circle.width(202 * this.orbScale);
+            Circle.height(202 * this.orbScale);
+            Circle.stroke(RokuricsColors.aqua + '10');
+            Circle.strokeWidth(1.4);
+            Circle.fill(Color.Transparent);
+            Circle.opacity(0.10 + this.breathePhase * 0.05);
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            // Recording red ripple
+            if (this.state === RecordingState.RECORDING) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Circle.create();
+                        Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(192:15)", "entry");
+                        Circle.width(222 * this.orbScale);
+                        Circle.height(222 * this.orbScale);
+                        Circle.stroke(RokuricsColors.coral + '20');
+                        Circle.strokeWidth(1.4);
+                        Circle.fill(Color.Transparent);
+                        Circle.opacity(0.16 + this.breathePhase * 0.08);
+                    }, Circle);
+                });
+            }
+            else if (this.state === RecordingState.PAUSED) {
+                this.ifElseBranchUpdateFunction(1, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Circle.create();
+                        Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(200:15)", "entry");
+                        Circle.width(222 * this.orbScale);
+                        Circle.height(222 * this.orbScale);
+                        Circle.stroke(RokuricsColors.softTeal + '15');
+                        Circle.strokeWidth(1.4);
+                        Circle.fill(Color.Transparent);
+                        Circle.opacity(0.11 + this.breathePhase * 0.06);
+                    }, Circle);
+                });
+            }
+            // Main orb
+            else {
+                this.ifElseBranchUpdateFunction(2, () => {
+                });
+            }
+        }, If);
+        If.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Main orb
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(210:13)", "entry");
+            // Main orb
+            Circle.width(190 * this.orbScale);
+            // Main orb
+            Circle.height(190 * this.orbScale);
+            // Main orb
+            Circle.fill(RokuricsColors.actionStart);
+            // Main orb
+            Circle.shadow({
+                color: RokuricsColors.shadowColor + '24',
+                radius: 30 * this.orbScale,
+                offsetY: 18 * this.orbScale
+            });
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            // Center content
+            if (this.isActive) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create(this.getCenterText());
+                        Text.debugLine("entry/src/main/ets/pages/HomePage.ets(222:15)", "entry");
+                        Text.fontSize(34 * this.orbScale);
+                        Text.fontWeight(FontWeight.Bold);
+                        Text.fontColor('#FFFFFF');
+                        Text.fontFamily('serif');
+                        Text.opacity(this.isPausedBlinking() ? (0.35 + this.breathePhase * 0.65) : 0.97);
+                    }, Text);
+                    Text.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Stack.create();
+                        Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(229:15)", "entry");
+                        Stack.opacity(0.97);
+                    }, Stack);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Rect.create({ width: 56 * this.orbScale, height: 8 * this.orbScale });
+                        Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(230:17)", "entry");
+                        Rect.radius(4);
+                        Rect.fill(Color.White);
+                    }, Rect);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Rect.create({ width: 8 * this.orbScale, height: 56 * this.orbScale });
+                        Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(233:17)", "entry");
+                        Rect.radius(4);
+                        Rect.fill(Color.White);
+                    }, Rect);
+                    Stack.pop();
+                });
+            }
+        }, If);
+        If.pop();
+        Stack.pop();
+        // Recording Orb
+        Button.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.debugLine("entry/src/main/ets/pages/HomePage.ets(255:9)", "entry");
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Navigation Card with glass styling
+            Row.create();
+            Row.debugLine("entry/src/main/ets/pages/HomePage.ets(258:9)", "entry");
+            // Navigation Card with glass styling
+            Row.width('88%');
+            // Navigation Card with glass styling
+            Row.height(104);
+            // Navigation Card with glass styling
+            Row.borderRadius(30);
+            // Navigation Card with glass styling
+            Row.backgroundColor(RokuricsColors.glassSurface + '66');
+            // Navigation Card with glass styling
+            Row.border({
+                width: 1,
+                color: {
+                    colors: [
+                        [0xFFFFFF, 0.44],
+                        [0xEFFAF8, 0.18],
+                        [0x91E8D6, 0.14]
+                    ],
+                    direction: GradientDirection.RightBottom
+                },
+                radius: 30
+            } as BorderOptions);
+            // Navigation Card with glass styling
+            Row.shadow({
+                color: RokuricsColors.shadowColor + '12',
+                radius: 20,
+                offsetY: 11
+            });
+            // Navigation Card with glass styling
+            Row.margin({ bottom: 16 * this.headerScale });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Study Library
+            Button.createWithChild();
+            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(260:11)", "entry");
+            // Study Library
+            Button.layoutWeight(1);
+            // Study Library
+            Button.height(104);
+            // Study Library
+            Button.backgroundColor(Color.Transparent);
+            // Study Library
+            Button.onClick(() => {
+                this.getUIContext().getRouter().pushUrl({ url: 'pages/RecordingLibraryPage' });
+            });
+        }, Button);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 8 });
+            Column.debugLine("entry/src/main/ets/pages/HomePage.ets(261:13)", "entry");
+            Column.width('100%');
+            Column.height(104);
+            Column.justifyContent(FlexAlign.Center);
+        }, Column);
+        BooksIcon.bind(this)(27, RokuricsColors.aqua);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('学习库');
+            Text.debugLine("entry/src/main/ets/pages/HomePage.ets(263:15)", "entry");
+            Text.fontSize(13);
+            Text.fontWeight(FontWeight.SemiBold);
+            Text.fontColor(RokuricsColors.deepText);
+        }, Text);
+        Text.pop();
+        Column.pop();
+        // Study Library
+        Button.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Divider
+            Rect.create();
+            Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(280:11)", "entry");
+            // Divider
+            Rect.width(1);
+            // Divider
+            Rect.height(54);
+            // Divider
+            Rect.fill(RokuricsColors.softText + '14');
+        }, Rect);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // AI Chat
+            Button.createWithChild();
+            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(286:11)", "entry");
+            // AI Chat
+            Button.layoutWeight(1);
+            // AI Chat
+            Button.height(104);
+            // AI Chat
+            Button.backgroundColor(Color.Transparent);
+            // AI Chat
+            Button.onClick(() => {
+                this.getUIContext().getRouter().pushUrl({ url: 'pages/AIChatPage' });
+            });
+        }, Button);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 8 });
+            Column.debugLine("entry/src/main/ets/pages/HomePage.ets(287:13)", "entry");
+            Column.width('100%');
+            Column.height(104);
+            Column.justifyContent(FlexAlign.Center);
+        }, Column);
+        ChatIcon.bind(this)(27, RokuricsColors.mint);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('AI 对话');
+            Text.debugLine("entry/src/main/ets/pages/HomePage.ets(289:15)", "entry");
+            Text.fontSize(13);
+            Text.fontWeight(FontWeight.SemiBold);
+            Text.fontColor(RokuricsColors.deepText);
+        }, Text);
+        Text.pop();
+        Column.pop();
+        // AI Chat
+        Button.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Divider
+            Rect.create();
+            Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(306:11)", "entry");
+            // Divider
+            Rect.width(1);
+            // Divider
+            Rect.height(54);
+            // Divider
+            Rect.fill(RokuricsColors.softText + '14');
+        }, Rect);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Mac Connection
+            Button.createWithChild();
+            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(312:11)", "entry");
+            // Mac Connection
+            Button.layoutWeight(1);
+            // Mac Connection
+            Button.height(104);
+            // Mac Connection
+            Button.backgroundColor(Color.Transparent);
+            // Mac Connection
+            Button.onClick(() => {
+                this.getUIContext().getRouter().pushUrl({ url: 'pages/MacConnectionPage' });
+            });
+        }, Button);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 8 });
+            Column.debugLine("entry/src/main/ets/pages/HomePage.ets(313:13)", "entry");
+            Column.width('100%');
+            Column.height(104);
+            Column.justifyContent(FlexAlign.Center);
+        }, Column);
+        ConnectionIcon.bind(this)(27, RokuricsColors.softTeal, this.isMacPaired);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.isMacPaired ? '已连接' : '连接');
+            Text.debugLine("entry/src/main/ets/pages/HomePage.ets(315:15)", "entry");
+            Text.fontSize(13);
+            Text.fontWeight(FontWeight.SemiBold);
+            Text.fontColor(RokuricsColors.deepText);
+        }, Text);
+        Text.pop();
+        Column.pop();
+        // Mac Connection
+        Button.pop();
+        // Navigation Card with glass styling
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            // Device connection preview card (compact)
+            if (this.isMacPaired) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Column.create();
+                        Column.debugLine("entry/src/main/ets/pages/HomePage.ets(356:11)", "entry");
+                        Column.margin({ bottom: 34 * this.headerScale });
+                    }, Column);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Row.create({ space: 8 });
+                        Row.debugLine("entry/src/main/ets/pages/HomePage.ets(357:13)", "entry");
+                        Row.padding({ left: 14, right: 14, top: 8, bottom: 8 });
+                        Row.borderRadius(14);
+                        Row.backgroundColor(RokuricsColors.glassSurface + glassFillOpacity);
+                        Row.border({
+                            width: 1,
+                            color: {
+                                colors: [
+                                    [0xFFFFFF, glassStrokeHighOpacity],
+                                    [0xEFFAF8, glassStrokeMidOpacity]
+                                ],
+                                direction: GradientDirection.RightBottom
+                            },
+                            radius: 14
+                        } as BorderOptions);
+                    }, Row);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Circle.create();
+                        Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(358:15)", "entry");
+                        Circle.width(8);
+                        Circle.height(8);
+                        Circle.fill(RokuricsColors.mint);
+                    }, Circle);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('Mac 已连接 · 8787');
+                        Text.debugLine("entry/src/main/ets/pages/HomePage.ets(362:15)", "entry");
+                        Text.fontSize(12);
+                        Text.fontWeight(FontWeight.Medium);
+                        Text.fontColor(RokuricsColors.softText);
+                    }, Text);
+                    Text.pop();
+                    Row.pop();
+                    Column.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Blank.create();
+                        Blank.debugLine("entry/src/main/ets/pages/HomePage.ets(384:11)", "entry");
+                        Blank.height(18 * this.headerScale);
+                    }, Blank);
+                    Blank.pop();
+                });
+            }
+        }, If);
+        If.pop();
+        Column.pop();
+        Stack.pop();
+    }
+    AmbientBackground(parent = null) {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create();
+            Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(397:5)", "entry");
+            Stack.width('100%');
+            Stack.height('100%');
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Large ambient bubbles
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(399:7)", "entry");
+            // Large ambient bubbles
+            Circle.width(150);
+            // Large ambient bubbles
+            Circle.height(150);
+            // Large ambient bubbles
+            Circle.fill(RokuricsColors.paleAqua + '30');
+            // Large ambient bubbles
+            Circle.position({ x: -30, y: '-10%' });
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(405:7)", "entry");
+            Circle.width(190);
+            Circle.height(190);
+            Circle.fill(RokuricsColors.skyCyan + '22');
+            Circle.position({ x: '85%', y: '15%' });
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(411:7)", "entry");
+            Circle.width(170);
+            Circle.height(170);
+            Circle.fill(RokuricsColors.mint + '18');
+            Circle.position({ x: '75%', y: '70%' });
+        }, Circle);
+        Stack.pop();
+    }
+    private getCenterText(): string {
+        switch (this.state) {
+            case RecordingState.RECORDING:
+            case RecordingState.PAUSED:
+                return formatClock(this.recordingManager.elapsedSeconds);
+            default:
+                return '...';
+        }
+    }
+    private isPausedBlinking(): boolean {
+        return this.state === RecordingState.PAUSED;
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+    static getEntryName(): string {
+        return "HomePage";
+    }
+}
+registerNamedRoute(() => new HomePage(undefined, {}), "", { bundleName: "com.vita0818.rokurics", moduleName: "entry", pagePath: "pages/HomePage", pageFullPath: "entry/src/main/ets/pages/HomePage", integratedHsp: "false", moduleType: "followWithHap" });

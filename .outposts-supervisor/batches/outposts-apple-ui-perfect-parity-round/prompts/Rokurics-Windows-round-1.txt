@@ -1,0 +1,45 @@
+OUTPOSTS FORMAL TASK - APPLE UI PERFECT PARITY
+
+Mandatory preflight first:
+MODEL_CHECK_RESULT: Confirm current active model route is DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop immediately.
+PATH_CHECK_RESULT: Current working directory must be exactly /Users/vita/Vitemis/Outposts/Rokurics-Windows. If not, stop immediately.
+SOURCE_READONLY_CHECK: Apple source path /Users/vita/Vitemis/Vela/Rokurics is read-only. Do not modify Apple source. All writes must stay inside /Users/vita/Vitemis/Outposts/Rokurics-Windows. Do not access unrelated directories. Do not read or transmit secrets, tokens, private keys, .env, p12, provisioning profiles, SSH keys, API keys, or Keychain content.
+
+PROJECT_NAME: Rokurics-Windows
+ROUND_INDEX: 1
+TARGET_PATH: /Users/vita/Vitemis/Outposts/Rokurics-Windows
+APPLE_SOURCE_READONLY_PATH: /Users/vita/Vitemis/Vela/Rokurics
+
+This batch continues prior migration work. Do not restart from round 1 of the whole project and do not repeat already completed P0/P1 work.
+
+Primary objective: make the Windows client visually and structurally mirror the Apple/macOS Rokurics client as closely as possible, while honestly reporting host verification limits.
+
+Tasks:
+1. Read the latest project recovery/batch reports in /Users/vita/Vitemis/Outposts/.outposts-supervisor that relate to Rokurics-Windows.
+2. Read the Apple Rokurics/macOS source read-only and identify the real macOS shell, navigation, Study Library, RecordingDetail, provider settings, model picker, connection/pairing, Kestrel/WASAPI/WhisperCpp architecture, typography, spacing, panels, and detail-page hierarchy.
+3. Read the current Windows target UI implementation and create an Apple/macOS UI parity checklist.
+4. Compare target UI against Apple/macOS UI yourself. Do not wait for user-provided differences.
+5. Implement the highest-impact safe UI/layout/provider wiring parity fixes in the Windows target.
+6. If the macOS host still lacks .NET SDK, do not loop on build/test. Continue static UI/provider/Kestrel/pairing/WASAPI/WhisperCpp structure preparation where safe and report HOST_ENV_BLOCKED.
+7. Keep any available static checks/builds green if tooling is available.
+8. Explicitly list what must be validated on Windows/.NET environment.
+9. Do not commit, push, or create PR.
+
+Final report only, structured and concise. Do not paste long diffs or long logs. Include:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+APPLE_UI_PARITY_CHECKLIST
+UI_LAYOUT_ALIGNMENT_PROGRESS
+FUNCTIONAL_PARITY_PROGRESS
+BUILD_RESULT
+TEST_RESULT
+VISUAL_OR_UI_VALIDATION_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+BLOCKERS
+REGRESSION_RISKS
+NEXT_ROUND_RECOMMENDATION

@@ -1,0 +1,778 @@
+Ôr@Ÿªassertions¤code´customTransformCache¬dependencies¢id¤meta±moduleSideEffects¬originalCode±originalSourcemap«resolvedIds®sourcemapChainµsyntheticNamedExportsµtransformDependencies®transformFiles¨cacheAstÔrAÚ$­/**
+ * SamplePresets - Built-in preset data for first launch.
+ * Markdown content must be declared before builtInPresets for ArkTS hoisting rules.
+ *
+ * Translated from source/Kikaria/KnowledgePoint.swift
+ */
+import { KnowledgePreset } from '../model/KnowledgePoint';
+export const DEFAULT_PRESET_ID = 'builtin-å¾®ç§¯åˆ†';
+// Embedded markdown content for each preset (must be before builtInPresets for ArkTS)
+const BUILTIN_MARKDOWN_å¾®ç§¯åˆ† = `# é›†åˆä¸å…ƒç´ 
+
+tags: ç¬¬ä¸€è®² é¢„å¤‡çŸ¥è¯†
+
+hint:
+é›†åˆã€å…ƒç´ ä»¥åŠå±äºå…³ç³»æ€æ ·è¡¨ç¤ºï¼Ÿ
+
+content:
+é›†åˆæ˜¯æŒ‡ç”±ä¸€äº›å¯ä»¥ç¡®å®šã€å¯ä»¥åˆ†è¾¨çš„äº‹ç‰©æ„æˆçš„æ•´ä½“ã€‚é€šå¸¸ç”¨å¤§å†™å­—æ¯è¡¨ç¤ºé›†åˆï¼Œä¾‹å¦‚ A,B,C,...,X,Y,Zã€‚
+
+ç»„æˆé›†åˆçš„æˆå‘˜ç§°ä¸ºé›†åˆçš„å…ƒç´ ï¼Œé€šå¸¸ç”¨å°å†™å­—æ¯è¡¨ç¤ºï¼Œä¾‹å¦‚ a,b,c,...,x,y,zã€‚
+
+è‹¥ a æ˜¯é›†åˆ A çš„ä¸€ä¸ªå…ƒç´ ï¼Œè®°ä¸º aâˆˆAã€‚è‹¥ a ä¸æ˜¯é›†åˆ A çš„å…ƒç´ ï¼Œè®°ä¸º aâˆ‰Aã€‚
+
+---
+
+# å­é›†ã€ç›¸ç­‰ä¸çœŸå­é›†
+
+tags: ç¬¬ä¸€è®² é¢„å¤‡çŸ¥è¯†
+
+hint:
+å­é›†ã€ç›¸ç­‰ã€çœŸå­é›†çš„å®šä¹‰ä»¥åŠå¦‚ä½•è¯æ˜ï¼Ÿ
+
+content:
+è®¾ A,B æ˜¯ä¸¤ä¸ªé›†åˆã€‚è‹¥å¯¹ä»»æ„ xâˆˆAï¼Œå‡æœ‰ xâˆˆBï¼Œåˆ™ç§° A æ˜¯ B çš„å­é›†ï¼Œè®°ä½œ AâŠ†Bã€‚
+
+è‹¥ AâŠ†B ä¸” BâŠ†Aï¼Œåˆ™ç§° A ä¸ B ç›¸ç­‰ï¼Œè®°ä½œ A=Bã€‚
+
+è‹¥ AâŠ†B ä¸” Aâ‰ Bï¼Œåˆ™ç§° A æ˜¯ B çš„çœŸå­é›†ã€‚
+
+---
+
+# é›†åˆçš„è¿ç®—
+
+tags: ç¬¬ä¸€è®² é¢„å¤‡çŸ¥è¯†
+
+hint:
+å¹¶é›†ã€äº¤é›†ã€å·®é›†ã€è¡¥é›†çš„å®šä¹‰ã€‚
+
+content:
+å¹¶é›† AâˆªB = {x | xâˆˆA æˆ– xâˆˆB}
+äº¤é›† Aâˆ©B = {x | xâˆˆA ä¸” xâˆˆB}
+å·®é›† A\\B = {x | xâˆˆA ä¸” xâˆ‰B}
+è¡¥é›† Ac = {x | xâˆ‰A}
+
+---
+
+# å‡½æ•°çš„å®šä¹‰
+
+tags: ç¬¬ä¸€è®² é¢„å¤‡çŸ¥è¯†
+
+hint:
+å‡½æ•°ã€å®šä¹‰åŸŸã€å€¼åŸŸçš„å®šä¹‰ã€‚
+
+content:
+è®¾ D æ˜¯ä¸€ä¸ªéç©ºå®æ•°é›†åˆï¼Œè‹¥å­˜åœ¨ä¸€ä¸ªå¯¹åº”æ³•åˆ™ fï¼Œä½¿å¾—å¯¹æ¯ä¸€ä¸ª xâˆˆD éƒ½æœ‰ä¸€ä¸ªå”¯ä¸€ç¡®å®šçš„å®æ•° y ä¸ä¹‹å¯¹åº”ï¼Œåˆ™ç§° f æ˜¯å®šä¹‰åœ¨ D ä¸Šçš„ä¸€ä¸ªå‡½æ•°ã€‚D ç§°ä¸ºå®šä¹‰åŸŸï¼Œå…¨ä½“å‡½æ•°å€¼ {f(x)|xâˆˆD} ç§°ä¸ºå€¼åŸŸã€‚
+
+---
+
+# æ•°åˆ—æé™çš„å®šä¹‰
+
+tags: ç¬¬äºŒè®² æé™
+
+hint:
+Îµ-N è¯­è¨€è¡¨è¾¾çš„æ•°åˆ—æé™å®šä¹‰ã€‚
+
+content:
+è®¾ {an} æ˜¯ä¸€ä¸ªæ•°åˆ—ï¼ŒA æ˜¯ä¸€ä¸ªå¸¸æ•°ã€‚è‹¥å¯¹ä»»æ„ç»™å®šçš„ Îµ>0ï¼Œæ€»å­˜åœ¨æ­£æ•´æ•° Nï¼Œä½¿å¾—å½“ n>N æ—¶ï¼Œæ€»æœ‰ |an - A| < Îµï¼Œåˆ™ç§°æ•°åˆ— {an} ä»¥ A ä¸ºæé™ï¼Œè®°ä½œ lim(nâ†’âˆ) an = Aã€‚
+
+---
+
+# å‡½æ•°æé™çš„å®šä¹‰
+
+tags: ç¬¬äºŒè®² æé™
+
+hint:
+Îµ-Î´ è¯­è¨€è¡¨è¾¾çš„å‡½æ•°æé™å®šä¹‰ã€‚
+
+content:
+è®¾å‡½æ•° f(x) åœ¨ç‚¹ a çš„æŸä¸ªå»å¿ƒé‚»åŸŸå†…æœ‰å®šä¹‰ï¼ŒA æ˜¯ä¸€ä¸ªå¸¸æ•°ã€‚è‹¥å¯¹ä»»æ„ç»™å®šçš„ Îµ>0ï¼Œæ€»å­˜åœ¨ Î´>0ï¼Œä½¿å¾—å½“ 0 < |x-a| < Î´ æ—¶ï¼Œæ€»æœ‰ |f(x)-A| < Îµï¼Œåˆ™ç§°å½“ x è¶‹äº a æ—¶ f(x) ä»¥ A ä¸ºæé™ï¼Œè®°ä½œ lim(xâ†’a) f(x) = Aã€‚
+
+---
+
+# æ— ç©·å°ä¸æ— ç©·å¤§
+
+tags: ç¬¬äºŒè®² æé™
+
+hint:
+æ— ç©·å°ã€æ— ç©·å¤§çš„å®šä¹‰å’Œå…³ç³»ã€‚
+
+content:
+è‹¥ lim f(x) = 0ï¼Œåˆ™ç§° f(x) æ˜¯å½“ xâ†’aï¼ˆæˆ– xâ†’âˆï¼‰æ—¶çš„æ— ç©·å°ã€‚è‹¥å¯¹ä»»æ„ M>0ï¼Œå­˜åœ¨ Î´>0ï¼Œä½¿å¾—å½“ 0<|x-a|<Î´ æ—¶ |f(x)|>Mï¼Œåˆ™ç§° f(x) æ˜¯æ— ç©·å¤§ã€‚åœ¨åŒä¸€æé™è¿‡ç¨‹ä¸­ï¼Œè‹¥ f(x) æ˜¯æ— ç©·å¤§ï¼Œåˆ™ 1/f(x) æ˜¯æ— ç©·å°ã€‚`;
+const BUILTIN_MARKDOWN_å¤§å­¦è‹±è¯­Band4 = `# Abandon
+
+tags: Band4, Vocabulary
+
+hint:
+Verb meaning to give up completely, desert, or yield to emotion.
+
+content:
+abandon (v.) - to give up completely; to desert or forsake; to yield (oneself) to emotion.
+
+Example: The crew abandoned the sinking ship.
+
+---
+
+# Abstract
+
+tags: Band4, Vocabulary
+
+hint:
+Adjective meaning existing in thought rather than matter; not concrete.
+
+content:
+abstract (adj.) - existing in thought or as an idea but not having a physical or concrete existence.
+
+Example: Beauty is an abstract concept.
+
+---
+
+# Accommodate
+
+tags: Band4, Vocabulary
+
+hint:
+Verb meaning to provide lodging, adapt to, or make fit.
+
+content:
+accommodate (v.) - to provide lodging or room for; to adjust or adapt to.
+
+Example: The hotel can accommodate 200 guests.
+
+---
+
+# Accumulate
+
+tags: Band4, Vocabulary
+
+hint:
+Verb meaning to gather or pile up gradually.
+
+content:
+accumulate (v.) - to gather or pile up little by little; to increase gradually.
+
+Example: Dust accumulates on furniture.
+
+---
+
+# Accurate
+
+tags: Band4, Vocabulary
+
+hint:
+Adjective meaning free from error; precise and exact.
+
+content:
+accurate (adj.) - free from error or defect; precise; exact.
+
+Example: The witness gave an accurate description.
+
+---
+
+# Acknowledge
+
+tags: Band4, Vocabulary
+
+hint:
+Verb meaning to admit the existence or truth of; to express recognition.
+
+content:
+acknowledge (v.) - to admit to be real or true; to recognize the existence of.
+
+Example: He acknowledged his mistake.
+
+---
+
+# Acquire
+
+tags: Band4, Vocabulary
+
+hint:
+Verb meaning to gain possession of; to obtain by one's own efforts.
+
+content:
+acquire (v.) - to gain possession of; to get as one's own.
+
+Example: She acquired a good knowledge of English.`;
+const BUILTIN_MARKDOWN_å¤§å­¦ç‰©ç† = `# è´¨ç‚¹è¿åŠ¨å­¦
+
+tags: åŠ›å­¦, è¿åŠ¨å­¦
+
+hint:
+ä½ç½®çŸ¢é‡ã€ä½ç§»ã€é€Ÿåº¦ã€åŠ é€Ÿåº¦çš„åŸºæœ¬å®šä¹‰ã€‚
+
+content:
+ä½ç½®çŸ¢é‡ r = xi + yj + zkã€‚ä½ç§» Î”r = r(t+Î”t) - r(t)ã€‚é€Ÿåº¦ v = dr/dtã€‚åŠ é€Ÿåº¦ a = dv/dtã€‚
+
+---
+
+# ç‰›é¡¿ç¬¬ä¸€å®šå¾‹
+
+tags: åŠ›å­¦, ç‰›é¡¿å®šå¾‹
+
+hint:
+ç‰©ä½“åœ¨ä¸å—å¤–åŠ›æ—¶å°†ä¿æŒé™æ­¢æˆ–åŒ€é€Ÿç›´çº¿è¿åŠ¨çŠ¶æ€ã€‚
+
+content:
+ä»»ä½•ç‰©ä½“éƒ½å°†ä¿æŒå…¶é™æ­¢æˆ–åŒ€é€Ÿç›´çº¿è¿åŠ¨çŠ¶æ€ï¼Œç›´åˆ°å¤–åŠ›è¿«ä½¿å®ƒæ”¹å˜è¿™ç§çŠ¶æ€ä¸ºæ­¢ã€‚è´¨é‡æ˜¯ç‰©ä½“æƒ¯æ€§çš„é‡åº¦ã€‚
+
+---
+
+# ç‰›é¡¿ç¬¬äºŒå®šå¾‹
+
+tags: åŠ›å­¦, ç‰›é¡¿å®šå¾‹
+
+hint:
+ç‰©ä½“çš„åŠ é€Ÿåº¦ä¸åˆå¤–åŠ›æˆæ­£æ¯”ï¼Œä¸è´¨é‡æˆåæ¯”ã€‚
+
+content:
+F = maï¼Œå…¶ä¸­ F æ˜¯åˆå¤–åŠ›ï¼Œm æ˜¯è´¨é‡ï¼Œa æ˜¯åŠ é€Ÿåº¦ã€‚è¿™æ˜¯ç»å…¸åŠ›å­¦çš„åŸºæœ¬æ–¹ç¨‹ã€‚åŠ¨é‡å½¢å¼ï¼šF = dp/dtã€‚
+
+---
+
+# ç‰›é¡¿ç¬¬ä¸‰å®šå¾‹
+
+tags: åŠ›å­¦, ç‰›é¡¿å®šå¾‹
+
+hint:
+ä½œç”¨åŠ›ä¸åä½œç”¨åŠ›æ€»æ˜¯æˆå¯¹å‡ºç°ï¼Œå¤§å°ç›¸ç­‰æ–¹å‘ç›¸åã€‚
+
+content:
+ä¸¤ä¸ªç‰©ä½“ä¹‹é—´çš„ä½œç”¨åŠ›ä¸åä½œç”¨åŠ›æ€»æ˜¯å¤§å°ç›¸ç­‰ã€æ–¹å‘ç›¸åã€ä½œç”¨åœ¨åŒä¸€æ¡ç›´çº¿ä¸Šã€‚æ³¨æ„å®ƒä»¬ä½œç”¨åœ¨ä¸åŒçš„ç‰©ä½“ä¸Šã€‚
+
+---
+
+# åŠŸå’ŒåŠ¨èƒ½
+
+tags: åŠ›å­¦, èƒ½é‡
+
+hint:
+åŠŸæ˜¯åŠ›åœ¨ä½ç§»æ–¹å‘ä¸Šçš„åˆ†é‡ä¸ä½ç§»çš„ä¹˜ç§¯ã€‚
+
+content:
+W = âˆ«FÂ·drï¼ŒåŠŸæ˜¯åŠ›å¯¹ä½ç§»çš„ç§¯åˆ†ã€‚åŠ¨èƒ½ Ek = Â½mvÂ²ã€‚åŠ¨èƒ½å®šç†ï¼šåˆå¤–åŠ›åšçš„åŠŸç­‰äºåŠ¨èƒ½å¢é‡ã€‚
+
+---
+
+# ä¿å®ˆåŠ›å’ŒåŠ¿èƒ½
+
+tags: åŠ›å­¦, èƒ½é‡
+
+hint:
+ä¿å®ˆåŠ›åšçš„åŠŸä¸è·¯å¾„æ— å…³ï¼Œå¯ä»¥å®šä¹‰åŠ¿èƒ½ã€‚
+
+content:
+ä¿å®ˆåŠ›åšåŠŸä¸è·¯å¾„æ— å…³ã€‚åŠ¿èƒ½ Ep å®šä¹‰ä¸ºä¿å®ˆåŠ›åšåŠŸçš„è´Ÿå€¼ã€‚é‡åŠ›åŠ¿èƒ½ï¼šEp = mghã€‚å¼¹æ€§åŠ¿èƒ½ï¼šEp = Â½kxÂ²ã€‚
+
+---
+
+# æœºæ¢°èƒ½å®ˆæ’å®šå¾‹
+
+tags: åŠ›å­¦, èƒ½é‡
+
+hint:
+åªæœ‰ä¿å®ˆåŠ›åšåŠŸæ—¶ï¼Œæœºæ¢°èƒ½å®ˆæ’ã€‚
+
+content:
+å½“åªæœ‰ä¿å®ˆåŠ›åšåŠŸæ—¶ï¼Œç³»ç»Ÿçš„æœºæ¢°èƒ½ï¼ˆåŠ¨èƒ½+åŠ¿èƒ½ï¼‰ä¿æŒä¸å˜ï¼šE = Ek + Ep = å¸¸é‡ã€‚`;
+const BUILTIN_MARKDOWN_ç¦»æ•£æ•°å­¦ = `# å‘½é¢˜ä¸è”ç»“è¯
+
+tags: æ•°ç†é€»è¾‘, åŸºç¡€
+
+hint:
+å‘½é¢˜çš„å®šä¹‰ä»¥åŠäº”ç§åŸºæœ¬è”ç»“è¯ã€‚
+
+content:
+å‘½é¢˜ï¼šèƒ½åˆ¤æ–­çœŸå‡çš„é™ˆè¿°å¥ã€‚äº”ç§åŸºæœ¬è”ç»“è¯ï¼šÂ¬ å¦ï¼Œâˆ§ ä¸ï¼Œâˆ¨ æˆ–ï¼Œâ†’ è•´å«ï¼Œâ†” ç­‰ä»·ã€‚
+
+---
+
+# çœŸå€¼è¡¨
+
+tags: æ•°ç†é€»è¾‘, åŸºç¡€
+
+hint:
+ç”¨çœŸå€¼è¡¨åˆ¤æ–­å…¬å¼çš„ç±»å‹ã€‚
+
+content:
+çœŸå€¼è¡¨åˆ—å‡ºå‘½é¢˜å…¬å¼åœ¨æ‰€æœ‰å¯èƒ½çœŸå€¼æŒ‡æ´¾ä¸‹çš„å–å€¼ã€‚æ°¸çœŸå¼ï¼ˆé‡è¨€å¼ï¼‰ï¼šæ‰€æœ‰æŒ‡æ´¾å‡ä¸ºçœŸã€‚æ°¸å‡å¼ï¼ˆçŸ›ç›¾å¼ï¼‰ï¼šæ‰€æœ‰æŒ‡æ´¾å‡ä¸ºå‡ã€‚å¯æ»¡è¶³å¼ï¼šè‡³å°‘å­˜åœ¨ä¸€ä¸ªæˆçœŸæŒ‡æ´¾ã€‚
+
+---
+
+# ç­‰ä»·ä¸è•´å«
+
+tags: æ•°ç†é€»è¾‘, æ¨ç†
+
+hint:
+é€»è¾‘ç­‰ä»·çš„å®šä¹‰å’Œå¸¸ç”¨ç­‰ä»·å…¬å¼ã€‚
+
+content:
+è‹¥ Aâ†”B æ˜¯æ°¸çœŸå¼ï¼Œåˆ™ A ä¸ B é€»è¾‘ç­‰ä»·ã€‚å¸¸ç”¨ï¼šÂ¬Â¬P â‡” Pï¼ˆåŒé‡å¦å®šå¾‹ï¼‰ï¼ŒÂ¬(Pâˆ§Q) â‡” Â¬Pâˆ¨Â¬Qï¼ˆå¾·æ‘©æ ¹å¾‹ï¼‰ï¼ŒPâ†’Q â‡” Â¬Pâˆ¨Qã€‚
+
+---
+
+# é‡è¯
+
+tags: æ•°ç†é€»è¾‘, è°“è¯é€»è¾‘
+
+hint:
+å…¨ç§°é‡è¯å’Œå­˜åœ¨é‡è¯çš„å®šä¹‰ã€‚
+
+content:
+âˆ€x P(x) è¡¨ç¤º"å¯¹æ‰€æœ‰ xï¼ŒP(x) ä¸ºçœŸ"ã€‚âˆƒx P(x) è¡¨ç¤º"å­˜åœ¨ x ä½¿ P(x) ä¸ºçœŸ"ã€‚é‡è¯å¦å®šï¼šÂ¬âˆ€x P(x) â‡” âˆƒx Â¬P(x)ï¼ŒÂ¬âˆƒx P(x) â‡” âˆ€x Â¬P(x)ã€‚
+
+---
+
+# é›†åˆçš„åŸºæœ¬æ¦‚å¿µ
+
+tags: é›†åˆè®º, åŸºç¡€
+
+hint:
+é›†åˆçš„è¡¨ç¤ºæ³•å’ŒåŸºæœ¬å…³ç³»ã€‚
+
+content:
+åˆ—ä¸¾æ³•ï¼šA = {1, 2, 3}ã€‚è°“è¯æ³•ï¼šA = {x | P(x)}ã€‚åŸºæ•° |A| æ˜¯å…ƒç´ ä¸ªæ•°ã€‚å¹‚é›† P(A) æ˜¯æ‰€æœ‰å­é›†çš„é›†åˆã€‚
+
+---
+
+# å…³ç³»çš„å®šä¹‰
+
+tags: å…³ç³», åŸºç¡€
+
+hint:
+äºŒå…ƒå…³ç³»çš„å®šä¹‰å’Œè¡¨ç¤ºæ³•ã€‚
+
+content:
+AÃ—B çš„å­é›†ç§°ä¸ºä» A åˆ° B çš„äºŒå…ƒå…³ç³»ã€‚è¡¨ç¤ºæ³•ï¼šé›†åˆè¡¨ç¤º R = {(a,b)}ï¼ŒçŸ©é˜µè¡¨ç¤ºå’Œå›¾è¡¨å¼ã€‚
+
+---
+
+# å…³ç³»çš„æ€§è´¨
+
+tags: å…³ç³», åŸºç¡€
+
+hint:
+è‡ªåæ€§ã€å¯¹ç§°æ€§ã€åå¯¹ç§°æ€§ã€ä¼ é€’æ€§ã€‚
+
+content:
+è‡ªåæ€§ï¼šâˆ€xï¼ŒxRxã€‚å¯¹ç§°æ€§ï¼šè‹¥ xRy åˆ™ yRxã€‚åå¯¹ç§°æ€§ï¼šè‹¥ xRy ä¸” yRx åˆ™ x=yã€‚ä¼ é€’æ€§ï¼šè‹¥ xRy ä¸” yRz åˆ™ xRzã€‚`;
+export const builtInPresets = [
+    new KnowledgePreset('builtin-å¾®ç§¯åˆ†', 'å¾®ç§¯åˆ†', 'å¾®ç§¯åˆ†çŸ¥è¯†ç‚¹', 'ç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/å¾®ç§¯åˆ†.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚', 'å†…ç½®é¢„è®¾', BUILTIN_MARKDOWN_å¾®ç§¯åˆ†, true),
+    new KnowledgePreset('builtin-å¤§å­¦è‹±è¯­Band4', 'å¤§å­¦è‹±è¯­Band4', 'å¤§å­¦è‹±è¯­Band4çŸ¥è¯†ç‚¹', 'ç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/å¤§å­¦è‹±è¯­Band4.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚', 'å†…ç½®é¢„è®¾', BUILTIN_MARKDOWN_å¤§å­¦è‹±è¯­Band4, true),
+    new KnowledgePreset('builtin-å¤§å­¦ç‰©ç†', 'å¤§å­¦ç‰©ç†', 'å¤§å­¦ç‰©ç†çŸ¥è¯†ç‚¹', 'ç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/å¤§å­¦ç‰©ç†.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚', 'å†…ç½®é¢„è®¾', BUILTIN_MARKDOWN_å¤§å­¦ç‰©ç†, true),
+    new KnowledgePreset('builtin-ç¦»æ•£æ•°å­¦', 'ç¦»æ•£æ•°å­¦', 'ç¦»æ•£æ•°å­¦çŸ¥è¯†ç‚¹', 'ç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/ç¦»æ•£æ•°å­¦.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚', 'å†…ç½®é¢„è®¾', BUILTIN_MARKDOWN_ç¦»æ•£æ•°å­¦, true)
+];
+//# sourceMappingURL=SamplePresets.js.mapÂ‘ÙZ/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/model/KnowledgePoint.etsÙX/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/data/SamplePresets.etsÔrB›ªmoduleName±isLocalDependency¯isNodeEntryFile§pkgPath±belongProjectPath§pkgNameªpkgVersion±dependencyPkgInfo¯hostModulesInfo°belongModulePath¬shouldEmitJs¥entryÃÂÙ4/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entryÙ./Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS¥entry¥1.0.0Ô  ‘ÔrC’²hostDependencyName®hostModuleNameµ../data/SamplePresets¥entryÙ4/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entryÃÃÚ$ü/**
+ * SamplePresets - Built-in preset data for first launch.
+ * Markdown content must be declared before builtInPresets for ArkTS hoisting rules.
+ *
+ * Translated from source/Kikaria/KnowledgePoint.swift
+ */
+import { KnowledgePreset } from '../model/KnowledgePoint'
+
+export const DEFAULT_PRESET_ID = 'builtin-å¾®ç§¯åˆ†'
+
+// Embedded markdown content for each preset (must be before builtInPresets for ArkTS)
+
+const BUILTIN_MARKDOWN_å¾®ç§¯åˆ† = `# é›†åˆä¸å…ƒç´ 
+
+tags: ç¬¬ä¸€è®² é¢„å¤‡çŸ¥è¯†
+
+hint:
+é›†åˆã€å…ƒç´ ä»¥åŠå±äºå…³ç³»æ€æ ·è¡¨ç¤ºï¼Ÿ
+
+content:
+é›†åˆæ˜¯æŒ‡ç”±ä¸€äº›å¯ä»¥ç¡®å®šã€å¯ä»¥åˆ†è¾¨çš„äº‹ç‰©æ„æˆçš„æ•´ä½“ã€‚é€šå¸¸ç”¨å¤§å†™å­—æ¯è¡¨ç¤ºé›†åˆï¼Œä¾‹å¦‚ A,B,C,...,X,Y,Zã€‚
+
+ç»„æˆé›†åˆçš„æˆå‘˜ç§°ä¸ºé›†åˆçš„å…ƒç´ ï¼Œé€šå¸¸ç”¨å°å†™å­—æ¯è¡¨ç¤ºï¼Œä¾‹å¦‚ a,b,c,...,x,y,zã€‚
+
+è‹¥ a æ˜¯é›†åˆ A çš„ä¸€ä¸ªå…ƒç´ ï¼Œè®°ä¸º aâˆˆAã€‚è‹¥ a ä¸æ˜¯é›†åˆ A çš„å…ƒç´ ï¼Œè®°ä¸º aâˆ‰Aã€‚
+
+---
+
+# å­é›†ã€ç›¸ç­‰ä¸çœŸå­é›†
+
+tags: ç¬¬ä¸€è®² é¢„å¤‡çŸ¥è¯†
+
+hint:
+å­é›†ã€ç›¸ç­‰ã€çœŸå­é›†çš„å®šä¹‰ä»¥åŠå¦‚ä½•è¯æ˜ï¼Ÿ
+
+content:
+è®¾ A,B æ˜¯ä¸¤ä¸ªé›†åˆã€‚è‹¥å¯¹ä»»æ„ xâˆˆAï¼Œå‡æœ‰ xâˆˆBï¼Œåˆ™ç§° A æ˜¯ B çš„å­é›†ï¼Œè®°ä½œ AâŠ†Bã€‚
+
+è‹¥ AâŠ†B ä¸” BâŠ†Aï¼Œåˆ™ç§° A ä¸ B ç›¸ç­‰ï¼Œè®°ä½œ A=Bã€‚
+
+è‹¥ AâŠ†B ä¸” Aâ‰ Bï¼Œåˆ™ç§° A æ˜¯ B çš„çœŸå­é›†ã€‚
+
+---
+
+# é›†åˆçš„è¿ç®—
+
+tags: ç¬¬ä¸€è®² é¢„å¤‡çŸ¥è¯†
+
+hint:
+å¹¶é›†ã€äº¤é›†ã€å·®é›†ã€è¡¥é›†çš„å®šä¹‰ã€‚
+
+content:
+å¹¶é›† AâˆªB = {x | xâˆˆA æˆ– xâˆˆB}
+äº¤é›† Aâˆ©B = {x | xâˆˆA ä¸” xâˆˆB}
+å·®é›† A\\B = {x | xâˆˆA ä¸” xâˆ‰B}
+è¡¥é›† Ac = {x | xâˆ‰A}
+
+---
+
+# å‡½æ•°çš„å®šä¹‰
+
+tags: ç¬¬ä¸€è®² é¢„å¤‡çŸ¥è¯†
+
+hint:
+å‡½æ•°ã€å®šä¹‰åŸŸã€å€¼åŸŸçš„å®šä¹‰ã€‚
+
+content:
+è®¾ D æ˜¯ä¸€ä¸ªéç©ºå®æ•°é›†åˆï¼Œè‹¥å­˜åœ¨ä¸€ä¸ªå¯¹åº”æ³•åˆ™ fï¼Œä½¿å¾—å¯¹æ¯ä¸€ä¸ª xâˆˆD éƒ½æœ‰ä¸€ä¸ªå”¯ä¸€ç¡®å®šçš„å®æ•° y ä¸ä¹‹å¯¹åº”ï¼Œåˆ™ç§° f æ˜¯å®šä¹‰åœ¨ D ä¸Šçš„ä¸€ä¸ªå‡½æ•°ã€‚D ç§°ä¸ºå®šä¹‰åŸŸï¼Œå…¨ä½“å‡½æ•°å€¼ {f(x)|xâˆˆD} ç§°ä¸ºå€¼åŸŸã€‚
+
+---
+
+# æ•°åˆ—æé™çš„å®šä¹‰
+
+tags: ç¬¬äºŒè®² æé™
+
+hint:
+Îµ-N è¯­è¨€è¡¨è¾¾çš„æ•°åˆ—æé™å®šä¹‰ã€‚
+
+content:
+è®¾ {an} æ˜¯ä¸€ä¸ªæ•°åˆ—ï¼ŒA æ˜¯ä¸€ä¸ªå¸¸æ•°ã€‚è‹¥å¯¹ä»»æ„ç»™å®šçš„ Îµ>0ï¼Œæ€»å­˜åœ¨æ­£æ•´æ•° Nï¼Œä½¿å¾—å½“ n>N æ—¶ï¼Œæ€»æœ‰ |an - A| < Îµï¼Œåˆ™ç§°æ•°åˆ— {an} ä»¥ A ä¸ºæé™ï¼Œè®°ä½œ lim(nâ†’âˆ) an = Aã€‚
+
+---
+
+# å‡½æ•°æé™çš„å®šä¹‰
+
+tags: ç¬¬äºŒè®² æé™
+
+hint:
+Îµ-Î´ è¯­è¨€è¡¨è¾¾çš„å‡½æ•°æé™å®šä¹‰ã€‚
+
+content:
+è®¾å‡½æ•° f(x) åœ¨ç‚¹ a çš„æŸä¸ªå»å¿ƒé‚»åŸŸå†…æœ‰å®šä¹‰ï¼ŒA æ˜¯ä¸€ä¸ªå¸¸æ•°ã€‚è‹¥å¯¹ä»»æ„ç»™å®šçš„ Îµ>0ï¼Œæ€»å­˜åœ¨ Î´>0ï¼Œä½¿å¾—å½“ 0 < |x-a| < Î´ æ—¶ï¼Œæ€»æœ‰ |f(x)-A| < Îµï¼Œåˆ™ç§°å½“ x è¶‹äº a æ—¶ f(x) ä»¥ A ä¸ºæé™ï¼Œè®°ä½œ lim(xâ†’a) f(x) = Aã€‚
+
+---
+
+# æ— ç©·å°ä¸æ— ç©·å¤§
+
+tags: ç¬¬äºŒè®² æé™
+
+hint:
+æ— ç©·å°ã€æ— ç©·å¤§çš„å®šä¹‰å’Œå…³ç³»ã€‚
+
+content:
+è‹¥ lim f(x) = 0ï¼Œåˆ™ç§° f(x) æ˜¯å½“ xâ†’aï¼ˆæˆ– xâ†’âˆï¼‰æ—¶çš„æ— ç©·å°ã€‚è‹¥å¯¹ä»»æ„ M>0ï¼Œå­˜åœ¨ Î´>0ï¼Œä½¿å¾—å½“ 0<|x-a|<Î´ æ—¶ |f(x)|>Mï¼Œåˆ™ç§° f(x) æ˜¯æ— ç©·å¤§ã€‚åœ¨åŒä¸€æé™è¿‡ç¨‹ä¸­ï¼Œè‹¥ f(x) æ˜¯æ— ç©·å¤§ï¼Œåˆ™ 1/f(x) æ˜¯æ— ç©·å°ã€‚`
+
+const BUILTIN_MARKDOWN_å¤§å­¦è‹±è¯­Band4 = `# Abandon
+
+tags: Band4, Vocabulary
+
+hint:
+Verb meaning to give up completely, desert, or yield to emotion.
+
+content:
+abandon (v.) - to give up completely; to desert or forsake; to yield (oneself) to emotion.
+
+Example: The crew abandoned the sinking ship.
+
+---
+
+# Abstract
+
+tags: Band4, Vocabulary
+
+hint:
+Adjective meaning existing in thought rather than matter; not concrete.
+
+content:
+abstract (adj.) - existing in thought or as an idea but not having a physical or concrete existence.
+
+Example: Beauty is an abstract concept.
+
+---
+
+# Accommodate
+
+tags: Band4, Vocabulary
+
+hint:
+Verb meaning to provide lodging, adapt to, or make fit.
+
+content:
+accommodate (v.) - to provide lodging or room for; to adjust or adapt to.
+
+Example: The hotel can accommodate 200 guests.
+
+---
+
+# Accumulate
+
+tags: Band4, Vocabulary
+
+hint:
+Verb meaning to gather or pile up gradually.
+
+content:
+accumulate (v.) - to gather or pile up little by little; to increase gradually.
+
+Example: Dust accumulates on furniture.
+
+---
+
+# Accurate
+
+tags: Band4, Vocabulary
+
+hint:
+Adjective meaning free from error; precise and exact.
+
+content:
+accurate (adj.) - free from error or defect; precise; exact.
+
+Example: The witness gave an accurate description.
+
+---
+
+# Acknowledge
+
+tags: Band4, Vocabulary
+
+hint:
+Verb meaning to admit the existence or truth of; to express recognition.
+
+content:
+acknowledge (v.) - to admit to be real or true; to recognize the existence of.
+
+Example: He acknowledged his mistake.
+
+---
+
+# Acquire
+
+tags: Band4, Vocabulary
+
+hint:
+Verb meaning to gain possession of; to obtain by one's own efforts.
+
+content:
+acquire (v.) - to gain possession of; to get as one's own.
+
+Example: She acquired a good knowledge of English.`
+
+const BUILTIN_MARKDOWN_å¤§å­¦ç‰©ç† = `# è´¨ç‚¹è¿åŠ¨å­¦
+
+tags: åŠ›å­¦, è¿åŠ¨å­¦
+
+hint:
+ä½ç½®çŸ¢é‡ã€ä½ç§»ã€é€Ÿåº¦ã€åŠ é€Ÿåº¦çš„åŸºæœ¬å®šä¹‰ã€‚
+
+content:
+ä½ç½®çŸ¢é‡ r = xi + yj + zkã€‚ä½ç§» Î”r = r(t+Î”t) - r(t)ã€‚é€Ÿåº¦ v = dr/dtã€‚åŠ é€Ÿåº¦ a = dv/dtã€‚
+
+---
+
+# ç‰›é¡¿ç¬¬ä¸€å®šå¾‹
+
+tags: åŠ›å­¦, ç‰›é¡¿å®šå¾‹
+
+hint:
+ç‰©ä½“åœ¨ä¸å—å¤–åŠ›æ—¶å°†ä¿æŒé™æ­¢æˆ–åŒ€é€Ÿç›´çº¿è¿åŠ¨çŠ¶æ€ã€‚
+
+content:
+ä»»ä½•ç‰©ä½“éƒ½å°†ä¿æŒå…¶é™æ­¢æˆ–åŒ€é€Ÿç›´çº¿è¿åŠ¨çŠ¶æ€ï¼Œç›´åˆ°å¤–åŠ›è¿«ä½¿å®ƒæ”¹å˜è¿™ç§çŠ¶æ€ä¸ºæ­¢ã€‚è´¨é‡æ˜¯ç‰©ä½“æƒ¯æ€§çš„é‡åº¦ã€‚
+
+---
+
+# ç‰›é¡¿ç¬¬äºŒå®šå¾‹
+
+tags: åŠ›å­¦, ç‰›é¡¿å®šå¾‹
+
+hint:
+ç‰©ä½“çš„åŠ é€Ÿåº¦ä¸åˆå¤–åŠ›æˆæ­£æ¯”ï¼Œä¸è´¨é‡æˆåæ¯”ã€‚
+
+content:
+F = maï¼Œå…¶ä¸­ F æ˜¯åˆå¤–åŠ›ï¼Œm æ˜¯è´¨é‡ï¼Œa æ˜¯åŠ é€Ÿåº¦ã€‚è¿™æ˜¯ç»å…¸åŠ›å­¦çš„åŸºæœ¬æ–¹ç¨‹ã€‚åŠ¨é‡å½¢å¼ï¼šF = dp/dtã€‚
+
+---
+
+# ç‰›é¡¿ç¬¬ä¸‰å®šå¾‹
+
+tags: åŠ›å­¦, ç‰›é¡¿å®šå¾‹
+
+hint:
+ä½œç”¨åŠ›ä¸åä½œç”¨åŠ›æ€»æ˜¯æˆå¯¹å‡ºç°ï¼Œå¤§å°ç›¸ç­‰æ–¹å‘ç›¸åã€‚
+
+content:
+ä¸¤ä¸ªç‰©ä½“ä¹‹é—´çš„ä½œç”¨åŠ›ä¸åä½œç”¨åŠ›æ€»æ˜¯å¤§å°ç›¸ç­‰ã€æ–¹å‘ç›¸åã€ä½œç”¨åœ¨åŒä¸€æ¡ç›´çº¿ä¸Šã€‚æ³¨æ„å®ƒä»¬ä½œç”¨åœ¨ä¸åŒçš„ç‰©ä½“ä¸Šã€‚
+
+---
+
+# åŠŸå’ŒåŠ¨èƒ½
+
+tags: åŠ›å­¦, èƒ½é‡
+
+hint:
+åŠŸæ˜¯åŠ›åœ¨ä½ç§»æ–¹å‘ä¸Šçš„åˆ†é‡ä¸ä½ç§»çš„ä¹˜ç§¯ã€‚
+
+content:
+W = âˆ«FÂ·drï¼ŒåŠŸæ˜¯åŠ›å¯¹ä½ç§»çš„ç§¯åˆ†ã€‚åŠ¨èƒ½ Ek = Â½mvÂ²ã€‚åŠ¨èƒ½å®šç†ï¼šåˆå¤–åŠ›åšçš„åŠŸç­‰äºåŠ¨èƒ½å¢é‡ã€‚
+
+---
+
+# ä¿å®ˆåŠ›å’ŒåŠ¿èƒ½
+
+tags: åŠ›å­¦, èƒ½é‡
+
+hint:
+ä¿å®ˆåŠ›åšçš„åŠŸä¸è·¯å¾„æ— å…³ï¼Œå¯ä»¥å®šä¹‰åŠ¿èƒ½ã€‚
+
+content:
+ä¿å®ˆåŠ›åšåŠŸä¸è·¯å¾„æ— å…³ã€‚åŠ¿èƒ½ Ep å®šä¹‰ä¸ºä¿å®ˆåŠ›åšåŠŸçš„è´Ÿå€¼ã€‚é‡åŠ›åŠ¿èƒ½ï¼šEp = mghã€‚å¼¹æ€§åŠ¿èƒ½ï¼šEp = Â½kxÂ²ã€‚
+
+---
+
+# æœºæ¢°èƒ½å®ˆæ’å®šå¾‹
+
+tags: åŠ›å­¦, èƒ½é‡
+
+hint:
+åªæœ‰ä¿å®ˆåŠ›åšåŠŸæ—¶ï¼Œæœºæ¢°èƒ½å®ˆæ’ã€‚
+
+content:
+å½“åªæœ‰ä¿å®ˆåŠ›åšåŠŸæ—¶ï¼Œç³»ç»Ÿçš„æœºæ¢°èƒ½ï¼ˆåŠ¨èƒ½+åŠ¿èƒ½ï¼‰ä¿æŒä¸å˜ï¼šE = Ek + Ep = å¸¸é‡ã€‚`
+
+const BUILTIN_MARKDOWN_ç¦»æ•£æ•°å­¦ = `# å‘½é¢˜ä¸è”ç»“è¯
+
+tags: æ•°ç†é€»è¾‘, åŸºç¡€
+
+hint:
+å‘½é¢˜çš„å®šä¹‰ä»¥åŠäº”ç§åŸºæœ¬è”ç»“è¯ã€‚
+
+content:
+å‘½é¢˜ï¼šèƒ½åˆ¤æ–­çœŸå‡çš„é™ˆè¿°å¥ã€‚äº”ç§åŸºæœ¬è”ç»“è¯ï¼šÂ¬ å¦ï¼Œâˆ§ ä¸ï¼Œâˆ¨ æˆ–ï¼Œâ†’ è•´å«ï¼Œâ†” ç­‰ä»·ã€‚
+
+---
+
+# çœŸå€¼è¡¨
+
+tags: æ•°ç†é€»è¾‘, åŸºç¡€
+
+hint:
+ç”¨çœŸå€¼è¡¨åˆ¤æ–­å…¬å¼çš„ç±»å‹ã€‚
+
+content:
+çœŸå€¼è¡¨åˆ—å‡ºå‘½é¢˜å…¬å¼åœ¨æ‰€æœ‰å¯èƒ½çœŸå€¼æŒ‡æ´¾ä¸‹çš„å–å€¼ã€‚æ°¸çœŸå¼ï¼ˆé‡è¨€å¼ï¼‰ï¼šæ‰€æœ‰æŒ‡æ´¾å‡ä¸ºçœŸã€‚æ°¸å‡å¼ï¼ˆçŸ›ç›¾å¼ï¼‰ï¼šæ‰€æœ‰æŒ‡æ´¾å‡ä¸ºå‡ã€‚å¯æ»¡è¶³å¼ï¼šè‡³å°‘å­˜åœ¨ä¸€ä¸ªæˆçœŸæŒ‡æ´¾ã€‚
+
+---
+
+# ç­‰ä»·ä¸è•´å«
+
+tags: æ•°ç†é€»è¾‘, æ¨ç†
+
+hint:
+é€»è¾‘ç­‰ä»·çš„å®šä¹‰å’Œå¸¸ç”¨ç­‰ä»·å…¬å¼ã€‚
+
+content:
+è‹¥ Aâ†”B æ˜¯æ°¸çœŸå¼ï¼Œåˆ™ A ä¸ B é€»è¾‘ç­‰ä»·ã€‚å¸¸ç”¨ï¼šÂ¬Â¬P â‡” Pï¼ˆåŒé‡å¦å®šå¾‹ï¼‰ï¼ŒÂ¬(Pâˆ§Q) â‡” Â¬Pâˆ¨Â¬Qï¼ˆå¾·æ‘©æ ¹å¾‹ï¼‰ï¼ŒPâ†’Q â‡” Â¬Pâˆ¨Qã€‚
+
+---
+
+# é‡è¯
+
+tags: æ•°ç†é€»è¾‘, è°“è¯é€»è¾‘
+
+hint:
+å…¨ç§°é‡è¯å’Œå­˜åœ¨é‡è¯çš„å®šä¹‰ã€‚
+
+content:
+âˆ€x P(x) è¡¨ç¤º"å¯¹æ‰€æœ‰ xï¼ŒP(x) ä¸ºçœŸ"ã€‚âˆƒx P(x) è¡¨ç¤º"å­˜åœ¨ x ä½¿ P(x) ä¸ºçœŸ"ã€‚é‡è¯å¦å®šï¼šÂ¬âˆ€x P(x) â‡” âˆƒx Â¬P(x)ï¼ŒÂ¬âˆƒx P(x) â‡” âˆ€x Â¬P(x)ã€‚
+
+---
+
+# é›†åˆçš„åŸºæœ¬æ¦‚å¿µ
+
+tags: é›†åˆè®º, åŸºç¡€
+
+hint:
+é›†åˆçš„è¡¨ç¤ºæ³•å’ŒåŸºæœ¬å…³ç³»ã€‚
+
+content:
+åˆ—ä¸¾æ³•ï¼šA = {1, 2, 3}ã€‚è°“è¯æ³•ï¼šA = {x | P(x)}ã€‚åŸºæ•° |A| æ˜¯å…ƒç´ ä¸ªæ•°ã€‚å¹‚é›† P(A) æ˜¯æ‰€æœ‰å­é›†çš„é›†åˆã€‚
+
+---
+
+# å…³ç³»çš„å®šä¹‰
+
+tags: å…³ç³», åŸºç¡€
+
+hint:
+äºŒå…ƒå…³ç³»çš„å®šä¹‰å’Œè¡¨ç¤ºæ³•ã€‚
+
+content:
+AÃ—B çš„å­é›†ç§°ä¸ºä» A åˆ° B çš„äºŒå…ƒå…³ç³»ã€‚è¡¨ç¤ºæ³•ï¼šé›†åˆè¡¨ç¤º R = {(a,b)}ï¼ŒçŸ©é˜µè¡¨ç¤ºå’Œå›¾è¡¨å¼ã€‚
+
+---
+
+# å…³ç³»çš„æ€§è´¨
+
+tags: å…³ç³», åŸºç¡€
+
+hint:
+è‡ªåæ€§ã€å¯¹ç§°æ€§ã€åå¯¹ç§°æ€§ã€ä¼ é€’æ€§ã€‚
+
+content:
+è‡ªåæ€§ï¼šâˆ€xï¼ŒxRxã€‚å¯¹ç§°æ€§ï¼šè‹¥ xRy åˆ™ yRxã€‚åå¯¹ç§°æ€§ï¼šè‹¥ xRy ä¸” yRx åˆ™ x=yã€‚ä¼ é€’æ€§ï¼šè‹¥ xRy ä¸” yRz åˆ™ xRzã€‚`
+
+export const builtInPresets: KnowledgePreset[] = [
+  new KnowledgePreset(
+    'builtin-å¾®ç§¯åˆ†',
+    'å¾®ç§¯åˆ†',
+    'å¾®ç§¯åˆ†çŸ¥è¯†ç‚¹',
+    'ç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/å¾®ç§¯åˆ†.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚',
+    'å†…ç½®é¢„è®¾',
+    BUILTIN_MARKDOWN_å¾®ç§¯åˆ†,
+    true
+  ),
+  new KnowledgePreset(
+    'builtin-å¤§å­¦è‹±è¯­Band4',
+    'å¤§å­¦è‹±è¯­Band4',
+    'å¤§å­¦è‹±è¯­Band4çŸ¥è¯†ç‚¹',
+    'ç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/å¤§å­¦è‹±è¯­Band4.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚',
+    'å†…ç½®é¢„è®¾',
+    BUILTIN_MARKDOWN_å¤§å­¦è‹±è¯­Band4,
+    true
+  ),
+  new KnowledgePreset(
+    'builtin-å¤§å­¦ç‰©ç†',
+    'å¤§å­¦ç‰©ç†',
+    'å¤§å­¦ç‰©ç†çŸ¥è¯†ç‚¹',
+    'ç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/å¤§å­¦ç‰©ç†.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚',
+    'å†…ç½®é¢„è®¾',
+    BUILTIN_MARKDOWN_å¤§å­¦ç‰©ç†,
+    true
+  ),
+  new KnowledgePreset(
+    'builtin-ç¦»æ•£æ•°å­¦',
+    'ç¦»æ•£æ•°å­¦',
+    'ç¦»æ•£æ•°å­¦çŸ¥è¯†ç‚¹',
+    'ç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/ç¦»æ•£æ•°å­¦.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚',
+    'å†…ç½®é¢„è®¾',
+    BUILTIN_MARKDOWN_ç¦»æ•£æ•°å­¦,
+    true
+  )
+]
+ÀÔrD‘·../model/KnowledgePointÔrE—ªassertions¨external¢id¤meta±moduleSideEffectsªresolvedByµsyntheticNamedExportsAÂÙZ/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/model/KnowledgePoint.etsAÃªoh-resolveÂ“ÔrF–§version¤fileªsourceRoot§sources¥names¨mappings°SamplePresets.js ‘±SamplePresets.etsÜl‘”    ‘” ˜”   ” ”	 	” ” ”   ”9 9”: 9˜”   ” ” ” ” ”! !”. .”/ .’”  
+ ”ÌV 
+ÌV””   ” ” ” ’”Ì„ ÌgÌ„”Ì… ÌgÌ„””  Ìi ” Ìi”  Ìi ”# Ìi#’”3 ÌÇ3”4 ÌÇ3””  ÌÉ ” ÌÉ” ÌÉ” ÌÉ’”. Í.”/ Í.””  Í ” Í” Í” Í’”ÌI ÍkÌI”ÌJ ÍkÌI–”  Ím ” Ím” Ím” Ím” Ím” Ím1Ü ” Ín” Ín” Ín” Ío”% Ío”' Íp”, Íp	”. Íq”6 Íq”8 Ír”Ìb Ír.”Ìd Ís”Ìj Ís
+”Ìl Ít”Ì€ Ít”Ì‚ Íu”Ì† Íu”Ì‡ ÍvÜ ” Íw” Íw” Íw” Íx”+ Íx”- Íy”8 Íy”: Íz”ÌH Íz”ÌJ Í{”Ìz Í{4”Ì| Í|”Ì‚ Í|
+”Ì„ Í}”Ì Í}”Ì  Í~”Ì¤ Í~”Ì¥ ÍÜ ” Í€” Í€” Í€” Í”& Í”( Í‚”. Í‚
+”0 Íƒ”9 Íƒ”; Í„”Ìf Í„/”Ìh Í…”Ìn Í…
+”Ìp Í†”Ì… Í†”Ì‡ Í‡”Ì‹ Í‡”ÌŒ ÍˆÜ ” Í‰” Í‰” Í‰” ÍŠ”& ÍŠ”( Í‹”. Í‹
+”0 ÍŒ”9 ÍŒ”; Í”Ìf Í/”Ìh Í”Ìn Í
+”Ìp Í”Ì… Í”Ì‡ Í”Ì‹ Í”ÌŒ Í‘’” Í’” Í’ÔrG–§version¤file§sources®sourcesContent¥names¨mappingsÀ‘À‘ÀÜm‘”    ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”  	 ‘”  
+ ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”    ‘”  ! ‘”  " ‘”  # ‘”  $ ‘”  % ‘”  & ‘”  ' ‘”  ( ‘”  ) ‘”  * ‘”  + ‘”  , ‘”  - ‘”  . ‘”  / ‘”  0 ‘”  1 ‘”  2 ‘”  3 ‘”  4 ‘”  5 ‘”  6 ‘”  7 ‘”  8 ‘”  9 ‘”  : ‘”  ; ‘”  < ‘”  = ‘”  > ‘”  ? ‘”  Ì@ ‘”  ÌA ‘”  ÌB ‘”  ÌC ‘”  ÌD ‘”  ÌE ‘”  ÌF ‘”  ÌG ‘”  ÌH ‘”  ÌI ‘”  ÌJ ‘”  ÌK ‘”  ÌL ‘”  ÌM ‘”  ÌN ‘”  ÌO ‘”  ÌP ‘”  ÌQ ‘”  ÌR ‘”  ÌS ‘”  ÌT ‘”  ÌU ‘”  ÌV ‘”  ÌW ‘”  ÌX ‘”  ÌY ‘”  ÌZ ‘”  Ì[ ‘”  Ì\ ‘”  Ì] ‘”  Ì^ ‘”  Ì_ ‘”  Ì` ‘”  Ìa ‘”  Ìb ‘”  Ìc ‘”  Ìd ‘”  Ìe ‘”  Ìf ‘”  Ìg ‘”  Ìh ‘”  Ìi ‘”  Ìj ‘”  Ìk ‘”  Ìl ‘”  Ìm ‘”  Ìn ‘”  Ìo ‘”  Ìp ‘”  Ìq ‘”  Ìr ‘”  Ìs ‘”  Ìt ‘”  Ìu ‘”  Ìv ‘”  Ìw ‘”  Ìx ‘”  Ìy ‘”  Ìz ‘”  Ì{ ‘”  Ì| ‘”  Ì} ‘”  Ì~ ‘”  Ì ‘”  Ì€ ‘”  Ì ‘”  Ì‚ ‘”  Ìƒ ‘”  Ì„ ‘”  Ì… ‘”  Ì† ‘”  Ì‡ ‘”  Ìˆ ‘”  Ì‰ ‘”  ÌŠ ‘”  Ì‹ ‘”  ÌŒ ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì‘ ‘”  Ì’ ‘”  Ì“ ‘”  Ì” ‘”  Ì• ‘”  Ì– ‘”  Ì— ‘”  Ì˜ ‘”  Ì™ ‘”  Ìš ‘”  Ì› ‘”  Ìœ ‘”  Ì ‘”  Ì ‘”  ÌŸ ‘”  Ì  ‘”  Ì¡ ‘”  Ì¢ ‘”  Ì£ ‘”  Ì¤ ‘”  Ì¥ ‘”  Ì¦ ‘”  Ì§ ‘”  Ì¨ ‘”  Ì© ‘”  Ìª ‘”  Ì« ‘”  Ì¬ ‘”  Ì­ ‘”  Ì® ‘”  Ì¯ ‘”  Ì° ‘”  Ì± ‘”  Ì² ‘”  Ì³ ‘”  Ì´ ‘”  Ìµ ‘”  Ì¶ ‘”  Ì· ‘”  Ì¸ ‘”  Ì¹ ‘”  Ìº ‘”  Ì» ‘”  Ì¼ ‘”  Ì½ ‘”  Ì¾ ‘”  Ì¿ ‘”  ÌÀ ‘”  ÌÁ ‘”  ÌÂ ‘”  ÌÃ ‘”  ÌÄ ‘”  ÌÅ ‘”  ÌÆ ‘”  ÌÇ ‘”  ÌÈ ‘”  ÌÉ ‘”  ÌÊ ‘”  ÌË ‘”  ÌÌ ‘”  ÌÍ ‘”  ÌÎ ‘”  ÌÏ ‘”  ÌĞ ‘”  ÌÑ ‘”  ÌÒ ‘”  ÌÓ ‘”  ÌÔ ‘”  ÌÕ ‘”  ÌÖ ‘”  Ì× ‘”  ÌØ ‘”  ÌÙ ‘”  ÌÚ ‘”  ÌÛ ‘”  ÌÜ ‘”  Ìİ ‘”  ÌŞ ‘”  Ìß ‘”  Ìà ‘”  Ìá ‘”  Ìâ ‘”  Ìã ‘”  Ìä ‘”  Ìå ‘”  Ìæ ‘”  Ìç ‘”  Ìè ‘”  Ìé ‘”  Ìê ‘”  Ìë ‘”  Ìì ‘”  Ìí ‘”  Ìî ‘”  Ìï ‘”  Ìğ ‘”  Ìñ ‘”  Ìò ‘”  Ìó ‘”  Ìô ‘”  Ìõ ‘”  Ìö ‘”  Ì÷ ‘”  Ìø ‘”  Ìù ‘”  Ìú ‘”  Ìû ‘”  Ìü ‘”  Ìı ‘”  Ìş ‘”  Ìÿ ‘”  Í  ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í	 ‘”  Í
+ ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í  ‘”  Í! ‘”  Í" ‘”  Í# ‘”  Í$ ‘”  Í% ‘”  Í& ‘”  Í' ‘”  Í( ‘”  Í) ‘”  Í* ‘”  Í+ ‘”  Í, ‘”  Í- ‘”  Í. ‘”  Í/ ‘”  Í0 ‘”  Í1 ‘”  Í2 ‘”  Í3 ‘”  Í4 ‘”  Í5 ‘”  Í6 ‘”  Í7 ‘”  Í8 ‘”  Í9 ‘”  Í: ‘”  Í; ‘”  Í< ‘”  Í= ‘”  Í> ‘”  Í? ‘”  Í@ ‘”  ÍA ‘”  ÍB ‘”  ÍC ‘”  ÍD ‘”  ÍE ‘”  ÍF ‘”  ÍG ‘”  ÍH ‘”  ÍI ‘”  ÍJ ‘”  ÍK ‘”  ÍL ‘”  ÍM ‘”  ÍN ‘”  ÍO ‘”  ÍP ‘”  ÍQ ‘”  ÍR ‘”  ÍS ‘”  ÍT ‘”  ÍU ‘”  ÍV ‘”  ÍW ‘”  ÍX ‘”  ÍY ‘”  ÍZ ‘”  Í[ ‘”  Í\ ‘”  Í] ‘”  Í^ ‘”  Í_ ‘”  Í` ‘”  Ía ‘”  Íb ‘”  Íc ‘”  Íd ‘”  Íe ‘”  Íf ‘”  Íg ‘”  Íh ‘”  Íi ‘”  Íj ‘”  Ík ‘”  Íl ÔrH’§missing¦pluginÃ¦genAbcÂÔ  ÔrI”²dynamicImportCache¹exportAllDeclarationCache»exportNamedDeclarationCache«importCache’ÔrJ–¤type¥start£end«declarationªspecifiers¦source¶ExportNamedDeclarationÍÍBÔrK•¤type¥start£end¬declarations¤kind³VariableDeclarationÍÍB‘ÔrL•¤type¥start£end¢id¤init²VariableDeclaratorÍ ÍAÔrM”¤type¥start£end¤nameªIdentifierÍ Í1±DEFAULT_PRESET_IDÔrN•¤type¥start£end¥value£raw§LiteralÍ4ÍA±builtin-å¾®ç§¯åˆ†³'builtin-å¾®ç§¯åˆ†'¥constÀJ¶ExportNamedDeclarationÍ¼Í.K³VariableDeclarationÍÃÍ.‘L²VariableDeclaratorÍÉÍ-MªIdentifierÍÉÍ×®builtInPresetsÔrO”¤type¥start£end¨elements¯ArrayExpressionÍÚÍ-”ÔrP•¤type¥start£end¦callee©arguments­NewExpressionÍáÍdMªIdentifierÍåÍô¯KnowledgePreset—N§LiteralÍõÍ±builtin-å¾®ç§¯åˆ†³'builtin-å¾®ç§¯åˆ†'N§LiteralÍÍ	©å¾®ç§¯åˆ†«'å¾®ç§¯åˆ†'N§LiteralÍÍ²å¾®ç§¯åˆ†çŸ¥è¯†ç‚¹´'å¾®ç§¯åˆ†çŸ¥è¯†ç‚¹'N§LiteralÍÍ?ÙNç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/å¾®ç§¯åˆ†.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚ÙP'ç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/å¾®ç§¯åˆ†.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚'N§LiteralÍAÍG¬å†…ç½®é¢„è®¾®'å†…ç½®é¢„è®¾'MªIdentifierÍIÍ]ºBUILTIN_MARKDOWN_å¾®ç§¯åˆ†N§LiteralÍ_ÍcÃ¤trueP­NewExpressionÍkÍMªIdentifierÍoÍ~¯KnowledgePreset—N§LiteralÍÍ’¹builtin-å¤§å­¦è‹±è¯­Band4»'builtin-å¤§å­¦è‹±è¯­Band4'N§LiteralÍ”ÍŸ±å¤§å­¦è‹±è¯­Band4³'å¤§å­¦è‹±è¯­Band4'N§LiteralÍ¡Í¯ºå¤§å­¦è‹±è¯­Band4çŸ¥è¯†ç‚¹¼'å¤§å­¦è‹±è¯­Band4çŸ¥è¯†ç‚¹'N§LiteralÍ±ÍáÙVç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/å¤§å­¦è‹±è¯­Band4.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚ÙX'ç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/å¤§å­¦è‹±è¯­Band4.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚'N§LiteralÍãÍé¬å†…ç½®é¢„è®¾®'å†…ç½®é¢„è®¾'MªIdentifierÍëÍÙ"BUILTIN_MARKDOWN_å¤§å­¦è‹±è¯­Band4N§LiteralÍÍÃ¤trueP­NewExpressionÍÍ›MªIdentifierÍÍ&¯KnowledgePreset—N§LiteralÍ'Í5´builtin-å¤§å­¦ç‰©ç†¶'builtin-å¤§å­¦ç‰©ç†'N§LiteralÍ7Í=¬å¤§å­¦ç‰©ç†®'å¤§å­¦ç‰©ç†'N§LiteralÍ?ÍHµå¤§å­¦ç‰©ç†çŸ¥è¯†ç‚¹·'å¤§å­¦ç‰©ç†çŸ¥è¯†ç‚¹'N§LiteralÍJÍuÙQç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/å¤§å­¦ç‰©ç†.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚ÙS'ç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/å¤§å­¦ç‰©ç†.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚'N§LiteralÍwÍ}¬å†…ç½®é¢„è®¾®'å†…ç½®é¢„è®¾'MªIdentifierÍÍ”½BUILTIN_MARKDOWN_å¤§å­¦ç‰©ç†N§LiteralÍ–ÍšÃ¤trueP­NewExpressionÍ¢Í*MªIdentifierÍ¦Íµ¯KnowledgePreset—N§LiteralÍ¶ÍÄ´builtin-ç¦»æ•£æ•°å­¦¶'builtin-ç¦»æ•£æ•°å­¦'N§LiteralÍÆÍÌ¬ç¦»æ•£æ•°å­¦®'ç¦»æ•£æ•°å­¦'N§LiteralÍÎÍ×µç¦»æ•£æ•°å­¦çŸ¥è¯†ç‚¹·'ç¦»æ•£æ•°å­¦çŸ¥è¯†ç‚¹'N§LiteralÍÙÍÙQç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/ç¦»æ•£æ•°å­¦.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚ÙS'ç”±å†…ç½® Markdown æ–‡ä»¶ã€ŒPresets/ç¦»æ•£æ•°å­¦.mdã€æä¾›çš„çŸ¥è¯†ç‚¹é¢„è®¾ã€‚'N§LiteralÍÍ¬å†…ç½®é¢„è®¾®'å†…ç½®é¢„è®¾'MªIdentifierÍÍ#½BUILTIN_MARKDOWN_ç¦»æ•£æ•°å­¦N§LiteralÍ%Í)Ã¤true¥constÀ‘ÔrQ•¤type¥start£endªspecifiers¦source±ImportDeclarationÌ×Í‘ÔrR•¤type¥start£end¨imported¥local¯ImportSpecifierÌàÌïMªIdentifierÌàÌï¯KnowledgePresetMªIdentifierÌàÌï¯KnowledgePresetN§LiteralÌ÷Í·../model/KnowledgePoint¹'../model/KnowledgePoint'

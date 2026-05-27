@@ -1,0 +1,1337 @@
+Ôr@Ÿªassertions¤code´customTransformCache¬dependencies¢id¤meta±moduleSideEffects¬originalCode±originalSourcemap«resolvedIds®sourcemapChainµsyntheticNamedExportsµtransformDependencies®transformFiles¨cacheAstÔrAÚ‚if (!("finalizeConstruction" in ViewPU.prototype)) {
+    Reflect.set(ViewPU.prototype, "finalizeConstruction", () => { });
+}
+/**
+ * Home page - mirrors RokuricsHomeView.swift
+ */
+import display from "@ohos.display";
+import { getSharedRecordingManager } from '../services/RecordingManager';
+import { RecordingState } from '../models/RecordingModels';
+import { formatClock } from '../utils/FormatHelpers';
+import { RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity, glassStrokeMidOpacity } from '../utils/RokuricsTheme';
+import { GearIcon, BooksIcon, ChatIcon, ConnectionIcon } from '../utils/CustomIcons';
+import { hapticLight } from '../utils/HapticFeedback';
+class HomePage extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.recordingManager = getSharedRecordingManager(getContext(this));
+        this.__state = new ObservedPropertySimplePU(RecordingState.IDLE, this, "state");
+        this.__isActive = new ObservedPropertySimplePU(false, this, "isActive");
+        this.__breathePhase = new ObservedPropertySimplePU(0, this, "breathePhase");
+        this.__orbScale = new ObservedPropertySimplePU(0.84, this, "orbScale");
+        this.__headerScale = new ObservedPropertySimplePU(1, this, "headerScale");
+        this.__isMacPaired = new ObservedPropertySimplePU(false, this, "isMacPaired");
+        this.__connectionStatus = new ObservedPropertySimplePU('offline', this, "connectionStatus");
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params) {
+        if (params.recordingManager !== undefined) {
+            this.recordingManager = params.recordingManager;
+        }
+        if (params.state !== undefined) {
+            this.state = params.state;
+        }
+        if (params.isActive !== undefined) {
+            this.isActive = params.isActive;
+        }
+        if (params.breathePhase !== undefined) {
+            this.breathePhase = params.breathePhase;
+        }
+        if (params.orbScale !== undefined) {
+            this.orbScale = params.orbScale;
+        }
+        if (params.headerScale !== undefined) {
+            this.headerScale = params.headerScale;
+        }
+        if (params.isMacPaired !== undefined) {
+            this.isMacPaired = params.isMacPaired;
+        }
+        if (params.connectionStatus !== undefined) {
+            this.connectionStatus = params.connectionStatus;
+        }
+    }
+    updateStateVars(params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+        this.__state.purgeDependencyOnElmtId(rmElmtId);
+        this.__isActive.purgeDependencyOnElmtId(rmElmtId);
+        this.__breathePhase.purgeDependencyOnElmtId(rmElmtId);
+        this.__orbScale.purgeDependencyOnElmtId(rmElmtId);
+        this.__headerScale.purgeDependencyOnElmtId(rmElmtId);
+        this.__isMacPaired.purgeDependencyOnElmtId(rmElmtId);
+        this.__connectionStatus.purgeDependencyOnElmtId(rmElmtId);
+    }
+    aboutToBeDeleted() {
+        this.__state.aboutToBeDeleted();
+        this.__isActive.aboutToBeDeleted();
+        this.__breathePhase.aboutToBeDeleted();
+        this.__orbScale.aboutToBeDeleted();
+        this.__headerScale.aboutToBeDeleted();
+        this.__isMacPaired.aboutToBeDeleted();
+        this.__connectionStatus.aboutToBeDeleted();
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    get state() {
+        return this.__state.get();
+    }
+    set state(newValue) {
+        this.__state.set(newValue);
+    }
+    get isActive() {
+        return this.__isActive.get();
+    }
+    set isActive(newValue) {
+        this.__isActive.set(newValue);
+    }
+    get breathePhase() {
+        return this.__breathePhase.get();
+    }
+    set breathePhase(newValue) {
+        this.__breathePhase.set(newValue);
+    }
+    get orbScale() {
+        return this.__orbScale.get();
+    }
+    set orbScale(newValue) {
+        this.__orbScale.set(newValue);
+    }
+    get headerScale() {
+        return this.__headerScale.get();
+    }
+    set headerScale(newValue) {
+        this.__headerScale.set(newValue);
+    }
+    get isMacPaired() {
+        return this.__isMacPaired.get();
+    }
+    set isMacPaired(newValue) {
+        this.__isMacPaired.set(newValue);
+    }
+    get connectionStatus() {
+        return this.__connectionStatus.get();
+    }
+    set connectionStatus(newValue) {
+        this.__connectionStatus.set(newValue);
+    }
+    aboutToAppear() {
+        this.recordingManager.onStateChange((s) => {
+            this.state = s;
+            this.isActive = this.isActiveState(s);
+        });
+        this.state = this.recordingManager.state;
+        this.isActive = this.isActiveState(this.state);
+        this.recordingManager.reloadRecordings();
+        this.calibrateScale();
+        this.startBreathing();
+    }
+    calibrateScale() {
+        const w = display.getDefaultDisplaySync().width;
+        const h = display.getDefaultDisplaySync().height;
+        if (w < 360 || h < 760) {
+            this.orbScale = 0.78;
+            this.headerScale = 0.92;
+        }
+        else if (h < 820) {
+            this.orbScale = 0.88;
+            this.headerScale = 0.96;
+        }
+        else {
+            this.orbScale = 1;
+            this.headerScale = 1;
+        }
+    }
+    startBreathing() {
+        const update = () => {
+            const t = Date.now() / 1000;
+            this.breathePhase = Math.sin(t * Math.PI / 2.4) * 0.5 + 0.5;
+            setTimeout(update, 50);
+        };
+        update();
+    }
+    isActiveState(s) {
+        return s === RecordingState.REQUESTING_PERMISSION ||
+            s === RecordingState.CONFIGURING_SESSION ||
+            s === RecordingState.RECORDING ||
+            s === RecordingState.PAUSED ||
+            s === RecordingState.STOPPING ||
+            s === RecordingState.SAVING;
+    }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create();
+            Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(72:5)", "entry");
+            Stack.width('100%');
+            Stack.height('100%');
+            Stack.backgroundColor(RokuricsColors.pageBackground);
+        }, Stack);
+        // Ambient background bubbles
+        this.AmbientBackground.bind(this)();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+            Column.debugLine("entry/src/main/ets/pages/HomePage.ets(76:7)", "entry");
+            Column.width('100%');
+            Column.height('100%');
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Header
+            Row.create();
+            Row.debugLine("entry/src/main/ets/pages/HomePage.ets(78:9)", "entry");
+            // Header
+            Row.width('100%');
+            // Header
+            Row.padding({
+                left: 24 * this.headerScale,
+                right: 24 * this.headerScale,
+                top: 18 * this.headerScale + 42
+            });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Rokurics');
+            Text.debugLine("entry/src/main/ets/pages/HomePage.ets(79:11)", "entry");
+            Text.fontSize(39 * this.headerScale);
+            Text.fontWeight(FontWeight.Medium);
+            Text.fontColor(RokuricsColors.deepText);
+            Text.fontFamily('serif');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.debugLine("entry/src/main/ets/pages/HomePage.ets(85:11)", "entry");
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Profile avatar button (glass circle)
+            Button.createWithChild();
+            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(88:11)", "entry");
+            // Profile avatar button (glass circle)
+            Button.width(46 * this.headerScale);
+            // Profile avatar button (glass circle)
+            Button.height(46 * this.headerScale);
+            // Profile avatar button (glass circle)
+            Button.borderRadius(23 * this.headerScale);
+            // Profile avatar button (glass circle)
+            Button.backgroundColor(RokuricsColors.glassSurface + '5C');
+            // Profile avatar button (glass circle)
+            Button.shadow({
+                color: RokuricsColors.shadowColor + '14',
+                radius: 12,
+                offsetY: 6
+            });
+            // Profile avatar button (glass circle)
+            Button.border({
+                width: 1,
+                color: {
+                    colors: [
+                        [0xFFFFFF, 0.50],
+                        [0xEFFAF8, 0.16],
+                        [0x59C7C2, 0.14]
+                    ],
+                    direction: GradientDirection.RightBottom
+                },
+                radius: 23 * this.headerScale
+            });
+            // Profile avatar button (glass circle)
+            Button.onClick(() => {
+                this.getUIContext().getRouter().pushUrl({ url: 'pages/SettingsPage' });
+            });
+        }, Button);
+        GearIcon.bind(this)(18 * this.headerScale, RokuricsColors.aqua);
+        // Profile avatar button (glass circle)
+        Button.pop();
+        // Header
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.debugLine("entry/src/main/ets/pages/HomePage.ets(123:9)", "entry");
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Recording Orb
+            Button.createWithChild();
+            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(126:9)", "entry");
+            // Recording Orb
+            Button.width(272 * this.orbScale);
+            // Recording Orb
+            Button.height(286 * this.orbScale);
+            // Recording Orb
+            Button.backgroundColor(Color.Transparent);
+            // Recording Orb
+            Button.onClick(() => {
+                hapticLight();
+                this.getUIContext().getRouter().pushUrl({ url: 'pages/RecordingSessionPage' });
+            });
+        }, Button);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create();
+            Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(127:11)", "entry");
+            Stack.width(272 * this.orbScale);
+            Stack.height(286 * this.orbScale);
+            Stack.scale({
+                x: (this.isActive ? 1.018 : 0.992) + this.breathePhase * 0.008,
+                y: (this.isActive ? 1.018 : 0.992) + this.breathePhase * 0.008
+            });
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Orbiting ambient satellites (animated)
+            Stack.create();
+            Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(129:13)", "entry");
+            // Orbiting ambient satellites (animated)
+            Stack.width(272 * this.orbScale);
+            // Orbiting ambient satellites (animated)
+            Stack.height(286 * this.orbScale);
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Satellite 1
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(131:15)", "entry");
+            // Satellite 1
+            Circle.width(88 * this.orbScale);
+            // Satellite 1
+            Circle.height(88 * this.orbScale);
+            // Satellite 1
+            Circle.fill(RokuricsColors.mint + '40');
+            // Satellite 1
+            Circle.position({
+                x: (94 - this.breathePhase * 6) * this.orbScale + '%',
+                y: (28 + this.breathePhase * 4) * this.orbScale + '%'
+            });
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Satellite 2
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(141:15)", "entry");
+            // Satellite 2
+            Circle.width(76 * this.orbScale);
+            // Satellite 2
+            Circle.height(76 * this.orbScale);
+            // Satellite 2
+            Circle.fill(RokuricsColors.skyCyan + '32');
+            // Satellite 2
+            Circle.position({
+                x: (60 + this.breathePhase * 5) * this.orbScale + '%',
+                y: (32 - this.breathePhase * 3) * this.orbScale + '%'
+            });
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Satellite 3
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(151:15)", "entry");
+            // Satellite 3
+            Circle.width(74 * this.orbScale);
+            // Satellite 3
+            Circle.height(74 * this.orbScale);
+            // Satellite 3
+            Circle.fill(RokuricsColors.aqua + '28');
+            // Satellite 3
+            Circle.position({
+                x: (50 - this.breathePhase * 4) * this.orbScale + '%',
+                y: (68 + this.breathePhase * 3) * this.orbScale + '%'
+            });
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Satellite 4
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(161:15)", "entry");
+            // Satellite 4
+            Circle.width(68 * this.orbScale);
+            // Satellite 4
+            Circle.height(68 * this.orbScale);
+            // Satellite 4
+            Circle.fill(RokuricsColors.mistGreen + '34');
+            // Satellite 4
+            Circle.position({
+                x: (28 + this.breathePhase * 5) * this.orbScale + '%',
+                y: (62 - this.breathePhase * 3) * this.orbScale + '%'
+            });
+        }, Circle);
+        // Orbiting ambient satellites (animated)
+        Stack.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Sound ripple (animated breathing)
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(174:13)", "entry");
+            // Sound ripple (animated breathing)
+            Circle.width(238 * this.orbScale);
+            // Sound ripple (animated breathing)
+            Circle.height(238 * this.orbScale);
+            // Sound ripple (animated breathing)
+            Circle.stroke(RokuricsColors.aqua + '08');
+            // Sound ripple (animated breathing)
+            Circle.strokeWidth(1.4);
+            // Sound ripple (animated breathing)
+            Circle.fill(Color.Transparent);
+            // Sound ripple (animated breathing)
+            Circle.opacity(0.07 + this.breathePhase * 0.05);
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(182:13)", "entry");
+            Circle.width(202 * this.orbScale);
+            Circle.height(202 * this.orbScale);
+            Circle.stroke(RokuricsColors.aqua + '10');
+            Circle.strokeWidth(1.4);
+            Circle.fill(Color.Transparent);
+            Circle.opacity(0.10 + this.breathePhase * 0.05);
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            // Recording red ripple
+            if (this.state === RecordingState.RECORDING) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Circle.create();
+                        Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(192:15)", "entry");
+                        Circle.width(222 * this.orbScale);
+                        Circle.height(222 * this.orbScale);
+                        Circle.stroke(RokuricsColors.coral + '20');
+                        Circle.strokeWidth(1.4);
+                        Circle.fill(Color.Transparent);
+                        Circle.opacity(0.16 + this.breathePhase * 0.08);
+                    }, Circle);
+                });
+            }
+            else if (this.state === RecordingState.PAUSED) {
+                this.ifElseBranchUpdateFunction(1, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Circle.create();
+                        Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(200:15)", "entry");
+                        Circle.width(222 * this.orbScale);
+                        Circle.height(222 * this.orbScale);
+                        Circle.stroke(RokuricsColors.softTeal + '15');
+                        Circle.strokeWidth(1.4);
+                        Circle.fill(Color.Transparent);
+                        Circle.opacity(0.11 + this.breathePhase * 0.06);
+                    }, Circle);
+                });
+            }
+            // Main orb
+            else {
+                this.ifElseBranchUpdateFunction(2, () => {
+                });
+            }
+        }, If);
+        If.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Main orb
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(210:13)", "entry");
+            // Main orb
+            Circle.width(190 * this.orbScale);
+            // Main orb
+            Circle.height(190 * this.orbScale);
+            // Main orb
+            Circle.fill(RokuricsColors.actionStart);
+            // Main orb
+            Circle.shadow({
+                color: RokuricsColors.shadowColor + '24',
+                radius: 30 * this.orbScale,
+                offsetY: 18 * this.orbScale
+            });
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            // Center content
+            if (this.isActive) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create(this.getCenterText());
+                        Text.debugLine("entry/src/main/ets/pages/HomePage.ets(222:15)", "entry");
+                        Text.fontSize(34 * this.orbScale);
+                        Text.fontWeight(FontWeight.Bold);
+                        Text.fontColor('#FFFFFF');
+                        Text.fontFamily('serif');
+                        Text.opacity(this.isPausedBlinking() ? (0.35 + this.breathePhase * 0.65) : 0.97);
+                    }, Text);
+                    Text.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Stack.create();
+                        Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(229:15)", "entry");
+                        Stack.opacity(0.97);
+                    }, Stack);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Rect.create({ width: 56 * this.orbScale, height: 8 * this.orbScale });
+                        Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(230:17)", "entry");
+                        Rect.radius(4);
+                        Rect.fill(Color.White);
+                    }, Rect);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Rect.create({ width: 8 * this.orbScale, height: 56 * this.orbScale });
+                        Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(233:17)", "entry");
+                        Rect.radius(4);
+                        Rect.fill(Color.White);
+                    }, Rect);
+                    Stack.pop();
+                });
+            }
+        }, If);
+        If.pop();
+        Stack.pop();
+        // Recording Orb
+        Button.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.debugLine("entry/src/main/ets/pages/HomePage.ets(255:9)", "entry");
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Navigation Card with glass styling
+            Row.create();
+            Row.debugLine("entry/src/main/ets/pages/HomePage.ets(258:9)", "entry");
+            // Navigation Card with glass styling
+            Row.width('88%');
+            // Navigation Card with glass styling
+            Row.height(104);
+            // Navigation Card with glass styling
+            Row.borderRadius(30);
+            // Navigation Card with glass styling
+            Row.backgroundColor(RokuricsColors.glassSurface + '66');
+            // Navigation Card with glass styling
+            Row.border({
+                width: 1,
+                color: {
+                    colors: [
+                        [0xFFFFFF, 0.44],
+                        [0xEFFAF8, 0.18],
+                        [0x91E8D6, 0.14]
+                    ],
+                    direction: GradientDirection.RightBottom
+                },
+                radius: 30
+            });
+            // Navigation Card with glass styling
+            Row.shadow({
+                color: RokuricsColors.shadowColor + '12',
+                radius: 20,
+                offsetY: 11
+            });
+            // Navigation Card with glass styling
+            Row.margin({ bottom: 16 * this.headerScale });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Study Library
+            Button.createWithChild();
+            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(260:11)", "entry");
+            // Study Library
+            Button.layoutWeight(1);
+            // Study Library
+            Button.height(104);
+            // Study Library
+            Button.backgroundColor(Color.Transparent);
+            // Study Library
+            Button.onClick(() => {
+                this.getUIContext().getRouter().pushUrl({ url: 'pages/RecordingLibraryPage' });
+            });
+        }, Button);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 8 });
+            Column.debugLine("entry/src/main/ets/pages/HomePage.ets(261:13)", "entry");
+            Column.width('100%');
+            Column.height(104);
+            Column.justifyContent(FlexAlign.Center);
+        }, Column);
+        BooksIcon.bind(this)(27, RokuricsColors.aqua);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('å­¦ä¹ åº“');
+            Text.debugLine("entry/src/main/ets/pages/HomePage.ets(263:15)", "entry");
+            Text.fontSize(13);
+            Text.fontWeight(FontWeight.SemiBold);
+            Text.fontColor(RokuricsColors.deepText);
+        }, Text);
+        Text.pop();
+        Column.pop();
+        // Study Library
+        Button.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Divider
+            Rect.create();
+            Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(280:11)", "entry");
+            // Divider
+            Rect.width(1);
+            // Divider
+            Rect.height(54);
+            // Divider
+            Rect.fill(RokuricsColors.softText + '14');
+        }, Rect);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // AI Chat
+            Button.createWithChild();
+            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(286:11)", "entry");
+            // AI Chat
+            Button.layoutWeight(1);
+            // AI Chat
+            Button.height(104);
+            // AI Chat
+            Button.backgroundColor(Color.Transparent);
+            // AI Chat
+            Button.onClick(() => {
+                this.getUIContext().getRouter().pushUrl({ url: 'pages/AIChatPage' });
+            });
+        }, Button);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 8 });
+            Column.debugLine("entry/src/main/ets/pages/HomePage.ets(287:13)", "entry");
+            Column.width('100%');
+            Column.height(104);
+            Column.justifyContent(FlexAlign.Center);
+        }, Column);
+        ChatIcon.bind(this)(27, RokuricsColors.mint);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('AI å¯¹è¯');
+            Text.debugLine("entry/src/main/ets/pages/HomePage.ets(289:15)", "entry");
+            Text.fontSize(13);
+            Text.fontWeight(FontWeight.SemiBold);
+            Text.fontColor(RokuricsColors.deepText);
+        }, Text);
+        Text.pop();
+        Column.pop();
+        // AI Chat
+        Button.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Divider
+            Rect.create();
+            Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(306:11)", "entry");
+            // Divider
+            Rect.width(1);
+            // Divider
+            Rect.height(54);
+            // Divider
+            Rect.fill(RokuricsColors.softText + '14');
+        }, Rect);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Mac Connection
+            Button.createWithChild();
+            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(312:11)", "entry");
+            // Mac Connection
+            Button.layoutWeight(1);
+            // Mac Connection
+            Button.height(104);
+            // Mac Connection
+            Button.backgroundColor(Color.Transparent);
+            // Mac Connection
+            Button.onClick(() => {
+                this.getUIContext().getRouter().pushUrl({ url: 'pages/MacConnectionPage' });
+            });
+        }, Button);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 8 });
+            Column.debugLine("entry/src/main/ets/pages/HomePage.ets(313:13)", "entry");
+            Column.width('100%');
+            Column.height(104);
+            Column.justifyContent(FlexAlign.Center);
+        }, Column);
+        ConnectionIcon.bind(this)(27, RokuricsColors.softTeal, this.isMacPaired);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(this.isMacPaired ? 'å·²è¿æ¥' : 'è¿æ¥');
+            Text.debugLine("entry/src/main/ets/pages/HomePage.ets(315:15)", "entry");
+            Text.fontSize(13);
+            Text.fontWeight(FontWeight.SemiBold);
+            Text.fontColor(RokuricsColors.deepText);
+        }, Text);
+        Text.pop();
+        Column.pop();
+        // Mac Connection
+        Button.pop();
+        // Navigation Card with glass styling
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            // Device connection preview card (compact)
+            if (this.isMacPaired) {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Column.create();
+                        Column.debugLine("entry/src/main/ets/pages/HomePage.ets(356:11)", "entry");
+                        Column.margin({ bottom: 34 * this.headerScale });
+                    }, Column);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Row.create({ space: 8 });
+                        Row.debugLine("entry/src/main/ets/pages/HomePage.ets(357:13)", "entry");
+                        Row.padding({ left: 14, right: 14, top: 8, bottom: 8 });
+                        Row.borderRadius(14);
+                        Row.backgroundColor(RokuricsColors.glassSurface + glassFillOpacity);
+                        Row.border({
+                            width: 1,
+                            color: {
+                                colors: [
+                                    [0xFFFFFF, glassStrokeHighOpacity],
+                                    [0xEFFAF8, glassStrokeMidOpacity]
+                                ],
+                                direction: GradientDirection.RightBottom
+                            },
+                            radius: 14
+                        });
+                    }, Row);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Circle.create();
+                        Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(358:15)", "entry");
+                        Circle.width(8);
+                        Circle.height(8);
+                        Circle.fill(RokuricsColors.mint);
+                    }, Circle);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('Mac å·²è¿æ¥ Â· 8787');
+                        Text.debugLine("entry/src/main/ets/pages/HomePage.ets(362:15)", "entry");
+                        Text.fontSize(12);
+                        Text.fontWeight(FontWeight.Medium);
+                        Text.fontColor(RokuricsColors.softText);
+                    }, Text);
+                    Text.pop();
+                    Row.pop();
+                    Column.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Blank.create();
+                        Blank.debugLine("entry/src/main/ets/pages/HomePage.ets(384:11)", "entry");
+                        Blank.height(18 * this.headerScale);
+                    }, Blank);
+                    Blank.pop();
+                });
+            }
+        }, If);
+        If.pop();
+        Column.pop();
+        Stack.pop();
+    }
+    AmbientBackground(parent = null) {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create();
+            Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(397:5)", "entry");
+            Stack.width('100%');
+            Stack.height('100%');
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Large ambient bubbles
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(399:7)", "entry");
+            // Large ambient bubbles
+            Circle.width(150);
+            // Large ambient bubbles
+            Circle.height(150);
+            // Large ambient bubbles
+            Circle.fill(RokuricsColors.paleAqua + '30');
+            // Large ambient bubbles
+            Circle.position({ x: -30, y: '-10%' });
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(405:7)", "entry");
+            Circle.width(190);
+            Circle.height(190);
+            Circle.fill(RokuricsColors.skyCyan + '22');
+            Circle.position({ x: '85%', y: '15%' });
+        }, Circle);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Circle.create();
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(411:7)", "entry");
+            Circle.width(170);
+            Circle.height(170);
+            Circle.fill(RokuricsColors.mint + '18');
+            Circle.position({ x: '75%', y: '70%' });
+        }, Circle);
+        Stack.pop();
+    }
+    getCenterText() {
+        switch (this.state) {
+            case RecordingState.RECORDING:
+            case RecordingState.PAUSED:
+                return formatClock(this.recordingManager.elapsedSeconds);
+            default:
+                return '...';
+        }
+    }
+    isPausedBlinking() {
+        return this.state === RecordingState.PAUSED;
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+    static getEntryName() {
+        return "HomePage";
+    }
+}
+registerNamedRoute(() => new HomePage(undefined, {}), "", { bundleName: "com.vita0818.rokurics", moduleName: "entry", pagePath: "pages/HomePage", pageFullPath: "entry/src/main/ets/pages/HomePage", integratedHsp: "false", moduleType: "followWithHap" });
+//# sourceMappingURL=HomePage.js.mapÂ—Ùj hvigor_ignore__Applications_DevEco-Studio.app_Contents_sdk_default_openharmony_ets_api_@ohos.display.d.tsÙ`/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/services/RecordingManager.etsÙ]/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/models/RecordingModels.etsÙZ/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/utils/FormatHelpers.etsÙZ/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/utils/RokuricsTheme.etsÙX/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/utils/CustomIcons.etsÙ[/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/utils/HapticFeedback.etsÙU/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/pages/HomePage.etsÔrBšªmoduleName±isLocalDependency¯isNodeEntryFile§pkgPath±belongProjectPath§pkgNameªpkgVersion±dependencyPkgInfo°belongModulePath¬shouldEmitJs¥entryÃÂÙ5/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entryÙ//Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS¥entry¥1.0.0Ô  Ù5/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entryÃÃÚ5Õ/**
+ * Home page - mirrors RokuricsHomeView.swift
+ */
+import { display } from '@kit.ArkUI'
+import { getSharedRecordingManager, RecordingManager } from '../services/RecordingManager'
+import { RecordingState } from '../models/RecordingModels'
+import { formatClock } from '../utils/FormatHelpers'
+import { RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity,
+  glassStrokeMidOpacity, glassAccentOpacity } from '../utils/RokuricsTheme'
+import { GearIcon, BooksIcon, ChatIcon, ConnectionIcon } from '../utils/CustomIcons'
+import { hapticLight } from '../utils/HapticFeedback'
+import { DeviceConnectionCard } from '../components/DeviceConnectionCard'
+
+@Entry
+@Component
+struct HomePage {
+  private recordingManager: RecordingManager = getSharedRecordingManager(getContext(this))
+  @State state: RecordingState = RecordingState.IDLE
+  @State isActive: boolean = false
+  @State breathePhase: number = 0
+  @State orbScale: number = 0.84
+  @State headerScale: number = 1
+  @State isMacPaired: boolean = false
+  @State connectionStatus: string = 'offline'
+
+  aboutToAppear(): void {
+    this.recordingManager.onStateChange((s: RecordingState) => {
+      this.state = s
+      this.isActive = this.isActiveState(s)
+    })
+    this.state = this.recordingManager.state
+    this.isActive = this.isActiveState(this.state)
+    this.recordingManager.reloadRecordings()
+    this.calibrateScale()
+    this.startBreathing()
+  }
+
+  private calibrateScale(): void {
+    const w = display.getDefaultDisplaySync().width
+    const h = display.getDefaultDisplaySync().height
+    if (w < 360 || h < 760) {
+      this.orbScale = 0.78
+      this.headerScale = 0.92
+    } else if (h < 820) {
+      this.orbScale = 0.88
+      this.headerScale = 0.96
+    } else {
+      this.orbScale = 1
+      this.headerScale = 1
+    }
+  }
+
+  private startBreathing(): void {
+    const update = () => {
+      const t = Date.now() / 1000
+      this.breathePhase = Math.sin(t * Math.PI / 2.4) * 0.5 + 0.5
+      setTimeout(update, 50)
+    }
+    update()
+  }
+
+  private isActiveState(s: RecordingState): boolean {
+    return s === RecordingState.REQUESTING_PERMISSION ||
+      s === RecordingState.CONFIGURING_SESSION ||
+      s === RecordingState.RECORDING ||
+      s === RecordingState.PAUSED ||
+      s === RecordingState.STOPPING ||
+      s === RecordingState.SAVING
+  }
+
+  build() {
+    Stack() {
+      // Ambient background bubbles
+      this.AmbientBackground()
+
+      Column() {
+        // Header
+        Row() {
+          Text('Rokurics')
+            .fontSize(39 * this.headerScale)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(RokuricsColors.deepText)
+            .fontFamily('serif')
+
+          Blank()
+
+          // Profile avatar button (glass circle)
+          Button() {
+            GearIcon(18 * this.headerScale, RokuricsColors.aqua)
+          }
+          .width(46 * this.headerScale)
+          .height(46 * this.headerScale)
+          .borderRadius(23 * this.headerScale)
+          .backgroundColor(RokuricsColors.glassSurface + '5C')
+          .shadow({
+            color: RokuricsColors.shadowColor + '14',
+            radius: 12,
+            offsetY: 6
+          })
+          .border({
+            width: 1,
+            color: {
+              colors: [
+                [0xFFFFFF, 0.50],
+                [0xEFFAF8, 0.16],
+                [0x59C7C2, 0.14]
+              ],
+              direction: GradientDirection.RightBottom
+            },
+            radius: 23 * this.headerScale
+          } as BorderOptions)
+          .onClick(() => {
+            this.getUIContext().getRouter().pushUrl({ url: 'pages/SettingsPage' })
+          })
+        }
+        .width('100%')
+        .padding({
+          left: 24 * this.headerScale,
+          right: 24 * this.headerScale,
+          top: 18 * this.headerScale + 42
+        })
+
+        Blank()
+
+        // Recording Orb
+        Button() {
+          Stack() {
+            // Orbiting ambient satellites (animated)
+            Stack() {
+              // Satellite 1
+              Circle()
+                .width(88 * this.orbScale)
+                .height(88 * this.orbScale)
+                .fill(RokuricsColors.mint + '40')
+                .position({
+                  x: (94 - this.breathePhase * 6) * this.orbScale + '%',
+                  y: (28 + this.breathePhase * 4) * this.orbScale + '%'
+                })
+
+              // Satellite 2
+              Circle()
+                .width(76 * this.orbScale)
+                .height(76 * this.orbScale)
+                .fill(RokuricsColors.skyCyan + '32')
+                .position({
+                  x: (60 + this.breathePhase * 5) * this.orbScale + '%',
+                  y: (32 - this.breathePhase * 3) * this.orbScale + '%'
+                })
+
+              // Satellite 3
+              Circle()
+                .width(74 * this.orbScale)
+                .height(74 * this.orbScale)
+                .fill(RokuricsColors.aqua + '28')
+                .position({
+                  x: (50 - this.breathePhase * 4) * this.orbScale + '%',
+                  y: (68 + this.breathePhase * 3) * this.orbScale + '%'
+                })
+
+              // Satellite 4
+              Circle()
+                .width(68 * this.orbScale)
+                .height(68 * this.orbScale)
+                .fill(RokuricsColors.mistGreen + '34')
+                .position({
+                  x: (28 + this.breathePhase * 5) * this.orbScale + '%',
+                  y: (62 - this.breathePhase * 3) * this.orbScale + '%'
+                })
+            }
+            .width(272 * this.orbScale)
+            .height(286 * this.orbScale)
+
+            // Sound ripple (animated breathing)
+            Circle()
+              .width(238 * this.orbScale)
+              .height(238 * this.orbScale)
+              .stroke(RokuricsColors.aqua + '08')
+              .strokeWidth(1.4)
+              .fill(Color.Transparent)
+              .opacity(0.07 + this.breathePhase * 0.05)
+
+            Circle()
+              .width(202 * this.orbScale)
+              .height(202 * this.orbScale)
+              .stroke(RokuricsColors.aqua + '10')
+              .strokeWidth(1.4)
+              .fill(Color.Transparent)
+              .opacity(0.10 + this.breathePhase * 0.05)
+
+            // Recording red ripple
+            if (this.state === RecordingState.RECORDING) {
+              Circle()
+                .width(222 * this.orbScale)
+                .height(222 * this.orbScale)
+                .stroke(RokuricsColors.coral + '20')
+                .strokeWidth(1.4)
+                .fill(Color.Transparent)
+                .opacity(0.16 + this.breathePhase * 0.08)
+            } else if (this.state === RecordingState.PAUSED) {
+              Circle()
+                .width(222 * this.orbScale)
+                .height(222 * this.orbScale)
+                .stroke(RokuricsColors.softTeal + '15')
+                .strokeWidth(1.4)
+                .fill(Color.Transparent)
+                .opacity(0.11 + this.breathePhase * 0.06)
+            }
+
+            // Main orb
+            Circle()
+              .width(190 * this.orbScale)
+              .height(190 * this.orbScale)
+              .fill(RokuricsColors.actionStart)
+              .shadow({
+                color: RokuricsColors.shadowColor + '24',
+                radius: 30 * this.orbScale,
+                offsetY: 18 * this.orbScale
+              })
+
+            // Center content
+            if (this.isActive) {
+              Text(this.getCenterText())
+                .fontSize(34 * this.orbScale)
+                .fontWeight(FontWeight.Bold)
+                .fontColor('#FFFFFF')
+                .fontFamily('serif')
+                .opacity(this.isPausedBlinking() ? (0.35 + this.breathePhase * 0.65) : 0.97)
+            } else {
+              Stack() {
+                Rect({ width: 56 * this.orbScale, height: 8 * this.orbScale })
+                  .radius(4)
+                  .fill(Color.White)
+                Rect({ width: 8 * this.orbScale, height: 56 * this.orbScale })
+                  .radius(4)
+                  .fill(Color.White)
+              }
+              .opacity(0.97)
+            }
+          }
+          .width(272 * this.orbScale)
+          .height(286 * this.orbScale)
+          .scale({
+            x: (this.isActive ? 1.018 : 0.992) + this.breathePhase * 0.008,
+            y: (this.isActive ? 1.018 : 0.992) + this.breathePhase * 0.008
+          })
+        }
+        .width(272 * this.orbScale)
+        .height(286 * this.orbScale)
+        .backgroundColor(Color.Transparent)
+        .onClick(() => {
+          hapticLight()
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/RecordingSessionPage' })
+        })
+
+        Blank()
+
+        // Navigation Card with glass styling
+        Row() {
+          // Study Library
+          Button() {
+            Column({ space: 8 }) {
+              BooksIcon(27, RokuricsColors.aqua)
+              Text('å­¦ä¹ åº“')
+                .fontSize(13)
+                .fontWeight(FontWeight.SemiBold)
+                .fontColor(RokuricsColors.deepText)
+            }
+            .width('100%')
+            .height(104)
+            .justifyContent(FlexAlign.Center)
+          }
+          .layoutWeight(1)
+          .height(104)
+          .backgroundColor(Color.Transparent)
+          .onClick(() => {
+            this.getUIContext().getRouter().pushUrl({ url: 'pages/RecordingLibraryPage' })
+          })
+
+          // Divider
+          Rect()
+            .width(1)
+            .height(54)
+            .fill(RokuricsColors.softText + '14')
+
+          // AI Chat
+          Button() {
+            Column({ space: 8 }) {
+              ChatIcon(27, RokuricsColors.mint)
+              Text('AI å¯¹è¯')
+                .fontSize(13)
+                .fontWeight(FontWeight.SemiBold)
+                .fontColor(RokuricsColors.deepText)
+            }
+            .width('100%')
+            .height(104)
+            .justifyContent(FlexAlign.Center)
+          }
+          .layoutWeight(1)
+          .height(104)
+          .backgroundColor(Color.Transparent)
+          .onClick(() => {
+            this.getUIContext().getRouter().pushUrl({ url: 'pages/AIChatPage' })
+          })
+
+          // Divider
+          Rect()
+            .width(1)
+            .height(54)
+            .fill(RokuricsColors.softText + '14')
+
+          // Mac Connection
+          Button() {
+            Column({ space: 8 }) {
+              ConnectionIcon(27, RokuricsColors.softTeal, this.isMacPaired)
+              Text(this.isMacPaired ? 'å·²è¿æ¥' : 'è¿æ¥')
+                .fontSize(13)
+                .fontWeight(FontWeight.SemiBold)
+                .fontColor(RokuricsColors.deepText)
+            }
+            .width('100%')
+            .height(104)
+            .justifyContent(FlexAlign.Center)
+          }
+          .layoutWeight(1)
+          .height(104)
+          .backgroundColor(Color.Transparent)
+          .onClick(() => {
+            this.getUIContext().getRouter().pushUrl({ url: 'pages/MacConnectionPage' })
+          })
+        }
+        .width('88%')
+        .height(104)
+        .borderRadius(30)
+        .backgroundColor(RokuricsColors.glassSurface + '66')
+        .border({
+          width: 1,
+          color: {
+            colors: [
+              [0xFFFFFF, 0.44],
+              [0xEFFAF8, 0.18],
+              [0x91E8D6, 0.14]
+            ],
+            direction: GradientDirection.RightBottom
+          },
+          radius: 30
+        } as BorderOptions)
+        .shadow({
+          color: RokuricsColors.shadowColor + '12',
+          radius: 20,
+          offsetY: 11
+        })
+        .margin({ bottom: 16 * this.headerScale })
+
+        // Device connection preview card (compact)
+        if (this.isMacPaired) {
+          Column() {
+            Row({ space: 8 }) {
+              Circle()
+                .width(8)
+                .height(8)
+                .fill(RokuricsColors.mint)
+              Text('Mac å·²è¿æ¥ Â· 8787')
+                .fontSize(12)
+                .fontWeight(FontWeight.Medium)
+                .fontColor(RokuricsColors.softText)
+            }
+            .padding({ left: 14, right: 14, top: 8, bottom: 8 })
+            .borderRadius(14)
+            .backgroundColor(RokuricsColors.glassSurface + glassFillOpacity)
+            .border({
+              width: 1,
+              color: {
+                colors: [
+                  [0xFFFFFF, glassStrokeHighOpacity],
+                  [0xEFFAF8, glassStrokeMidOpacity]
+                ],
+                direction: GradientDirection.RightBottom
+              },
+              radius: 14
+            } as BorderOptions)
+          }
+          .margin({ bottom: 34 * this.headerScale })
+        } else {
+          Blank().height(18 * this.headerScale)
+        }
+      }
+      .width('100%')
+      .height('100%')
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor(RokuricsColors.pageBackground)
+  }
+
+  @Builder
+  AmbientBackground() {
+    Stack() {
+      // Large ambient bubbles
+      Circle()
+        .width(150)
+        .height(150)
+        .fill(RokuricsColors.paleAqua + '30')
+        .position({ x: -30, y: '-10%' })
+
+      Circle()
+        .width(190)
+        .height(190)
+        .fill(RokuricsColors.skyCyan + '22')
+        .position({ x: '85%', y: '15%' })
+
+      Circle()
+        .width(170)
+        .height(170)
+        .fill(RokuricsColors.mint + '18')
+        .position({ x: '75%', y: '70%' })
+    }
+    .width('100%')
+    .height('100%')
+  }
+
+  private getCenterText(): string {
+    switch (this.state) {
+      case RecordingState.RECORDING:
+      case RecordingState.PAUSED:
+        return formatClock(this.recordingManager.elapsedSeconds)
+      default:
+        return '...'
+    }
+  }
+
+  private isPausedBlinking(): boolean {
+    return this.state === RecordingState.PAUSED
+  }
+}ÀÔrC—­@ohos.display¼../services/RecordingManager¹../models/RecordingModels¶../utils/FormatHelpers¶../utils/RokuricsTheme´../utils/CustomIcons·../utils/HapticFeedbackÔrD—ªassertions¨external¢id¤meta±moduleSideEffectsªresolvedByµsyntheticNamedExportsAÃÙj hvigor_ignore__Applications_DevEco-Studio.app_Contents_sdk_default_openharmony_ets_api_@ohos.display.d.tsÔrE‘¯hostModulesInfo‘ÔrF’²hostDependencyName®hostModuleName­@ohos.display¥entryÃªoh-resolveÂDAÂÙ`/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/services/RecordingManager.etsAÃªoh-resolveÂDAÂÙ]/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/models/RecordingModels.etsAÃªoh-resolveÂDAÂÙZ/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/utils/FormatHelpers.etsAÃªoh-resolveÂDAÂÙZ/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/utils/RokuricsTheme.etsAÃªoh-resolveÂDAÂÙX/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/utils/CustomIcons.etsAÃªoh-resolveÂDAÂÙ[/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/utils/HapticFeedback.etsAÃªoh-resolveÂ“ÔrG–§version¤fileªsourceRoot§sources¥names¨mappings«HomePage.js ‘¬HomePage.etsÜô‘”    ‘” –”   ” 	” ” ”# $”$ $˜”   ” ”	 	”" "”$ 6”* <”ÌH ÌZ”ÌI ÌZ˜”   ” ”	 	” ” ” ”: :”; :˜”   ” ”	 	” ” ” ”4 4”5 4Ü ”   ” ”	 	” ” ”# #”% %”5 5”7 7”ÌM ÌM”ÌO ”Ìd ”Ìf -”Ìl 3”Ì„ ÌK”Ì… ÌK”  	 ” 	”	 		” 	” 	” 	” 	”& 	&”( 	(”6 	6”8 	8”> 	>”ÌT 	ÌT”ÌU 	ÌT˜”  
+ ” 
+”	 
+	” 
+” 
+” 
+”5 
+5”6 
+5’” ” ‘”  ˜”  /”9 ÌH”: ÌI”ÌD ÌS”ÌE ÌT”ÌI ÌX”ÌJ ÌY”ÌK ÌZ””4 !”ÌB /”ÌC 0”ÌG 4’”7 ”< "’”;  ”< !’”7 ”;  ’”: ”;  ’”:  ”? %’”? $”ÌH -‘” ÌI’” 	” ’” 	” ’” 	” ’” 	” ’” 	” ’” 	” ’” 	” ’” 	” ’” 	” ’” 	” ’” 	” ’” 	” ’” 	” ’” 	” ’” ” ›” ” ” 	” ” ”+ '”, (”- )”. :”0 <”2 >—” ” 
+” ” ” ” ” œ” ” 
+” ” ” ”  ”! ”. (”/ )”0 *”1 +”2 +”” ”	 ”
+ ” ›” ” ” 	” ” ” ” ”* &”+ '”0 ,”1 ,” ” ” 	” ” ” ” ”* &”+ '”/ +”0 ,”5 1”6 2”7 2˜”  ”  ”  	”  ”  ”.  *”0  ,”1  ,–” !” !” !	” !” !” !–” "” "” "	” "” "” "’” #” #’” %
+” %›” &” &
+” &” &” &” &”/ &+”1 &-”2 &.”7 &3”8 &3›” '” '
+” '” '” '” '”/ '+”1 '-”2 '.”8 '4”9 '4š” (” (” (	” (” (” (” (” (” (”  (—” )” )
+” )” )” )”  )”! )—” *” *
+” *” *” *”# *”$ *‘”	 +–” +” +” +” +” +” +—” ,” ,
+” ,” ,” ,”  ,”! ,—” -” -
+” -” -” -”# -”$ -‘”	 .‘” .—” /” /
+” /” /” /” /” /—” 0” 0
+” 0” 0” 0”  0”! 0‘”	 1’” 2” 2’” 4
+” 4–” 5” 5
+” 5” 5” 5” 5›” 6” 6” 6” 6” 6” 6” 6”  6”# 6”' 6!”( 6!Ü ” 7” 7
+” 7” 7”  7”$ 7”% 7”( 7"”) 7#”* 7$”- 7'”1 7+”2 7,”4 7.”7 71”: 74”; 75”> 78”ÌA 7;”ÌD 7>”ÌG 7ÌA”ÌH 7ÌA˜” 8” 8” 8” 8” 8”! 8”" 8”# 8“” 9”	 9”
+ 9”” :” :
+” :” :’” ;” ;”” =
+” =” =” =)—” >” >” >” >”# >”$ > ”9 >5–” ?” ?” ?”  ?”! ?”4 ?.–” Ì@” Ì@” Ì@”  Ì@”! Ì@”* Ì@$–” ÌA” ÌA” ÌA”  ÌA”! ÌA”' ÌA!–” ÌB” ÌB” ÌB”  ÌB”! ÌB”) ÌB#—” ÌC” ÌC” ÌC”  ÌC”! ÌC”' ÌC!”( ÌC!’” ÌD” ÌD‘” ÌF’” ÌG” ÌG	–” ÌG” ÌG	” Í…” Í…
+” Í…” Í…–” ÌG” ÌG	” Í†” Í†” Í†” Í†˜” ÌG” ÌG	” Í‡”! Í‡”" Í‡”0 Í‡#”1 Í‡$”? Í‡2’” ÌH”% ÌH#•” ÌI” ÌI
+” ÌI” ÌI”+ ÌI’” ÌK” ÌK–” ÌK” ÌK” Í‚” Í‚” Í‚” Í‚–” ÌK” ÌK” Íƒ” Íƒ” Íƒ”  Íƒ’” ÌL” ÌL’” ÌM” ÌM’” ÌL” ÌL–” ÌM” ÌM” Ìs	” Ìs” Ìs” Ìs’” ÌL” ÌL•” ÌM” ÌM” Ìt	” Ìt” Ìt˜” Ìu
+” Ìu” Ìu” Ìu” Ìu” Ìu”  Ìu”+ Ìu%˜” Ìv
+” Ìv” Ìv” Ìv” Ìv”  Ìv”! Ìv”, Ìv&š” Ìw
+” Ìw” Ìw” Ìw” Ìw” Ìw” Ìw”* Ìw$”- Ìw'”/ Ìw)‘” Ìx	”” ÌN
+” ÌN” ÌN”" ÌNš” ÌN
+” ÌN” ÌO” ÌO” ÌO” ÌO” ÌO”# ÌO”$ ÌO ”/ ÌO+˜” ÌN
+” ÌN” ÌP” ÌP” ÌP”& ÌP"”' ÌP#”- ÌP)˜” ÌN
+” ÌN” ÌQ” ÌQ” ÌQ”) ÌQ%”* ÌQ&”2 ÌQ.–” ÌN
+” ÌN” ÌR” ÌR” ÌR”# ÌR’” ÌN
+” ÌN’” ÌT
+” ÌT’” ÌT
+” ÌT’” ÌV
+”3 ÌV1’” ÌW
+” ÌW’” ÌV
+”3 ÌV1š” ÌW
+” ÌW” ÌZ” ÌZ” ÌZ” ÌZ” ÌZ”" ÌZ”# ÌZ”. ÌZ&’” ÌV
+”3 ÌV1š” ÌW
+” ÌW” Ì[” Ì[” Ì[” Ì[” Ì[”# Ì[”$ Ì[”/ Ì['’” ÌV
+”3 ÌV1š” ÌW
+” ÌW” Ì\” Ì\”  Ì\”" Ì\”% Ì\”) Ì\!”* Ì\"”5 Ì\-’” ÌV
+”3 ÌV1š” ÌW
+” ÌW” Ì]”" Ì]”# Ì]”1 Ì])”2 Ì]*”> Ì]6”ÌA Ì]9”ÌE Ì]=’” ÌV
+”3 ÌV1•” ÌW
+” ÌW” Ì^” Ì^” Ì^˜” Ì_” Ì_” Ì_”% Ì_!”& Ì_"”1 Ì_-”4 Ì_0”8 Ì_4”” Ì`” Ì`” Ì`” Ì`”” Ìa” Ìa” Ìa” Ìa‘” Ìb’” ÌV
+”3 ÌV1•” ÌW
+” ÌW” Ìc” Ìc” Ìc”” Ìd” Ìd” Ìd” Ìd“” Ìe” Ìe” Ìe“” Ìf” Ìf” Ìf–” Ìg” Ìg”! Ìg”# Ìg”' Ìg”( Ìg –” Ìh” Ìh”! Ìh”# Ìh”' Ìh”( Ìh –” Ìi” Ìi”! Ìi”# Ìi”' Ìi”( Ìi ‘” Ìj–” Ìk” Ìk” Ìk”0 Ìk*”1 Ìk+”< Ìk6‘” Ìl˜” Ìm” Ìm” Ìm” Ìm” Ìm”! Ìm”" Ìm”- Ìm)‘” Ìn’” ÌV
+”3 ÌV1—” ÌW
+” ÌW” Ìo” Ìo” Ìo” Ìo”  ÌoÜ ” Ìp” Ìp” Ìp”! Ìp”# Ìp”$ Ìp ”- Ìp)”/ Ìp+”0 Ìp,”7 Ìp3”8 Ìp4”: Ìp6”= Ìp9”? Ìp;”ÌS ÌpÌO”ÌU ÌpÌQ”ÌV ÌpÌR”ÌW ÌpÌR’” Ìq
+” Ìq” ÌX” ÌX” ÌX” ÌX”! ÌX”% ÌX”& ÌX”1 ÌX*”3 ÌX,”ÌA ÌX:”ÌB ÌX;”ÌF ÌX?”ÌG ÌXÌ@’” ÌV
+”/ ÌV1’” ÌW
+” ÌW’” ÌL” ÌL’” ÌM” ÌM’” Ìz” Ìz’” Ìz” Ìz’” Ì|” Ì|’” Ì}” Ì}’” Ì|” Ì|š” Ì}” Ì}” Ìö	” Ìö” Ìö” Ìö” Ìö”# Ìö”$ Ìö”, Ìö"’” Ì|” Ì|š” Ì}” Ì}” Ì÷	” Ì÷” Ì÷” Ì÷”  Ì÷”$ Ì÷”% Ì÷”- Ì÷#’” Ì|” Ì|˜” Ì}” Ì}” Ìø	”" Ìø”# Ìø”( Ìø”) Ìø”4 Ìø*’” Ì|” Ì|—” Ì}” Ì}” Ìù	” Ìù” Ìù” Ìù”  Ìù”” Ìú
+” Ìú” Ìú” ÌúÜ ” Ìû
+” Ìû” Ìû”! Ìû”# Ìû”$ Ìû”- Ìû'”/ Ìû)”0 Ìû*”7 Ìû1”8 Ìû2”: Ìû4”= Ìû7”? Ìû9”Ì[ ÌûÌU”Ì] ÌûÌW”Ì^ ÌûÌX”Ì_ ÌûÌX’” Ìü” Ìü	’” Ì~
+” Ì~š” Ì~
+” Ì~” Ìï” Ìï” Ìï” Ìï” Ìï”" Ìï”# Ìï”+ Ìï$š” Ì~
+” Ì~” Ìğ” Ìğ” Ìğ” Ìğ” Ìğ”# Ìğ”$ Ìğ”, Ìğ%•” Ì~
+” Ì~” Ìñ” Ìñ” ÌñÜ ” Ìò” Ìò” Ìò” Ìò” Ìò” Ìò”! Ìò”" Ìò”# Ìò”$ Ìò ”) Ìò%”* Ìò&”+ Ìò'”, Ìò(”1 Ìò-”2 Ìò.”5 Ìò1”9 Ìò5”: Ìò6”ÌF ÌòÌB”ÌI ÌòÌE”ÌN ÌòÌJÜ ” Ìó” Ìó” Ìó” Ìó” Ìó” Ìó”! Ìó”" Ìó”# Ìó”$ Ìó ”) Ìó%”* Ìó&”+ Ìó'”, Ìó(”1 Ìó-”2 Ìó.”5 Ìó1”9 Ìó5”: Ìó6”ÌF ÌóÌB”ÌI ÌóÌE”ÌN ÌóÌJ‘” Ìô’” Ì”5 Ì5’” Ì€” Ì€’” Ì”5 Ì5š” Ì€” Ì€” Ì©” Ì©” Ì©” Ì©” Ì©”" Ì©”# Ì©”+ Ì©&’” Ì”5 Ì5š” Ì€” Ì€” Ìª” Ìª” Ìª” Ìª” Ìª”# Ìª”$ Ìª”, Ìª'’” Ì” Ì’” Ì‚” Ì‚’” Ì” Ìš” Ì‚” Ì‚” Ìƒ” Ìƒ” Ìƒ” Ìƒ” Ìƒ”" Ìƒ ”# Ìƒ!”+ Ìƒ)’” Ì” Ìš” Ì‚” Ì‚” Ì„” Ì„” Ì„” Ì„” Ì„”# Ì„!”$ Ì„"”, Ì„*’” Ì” Ìš” Ì‚” Ì‚” Ì…” Ì…” Ì…”& Ì…$”' Ì…%”+ Ì…)”. Ì…,”2 Ì…0’” Ì” Ì•” Ì‚” Ì‚” Ì†” Ì†” Ì†Ü ” Ì‡” Ì‡” Ì‡” Ì‡” Ì‡” Ì‡” Ì‡” Ì‡ ”* Ì‡,”- Ì‡/”. Ì‡0”/ Ì‡1”2 Ì‡4”6 Ì‡8”7 Ì‡9”? Ì‡ÌA”ÌB Ì‡ÌD”ÌE Ì‡ÌGÜ ” Ìˆ” Ìˆ” Ìˆ” Ìˆ” Ìˆ” Ìˆ” Ìˆ” Ìˆ ”* Ìˆ,”- Ìˆ/”. Ìˆ0”/ Ìˆ1”2 Ìˆ4”6 Ìˆ8”7 Ìˆ9”? ÌˆÌA”ÌB ÌˆÌD”ÌE ÌˆÌG‘” Ì‰’” Ì‹” Ì‹’” ÌŒ” ÌŒ’” Ì‹” Ì‹š” ÌŒ” ÌŒ” Ì” Ì” Ì” Ì” Ì”" Ì ”# Ì!”+ Ì)’” Ì‹” Ì‹š” ÌŒ” ÌŒ” Ì” Ì” Ì” Ì” Ì”# Ì!”$ Ì"”, Ì*’” Ì‹” Ì‹š” ÌŒ” ÌŒ” Ì” Ì” Ì”& Ì$”' Ì%”. Ì,”1 Ì/”5 Ì3’” Ì‹” Ì‹•” ÌŒ” ÌŒ” Ì” Ì” ÌÜ ” Ì‘” Ì‘” Ì‘” Ì‘” Ì‘” Ì‘” Ì‘” Ì‘ ”* Ì‘,”- Ì‘/”. Ì‘0”/ Ì‘1”2 Ì‘4”6 Ì‘8”7 Ì‘9”? Ì‘ÌA”ÌB Ì‘ÌD”ÌE Ì‘ÌGÜ ” Ì’” Ì’” Ì’” Ì’” Ì’” Ì’” Ì’” Ì’ ”* Ì’,”- Ì’/”. Ì’0”/ Ì’1”2 Ì’4”6 Ì’8”7 Ì’9”? Ì’ÌA”ÌB Ì’ÌD”ÌE Ì’ÌG‘” Ì“’” Ì•” Ì•’” Ì–” Ì–’” Ì•” Ì•š” Ì–” Ì–” Ì—” Ì—” Ì—” Ì—” Ì—”" Ì— ”# Ì—!”+ Ì—)’” Ì•” Ì•š” Ì–” Ì–” Ì˜” Ì˜” Ì˜” Ì˜” Ì˜”# Ì˜!”$ Ì˜"”, Ì˜*’” Ì•” Ì•š” Ì–” Ì–” Ì™” Ì™” Ì™”& Ì™$”' Ì™%”+ Ì™)”. Ì™,”2 Ì™0’” Ì•” Ì••” Ì–” Ì–” Ìš” Ìš” ÌšÜ ” Ì›” Ì›” Ì›” Ì›” Ì›” Ì›” Ì›” Ì› ”* Ì›,”- Ì›/”. Ì›0”/ Ì›1”2 Ì›4”6 Ì›8”7 Ì›9”? Ì›ÌA”ÌB Ì›ÌD”ÌE Ì›ÌGÜ ” Ìœ” Ìœ” Ìœ” Ìœ” Ìœ” Ìœ” Ìœ” Ìœ ”* Ìœ,”- Ìœ/”. Ìœ0”/ Ìœ1”2 Ìœ4”6 Ìœ8”7 Ìœ9”? ÌœÌA”ÌB ÌœÌD”ÌE ÌœÌG‘” Ì’” ÌŸ” ÌŸ’” Ì ” Ì ’” ÌŸ” ÌŸš” Ì ” Ì ” Ì¡” Ì¡” Ì¡” Ì¡” Ì¡”" Ì¡ ”# Ì¡!”+ Ì¡)’” ÌŸ” ÌŸš” Ì ” Ì ” Ì¢” Ì¢” Ì¢” Ì¢” Ì¢”# Ì¢!”$ Ì¢"”, Ì¢*’” ÌŸ” ÌŸš” Ì ” Ì ” Ì£” Ì£” Ì£”& Ì£$”' Ì£%”0 Ì£.”3 Ì£1”7 Ì£5’” ÌŸ” ÌŸ•” Ì ” Ì ” Ì¤” Ì¤” Ì¤Ü ” Ì¥” Ì¥” Ì¥” Ì¥” Ì¥” Ì¥” Ì¥” Ì¥ ”* Ì¥,”- Ì¥/”. Ì¥0”/ Ì¥1”2 Ì¥4”6 Ì¥8”7 Ì¥9”? Ì¥ÌA”ÌB Ì¥ÌD”ÌE Ì¥ÌGÜ ” Ì¦” Ì¦” Ì¦” Ì¦” Ì¦” Ì¦” Ì¦” Ì¦ ”* Ì¦,”- Ì¦/”. Ì¦0”/ Ì¦1”2 Ì¦4”6 Ì¦8”7 Ì¦9”? Ì¦ÌA”ÌB Ì¦ÌD”ÌE Ì¦ÌG‘” Ì§’” Ì”1 Ì5’” Ì€” Ì€’” Ì¬”0 Ì¬0’” Ì­” Ì­’” Ì¬”0 Ì¬0š” Ì­” Ì­” Ì®” Ì®” Ì®” Ì®” Ì®”# Ì®”$ Ì® ”, Ì®(’” Ì¬”0 Ì¬0š” Ì­” Ì­” Ì¯” Ì¯” Ì¯” Ì¯”  Ì¯”$ Ì¯ ”% Ì¯!”- Ì¯)’” Ì¬”0 Ì¬0š” Ì­” Ì­” Ì°” Ì°” Ì°”( Ì°$”) Ì°%”- Ì°)”0 Ì°,”4 Ì°0’” Ì¬”0 Ì¬0–” Ì­” Ì­” Ì±” Ì±” Ì±”" Ì±’” Ì¬”0 Ì¬0˜” Ì­” Ì­” Ì²” Ì²” Ì²” Ì²” Ì²”) Ì²%’” Ì¬”0 Ì¬0œ” Ì­” Ì­” Ì³” Ì³” Ì³” Ì³”" Ì³”& Ì³"”' Ì³#”3 Ì³/”6 Ì³2”: Ì³6’” Ìµ” Ìµš” Ìµ” Ìµ” Ì¶” Ì¶” Ì¶” Ì¶” Ì¶”# Ì¶”$ Ì¶ ”, Ì¶(š” Ìµ” Ìµ” Ì·” Ì·” Ì·” Ì·”  Ì·”$ Ì· ”% Ì·!”- Ì·)š” Ìµ” Ìµ” Ì¸” Ì¸” Ì¸”( Ì¸$”) Ì¸%”- Ì¸)”0 Ì¸,”4 Ì¸0–” Ìµ” Ìµ” Ì¹” Ì¹” Ì¹”" Ì¹˜” Ìµ” Ìµ” Ìº” Ìº” Ìº” Ìº” Ìº”) Ìº%œ” Ìµ” Ìµ” Ì»” Ì»” Ì»” Ì»”" Ì»”& Ì»"”' Ì»#”3 Ì»/”6 Ì»2”: Ì»6’” Ì½”# Ì½#š” Ì¾” Ì¾” Ì¾” Ì¾” Ì¾” Ì¾”- Ì¾-”. Ì¾.”7 Ì¾7”9 Ì¾9’” Ì¿” Ì¿š” Ì¿” Ì¿” ÌÀ”$ ÌÀ”% ÌÀ”( ÌÀ”+ ÌÀ”/ ÌÀ!”0 ÌÀ"”8 ÌÀ*š” Ì¿” Ì¿” ÌÁ”% ÌÁ”& ÌÁ”) ÌÁ”, ÌÁ”0 ÌÁ"”1 ÌÁ#”9 ÌÁ+š” Ì¿” Ì¿” ÌÂ”% ÌÂ”& ÌÂ”4 ÌÂ&”5 ÌÂ'”: ÌÂ,”= ÌÂ/”ÌA ÌÂ3–” Ì¿” Ì¿” ÌÃ”* ÌÃ”+ ÌÃ”. ÌÃ ˜” Ì¿” Ì¿” ÌÄ”# ÌÄ”$ ÌÄ”) ÌÄ”* ÌÄ”5 ÌÄ'œ” Ì¿” Ì¿” ÌÅ”& ÌÅ”' ÌÅ”+ ÌÅ”. ÌÅ ”2 ÌÅ$”3 ÌÅ%”? ÌÅ1”ÌB ÌÅ4”ÌF ÌÅ8‘” ÌÆš” ÌÆ” ÌÆ” ÌÆ” ÌÆ” ÌÆ!”$ ÌÆ&”2 ÌÆ4”3 ÌÆ5”9 ÌÆ;”; ÌÆ=’” ÌÇ” ÌÇš” ÌÇ” ÌÇ” ÌÈ”$ ÌÈ”% ÌÈ”( ÌÈ”+ ÌÈ”/ ÌÈ!”0 ÌÈ"”8 ÌÈ*š” ÌÇ” ÌÇ” ÌÉ”% ÌÉ”& ÌÉ”) ÌÉ”, ÌÉ”0 ÌÉ"”1 ÌÉ#”9 ÌÉ+š” ÌÇ” ÌÇ” ÌÊ”% ÌÊ”& ÌÊ”4 ÌÊ&”5 ÌÊ'”= ÌÊ/”Ì@ ÌÊ2”ÌD ÌÊ6–” ÌÇ” ÌÇ” ÌË”* ÌË”+ ÌË”. ÌË ˜” ÌÇ” ÌÇ” ÌÌ”# ÌÌ”$ ÌÌ”) ÌÌ”* ÌÌ”5 ÌÌ'œ” ÌÇ” ÌÇ” ÌÍ”& ÌÍ”' ÌÍ”+ ÌÍ”. ÌÍ ”2 ÌÍ$”3 ÌÍ%”? ÌÍ1”ÌB ÌÍ4”ÌF ÌÍ8‘” ÌÎ’” ÌĞ” ÌĞ‘” ÌÎ’” ÌĞ” ÌĞ’” ÌÑ” ÌÑ’” ÌĞ” ÌĞš” ÌÑ” ÌÑ” ÌÒ” ÌÒ” ÌÒ” ÌÒ” ÌÒ”# ÌÒ”$ ÌÒ ”, ÌÒ(’” ÌĞ” ÌĞš” ÌÑ” ÌÑ” ÌÓ” ÌÓ” ÌÓ” ÌÓ”  ÌÓ”$ ÌÓ ”% ÌÓ!”- ÌÓ)’” ÌĞ” ÌĞ˜” ÌÑ” ÌÑ” ÌÔ” ÌÔ” ÌÔ”& ÌÔ"”' ÌÔ#”2 ÌÔ.’” ÌĞ” ÌĞ•” ÌÑ” ÌÑ” ÌÕ” ÌÕ” ÌÕ˜” ÌÖ” ÌÖ” ÌÖ”% ÌÖ%”& ÌÖ&”1 ÌÖ1”4 ÌÖ4”8 ÌÖ8˜” Ì×” Ì×” Ì×” Ì×” Ì×”! Ì×!”" Ì×"”* Ì×*˜” ÌØ” ÌØ” ÌØ” ÌØ” ÌØ”" ÌØ"”# ÌØ#”+ ÌØ+‘” ÌÙ’” ÌÛ” ÌÛ–” ÌÜ” ÌÜ” ÌÜ” ÌÜ” ÌÜ” ÌÜ—” Ìİ” Ìİ”$ Ìİ”( Ìİ”) Ìİ”6 Ìİ%”8 Ìİ'š” Ìİ” Ìİ” ÌŞ”% ÌŞ”& ÌŞ”( ÌŞ”+ ÌŞ”/ ÌŞ#”0 ÌŞ$”8 ÌŞ,˜” Ìİ” Ìİ” Ìß”' Ìß”( Ìß”2 Ìß&”3 Ìß'”7 Ìß+–” Ìİ” Ìİ” Ìà”& Ìà”' Ìà”0 Ìà$–” Ìİ” Ìİ” Ìá”' Ìá”( Ìá”/ Ìá#Ü ” Ìİ” Ìİ” Ìâ”$ Ìâ”% Ìâ”) Ìâ”* Ìâ”: Ìâ.”< Ìâ0”= Ìâ1”> Ìâ2”? Ìâ3”Ì@ Ìâ4”ÌD Ìâ8”ÌG Ìâ;”ÌK Ìâ?”ÌL ÌâÌ@”ÌX ÌâÌL”Ì[ ÌâÌO”Ì_ ÌâÌS”Ì` ÌâÌT”Ìa ÌâÌU”Ìb ÌâÌV”Ìc ÌâÌW”Ìg ÌâÌ[’” Ìİ” Ìİ‘” Ìã‘” Ìã’” Ìä” Ìä–” Ìä” Ìä” Ìì”% Ìì”& Ìì”* ÌìÜ ” Ìå” Ìå”$ Ìå”& Ìå”+ Ìå”- Ìå”/ Ìå ”2 Ìå#”6 Ìå'”7 Ìå(”? Ìå0”ÌA Ìå2”ÌG Ìå8”ÌI Ìå:”ÌJ Ìå;”ÌM Ìå>”ÌQ ÌåÌB”ÌR ÌåÌC”ÌZ ÌåÌK”Ì\ ÌåÌM–” Ìå” Ìå” Ìæ”# Ìæ”$ Ìæ”% Ìæ˜” Ìå” Ìå” Ìç”! Ìç”" Ìç”' Ìç”( Ìç”- Ìç#Ü ” Ìè” Ìè”$ Ìè”& Ìè”+ Ìè”- Ìè”. Ìè”1 Ìè"”5 Ìè&”6 Ìè'”> Ìè/”Ì@ Ìè1”ÌF Ìè7”ÌH Ìè9”ÌJ Ìè;”ÌM Ìè>”ÌQ ÌèÌB”ÌR ÌèÌC”ÌZ ÌèÌK”Ì\ ÌèÌM–” Ìè” Ìè” Ìé”# Ìé”$ Ìé”% Ìé˜” Ìè” Ìè” Ìê”! Ìê”" Ìê”' Ìê”( Ìê”- Ìê#’” Ìä” Ìä‘” Ìí’” Ì~
+” Ì~’” Ì|” Ì|’” Ì}” Ì}’” Ìş” Ìş’” Ìş” Ìş’” Í ”1 Í -’” Í” Í’” Í ”1 Í -–” Í” Í” ÍJ	” ÍJ” ÍJ” ÍJ’” Í ”1 Í -–” Í” Í” ÍK	” ÍK” ÍK” ÍK’” Í ”1 Í -–” Í” Í” ÍL	” ÍL” ÍL” ÍL’” Í ”1 Í -š” Í” Í” ÍM	” ÍM”  ÍM”. ÍM'”/ ÍM(”; ÍM4”> ÍM7”ÌB ÍM;’” Í ”1 Í -•” Í” Í” ÍN	” ÍN” ÍN”” ÍO
+” ÍO” ÍO” ÍO“” ÍP
+” ÍP” ÍP“” ÍQ” ÍQ” ÍQ–” ÍR” ÍR”! ÍR”# ÍR”' ÍR”( ÍR–” ÍS” ÍS”! ÍS”# ÍS”' ÍS”( ÍS–” ÍT” ÍT”! ÍT”# ÍT”' ÍT”( ÍT‘” ÍU–” ÍV” ÍV” ÍV”0 ÍV(”1 ÍV)”< ÍV4‘” ÍW”” ÍX
+” ÍX” ÍX” ÍX‘” ÍY’” Í ”1 Í -•” Í” Í” ÍZ	” ÍZ” ÍZ˜” Í[
+” Í[” Í[”% Í[”& Í[ ”1 Í[+”4 Í[.”8 Í[2”” Í\
+” Í\” Í\” Í\”” Í]
+” Í]” Í]” Í]‘” Í^	’” Í ”1 Í -” Í” Í” Í_	” Í_” Í_” Í_” Í_”! Í_”# Í_”& Í_”* Í_#”+ Í_$”6 Í_/”8 Í_1’” Í
+” Í’” Í
+” Í’” Í
+” Í–” Í
+” Í” Í” Í”  Í”! Í’” Í
+” Í–” Í
+” Í” Í” Í” Í” Í’” Í
+” Í˜” Í
+” Í” Í”" Í”# Í”( Í ”) Í!”4 Í,’” Í
+” Í—” Í
+” Í” Í” Í” Í” Í”  ÍÜ ” Í” Í” Í”! Í”# Í”$ Í ”- Í)”/ Í+”0 Í,”7 Í3”8 Í4”: Í6”= Í9”? Í;”Ì[ ÍÌW”Ì] ÍÌY”Ì^ ÍÌZ”Ì_ ÍÌZ’” Í
+” Í˜” Í” Í” Í” Í”! Í”# Í”$ Í”& Í–” Í” Í” Í” Í” Í” Í–” Í” Í” Í” Í” Í” Í˜” Í” Í” Í”! Í”" Í”+ Í%”, Í&”2 Í,™” Í” Í” Í” Í”! Í”/ Í*”0 Í+”4 Í/”5 Í0”” Í” Í” Í” Í–” Í” Í” Í” Í” Í” Í˜” Í” Í” Í” Í” Í”& Í&”' Í'”/ Í/˜” Í” Í” Í	” Í	” Í	”) Í	)”* Í	*”2 Í	2’” Í” Í’” Í” Í’” Í
+” Í’” Í
+” Í’” Í
+” Í’” Í
+” Í’” Í
+” Í–” Í
+” Í” Í” Í” Í” Í’” Í
+” Í–” Í
+” Í” Í” Í” Í” Í’” Í
+” Íš” Í
+” Í” Í” Í” Í”$ Í ”% Í!”- Í)”0 Í,”4 Í0’” Í
+” Í’” Í
+” Í’” Í
+” Í–” Í
+” Í” Í)” Í)”  Í)”! Í)’” Í
+” Í–” Í
+” Í” Í*” Í*” Í*” Í*’” Í
+” Í˜” Í
+” Í” Í+”" Í+”# Í+”( Í+ ”) Í+!”4 Í+,’” Í
+” Í—” Í
+” Í” Í,” Í,” Í,” Í,”  Í,Ü ” Í-” Í-” Í-”! Í-”# Í-”$ Í- ”- Í-)”/ Í-+”0 Í-,”7 Í-3”8 Í-4”: Í-6”= Í-9”? Í-;”ÌQ Í-ÌM”ÌS Í-ÌO”ÌT Í-ÌP”ÌU Í-ÌP’” Í.
+” Í.˜” Í” Í” Í” Í”! Í”# Í”$ Í”& Í–” Í” Í” Í%” Í%” Í%” Í%–” Í” Í” Í&” Í&” Í&” Í&˜” Í” Í” Í'”! Í'”" Í'”+ Í'%”, Í'&”2 Í',™” Í” Í” Í” Í”  Í”. Í)”/ Í*”3 Í.”4 Í/”” Í ” Í ” Í ” Í –” Í ” Í ” Í!” Í!” Í!” Í!˜” Í ” Í ” Í"” Í"” Í"”& Í"&”' Í"'”/ Í"/˜” Í ” Í ” Í#” Í#” Í#”) Í#)”* Í#*”2 Í#2’” Í ” Í ’” Í” Í’” Í
+” Í’” Í
+” Í’” Í0
+” Í0’” Í1
+” Í1’” Í0
+” Í0–” Í1
+” Í1” Í2” Í2” Í2” Í2’” Í0
+” Í0–” Í1
+” Í1” Í3” Í3” Í3” Í3’” Í0
+” Í0š” Í1
+” Í1” Í4” Í4” Í4”$ Í4 ”% Í4!”- Í4)”0 Í4,”4 Í40’” Í6
+” Í6’” Í7
+” Í7’” Í6
+” Í6–” Í7
+” Í7” ÍC” ÍC”  ÍC”! ÍC’” Í6
+” Í6–” Í7
+” Í7” ÍD” ÍD” ÍD” ÍD’” Í6
+” Í6˜” Í7
+” Í7” ÍE”" ÍE”# ÍE”( ÍE ”) ÍE!”4 ÍE,’” Í6
+” Í6—” Í7
+” Í7” ÍF” ÍF” ÍF” ÍF”  ÍFÜ ” ÍG” ÍG” ÍG”! ÍG”# ÍG”$ ÍG ”- ÍG)”/ ÍG+”0 ÍG,”7 ÍG3”8 ÍG4”: ÍG6”= ÍG9”? ÍG;”ÌX ÍGÌT”ÌZ ÍGÌV”Ì[ ÍGÌW”Ì\ ÍGÌW’” ÍH
+” ÍH˜” Í8” Í8” Í8” Í8”! Í8”# Í8”$ Í8”& Í8–” Í8” Í8” Í?” Í?” Í?” Í?–” Í8” Í8” Í@” Í@” Í@” Í@˜” Í8” Í8” ÍA”! ÍA”" ÍA”+ ÍA%”, ÍA&”2 ÍA,” Í9” Í9”" Í9”$ Í9”& Í9!”4 Í9/”5 Í90”= Í98”? Í9:”ÌC Í9>”ÌD Í9?”ÌO Í9ÌJ”ÌP Í9ÌK” Í:” Í:” Í:” Í:” Í:”( Í:#”) Í:$”* Í:%”+ Í:&”0 Í:+”1 Í:,”2 Í:-”3 Í:.”7 Í:2–” Í:” Í:” Í;” Í;” Í;” Í;˜” Í:” Í:” Í<” Í<” Í<”& Í<&”' Í<'”/ Í</˜” Í:” Í:” Í=” Í=” Í=”) Í=)”* Í=*”2 Í=2’” Í:” Í:’” Í8” Í8’” Í6
+” Í6’” Í7
+” Í7’” Í ”- Í -’” Í” Í’” Ía”7 Ía3–” Íb” Íb” Íb” Íb”  Íb”" Íb’” Íc
+” Íc” Íc
+” Íc” Í}”% Í}”& Í}”( Í}”. Í}”0 Í}”2 Í}”5 Í}!”9 Í}%”: Í}&”ÌE Í}1”ÌG Í}3˜” Íd” Íd”# Íd”% Íd”* Íd”, Íd”- Íd”/ ÍdÜ ” Íd” Íd” Ín”# Ín”$ Ín”& Ín”* Ín”, Ín”. Ín”0 Ín!”5 Ín&”7 Ín(”9 Ín*”; Ín,”> Ín/”Ì@ Ín1”ÌA Ín2”ÌC Ín4”ÌI Ín:”ÌK Ín<”ÌL Ín=”ÌN Ín?–” Íd” Íd” Ío”( Ío”) Ío”+ Íoš” Íd” Íd” Íp”+ Íp”, Íp”: Íp+”; Íp,”ÌG Íp8”ÌJ Íp;”ÌZ ÍpÌK•” Íd” Íd” Íq”" Íq”# Íq”” Ír”! Ír”# Ír”$ Ír“” Ís”! Ís”# Ís“”  Ít”& Ít”( Ít–”$ Íu”% Íu”- Íu”/ Íu”ÌE Íu3”ÌF Íu4–”$ Ív”% Ív”- Ív”/ Ív”ÌD Ív2”ÌE Ív3‘”! Íw–”  Íx”) Íx”+ Íx”< Íx,”= Íx-”ÌH Íx8‘” Íy”” Íz”" Íz”$ Íz”& Íz‘” Í{’” Íe” Íe–” Íe” Íe” Íf”$ Íf”% Íf”& Íf–” Íe” Íe” Íg”% Íg”& Íg”' Íg˜” Íe” Íe” Íh”# Íh”$ Íh”2 Íh$”3 Íh%”7 Íh)”” Íi” Íi”$ Íi”4 Íi#–” Íi” Íi” Íj”% Íj”& Íj”( Íj˜” Íi” Íi” Ík”' Ík”( Ík”2 Ík&”3 Ík'”9 Ík-˜” Íi” Íi” Íl”& Íl”' Íl”5 Íl)”6 Íl*”> Íl2’” Íi” Íi’” Íd” Íd’” Íc
+” Íc‘” Í~	‘” Í~’” Í
+” Íš” Í
+” Í” Í”$ Í”% Í”' Í”* Í”. Í"”/ Í#”: Í.’” Í
+” Í‘” Í€	’” ÌK” ÌK’” ÌG” ÌG	‘” Íˆ’” Í‹” Í‹’” ÍŒ” ÍŒ	–” ÍŒ” ÍŒ	” Í ” Í 
+” Í ” Í –” ÍŒ” ÍŒ	” Í¡” Í¡” Í¡” Í¡’” Í”$ Í’” Í” Í’” Í”$ Í–” Í” Í” Í	” Í” Í” Í’” Í”$ Í–” Í” Í” Í	” Í” Í” Í’” Í”$ Íš” Í” Í” Í‘	” Í‘” Í‘”& Í‘”' Í‘”/ Í‘%”2 Í‘(”6 Í‘,’” Í”$ ÍŸ” Í” Í” Í’	” Í’” Í’” Í’” Í’”! Í’”" Í’”$ Í’”& Í’”' Í’”) Í’”/ Í’%”1 Í’'’” Í”” Í”–” Í”” Í”” Í•	” Í•” Í•” Í•–” Í”” Í”” Í–	” Í–” Í–” Í–š” Í”” Í”” Í—	” Í—” Í—”& Í—”' Í—”. Í—$”1 Í—'”5 Í—+” Í”” Í”” Í˜	” Í˜” Í˜” Í˜” Í˜”! Í˜”& Í˜”( Í˜”) Í˜”+ Í˜!”0 Í˜&”2 Í˜(’” Íš” Íš–” Íš” Íš” Í›	” Í›” Í›” Í›–” Íš” Íš” Íœ	” Íœ” Íœ” Íœš” Íš” Íš” Í	” Í” Í”& Í”' Í”+ Í!”. Í$”2 Í(” Íš” Íš” Í	” Í” Í” Í” Í”! Í”& Í”( Í”) Í”+ Í!”0 Í&”2 Í(’” ÍŒ” ÍŒ	‘” Í¢’” Í¤
+” Í¤–” Í¥” Í¥” Í¥” Í¥” Í¥” Í¥–” Í¦” Í¦” Í¦”  Í¦”) Í¦#”* Í¦$•” Í§” Í§” Í§”  Í§”& Í§ ›” Í¨” Í¨”" Í¨”# Í¨”' Í¨”( Í¨ ”8 Í¨0”9 Í¨1”ÌG Í¨?”ÌH Í¨Ì@”ÌI Í¨Ì@‘” Í©”” Íª” Íª” Íª” Íª‘”	 Í«’” Í¬” Í¬’” Í®
+” Í®š” Í¯” Í¯” Í¯” Í¯” Í¯” Í¯”, Í¯(”- Í¯)”3 Í¯/”4 Í¯/’” Í°” Í°ÔrH–§version¤file§sources®sourcesContent¥names¨mappingsÀ‘À‘ÀÜı‘”    ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”  	 ‘”  
+ ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”    ‘”  ! ‘”  " ‘”  # ‘”  $ ‘”  % ‘”  & ‘”  ' ‘”  ( ‘”  ) ‘”  * ‘”  + ‘”  , ‘”  - ‘”  . ‘”  / ‘”  0 ‘”  1 ‘”  2 ‘”  3 ‘”  4 ‘”  5 ‘”  6 ‘”  7 ‘”  8 ‘”  9 ‘”  : ‘”  ; ‘”  < ‘”  = ‘”  > ‘”  ? ‘”  Ì@ ‘”  ÌA ‘”  ÌB ‘”  ÌC ‘”  ÌD ‘”  ÌE ‘”  ÌF ‘”  ÌG ‘”  ÌH ‘”  ÌI ‘”  ÌJ ‘”  ÌK ‘”  ÌL ‘”  ÌM ‘”  ÌN ‘”  ÌO ‘”  ÌP ‘”  ÌQ ‘”  ÌR ‘”  ÌS ‘”  ÌT ‘”  ÌU ‘”  ÌV ‘”  ÌW ‘”  ÌX ‘”  ÌY ‘”  ÌZ ‘”  Ì[ ‘”  Ì\ ‘”  Ì] ‘”  Ì^ ‘”  Ì_ ‘”  Ì` ‘”  Ìa ‘”  Ìb ‘”  Ìc ‘”  Ìd ‘”  Ìe ‘”  Ìf ‘”  Ìg ‘”  Ìh ‘”  Ìi ‘”  Ìj ‘”  Ìk ‘”  Ìl ‘”  Ìm ‘”  Ìn ‘”  Ìo ‘”  Ìp ‘”  Ìq ‘”  Ìr ‘”  Ìs ‘”  Ìt ‘”  Ìu ‘”  Ìv ‘”  Ìw ‘”  Ìx ‘”  Ìy ‘”  Ìz ‘”  Ì{ ‘”  Ì| ‘”  Ì} ‘”  Ì~ ‘”  Ì ‘”  Ì€ ‘”  Ì ‘”  Ì‚ ‘”  Ìƒ ‘”  Ì„ ‘”  Ì… ‘”  Ì† ‘”  Ì‡ ‘”  Ìˆ ‘”  Ì‰ ‘”  ÌŠ ‘”  Ì‹ ‘”  ÌŒ ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì‘ ‘”  Ì’ ‘”  Ì“ ‘”  Ì” ‘”  Ì• ‘”  Ì– ‘”  Ì— ‘”  Ì˜ ‘”  Ì™ ‘”  Ìš ‘”  Ì› ‘”  Ìœ ‘”  Ì ‘”  Ì ‘”  ÌŸ ‘”  Ì  ‘”  Ì¡ ‘”  Ì¢ ‘”  Ì£ ‘”  Ì¤ ‘”  Ì¥ ‘”  Ì¦ ‘”  Ì§ ‘”  Ì¨ ‘”  Ì© ‘”  Ìª ‘”  Ì« ‘”  Ì¬ ‘”  Ì­ ‘”  Ì® ‘”  Ì¯ ‘”  Ì° ‘”  Ì± ‘”  Ì² ‘”  Ì³ ‘”  Ì´ ‘”  Ìµ ‘”  Ì¶ ‘”  Ì· ‘”  Ì¸ ‘”  Ì¹ ‘”  Ìº ‘”  Ì» ‘”  Ì¼ ‘”  Ì½ ‘”  Ì¾ ‘”  Ì¿ ‘”  ÌÀ ‘”  ÌÁ ‘”  ÌÂ ‘”  ÌÃ ‘”  ÌÄ ‘”  ÌÅ ‘”  ÌÆ ‘”  ÌÇ ‘”  ÌÈ ‘”  ÌÉ ‘”  ÌÊ ‘”  ÌË ‘”  ÌÌ ‘”  ÌÍ ‘”  ÌÎ ‘”  ÌÏ ‘”  ÌĞ ‘”  ÌÑ ‘”  ÌÒ ‘”  ÌÓ ‘”  ÌÔ ‘”  ÌÕ ‘”  ÌÖ ‘”  Ì× ‘”  ÌØ ‘”  ÌÙ ‘”  ÌÚ ‘”  ÌÛ ‘”  ÌÜ ‘”  Ìİ ‘”  ÌŞ ‘”  Ìß ‘”  Ìà ‘”  Ìá ‘”  Ìâ ‘”  Ìã ‘”  Ìä ‘”  Ìå ‘”  Ìæ ‘”  Ìç ‘”  Ìè ‘”  Ìé ‘”  Ìê ‘”  Ìë ‘”  Ìì ‘”  Ìí ‘”  Ìî ‘”  Ìï ‘”  Ìğ ‘”  Ìñ ‘”  Ìò ‘”  Ìó ‘”  Ìô ‘”  Ìõ ‘”  Ìö ‘”  Ì÷ ‘”  Ìø ‘”  Ìù ‘”  Ìú ‘”  Ìû ‘”  Ìü ‘”  Ìı ‘”  Ìş ‘”  Ìÿ ‘”  Í  ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í	 ‘”  Í
+ ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í  ‘”  Í! ‘”  Í" ‘”  Í# ‘”  Í$ ‘”  Í% ‘”  Í& ‘”  Í' ‘”  Í( ‘”  Í) ‘”  Í* ‘”  Í+ ‘”  Í, ‘”  Í- ‘”  Í. ‘”  Í/ ‘”  Í0 ‘”  Í1 ‘”  Í2 ‘”  Í3 ‘”  Í4 ‘”  Í5 ‘”  Í6 ‘”  Í7 ‘”  Í8 ‘”  Í9 ‘”  Í: ‘”  Í; ‘”  Í< ‘”  Í= ‘”  Í> ‘”  Í? ‘”  Í@ ‘”  ÍA ‘”  ÍB ‘”  ÍC ‘”  ÍD ‘”  ÍE ‘”  ÍF ‘”  ÍG ‘”  ÍH ‘”  ÍI ‘”  ÍJ ‘”  ÍK ‘”  ÍL ‘”  ÍM ‘”  ÍN ‘”  ÍO ‘”  ÍP ‘”  ÍQ ‘”  ÍR ‘”  ÍS ‘”  ÍT ‘”  ÍU ‘”  ÍV ‘”  ÍW ‘”  ÍX ‘”  ÍY ‘”  ÍZ ‘”  Í[ ‘”  Í\ ‘”  Í] ‘”  Í^ ‘”  Í_ ‘”  Í` ‘”  Ía ‘”  Íb ‘”  Íc ‘”  Íd ‘”  Íe ‘”  Íf ‘”  Íg ‘”  Íh ‘”  Íi ‘”  Íj ‘”  Ík ‘”  Íl ‘”  Ím ‘”  Ín ‘”  Ío ‘”  Íp ‘”  Íq ‘”  Ír ‘”  Ís ‘”  Ít ‘”  Íu ‘”  Ív ‘”  Íw ‘”  Íx ‘”  Íy ‘”  Íz ‘”  Í{ ‘”  Í| ‘”  Í} ‘”  Í~ ‘”  Í ‘”  Í€ ‘”  Í ‘”  Í‚ ‘”  Íƒ ‘”  Í„ ‘”  Í… ‘”  Í† ‘”  Í‡ ‘”  Íˆ ‘”  Í‰ ‘”  ÍŠ ‘”  Í‹ ‘”  ÍŒ ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í‘ ‘”  Í’ ‘”  Í“ ‘”  Í” ‘”  Í• ‘”  Í– ‘”  Í— ‘”  Í˜ ‘”  Í™ ‘”  Íš ‘”  Í› ‘”  Íœ ‘”  Í ‘”  Í ‘”  ÍŸ ‘”  Í  ‘”  Í¡ ‘”  Í¢ ‘”  Í£ ‘”  Í¤ ‘”  Í¥ ‘”  Í¦ ‘”  Í§ ‘”  Í¨ ‘”  Í© ‘”  Íª ‘”  Í« ‘”  Í¬ ‘”  Í­ ‘”  Í® ‘”  Í¯ ‘”  Í° ‘”  Í± ‘”  Í² ‘”  Í³ ‘”  Í´ ‘”  Íµ ‘”  Í¶ ‘”  Í· ‘”  Í¸ ‘”  Í¹ ‘”  Íº ‘”  Í» ‘”  Í¼ ‘”  Í½ ‘”  Í¾ ‘”  Í¿ ‘”  ÍÀ ‘”  ÍÁ ‘”  ÍÂ ‘”  ÍÃ ‘”  ÍÄ ‘”  ÍÅ ‘”  ÍÆ ‘”  ÍÇ ‘”  ÍÈ ‘”  ÍÉ ‘”  ÍÊ ‘”  ÍË ‘”  ÍÌ ‘”  ÍÍ ‘”  ÍÎ ‘”  ÍÏ ‘”  ÍĞ ‘”  ÍÑ ‘”  ÍÒ ‘”  ÍÓ ‘”  ÍÔ ‘”  ÍÕ ‘”  ÍÖ ‘”  Í× ‘”  ÍØ ‘”  ÍÙ ‘”  ÍÚ ‘”  ÍÛ ‘”  ÍÜ ‘”  Íİ ‘”  ÍŞ ‘”  Íß ‘”  Íà ‘”  Íá ‘”  Íâ ‘”  Íã ‘”  Íä ‘”  Íå ‘”  Íæ ‘”  Íç ‘”  Íè ‘”  Íé ‘”  Íê ‘”  Íë ‘”  Íì ‘”  Íí ‘”  Íî ‘”  Íï ‘”  Íğ ‘”  Íñ ‘”  Íò ‘”  Íó ‘”  Íô ‘”  Íõ ‘”  Íö ‘”  Í÷ ‘”  Íø ‘”  Íù ‘”  Íú ‘”  Íû ‘”  Íü ‘”  Íı ‘”  Íş ‘”  Íÿ ‘”  Í  ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í	 ‘”  Í
+ ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í  ‘”  Í! ‘”  Í" ‘”  Í# ‘”  Í$ ‘”  Í% ‘”  Í& ‘”  Í' ‘”  Í( ‘”  Í) ‘”  Í* ‘”  Í+ ‘”  Í, ‘”  Í- ‘”  Í. ‘”  Í/ ‘”  Í0 ‘”  Í1 ‘”  Í2 ‘”  Í3 ‘”  Í4 ‘”  Í5 ‘”  Í6 ‘”  Í7 ‘”  Í8 ‘”  Í9 ‘”  Í: ‘”  Í; ‘”  Í< ‘”  Í= ‘”  Í> ‘”  Í? ‘”  Í@ ‘”  ÍA ‘”  ÍB ‘”  ÍC ‘”  ÍD ‘”  ÍE ‘”  ÍF ‘”  ÍG ‘”  ÍH ‘”  ÍI ‘”  ÍJ ‘”  ÍK ‘”  ÍL ‘”  ÍM ‘”  ÍN ‘”  ÍO ‘”  ÍP ‘”  ÍQ ‘”  ÍR ‘”  ÍS ‘”  ÍT ‘”  ÍU ‘”  ÍV ‘”  ÍW ‘”  ÍX ‘”  ÍY ‘”  ÍZ ‘”  Í[ ‘”  Í\ ‘”  Í] ‘”  Í^ ‘”  Í_ ‘”  Í` ‘”  Ía ‘”  Íb ‘”  Íc ‘”  Íd ‘”  Íe ‘”  Íf ‘”  Íg ‘”  Íh ‘”  Íi ‘”  Íj ‘”  Ík ‘”  Íl ‘”  Ím ‘”  Ín ‘”  Ío ‘”  Íp ‘”  Íq ‘”  Ír ‘”  Ís ‘”  Ít ‘”  Íu ‘”  Ív ‘”  Íw ‘”  Íx ‘”  Íy ‘”  Íz ‘”  Í{ ‘”  Í| ‘”  Í} ‘”  Í~ ‘”  Í ‘”  Í€ ‘”  Í ‘”  Í‚ ‘”  Íƒ ‘”  Í„ ‘”  Í… ‘”  Í† ‘”  Í‡ ‘”  Íˆ ‘”  Í‰ ‘”  ÍŠ ‘”  Í‹ ‘”  ÍŒ ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í‘ ‘”  Í’ ‘”  Í“ ‘”  Í” ‘”  Í• ‘”  Í– ‘”  Í— ‘”  Í˜ ‘”  Í™ ‘”  Íš ‘”  Í› ‘”  Íœ ‘”  Í ‘”  Í ‘”  ÍŸ ‘”  Í  ‘”  Í¡ ‘”  Í¢ ‘”  Í£ ‘”  Í¤ ‘”  Í¥ ‘”  Í¦ ‘”  Í§ ‘”  Í¨ ‘”  Í© ‘”  Íª ‘”  Í« ‘”  Í¬ ‘”  Í­ ‘”  Í® ‘”  Í¯ ‘”  Í° ‘”  Í± ‘”  Í² ‘”  Í³ ‘”  Í´ ‘”  Íµ ‘”  Í¶ ‘”  Í· ‘”  Í¸ ‘”  Í¹ ‘”  Íº ‘”  Í» ‘”  Í¼ ‘”  Í½ ‘”  Í¾ ‘”  Í¿ ‘”  ÍÀ ‘”  ÍÁ ‘”  ÍÂ ‘”  ÍÃ ‘”  ÍÄ ‘”  ÍÅ ‘”  ÍÆ ‘”  ÍÇ ‘”  ÍÈ ‘”  ÍÉ ‘”  ÍÊ ‘”  ÍË ‘”  ÍÌ ‘”  ÍÍ ‘”  ÍÎ ‘”  ÍÏ ‘”  ÍĞ ‘”  ÍÑ ‘”  ÍÒ ‘”  ÍÓ ‘”  ÍÔ ‘”  ÍÕ ‘”  ÍÖ ‘”  Í× ‘”  ÍØ ‘”  ÍÙ ‘”  ÍÚ ‘”  ÍÛ ‘”  ÍÜ ‘”  Íİ ‘”  ÍŞ ‘”  Íß ‘”  Íà ‘”  Íá ‘”  Íâ ‘”  Íã ‘”  Íä ‘”  Íå ‘”  Íæ ‘”  Íç ‘”  Íè ‘”  Íé ‘”  Íê ‘”  Íë ‘”  Íì ‘”  Íí ‘”  Íî ‘”  Íï ‘”  Íğ ‘”  Íñ ‘”  Íò ‘”  Íó ‘”  Íô ‘”  Íõ ‘”  Íö ‘”  Í÷ ‘”  Íø ‘”  Íù ‘”  Íú ‘”  Íû ‘”  Íü ÔrI’§missing¦pluginÃ¦genAbcÂÔ  ÔrJ”²dynamicImportCache¹exportAllDeclarationCache»exportNamedDeclarationCache«importCache—ÔrK•¤type¥start£endªspecifiers¦source±ImportDeclarationÌ¹Ìİ‘ÔrL”¤type¥start£end¥local¶ImportDefaultSpecifierÌÀÌÇÔrM”¤type¥start£end¤nameªIdentifierÌÀÌÇ§displayÔrN•¤type¥start£end¥value£raw§LiteralÌÍÌÜ­@ohos.display¯"@ohos.display"K±ImportDeclarationÌßÍ(‘ÔrO•¤type¥start£end¨imported¥local¯ImportSpecifierÌèÍMªIdentifierÌèÍ¹getSharedRecordingManagerMªIdentifierÌèÍ¹getSharedRecordingManagerN§LiteralÍ	Í'¼../services/RecordingManager¾'../services/RecordingManager'K±ImportDeclarationÍ*Íe‘O¯ImportSpecifierÍ3ÍAMªIdentifierÍ3ÍA®RecordingStateMªIdentifierÍ3ÍA®RecordingStateN§LiteralÍIÍd¹../models/RecordingModels»'../models/RecordingModels'K±ImportDeclarationÍgÍœ‘O¯ImportSpecifierÍpÍ{MªIdentifierÍpÍ{«formatClockMªIdentifierÍpÍ{«formatClockN§LiteralÍƒÍ›¶../utils/FormatHelpers¸'../utils/FormatHelpers'K±ImportDeclarationÍÍ#•O¯ImportSpecifierÍ§ÍµMªIdentifierÍ§Íµ®RokuricsColorsMªIdentifierÍ§Íµ®RokuricsColorsO¯ImportSpecifierÍ·ÍÁMªIdentifierÍ·ÍÁªFontWeightMªIdentifierÍ·ÍÁªFontWeightO¯ImportSpecifierÍÃÍÓMªIdentifierÍÃÍÓ°glassFillOpacityMªIdentifierÍÃÍÓ°glassFillOpacityO¯ImportSpecifierÍÕÍëMªIdentifierÍÕÍë¶glassStrokeHighOpacityMªIdentifierÍÕÍë¶glassStrokeHighOpacityO¯ImportSpecifierÍíÍMªIdentifierÍíÍµglassStrokeMidOpacityMªIdentifierÍíÍµglassStrokeMidOpacityN§LiteralÍ
+Í"¶../utils/RokuricsTheme¸'../utils/RokuricsTheme'K±ImportDeclarationÍ%Íz”O¯ImportSpecifierÍ.Í6MªIdentifierÍ.Í6¨GearIconMªIdentifierÍ.Í6¨GearIconO¯ImportSpecifierÍ8ÍAMªIdentifierÍ8ÍA©BooksIconMªIdentifierÍ8ÍA©BooksIconO¯ImportSpecifierÍCÍKMªIdentifierÍCÍK¨ChatIconMªIdentifierÍCÍK¨ChatIconO¯ImportSpecifierÍMÍ[MªIdentifierÍMÍ[®ConnectionIconMªIdentifierÍMÍ[®ConnectionIconN§LiteralÍcÍy´../utils/CustomIcons¶'../utils/CustomIcons'K±ImportDeclarationÍ|Í²‘O¯ImportSpecifierÍ…ÍMªIdentifierÍ…Í«hapticLightMªIdentifierÍ…Í«hapticLightN§LiteralÍ˜Í±·../utils/HapticFeedback¹'../utils/HapticFeedback'

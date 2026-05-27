@@ -83,4 +83,13 @@ dependencies {
     // Debug
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // Testing
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("androidx.test.ext:junit:1.1.5")
+
+    // Instrumented testing (Compose UI) — add when emulator available:
+    // androidTestImplementation(platform("androidx.compose:compose-bom:2024.04.00"))
+    // androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    // androidTestImplementation("androidx.compose.ui:ui-test-manifest")
 }

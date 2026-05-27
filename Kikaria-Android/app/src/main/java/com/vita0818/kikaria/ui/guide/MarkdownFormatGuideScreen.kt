@@ -21,11 +21,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vita0818.kikaria.ui.components.KikariaBackButton
 import com.vita0818.kikaria.ui.components.KikariaGlassCard
-import com.vita0818.kikaria.ui.components.KikariaPageShell
+import com.vita0818.kikaria.ui.components.KikariaScrollPageShell
 import com.vita0818.kikaria.ui.theme.KikariaColors
 import com.vita0818.kikaria.ui.theme.KikariaTypography
+import com.vita0818.kikaria.ui.theme.rememberKikariaPhoneMetrics
 
 /**
  * Markdown format guide screen, translated from the iOS MarkdownFormatGuideView
@@ -40,19 +40,11 @@ fun MarkdownFormatGuideScreen(
     val isDark = isSystemInDarkTheme()
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
     val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
-    val mist = if (isDark) KikariaColors.MistDark else KikariaColors.Mist
 
-    KikariaPageShell {
-        Box(modifier = Modifier.fillMaxSize()) {
-            KikariaBackButton(onClick = onBack)
+    val metrics = rememberKikariaPhoneMetrics()
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp)
-                    .padding(top = 70.dp)
-            ) {
+    KikariaScrollPageShell(onBack = onBack, metrics = metrics) {
+        Spacer(modifier = Modifier.height(metrics.pageTopPadding))
                 Text(
                     text = KikariaTypography.mixedText(
                         "Markdown 格式说明",
@@ -240,8 +232,6 @@ content:
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
-            }
-        }
     }
 }
 
@@ -254,7 +244,6 @@ private fun GuideCard(
 ) {
     val isDark = isSystemInDarkTheme()
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
-    val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
 
     KikariaGlassCard(
         modifier = Modifier.fillMaxWidth(),
@@ -321,4 +310,4 @@ private fun RuleText(text: String) {
         lineHeight = 22.sp,
         modifier = Modifier.padding(vertical = 4.dp)
     )
-}
+    }

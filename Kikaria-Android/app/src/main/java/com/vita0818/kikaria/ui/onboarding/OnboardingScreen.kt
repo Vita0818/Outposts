@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -36,6 +37,7 @@ import com.vita0818.kikaria.ui.components.KikariaIcons
 import com.vita0818.kikaria.ui.components.KikariaPageShell
 import com.vita0818.kikaria.ui.theme.KikariaColors
 import com.vita0818.kikaria.ui.theme.KikariaTypography
+import com.vita0818.kikaria.ui.theme.rememberKikariaPhoneMetrics
 
 /**
  * Onboarding screen translated from the iOS OnboardingView in ContentView.swift.
@@ -48,6 +50,7 @@ fun OnboardingScreen(
     onComplete: () -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
+    val metrics = rememberKikariaPhoneMetrics()
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
     val actionGradient = if (isDark) KikariaColors.ActionGradientDark else KikariaColors.ActionGradientLight
     val shadowColor = if (isDark) KikariaColors.SkyDark.copy(alpha = 0.22f) else KikariaColors.Sky.copy(alpha = 0.22f)
@@ -73,10 +76,19 @@ fun OnboardingScreen(
     )
 
     KikariaPageShell {
-        Column(
+        Box(
             modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            contentAlignment = if (metrics.isTablet) Alignment.TopCenter else Alignment.TopStart
         ) {
+            Column(
+                modifier = Modifier
+                    .then(
+                        if (metrics.isTablet) Modifier.widthIn(max = metrics.contentMaxWidth)
+                        else Modifier
+                    )
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
             // Header
             Text(
                 text = KikariaTypography.mixedText("Kikaria", size = 36, weight = FontWeight.SemiBold),
@@ -130,6 +142,7 @@ fun OnboardingScreen(
             }
 
             Spacer(modifier = Modifier.height(28.dp))
+            }
         }
     }
 }

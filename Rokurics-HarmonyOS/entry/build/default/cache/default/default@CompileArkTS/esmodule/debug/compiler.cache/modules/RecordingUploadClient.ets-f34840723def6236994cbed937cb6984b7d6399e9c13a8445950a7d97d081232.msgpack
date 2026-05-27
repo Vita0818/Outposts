@@ -1,0 +1,660 @@
+Ôr@Ÿªassertions¤code´customTransformCache¬dependencies¢id¤meta±moduleSideEffects¬originalCode±originalSourcemap«resolvedIds®sourcemapChainµsyntheticNamedExportsµtransformDependencies®transformFiles¨cacheAstÔrAÚ"¥/**
+ * Simple HTTP recording upload client
+ * Mirrors single-request path of RecordingUploadClient.swift
+ * Uses @ohos.net.http for metadata + audio upload
+ */
+import http from "@ohos.net.http";
+import fileIo from "@ohos.file.fs";
+const TAG = 'RokuricsUpload';
+export var UploadStage;
+(function (UploadStage) {
+    UploadStage["IDLE"] = "idle";
+    UploadStage["UPLOADING_METADATA"] = "uploadingMetadata";
+    UploadStage["UPLOADING_AUDIO"] = "uploadingAudio";
+    UploadStage["COMPLETED"] = "completed";
+    UploadStage["FAILED"] = "failed";
+})(UploadStage || (UploadStage = {}));
+export class RecordingUploadClient {
+    constructor(config) {
+        this.progressHandler = null;
+        this._currentProgress = {
+            stage: UploadStage.IDLE, bytesSent: 0, totalBytes: 0, fraction: 0, description: ''
+        };
+        this.config = config;
+    }
+    get currentProgress() { return this._currentProgress; }
+    onProgress(handler) {
+        this.progressHandler = handler;
+    }
+    notifyProgress(stage, bytesSent, totalBytes, description) {
+        const fraction = totalBytes > 0 ? bytesSent / totalBytes : 0;
+        this._currentProgress = { stage, bytesSent, totalBytes, fraction, description };
+        if (this.progressHandler) {
+            this.progressHandler(this._currentProgress);
+        }
+    }
+    async uploadRecording(metadata, audioPath) {
+        const baseURL = this.config.serverURL.replace(/\/+$/, '');
+        const audioSize = await this.getFileSize(audioPath);
+        const totalBytes = audioSize + 4096; // rough metadata overhead
+        // Upload metadata
+        this.notifyProgress(UploadStage.UPLOADING_METADATA, 0, totalBytes, 'æ­£åœ¨ä¸Šä¼  metadata');
+        const metadataResult = await this.postJSON(`${baseURL}/upload-recording-metadata`, this.buildMetadataPayload(metadata));
+        if (!metadataResult.ok) {
+            this.notifyProgress(UploadStage.FAILED, 0, totalBytes, metadataResult.error ?? 'metadata_upload_failed');
+            return {
+                ok: false,
+                recordingID: metadata.id,
+                metadataFileName: null,
+                audioFileName: null,
+                metadataDisposition: null,
+                audioDisposition: null,
+                error: metadataResult.error ?? 'metadata ä¸Šä¼ å¤±è´¥'
+            };
+        }
+        this.notifyProgress(UploadStage.UPLOADING_AUDIO, 2048, totalBytes, 'æ­£åœ¨ä¸Šä¼ éŸ³é¢‘');
+        // Upload audio
+        const audioResult = await this.uploadFile(`${baseURL}/upload-recording-audio`, audioPath, 'audio/m4a', 'recording-audio', metadata.id, metadata.fileName);
+        if (!audioResult.ok) {
+            this.notifyProgress(UploadStage.FAILED, 2048, totalBytes, audioResult.error ?? 'audio_upload_failed');
+            return {
+                ok: false,
+                recordingID: metadata.id,
+                metadataFileName: metadataResult.fileName ?? null,
+                audioFileName: null,
+                metadataDisposition: metadataResult.disposition ?? null,
+                audioDisposition: null,
+                error: audioResult.error ?? 'éŸ³é¢‘ä¸Šä¼ å¤±è´¥'
+            };
+        }
+        this.notifyProgress(UploadStage.COMPLETED, totalBytes, totalBytes, 'ä¸Šä¼ å®Œæˆ');
+        console.info(`[${TAG}] upload complete: ${metadata.id}`);
+        return {
+            ok: true,
+            recordingID: audioResult.recordingID ?? metadata.id,
+            metadataFileName: metadataResult.fileName ?? null,
+            audioFileName: audioResult.fileName ?? null,
+            metadataDisposition: metadataResult.disposition ?? null,
+            audioDisposition: audioResult.disposition ?? null,
+            error: null
+        };
+    }
+    async postJSON(url, payload) {
+        const httpRequest = http.createHttp();
+        try {
+            const response = await httpRequest.request(url, {
+                method: http.RequestMethod.POST,
+                header: {
+                    'Content-Type': 'application/json',
+                    'Authorization': this.config.apiKey ? `Bearer ${this.config.apiKey}` : '',
+                    'X-Upload-Type': 'recording-metadata'
+                },
+                extraData: JSON.stringify(payload, null, 2),
+                expectDataType: http.HttpDataType.STRING,
+                connectTimeout: this.config.requestTimeout,
+                readTimeout: this.config.requestTimeout
+            });
+            if (response.responseCode === 200 || response.responseCode === 201) {
+                try {
+                    return JSON.parse(response.result);
+                }
+                catch {
+                    return { ok: true };
+                }
+            }
+            return { ok: false, error: `HTTP ${response.responseCode}` };
+        }
+        catch (err) {
+            return { ok: false, error: `ç½‘ç»œé”™è¯¯: ${err}` };
+        }
+        finally {
+            httpRequest.destroy();
+        }
+    }
+    async uploadFile(url, filePath, contentType, uploadType, recordingID, fileName) {
+        const httpRequest = http.createHttp();
+        try {
+            // Read file into ArrayBuffer
+            const stat = fileIo.statSync(filePath);
+            const file = fileIo.openSync(filePath, fileIo.OpenMode.READ_ONLY);
+            let fileData;
+            try {
+                fileData = new ArrayBuffer(stat.size);
+                fileIo.readSync(file.fd, fileData);
+            }
+            finally {
+                fileIo.closeSync(file);
+            }
+            const response = await httpRequest.request(url, {
+                method: http.RequestMethod.POST,
+                header: {
+                    'Content-Type': contentType,
+                    'Authorization': this.config.apiKey ? `Bearer ${this.config.apiKey}` : '',
+                    'X-Upload-Type': uploadType,
+                    'X-Recording-ID': recordingID,
+                    'X-File-Name': fileName,
+                    'Content-Length': String(stat.size)
+                },
+                extraData: fileData,
+                expectDataType: http.HttpDataType.STRING,
+                connectTimeout: this.config.requestTimeout,
+                readTimeout: this.config.requestTimeout * 3
+            });
+            if (response.responseCode === 200 || response.responseCode === 201) {
+                try {
+                    return JSON.parse(response.result);
+                }
+                catch {
+                    return { ok: true };
+                }
+            }
+            return { ok: false, error: `HTTP ${response.responseCode}` };
+        }
+        catch (err) {
+            return { ok: false, error: `ç½‘ç»œé”™è¯¯: ${err}` };
+        }
+        finally {
+            httpRequest.destroy();
+        }
+    }
+    buildMetadataPayload(metadata) {
+        const payload = {
+            recordingID: metadata.id,
+            title: metadata.title,
+            fileName: metadata.fileName,
+            format: metadata.format,
+            codec: metadata.codec,
+            sampleRate: metadata.sampleRate,
+            channels: metadata.channels,
+            bitrate: metadata.bitrate,
+            fileSize: metadata.fileSize,
+            duration: metadata.duration,
+            createdAt: metadata.createdAt.toISOString(),
+            endedAt: metadata.endedAt.toISOString(),
+            tags: metadata.tags
+        };
+        if (metadata.studyFiling && !metadata.studyFiling.isEmpty) {
+            payload.studyFiling = {
+                type: metadata.studyFiling.type,
+                subject: metadata.studyFiling.subject,
+                chapter: metadata.studyFiling.chapter,
+                topic: metadata.studyFiling.topic
+            };
+        }
+        return payload;
+    }
+    async getFileSize(path) {
+        try {
+            const stat = fileIo.statSync(path);
+            return stat.size;
+        }
+        catch {
+            return 0;
+        }
+    }
+    static async loadConfig(settingsStore) {
+        const serverURL = await settingsStore.getString('upload.serverURL', '');
+        const apiKey = await settingsStore.getString('upload.apiKey', '');
+        const requestTimeout = await settingsStore.getNumber('upload.requestTimeout', 30);
+        return {
+            serverURL: serverURL || 'http://localhost:8000',
+            apiKey: apiKey,
+            requestTimeout: requestTimeout > 0 ? requestTimeout : 30
+        };
+    }
+    static recoveringStaleUploadingStatus(metadata) {
+        if (metadata.uploadStatus !== 'uploading')
+            return metadata;
+        return metadata.copyWithUploadStatus('failed');
+    }
+}
+//# sourceMappingURL=RecordingUploadClient.js.mapÂ’Ùk hvigor_ignore__Applications_DevEco-Studio.app_Contents_sdk_default_openharmony_ets_api_@ohos.net.http.d.tsÙj hvigor_ignore__Applications_DevEco-Studio.app_Contents_sdk_default_openharmony_ets_api_@ohos.file.fs.d.tsÙe/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/services/RecordingUploadClient.etsÔrB›ªmoduleName±isLocalDependency¯isNodeEntryFile§pkgPath±belongProjectPath§pkgNameªpkgVersion±dependencyPkgInfo¯hostModulesInfo°belongModulePath¬shouldEmitJs¥entryÃÂÙ5/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entryÙ//Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS¥entry¥1.0.0Ô  ‘ÔrC’²hostDependencyName®hostModuleNameÙ!../services/RecordingUploadClient¥entryÙ5/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entryÃÃÚ$Š/**
+ * Simple HTTP recording upload client
+ * Mirrors single-request path of RecordingUploadClient.swift
+ * Uses @ohos.net.http for metadata + audio upload
+ */
+import { http } from '@kit.NetworkKit'
+import { fileIo } from '@kit.CoreFileKit'
+import { RecordingMetadata } from '../models/RecordingModels'
+import { SettingsStore } from './SettingsStore'
+
+const TAG = 'RokuricsUpload'
+
+export enum UploadStage {
+  IDLE = 'idle',
+  UPLOADING_METADATA = 'uploadingMetadata',
+  UPLOADING_AUDIO = 'uploadingAudio',
+  COMPLETED = 'completed',
+  FAILED = 'failed'
+}
+
+export interface UploadProgress {
+  stage: UploadStage
+  bytesSent: number
+  totalBytes: number
+  fraction: number
+  description: string
+}
+
+export interface UploadResult {
+  ok: boolean
+  recordingID: string
+  metadataFileName: string | null
+  audioFileName: string | null
+  metadataDisposition: string | null
+  audioDisposition: string | null
+  error: string | null
+}
+
+interface ServerResponse {
+  ok: boolean
+  message?: string
+  disposition?: string
+  fileName?: string
+  recordingID?: string
+  metadataFileName?: string
+  audioFileName?: string
+  receiveStatus?: string
+  processingStatus?: string
+  error?: string
+  reason?: string
+}
+
+export interface UploadConfig {
+  serverURL: string
+  apiKey: string
+  requestTimeout: number
+}
+
+export type UploadProgressHandler = (progress: UploadProgress) => void
+
+interface StudyFilingPayload {
+  type: string | null
+  subject: string | null
+  chapter: string | null
+  topic: string | null
+}
+
+interface MetadataPayload {
+  recordingID: string
+  title: string
+  fileName: string
+  format: string
+  codec: string
+  sampleRate: number
+  channels: number
+  bitrate: number
+  fileSize: number
+  duration: number
+  createdAt: string
+  endedAt: string
+  tags: string[]
+  studyFiling?: StudyFilingPayload
+}
+
+export class RecordingUploadClient {
+  private config: UploadConfig
+  private progressHandler: UploadProgressHandler | null = null
+  private _currentProgress: UploadProgress = {
+    stage: UploadStage.IDLE, bytesSent: 0, totalBytes: 0, fraction: 0, description: ''
+  }
+
+  constructor(config: UploadConfig) {
+    this.config = config
+  }
+
+  get currentProgress(): UploadProgress { return this._currentProgress }
+
+  onProgress(handler: UploadProgressHandler): void {
+    this.progressHandler = handler
+  }
+
+  private notifyProgress(stage: UploadStage, bytesSent: number, totalBytes: number, description: string): void {
+    const fraction = totalBytes > 0 ? bytesSent / totalBytes : 0
+    this._currentProgress = { stage, bytesSent, totalBytes, fraction, description }
+    if (this.progressHandler) {
+      this.progressHandler(this._currentProgress)
+    }
+  }
+
+  async uploadRecording(metadata: RecordingMetadata, audioPath: string): Promise<UploadResult> {
+    const baseURL = this.config.serverURL.replace(/\/+$/, '')
+    const audioSize = await this.getFileSize(audioPath)
+    const totalBytes = audioSize + 4096 // rough metadata overhead
+
+    // Upload metadata
+    this.notifyProgress(UploadStage.UPLOADING_METADATA, 0, totalBytes, 'æ­£åœ¨ä¸Šä¼  metadata')
+    const metadataResult = await this.postJSON(`${baseURL}/upload-recording-metadata`, this.buildMetadataPayload(metadata))
+
+    if (!metadataResult.ok) {
+      this.notifyProgress(UploadStage.FAILED, 0, totalBytes,
+        metadataResult.error ?? 'metadata_upload_failed')
+      return {
+        ok: false,
+        recordingID: metadata.id,
+        metadataFileName: null,
+        audioFileName: null,
+        metadataDisposition: null,
+        audioDisposition: null,
+        error: metadataResult.error ?? 'metadata ä¸Šä¼ å¤±è´¥'
+      }
+    }
+
+    this.notifyProgress(UploadStage.UPLOADING_AUDIO, 2048, totalBytes, 'æ­£åœ¨ä¸Šä¼ éŸ³é¢‘')
+
+    // Upload audio
+    const audioResult = await this.uploadFile(
+      `${baseURL}/upload-recording-audio`,
+      audioPath,
+      'audio/m4a',
+      'recording-audio',
+      metadata.id,
+      metadata.fileName
+    )
+
+    if (!audioResult.ok) {
+      this.notifyProgress(UploadStage.FAILED, 2048, totalBytes,
+        audioResult.error ?? 'audio_upload_failed')
+      return {
+        ok: false,
+        recordingID: metadata.id,
+        metadataFileName: metadataResult.fileName ?? null,
+        audioFileName: null,
+        metadataDisposition: metadataResult.disposition ?? null,
+        audioDisposition: null,
+        error: audioResult.error ?? 'éŸ³é¢‘ä¸Šä¼ å¤±è´¥'
+      }
+    }
+
+    this.notifyProgress(UploadStage.COMPLETED, totalBytes, totalBytes, 'ä¸Šä¼ å®Œæˆ')
+
+    console.info(`[${TAG}] upload complete: ${metadata.id}`)
+    return {
+      ok: true,
+      recordingID: audioResult.recordingID ?? metadata.id,
+      metadataFileName: metadataResult.fileName ?? null,
+      audioFileName: audioResult.fileName ?? null,
+      metadataDisposition: metadataResult.disposition ?? null,
+      audioDisposition: audioResult.disposition ?? null,
+      error: null
+    }
+  }
+
+  private async postJSON(url: string, payload: MetadataPayload): Promise<ServerResponse> {
+    const httpRequest = http.createHttp()
+    try {
+      const response = await httpRequest.request(url, {
+        method: http.RequestMethod.POST,
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': this.config.apiKey ? `Bearer ${this.config.apiKey}` : '',
+          'X-Upload-Type': 'recording-metadata'
+        },
+        extraData: JSON.stringify(payload, null, 2),
+        expectDataType: http.HttpDataType.STRING,
+        connectTimeout: this.config.requestTimeout,
+        readTimeout: this.config.requestTimeout
+      })
+
+      if (response.responseCode === 200 || response.responseCode === 201) {
+        try {
+          return JSON.parse(response.result as string) as ServerResponse
+        } catch {
+          return { ok: true }
+        }
+      }
+      return { ok: false, error: `HTTP ${response.responseCode}` }
+    } catch (err) {
+      return { ok: false, error: `ç½‘ç»œé”™è¯¯: ${err}` }
+    } finally {
+      httpRequest.destroy()
+    }
+  }
+
+  private async uploadFile(
+    url: string,
+    filePath: string,
+    contentType: string,
+    uploadType: string,
+    recordingID: string,
+    fileName: string
+  ): Promise<ServerResponse> {
+    const httpRequest = http.createHttp()
+    try {
+      // Read file into ArrayBuffer
+      const stat = fileIo.statSync(filePath)
+      const file = fileIo.openSync(filePath, fileIo.OpenMode.READ_ONLY)
+      let fileData: ArrayBuffer
+      try {
+        fileData = new ArrayBuffer(stat.size)
+        fileIo.readSync(file.fd, fileData)
+      } finally {
+        fileIo.closeSync(file)
+      }
+
+      const response = await httpRequest.request(url, {
+        method: http.RequestMethod.POST,
+        header: {
+          'Content-Type': contentType,
+          'Authorization': this.config.apiKey ? `Bearer ${this.config.apiKey}` : '',
+          'X-Upload-Type': uploadType,
+          'X-Recording-ID': recordingID,
+          'X-File-Name': fileName,
+          'Content-Length': String(stat.size)
+        },
+        extraData: fileData,
+        expectDataType: http.HttpDataType.STRING,
+        connectTimeout: this.config.requestTimeout,
+        readTimeout: this.config.requestTimeout * 3
+      })
+
+      if (response.responseCode === 200 || response.responseCode === 201) {
+        try {
+          return JSON.parse(response.result as string) as ServerResponse
+        } catch {
+          return { ok: true }
+        }
+      }
+      return { ok: false, error: `HTTP ${response.responseCode}` }
+    } catch (err) {
+      return { ok: false, error: `ç½‘ç»œé”™è¯¯: ${err}` }
+    } finally {
+      httpRequest.destroy()
+    }
+  }
+
+  private buildMetadataPayload(metadata: RecordingMetadata): MetadataPayload {
+    const payload: MetadataPayload = {
+      recordingID: metadata.id,
+      title: metadata.title,
+      fileName: metadata.fileName,
+      format: metadata.format,
+      codec: metadata.codec,
+      sampleRate: metadata.sampleRate,
+      channels: metadata.channels,
+      bitrate: metadata.bitrate,
+      fileSize: metadata.fileSize,
+      duration: metadata.duration,
+      createdAt: metadata.createdAt.toISOString(),
+      endedAt: metadata.endedAt.toISOString(),
+      tags: metadata.tags
+    }
+    if (metadata.studyFiling && !metadata.studyFiling.isEmpty) {
+      payload.studyFiling = {
+        type: metadata.studyFiling.type,
+        subject: metadata.studyFiling.subject,
+        chapter: metadata.studyFiling.chapter,
+        topic: metadata.studyFiling.topic
+      }
+    }
+    return payload
+  }
+
+  private async getFileSize(path: string): Promise<number> {
+    try {
+      const stat = fileIo.statSync(path)
+      return stat.size
+    } catch {
+      return 0
+    }
+  }
+
+  static async loadConfig(settingsStore: SettingsStore): Promise<UploadConfig> {
+    const serverURL = await settingsStore.getString('upload.serverURL', '')
+    const apiKey = await settingsStore.getString('upload.apiKey', '')
+    const requestTimeout = await settingsStore.getNumber('upload.requestTimeout', 30)
+    return {
+      serverURL: serverURL || 'http://localhost:8000',
+      apiKey: apiKey,
+      requestTimeout: requestTimeout > 0 ? requestTimeout : 30
+    }
+  }
+
+  static recoveringStaleUploadingStatus(metadata: RecordingMetadata): RecordingMetadata {
+    if (metadata.uploadStatus !== 'uploading') return metadata
+    return metadata.copyWithUploadStatus('failed')
+  }
+}
+ÀÔrD’®@ohos.net.http­@ohos.file.fsÔrE—ªassertions¨external¢id¤meta±moduleSideEffectsªresolvedByµsyntheticNamedExportsAÃÙk hvigor_ignore__Applications_DevEco-Studio.app_Contents_sdk_default_openharmony_ets_api_@ohos.net.http.d.tsÔrF‘¯hostModulesInfo’C®@ohos.net.http¥entryC®@ohos.net.http¥entryÃªoh-resolveÂEAÃÙj hvigor_ignore__Applications_DevEco-Studio.app_Contents_sdk_default_openharmony_ets_api_@ohos.file.fs.d.tsAÃªoh-resolveÂ“ÔrG–§version¤fileªsourceRoot§sources¥names¨mappings¸RecordingUploadClient.js ‘¹RecordingUploadClient.etsÜ Ò‘”    ‘” –”   ” 	” ” ”! &”" &–”   ” 	” ” ”" )”# )–”  
+ ” 
+”	 
+	” 
+” 
+” 
+•”   ” ”  ” ” “”   ” ” “” ”  ”! “” ”; *”< *“” ”5 $”6 $“” ”* ”+ “” ”$ ”% —”   ” ” ” ” ” ”& ””  ÌT ” ÌT” ÌT”" ÌT"“” Ì[” Ì[” Ì["•” ÌV
+” ÌV” ÌV:”# ÌV>”$ ÌV>“” ÌW
+” ÌW”  ÌW-Ü ” ÌX” ÌX	” ÌX” ÌX” ÌX”# ÌX”% ÌX”. ÌX&”0 ÌX(”1 ÌX)”3 ÌX+”= ÌX5”? ÌX7”Ì@ ÌX8”ÌB ÌX:”ÌJ ÌXÌB”ÌL ÌXÌD”ÌM ÌXÌE”ÌO ÌXÌG”ÌZ ÌXÌR”Ì\ ÌXÌT”Ì^ ÌXÌV’”	 ÌY”
+ ÌY—” Ì\” Ì\” Ì\	” Ì\” Ì\” Ì\” Ì\’” Ì]” Ì]›” Ì_” Ì_” Ì_” Ì_*”# Ì_1”' Ì_5”( Ì_6”8 Ì_ÌF”9 Ì_ÌF”: Ì_ÌG”; Ì_ÌH”” Ìa” Ìa” Ìa” Ìa+—” Ìb” Ìb” Ìb	” Ìb” Ìb”& Ìb"”' Ìb"’” Ìc” Ìcš” Ìe
+” Ìe” Ìe” Ìe+” Ìe-”# Ìe>”% ÌeÌ@”/ ÌeÌR”1 ÌeÌT”< ÌeÌgÜ ” Ìf” Ìf
+” Ìf” Ìf”# Ìf”& Ìf"”' Ìf#”( Ìf$”) Ìf%”* Ìf&”3 Ìf/”6 Ìf2”Ì@ Ìf<”ÌA Ìf=”ÌB Ìf>”ÌC Ìf?”ÌD ÌfÌ@”ÌE ÌfÌ@Ü ” Ìg” Ìg” Ìg	” Ìg”  Ìg”" Ìg”' Ìg#”) Ìg%”2 Ìg.”4 Ìg0”> Ìg:”Ì@ Ìg<”ÌH ÌgÌD”ÌJ ÌgÌF”ÌU ÌgÌQ”ÌW ÌgÌS”ÌX ÌgÌS–” Ìh” Ìh” Ìh” Ìh”  Ìh”" Ìhš” Ìi” Ìi
+” Ìi”  Ìi”! Ìi”% Ìi”& Ìi ”6 Ìi0”7 Ìi1”8 Ìi1‘”	 Ìj’” Ìk” Ìk˜” Ìm”	 Ìm”
+ Ìm” Ìm” Ìm”" Ìm3”$ Ìm5”- ÌmÌFÜ ” Ìn” Ìn
+” Ìn” Ìn” Ìn” Ìn”# Ìn”$ Ìn ”- Ìn)”. Ìn*”5 Ìn1”6 Ìn2”< Ìn8”> Ìn:”Ì@ Ìn<”ÌA Ìn=”ÌB Ìn=œ” Ìo” Ìo
+” Ìo” Ìo”  Ìo”$ Ìo ”% Ìo!”0 Ìo,”1 Ìo-”: Ìo6”; Ìo7”< Ìo7š” Ìp” Ìp
+” Ìp” Ìp”$ Ìp ”' Ìp#”+ Ìp'”, Ìp'”- Ìp(”ÌG ÌpÌB’” Ìr” ÌrÜ ” Ìs” Ìs” Ìs	” Ìs” Ìs”' Ìs#”( Ìs$”: Ìs6”< Ìs8”= Ìs9”? Ìs;”ÌI ÌsÌE”ÌK ÌsÌG”ÌZ ÌsÌV”Ì[ ÌsÌW”Ì\ ÌsÌWÜ ” Ìt” Ìt
+” Ìt” Ìt”% Ìt!”) Ìt%”* Ìt&”2 Ìt.”3 Ìt/”6 Ìt2”= Ìt9”ÌY ÌtÌU”Ì[ ÌtÌW”Ì_ ÌtÌ[”Ì` ÌtÌ\”Ìt ÌtÌp”Ìu ÌtÌq”Ì} ÌtÌy”Ì~ ÌtÌz”Ì ÌtÌ{”Ì€ ÌtÌ{—” Ìv” Ìv” Ìv	” Ìv” Ìv” Ìv”  ÌvÜ ” Ìw” Ìw
+” Ìw” Ìw”  Ìw”+ Ìw%”, Ìw&”2 Ìw,”4 Ìw.”5 Ìw/”7 Ìw1”ÌA Ìw;”ÌC Ìx”ÌQ Ìx”ÌR Ìx”ÌW Ìx”Ì[ Ìx ”Ìs Ìx8”Ìt Ìx9”Ìu Ìx9’” Ìy” Ìy”” Ìz” Ìz
+” Ìz” Ìz–” Ì{” Ì{” Ì{”% Ì{”& Ì{”( Ì{ ”” Ì|”  Ì|”" Ì|”& Ì|”” Ì}” Ì}” Ì}”# Ì}”” Ì~”# Ì~”% Ì~”) Ì~!”” Ì”  Ì”" Ì”& Ì˜” Ì€” Ì€” Ì€”% Ì€”& Ì€”+ Ì€#”/ Ì€'”> Ì€6’” Ì” Ì‘”	 Ì‚Ü ” Ì„” Ì„” Ì„	” Ì„” Ì„”' Ì„#”( Ì„$”7 Ì„3”9 Ì„5”= Ì„9”? Ì„;”ÌI Ì„ÌE”ÌK Ì„ÌG”ÌS Ì„ÌO”ÌT Ì„ÌP”ÌU Ì„ÌP’” Ì†” Ì†Ü ” Ì‡” Ì‡
+” Ì‡” Ì‡”" Ì‡”& Ì‡"”' Ì‡#”1 Ì‡-”2 Ìˆ”5 Ìˆ	”< Ìˆ”ÌU Ìˆ)”ÌW Ì‰”Ì` Ì‰”Ìb ÌŠ”Ìm ÌŠ”Ìo Ì‹”Ì€ Ì‹”Ì‚ ÌŒ”ÌŠ ÌŒ”Ì‹ ÌŒ”Ì ÌŒ”Ì Ì”Ì— Ì”Ì˜ Ì”Ì  Ì”Ì¡ Ì”Ì¢ Ì—” Ì” Ì” Ì	” Ì” Ì” Ì” ÌÜ ” Ì‘” Ì‘
+” Ì‘” Ì‘”  Ì‘”+ Ì‘%”, Ì‘&”2 Ì‘,”4 Ì‘.”8 Ì‘2”: Ì‘4”ÌD Ì‘>”ÌF Ì’”ÌQ Ì’”ÌR Ì’”ÌW Ì’”Ì[ Ì’”Ìp Ì’2”Ìq Ì’3”Ìr Ì’3’” Ì“” Ì“”” Ì”” Ì”
+” Ì”” Ì”–” Ì•” Ì•” Ì•”% Ì•”& Ì•”( Ì• ˜” Ì–”  Ì–”" Ì–”0 Ì–(”1 Ì–)”9 Ì–1”= Ì–5”ÌA Ì–9”” Ì—” Ì—” Ì—”# Ì—˜” Ì˜”# Ì˜”% Ì˜”3 Ì˜+”4 Ì˜,”? Ì˜7”ÌC Ì˜;”ÌG Ì˜?”” Ì™”  Ì™”" Ì™”& Ì™˜” Ìš” Ìš” Ìš”" Ìš”# Ìš”( Ìš ”, Ìš$”4 Ìš,’” Ì›” Ì›‘”	 ÌœÜ ” Ì” Ì” Ì	” Ì” Ì”' Ì#”( Ì$”1 Ì-”3 Ì/”= Ì9”? Ì;”ÌI ÌÌE”ÌK ÌÌG”ÌQ ÌÌM”ÌR ÌÌN”ÌS ÌÌN” Ì ” Ì ” Ì ” Ì ” Ì ” Ì ” Ì ”2 Ì .”: Ì 6”; Ì 7”= Ì 9”? Ì ;”Ì@ Ì <”ÌA Ì <’” Ì¡” Ì¡”” Ì¢” Ì¢” Ì¢
+” Ì¢š” Ì£” Ì£” Ì£”$ Ì£”% Ì£”0 Ì£*”4 Ì£.”< Ì£6”= Ì£7”? Ì£9˜” Ì¤” Ì¤” Ì¤”, Ì¤&”- Ì¤'”5 Ì¤/”9 Ì¤3”= Ì¤7˜” Ì¥” Ì¥” Ì¥”& Ì¥ ”' Ì¥!”/ Ì¥)”3 Ì¥-”7 Ì¥1˜” Ì¦” Ì¦”! Ì¦”/ Ì¦)”0 Ì¦*”; Ì¦5”? Ì¦9”ÌC Ì¦=˜” Ì§” Ì§” Ì§”) Ì§#”* Ì§$”5 Ì§/”9 Ì§3”= Ì§7”” Ì¨” Ì¨” Ì¨” Ì¨’”	 Ì©”
+ Ì©’” Ìª” Ìª˜” Ì¬
+”	 Ì¬”
+ Ì¬” Ì¬” Ì¬” Ì¬$” Ì¬&” Ì¬>™” Ì­” Ì­
+” Ì­” Ì­”  Ì­”! Ì­”+ Ì­'”- Ì­)”. Ì­)’” Ì®” Ì®›” Ì¯” Ì¯” Ì¯” Ì¯”# Ì¯”. Ì¯(”/ Ì¯)”6 Ì¯0”7 Ì¯1”: Ì¯4”< Ì¯6˜” Ì°” Ì°” Ì°” Ì°” Ì°”* Ì°"”+ Ì°#”/ Ì°'“” Ì±” Ì±” Ì±”” Ì²
+”" Ì²”$ Ì²”6 Ì²,Ü ” Ì³
+”# Ì³”% Ì³”) Ì³”* Ì³ ”0 Ì³&”1 Ì³'”7 Ì³-”8 Ì³.”9 Ì³/”: Ì³0”ÌD Ì³:”ÌH Ì³>”ÌI Ì³?”ÌO Ì³ÌE”ÌP Ì³ÌF”ÌV Ì³ÌL”ÌX Ì³ÌN”ÌY Ì³ÌO”ÌZ Ì³ÌP”Ì[ Ì³ÌQ”Ì] Ì³ÌS”” Ì´
+”# Ì´”% Ì´”9 Ì´/‘” Ìµ	” Ì¶” Ì¶” Ì¶” Ì¶”  Ì¶”) Ì¶!”* Ì¶"”1 Ì¶)”3 Ì¶+”7 Ì¶/”9 Ì¶1”: Ì¶2”; Ì¶3˜” Ì·” Ì·”  Ì·”$ Ì·”% Ì·”1 Ì·)”2 Ì·*”8 Ì·0˜” Ì¸” Ì¸”  Ì¸”$ Ì¸”% Ì¸”+ Ì¸#”, Ì¸$”: Ì¸2˜” Ì¹” Ì¹” Ì¹”! Ì¹”" Ì¹”( Ì¹ ”) Ì¹!”7 Ì¹/“” Ìº” Ìº” Ìº” Ì¼” Ì¼
+” Ì¼” Ì¼”% Ì¼”* Ì¼$”- Ì¼'”1 Ì¼+”9 Ì¼3”: Ì¼4”ÌF Ì¼Ì@”ÌK Ì¼ÌE”ÌN Ì¼ÌH”ÌP Ì¼ÌJ’” Ì½” Ì½›” Ì¾
+” Ì¾” Ì¾”  Ì¾”% Ì¾”& Ì¾”. Ì¾$”/ Ì¾%”5 Ì¾5”6 Ì¾ÌH”7 Ì¾ÌH‘” Ì¿	’” Ì¿
+” Ì¿˜” ÌÀ
+” ÌÀ” ÌÀ” ÌÀ”! ÌÀ”% ÌÀ”' ÌÀ”( ÌÀ‘” ÌÁ	‘” ÌÂÜ ” ÌÃ” ÌÃ” ÌÃ” ÌÃ” ÌÃ” ÌÃ”  ÌÃ”% ÌÃ”' ÌÃ!”/ ÌÃ)”7 ÌÃ1”8 ÌÃ2”ÌD ÌÃ>”ÌF ÌÃÌ@”ÌH ÌÃÌB”ÌI ÌÃÌB‘”	 ÌÄ”” ÌÄ” ÌÄ” ÌÄ” ÌÄ” ÌÅ” ÌÅ” ÌÅ” ÌÅ” ÌÅ” ÌÅ”  ÌÅ”% ÌÅ”' ÌÅ!”0 ÌÅ*”3 ÌÅ-”5 ÌÅ/”7 ÌÅ1”8 ÌÅ1‘”	 ÌÆ‘” ÌÆ–” ÌÇ” ÌÇ” ÌÇ” ÌÇ”! ÌÇ”" ÌÇ‘”	 ÌÈ’” ÌÉ” ÌÉÜ ” ÌË
+”	 ÌË”
+ ÌË” ÌË” ÌÌ” ÌÌ” ÌÍ”" ÌÍ”$ ÌÎ”/ ÌÎ”1 ÌÏ”; ÌÏ”= ÌĞ”ÌH ÌĞ”ÌJ ÌÑ”ÌR ÌÑ™” ÌÓ” ÌÓ
+” ÌÓ” ÌÓ”  ÌÓ”! ÌÓ”+ ÌÓ'”- ÌÓ)”. ÌÓ)’” ÌÔ” ÌÔ’” ÌÕ”) ÌÕ#›” ÌÖ” ÌÖ” ÌÖ” ÌÖ” ÌÖ”  ÌÖ”( ÌÖ"”) ÌÖ#”1 ÌÖ+”2 ÌÖ,”3 ÌÖ,Ü ” Ì×” Ì×” Ì×” Ì×” Ì×”  Ì×”( Ì×"”) Ì×#”1 Ì×+”3 Ì×-”9 Ì×3”: Ì×4”ÌB Ì×<”ÌC Ì×=”ÌL Ì×ÌF”ÌM Ì×ÌG”ÌN Ì×ÌG”” ÌØ” ÌØ
+” ÌØ” ÌØ’” ÌÙ” ÌÙ
+›” ÌÚ” ÌÚ” ÌÚ” ÌÚ”* ÌÚ"”+ ÌÚ#”/ ÌÚ'”0 ÌÚ(”4 ÌÚ,”5 ÌÚ-”6 ÌÚ-œ” ÌÛ” ÌÛ” ÌÛ” ÌÛ”  ÌÛ”$ ÌÛ”% ÌÛ”' ÌÛ”) ÌÛ!”1 ÌÛ)”2 ÌÛ*”3 ÌÛ*‘” ÌÜ‘” ÌÜ˜” Ìİ” Ìİ” Ìİ”  Ìİ”! Ìİ”% Ìİ”& Ìİ”' Ìİ‘” ÌŞ›” Ìà” Ìà” Ìà” Ìà”# Ìà”. Ìà(”/ Ìà)”6 Ìà0”7 Ìà1”: Ìà4”< Ìà6˜” Ìá” Ìá” Ìá” Ìá” Ìá”* Ìá"”+ Ìá#”/ Ìá'“” Ìâ” Ìâ” Ìâ”” Ìã
+”" Ìã”$ Ìã”/ Ìã%Ü ” Ìä
+”# Ìä”% Ìä”) Ìä”* Ìä ”0 Ìä&”1 Ìä'”7 Ìä-”8 Ìä.”9 Ìä/”: Ìä0”ÌD Ìä:”ÌH Ìä>”ÌI Ìä?”ÌO ÌäÌE”ÌP ÌäÌF”ÌV ÌäÌL”ÌX ÌäÌN”ÌY ÌäÌO”ÌZ ÌäÌP”Ì[ ÌäÌQ”Ì] ÌäÌS”” Ìå
+”# Ìå”% Ìå”/ Ìå%”” Ìæ
+”$ Ìæ”& Ìæ”1 Ìæ'”” Ìç
+”! Ìç”# Ìç”+ Ìç!™” Ìè
+”$ Ìè”& Ìè”, Ìè"”- Ìè#”1 Ìè'”2 Ìè(”6 Ìè,”7 Ìè-‘” Ìé	”” Ìê” Ìê” Ìê”# Ìê˜” Ìë” Ìë”  Ìë”$ Ìë”% Ìë”1 Ìë)”2 Ìë*”8 Ìë0˜” Ìì” Ìì”  Ìì”$ Ìì”% Ìì”+ Ìì#”, Ìì$”: Ìì2š” Ìí” Ìí” Ìí”! Ìí”" Ìí”( Ìí ”) Ìí!”7 Ìí/”: Ìí2”; Ìí3“” Ìî” Ìî” Ìî” Ìğ” Ìğ
+” Ìğ” Ìğ”% Ìğ”* Ìğ$”- Ìğ'”1 Ìğ+”9 Ìğ3”: Ìğ4”ÌF ÌğÌ@”ÌK ÌğÌE”ÌN ÌğÌH”ÌP ÌğÌJ’” Ìñ” Ìñ›” Ìò
+” Ìò” Ìò”  Ìò”% Ìò”& Ìò”. Ìò$”/ Ìò%”5 Ìò5”6 ÌòÌH”7 ÌòÌH‘” Ìó	’” Ìó
+” Ìó˜” Ìô
+” Ìô” Ìô” Ìô”! Ìô”% Ìô”' Ìô”( Ìô‘” Ìõ	‘” ÌöÜ ” Ì÷” Ì÷” Ì÷” Ì÷” Ì÷” Ì÷”  Ì÷”% Ì÷”' Ì÷!”/ Ì÷)”7 Ì÷1”8 Ì÷2”ÌD Ì÷>”ÌF Ì÷Ì@”ÌH Ì÷ÌB”ÌI Ì÷ÌB‘”	 Ìø”” Ìø” Ìø” Ìø” Ìø” Ìù” Ìù” Ìù” Ìù” Ìù” Ìù”  Ìù”% Ìù”' Ìù!”0 Ìù*”3 Ìù-”5 Ìù/”7 Ìù1”8 Ìù1‘”	 Ìú‘” Ìú–” Ìû” Ìû” Ìû” Ìû”! Ìû”" Ìû‘”	 Ìü’” Ìı” Ìı”” Ìÿ
+” Ìÿ” Ìÿ”! Ìÿ:”” Í ” Í 
+” Í ” Í %–” Í” Í” Í”! Í”" Í”$ Í–” Í” Í” Í” Í” Í”! Í–” Í” Í” Í” Í” Í”' Í!–” Í” Í” Í” Í” Í”# Í–” Í” Í” Í” Í” Í”! Í–” Í” Í” Í”  Í”! Í”+ Í%–” Í” Í” Í” Í” Í”' Í!–” Í” Í” Í” Í” Í”% Í–” Í	” Í	” Í	” Í	” Í	”' Í	!–” Í
+” Í
+” Í
+” Í
+” Í
+”' Í
+!™” Í” Í” Í” Í”  Í”) Í#”* Í$”5 Í/”7 Í1™” Í” Í” Í” Í” Í”% Í”& Í ”1 Í+”3 Í-–” Í” Í
+” Í” Í” Í” Í’”	 Í”
+ Í” Í” Í” Í” Í”  Í”$ Í ”% Í!”- Í)”. Í*”9 Í5”: Í6”ÌA Í=”ÌC Í?•” Í” Í” Í” Í”" Í˜” Í” Í” Í” Í” Í”* Í"”+ Í#”/ Í'˜” Í” Í” Í”! Í”" Í”- Í%”. Í&”5 Í-˜” Í” Í” Í”! Í”" Í”- Í%”. Í&”5 Í-˜” Í” Í” Í” Í”  Í”+ Í#”, Í$”1 Í)’” Í” Í‘”	 Í”” Í” Í” Í” Í’” Í” Í–” Í
+”	 Í”
+ Í” Í” Í” Í(’” Í” Í›” Í” Í” Í” Í” Í”  Í”( Í"”) Í#”- Í'”. Í(”/ Í(–” Í” Í” Í” Í” Í” Í‘”	 Í’” Í” Í”” Í” Í” Í” Í‘”	 Í ’” Í!” Í!˜” Í#”
+ Í#” Í#	” Í#” Í#” Í#” Í#”) Í#6” Í$” Í$
+” Í$” Í$”  Í$”- Í$)”. Í$*”7 Í$3”8 Í$4”ÌJ Í$ÌF”ÌL Í$ÌH”ÌN Í$ÌJ”ÌO Í$ÌK”ÌP Í$ÌK” Í%” Í%
+” Í%” Í%” Í%”* Í%&”+ Í%'”4 Í%0”5 Í%1”ÌD Í%Ì@”ÌF Í%ÌB”ÌH Í%ÌD”ÌI Í%ÌE”ÌJ Í%ÌE” Í&” Í&
+” Í&” Í&”% Í&!”2 Í&.”3 Í&/”< Í&8”= Í&9”ÌT Í&ÌP”ÌV Í&ÌR”ÌX Í&ÌT”ÌY Í&ÌU”ÌZ Í&ÌU’” Í'” Í'–” Í(” Í(” Í(”  Í(”$ Í(”; Í(5”” Í)” Í)” Í)” Í)” Í*” Í*” Í*”* Í*$”- Í*'”. Í*(”/ Í*)”0 Í**”1 Í*+”? Í*9”Ì@ Í*:”ÌA Í*;”ÌB Í*<”ÌD Í*>’”	 Í+”
+ Í+’” Í,” Í,–” Í.”
+ Í.” Í.	”) Í.'”* Í.(”2 Í.ÌC—” Í/” Í/” Í/” Í/”! Í/”& Í/"”1 Í/-”” Í//” Í/6” Í/>” Í/>™” Í0” Í0” Í0” Í0”, Í0(”- Í0)”5 Í01”6 Í02”7 Í02’” Í1” Í1‘” Í2ÔrH–§version¤file§sources®sourcesContent¥names¨mappingsÀ‘À‘ÀÜ Ó‘”    ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”  	 ‘”  
+ ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”    ‘”  ! ‘”  " ‘”  # ‘”  $ ‘”  % ‘”  & ‘”  ' ‘”  ( ‘”  ) ‘”  * ‘”  + ‘”  , ‘”  - ‘”  . ‘”  / ‘”  0 ‘”  1 ‘”  2 ‘”  3 ‘”  4 ‘”  5 ‘”  6 ‘”  7 ‘”  8 ‘”  9 ‘”  : ‘”  ; ‘”  < ‘”  = ‘”  > ‘”  ? ‘”  Ì@ ‘”  ÌA ‘”  ÌB ‘”  ÌC ‘”  ÌD ‘”  ÌE ‘”  ÌF ‘”  ÌG ‘”  ÌH ‘”  ÌI ‘”  ÌJ ‘”  ÌK ‘”  ÌL ‘”  ÌM ‘”  ÌN ‘”  ÌO ‘”  ÌP ‘”  ÌQ ‘”  ÌR ‘”  ÌS ‘”  ÌT ‘”  ÌU ‘”  ÌV ‘”  ÌW ‘”  ÌX ‘”  ÌY ‘”  ÌZ ‘”  Ì[ ‘”  Ì\ ‘”  Ì] ‘”  Ì^ ‘”  Ì_ ‘”  Ì` ‘”  Ìa ‘”  Ìb ‘”  Ìc ‘”  Ìd ‘”  Ìe ‘”  Ìf ‘”  Ìg ‘”  Ìh ‘”  Ìi ‘”  Ìj ‘”  Ìk ‘”  Ìl ‘”  Ìm ‘”  Ìn ‘”  Ìo ‘”  Ìp ‘”  Ìq ‘”  Ìr ‘”  Ìs ‘”  Ìt ‘”  Ìu ‘”  Ìv ‘”  Ìw ‘”  Ìx ‘”  Ìy ‘”  Ìz ‘”  Ì{ ‘”  Ì| ‘”  Ì} ‘”  Ì~ ‘”  Ì ‘”  Ì€ ‘”  Ì ‘”  Ì‚ ‘”  Ìƒ ‘”  Ì„ ‘”  Ì… ‘”  Ì† ‘”  Ì‡ ‘”  Ìˆ ‘”  Ì‰ ‘”  ÌŠ ‘”  Ì‹ ‘”  ÌŒ ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì‘ ‘”  Ì’ ‘”  Ì“ ‘”  Ì” ‘”  Ì• ‘”  Ì– ‘”  Ì— ‘”  Ì˜ ‘”  Ì™ ‘”  Ìš ‘”  Ì› ‘”  Ìœ ‘”  Ì ‘”  Ì ‘”  ÌŸ ‘”  Ì  ‘”  Ì¡ ‘”  Ì¢ ‘”  Ì£ ‘”  Ì¤ ‘”  Ì¥ ‘”  Ì¦ ‘”  Ì§ ‘”  Ì¨ ‘”  Ì© ‘”  Ìª ‘”  Ì« ‘”  Ì¬ ‘”  Ì­ ‘”  Ì® ‘”  Ì¯ ‘”  Ì° ‘”  Ì± ‘”  Ì² ‘”  Ì³ ‘”  Ì´ ‘”  Ìµ ‘”  Ì¶ ‘”  Ì· ‘”  Ì¸ ‘”  Ì¹ ‘”  Ìº ‘”  Ì» ‘”  Ì¼ ‘”  Ì½ ‘”  Ì¾ ‘”  Ì¿ ‘”  ÌÀ ‘”  ÌÁ ‘”  ÌÂ ‘”  ÌÃ ‘”  ÌÄ ‘”  ÌÅ ‘”  ÌÆ ‘”  ÌÇ ‘”  ÌÈ ‘”  ÌÉ ‘”  ÌÊ ‘”  ÌË ‘”  ÌÌ ‘”  ÌÍ ‘”  ÌÎ ‘”  ÌÏ ‘”  ÌĞ ‘”  ÌÑ ‘”  ÌÒ ÔrI’§missing¦pluginÃ¦genAbcÂÔ  ÔrJ”²dynamicImportCache¹exportAllDeclarationCache»exportNamedDeclarationCache«importCache’ÔrK–¤type¥start£end«declarationªspecifiers¦source¶ExportNamedDeclarationÍÍ$ÔrL•¤type¥start£end¬declarations¤kind³VariableDeclarationÍÍ$‘ÔrM•¤type¥start£end¢id¤init²VariableDeclaratorÍÍ#ÔrN”¤type¥start£end¤nameªIdentifierÍÍ#«UploadStageÀ£varÀK¶ExportNamedDeclarationÍVÍ"2ÔrO–¤type¥start£end¢idªsuperClass¤body°ClassDeclarationÍ]Í"2NªIdentifierÍcÍxµRecordingUploadClientÀÔrP”¤type¥start£end¤body©ClassBodyÍyÍ"2›ÔrQ˜¤type¥start£end¦static¨computed£key¤kind¥value°MethodDefinitionÍ€ÍpÂÂNªIdentifierÍ€Í‹«constructor«constructorÔrR™¤type¥start£end¢idªexpression©generator¥async¦params¤body²FunctionExpressionÍ‹ÍpÀÂÂÂ‘NªIdentifierÍŒÍ’¦configP®BlockStatementÍ”Íp“ÔrS”¤type¥start£endªexpression³ExpressionStatementÍŸÍ»ÔrT–¤type¥start£end¨operator¤left¥right´AssignmentExpressionÍŸÍº¡=ÔrU—¤type¥start£end¦object¨property¨computed¨optional°MemberExpressionÍŸÍ³ÔrV“¤type¥start£end®ThisExpressionÍŸÍ£NªIdentifierÍ¤Í³¯progressHandlerÂÂÔrW•¤type¥start£end¥value£raw§LiteralÍ¶ÍºÀ¤nullS³ExpressionStatementÍÅÍJT´AssignmentExpressionÍÅÍI¡=U°MemberExpressionÍÅÍÚV®ThisExpressionÍÅÍÉNªIdentifierÍÊÍÚ°_currentProgressÂÂÔrX”¤type¥start£endªproperties°ObjectExpressionÍİÍI•ÔrY™¤type¥start£end¦method©shorthand¨computed£key¥value¤kind¨PropertyÍìÍÂÂÂNªIdentifierÍìÍñ¥stageU°MemberExpressionÍóÍNªIdentifierÍóÍş«UploadStageNªIdentifierÍÿÍ¤IDLEÂÂ¤initY¨PropertyÍÍÂÂÂNªIdentifierÍÍ©bytesSentW§LiteralÍÍ ¡0¤initY¨PropertyÍÍ ÂÂÂNªIdentifierÍÍªtotalBytesW§LiteralÍÍ  ¡0¤initY¨PropertyÍ"Í-ÂÂÂNªIdentifierÍ"Í*¨fractionW§LiteralÍ,Í- ¡0¤initY¨PropertyÍ/Í>ÂÂÂNªIdentifierÍ/Í:«descriptionW§LiteralÍ<Í> ¢''¤initS³ExpressionStatementÍTÍiT´AssignmentExpressionÍTÍh¡=U°MemberExpressionÍTÍ_V®ThisExpressionÍTÍXNªIdentifierÍYÍ_¦configÂÂNªIdentifierÍbÍh¦configQ°MethodDefinitionÍvÍ­ÂÂNªIdentifierÍzÍ‰¯currentProgress£getR²FunctionExpressionÍ‰Í­ÀÂÂÂP®BlockStatementÍŒÍ­‘ÔrZ”¤type¥start£end¨argument¯ReturnStatementÍÍ«U°MemberExpressionÍ•ÍªV®ThisExpressionÍ•Í™NªIdentifierÍšÍª°_currentProgressÂÂQ°MethodDefinitionÍ³ÍøÂÂNªIdentifierÍ³Í½ªonProgress¦methodR²FunctionExpressionÍ½ÍøÀÂÂÂ‘NªIdentifierÍ¾ÍÅ§handlerP®BlockStatementÍÇÍø‘S³ExpressionStatementÍÒÍñT´AssignmentExpressionÍÒÍğ¡=U°MemberExpressionÍÒÍæV®ThisExpressionÍÒÍÖNªIdentifierÍ×Íæ¯progressHandlerÂÂNªIdentifierÍéÍğ§handlerQ°MethodDefinitionÍşÍKÂÂNªIdentifierÍşÍ®notifyProgress¦methodR²FunctionExpressionÍÍKÀÂÂÂ”NªIdentifierÍÍ¥stageNªIdentifierÍÍ©bytesSentNªIdentifierÍÍ)ªtotalBytesNªIdentifierÍ+Í6«descriptionP®BlockStatementÍ8ÍK“L³VariableDeclarationÍCÍ€‘M²VariableDeclaratorÍIÍNªIdentifierÍIÍQ¨fractionÔr[–¤type¥start£end¤testªconsequent©alternateµConditionalExpressionÍTÍÔr\–¤type¥start£end¤left¨operator¥right°BinaryExpressionÍTÍbNªIdentifierÍTÍ^ªtotalBytes¡>W§LiteralÍaÍb ¡0\°BinaryExpressionÍeÍ{NªIdentifierÍeÍn©bytesSent¡/NªIdentifierÍqÍ{ªtotalBytesW§LiteralÍ~Í ¡0¥constS³ExpressionStatementÍŠÍÚT´AssignmentExpressionÍŠÍÙ¡=U°MemberExpressionÍŠÍŸV®ThisExpressionÍŠÍNªIdentifierÍÍŸ°_currentProgressÂÂX°ObjectExpressionÍ¢ÍÙ•Ôr]™¤type¥start£end¦method©shorthand¨computed£key¤kind¥value¨PropertyÍ¤Í©ÂÃÂNªIdentifierÍ¤Í©¥stage¤initNªIdentifierÍ¤Í©¥stage]¨PropertyÍ«Í´ÂÃÂNªIdentifierÍ«Í´©bytesSent¤initNªIdentifierÍ«Í´©bytesSent]¨PropertyÍ¶ÍÀÂÃÂNªIdentifierÍ¶ÍÀªtotalBytes¤initNªIdentifierÍ¶ÍÀªtotalBytes]¨PropertyÍÂÍÊÂÃÂNªIdentifierÍÂÍÊ¨fraction¤initNªIdentifierÍÂÍÊ¨fraction]¨PropertyÍÌÍ×ÂÃÂNªIdentifierÍÌÍ×«description¤initNªIdentifierÍÌÍ×«description[«IfStatementÍäÍDU°MemberExpressionÍèÍüV®ThisExpressionÍèÍìNªIdentifierÍíÍü¯progressHandlerÂÂP®BlockStatementÍşÍD‘S³ExpressionStatementÍÍ9Ôr^–¤type¥start£end¦callee©arguments¨optional®CallExpressionÍÍ8U°MemberExpressionÍÍ!V®ThisExpressionÍÍNªIdentifierÍÍ!¯progressHandlerÂÂ‘U°MemberExpressionÍ"Í7V®ThisExpressionÍ"Í&NªIdentifierÍ'Í7°_currentProgressÂÂÂÀQ°MethodDefinitionÍQÍœÂÂNªIdentifierÍWÍf¯uploadRecording¦methodR²FunctionExpressionÍfÍœÀÂÂÃ’NªIdentifierÍgÍo¨metadataNªIdentifierÍqÍz©audioPathP®BlockStatementÍ|ÍœœL³VariableDeclarationÍ‡ÍÁ‘M²VariableDeclaratorÍÍÀNªIdentifierÍÍ”§baseURL^®CallExpressionÍ—ÍÀU°MemberExpressionÍ—Í´U°MemberExpressionÍ—Í¬U°MemberExpressionÍ—Í¢V®ThisExpressionÍ—Í›NªIdentifierÍœÍ¢¦configÂÂNªIdentifierÍ£Í¬©serverURLÂÂNªIdentifierÍ­Í´§replaceÂÂ’Ôr_–¤type¥start£end¥value£raw¥regex§LiteralÍµÍ»’¤\/+$ ¦/\/+$/Ôr`’§pattern¥flags¤\/+$ W§LiteralÍ½Í¿ ¢''Â¥constL³VariableDeclarationÍËÍÿ‘M²VariableDeclaratorÍÑÍşNªIdentifierÍÑÍÚ©audioSizeZ¯AwaitExpressionÍİÍş^®CallExpressionÍãÍşU°MemberExpressionÍãÍóV®ThisExpressionÍãÍçNªIdentifierÍèÍó«getFileSizeÂÂ‘NªIdentifierÍôÍı©audioPathÂ¥constL³VariableDeclarationÍ	Í-‘M²VariableDeclaratorÍÍ,NªIdentifierÍÍªtotalBytes\°BinaryExpressionÍÍ,NªIdentifierÍÍ%©audioSize¡+W§LiteralÍ(Í,Í ¤4096¥constS³ExpressionStatementÍnÍÂ^®CallExpressionÍnÍÁU°MemberExpressionÍnÍV®ThisExpressionÍnÍrNªIdentifierÍsÍ®notifyProgressÂÂ”U°MemberExpressionÍ‚Í NªIdentifierÍ‚Í«UploadStageNªIdentifierÍÍ ²UPLOADING_METADATAÂÂW§LiteralÍ¢Í£ ¡0NªIdentifierÍ¥Í¯ªtotalBytesW§LiteralÍ±ÍÀµæ­£åœ¨ä¸Šä¼  metadata·'æ­£åœ¨ä¸Šä¼  metadata'ÂL³VariableDeclarationÍÌÍD‘M²VariableDeclaratorÍÒÍCNªIdentifierÍÒÍà®metadataResultZ¯AwaitExpressionÍãÍC^®CallExpressionÍéÍCU°MemberExpressionÍéÍöV®ThisExpressionÍéÍíNªIdentifierÍîÍö¨postJSONÂÂ’Ôra•¤type¥start£end«expressions¦quasis¯TemplateLiteralÍ÷Í‘NªIdentifierÍúÍ§baseURL’Ôrb•¤type¥start£end¥value¤tail¯TemplateElementÍøÍøÔrc’£raw¦cooked  Âb¯TemplateElementÍÍcº/upload-recording-metadataº/upload-recording-metadataÃ^®CallExpressionÍÍBU°MemberExpressionÍÍ8V®ThisExpressionÍÍ#NªIdentifierÍ$Í8´buildMetadataPayloadÂÂ‘NªIdentifierÍ9ÍA¨metadataÂÂ¥const[«IfStatementÍNÍ	:Ôrd–¤type¥start£end¨operator¦prefix¨argument¯UnaryExpressionÍRÍd¡!ÃU°MemberExpressionÍSÍdNªIdentifierÍSÍa®metadataResultNªIdentifierÍbÍd¢okÂÂP®BlockStatementÍfÍ	:’S³ExpressionStatementÍuÍŞ^®CallExpressionÍuÍİU°MemberExpressionÍuÍˆV®ThisExpressionÍuÍyNªIdentifierÍzÍˆ®notifyProgressÂÂ”U°MemberExpressionÍ‰Í›NªIdentifierÍ‰Í”«UploadStageNªIdentifierÍ•Í›¦FAILEDÂÂW§LiteralÍÍ ¡0NªIdentifierÍ ÍªªtotalBytes\±LogicalExpressionÍ¬ÍÜU°MemberExpressionÍ¬ÍÀNªIdentifierÍ¬Íº®metadataResultNªIdentifierÍ»ÍÀ¥errorÂÂ¢??W§LiteralÍÄÍÜ¶metadata_upload_failed¸'metadata_upload_failed'ÂZ¯ReturnStatementÍìÍ	/X°ObjectExpressionÍóÍ	.—Y¨PropertyÍÍÂÂÂNªIdentifierÍÍ¢okW§LiteralÍ
+ÍÂ¥false¤initY¨PropertyÍ"Í:ÂÂÂNªIdentifierÍ"Í-«recordingIDU°MemberExpressionÍ/Í:NªIdentifierÍ/Í7¨metadataNªIdentifierÍ8Í:¢idÂÂ¤initY¨PropertyÍMÍcÂÂÂNªIdentifierÍMÍ]°metadataFileNameW§LiteralÍ_ÍcÀ¤null¤initY¨PropertyÍvÍ‰ÂÂÂNªIdentifierÍvÍƒ­audioFileNameW§LiteralÍ…Í‰À¤null¤initY¨PropertyÍœÍµÂÂÂNªIdentifierÍœÍ¯³metadataDispositionW§LiteralÍ±ÍµÀ¤null¤initY¨PropertyÍÈÍŞÂÂÂNªIdentifierÍÈÍØ°audioDispositionW§LiteralÍÚÍŞÀ¤null¤initY¨PropertyÍñÍ	ÂÂÂNªIdentifierÍñÍö¥error\±LogicalExpressionÍøÍ	U°MemberExpressionÍøÍ	NªIdentifierÍøÍ	®metadataResultNªIdentifierÍ	Í	¥errorÂÂ¢??W§LiteralÍ	Í	µmetadata ä¸Šä¼ å¤±è´¥·'metadata ä¸Šä¼ å¤±è´¥'¤initÀS³ExpressionStatementÍ	DÍ	‘^®CallExpressionÍ	DÍ	U°MemberExpressionÍ	DÍ	WV®ThisExpressionÍ	DÍ	HNªIdentifierÍ	IÍ	W®notifyProgressÂÂ”U°MemberExpressionÍ	XÍ	sNªIdentifierÍ	XÍ	c«UploadStageNªIdentifierÍ	dÍ	s¯UPLOADING_AUDIOÂÂW§LiteralÍ	uÍ	yÍ ¤2048NªIdentifierÍ	{Í	…ªtotalBytesW§LiteralÍ	‡Í	²æ­£åœ¨ä¸Šä¼ éŸ³é¢‘´'æ­£åœ¨ä¸Šä¼ éŸ³é¢‘'ÂL³VariableDeclarationÍ	´Í
+N‘M²VariableDeclaratorÍ	ºÍ
+MNªIdentifierÍ	ºÍ	Å«audioResultZ¯AwaitExpressionÍ	ÈÍ
+M^®CallExpressionÍ	ÎÍ
+MU°MemberExpressionÍ	ÎÍ	İV®ThisExpressionÍ	ÎÍ	ÒNªIdentifierÍ	ÓÍ	İªuploadFileÂÂ–a¯TemplateLiteralÍ	ŞÍ
+‘NªIdentifierÍ	áÍ	è§baseURL’b¯TemplateElementÍ	ßÍ	ßc  Âb¯TemplateElementÍ	éÍ
+ c·/upload-recording-audio·/upload-recording-audioÃNªIdentifierÍ
+Í
+©audioPathW§LiteralÍ
+Í
+©audio/m4a«'audio/m4a'W§LiteralÍ
+Í
+,¯recording-audio±'recording-audio'U°MemberExpressionÍ
+.Í
+9NªIdentifierÍ
+.Í
+6¨metadataNªIdentifierÍ
+7Í
+9¢idÂÂU°MemberExpressionÍ
+;Í
+LNªIdentifierÍ
+;Í
+C¨metadataNªIdentifierÍ
+DÍ
+L¨fileNameÂÂÂ¥const[«IfStatementÍ
+XÍmd¯UnaryExpressionÍ
+\Í
+k¡!ÃU°MemberExpressionÍ
+]Í
+kNªIdentifierÍ
+]Í
+h«audioResultNªIdentifierÍ
+iÍ
+k¢okÂÂP®BlockStatementÍ
+mÍm’S³ExpressionStatementÍ
+|Í
+â^®CallExpressionÍ
+|Í
+áU°MemberExpressionÍ
+|Í
+V®ThisExpressionÍ
+|Í
+€NªIdentifierÍ
+Í
+®notifyProgressÂÂ”U°MemberExpressionÍ
+Í
+¢NªIdentifierÍ
+Í
+›«UploadStageNªIdentifierÍ
+œÍ
+¢¦FAILEDÂÂW§LiteralÍ
+¤Í
+¨Í ¤2048NªIdentifierÍ
+ªÍ
+´ªtotalBytes\±LogicalExpressionÍ
+¶Í
+àU°MemberExpressionÍ
+¶Í
+ÇNªIdentifierÍ
+¶Í
+Á«audioResultNªIdentifierÍ
+ÂÍ
+Ç¥errorÂÂ¢??W§LiteralÍ
+ËÍ
+à³audio_upload_failedµ'audio_upload_failed'ÂZ¯ReturnStatementÍ
+ğÍbX°ObjectExpressionÍ
+÷Ía—Y¨PropertyÍ
+ÍÂÂÂNªIdentifierÍ
+Í¢okW§LiteralÍÍÂ¥false¤initY¨PropertyÍ&Í>ÂÂÂNªIdentifierÍ&Í1«recordingIDU°MemberExpressionÍ3Í>NªIdentifierÍ3Í;¨metadataNªIdentifierÍ<Í>¢idÂÂ¤initY¨PropertyÍQÍ‚ÂÂÂNªIdentifierÍQÍa°metadataFileName\±LogicalExpressionÍcÍ‚U°MemberExpressionÍcÍzNªIdentifierÍcÍq®metadataResultNªIdentifierÍrÍz¨fileNameÂÂ¢??W§LiteralÍ~Í‚À¤null¤initY¨PropertyÍ•Í¨ÂÂÂNªIdentifierÍ•Í¢­audioFileNameW§LiteralÍ¤Í¨À¤null¤initY¨PropertyÍ»ÍòÂÂÂNªIdentifierÍ»ÍÎ³metadataDisposition\±LogicalExpressionÍĞÍòU°MemberExpressionÍĞÍêNªIdentifierÍĞÍŞ®metadataResultNªIdentifierÍßÍê«dispositionÂÂ¢??W§LiteralÍîÍòÀ¤null¤initY¨PropertyÍÍÂÂÂNªIdentifierÍÍ°audioDispositionW§LiteralÍÍÀ¤null¤initY¨PropertyÍ.ÍRÂÂÂNªIdentifierÍ.Í3¥error\±LogicalExpressionÍ5ÍRU°MemberExpressionÍ5ÍFNªIdentifierÍ5Í@«audioResultNªIdentifierÍAÍF¥errorÂÂ¢??W§LiteralÍJÍR²éŸ³é¢‘ä¸Šä¼ å¤±è´¥´'éŸ³é¢‘ä¸Šä¼ å¤±è´¥'¤initÀS³ExpressionStatementÍwÍÂ^®CallExpressionÍwÍÁU°MemberExpressionÍwÍŠV®ThisExpressionÍwÍ{NªIdentifierÍ|ÍŠ®notifyProgressÂÂ”U°MemberExpressionÍ‹Í NªIdentifierÍ‹Í–«UploadStageNªIdentifierÍ—Í ©COMPLETEDÂÂNªIdentifierÍ¢Í¬ªtotalBytesNªIdentifierÍ®Í¸ªtotalBytesW§LiteralÍºÍÀ¬ä¸Šä¼ å®Œæˆ®'ä¸Šä¼ å®Œæˆ'ÂS³ExpressionStatementÍÌÍ^®CallExpressionÍÌÍU°MemberExpressionÍÌÍØNªIdentifierÍÌÍÓ§consoleNªIdentifierÍÔÍØ¤infoÂÂ‘a¯TemplateLiteralÍÙÍ’NªIdentifierÍİÍà£TAGU°MemberExpressionÍöÍNªIdentifierÍöÍş¨metadataNªIdentifierÍÿÍ¢idÂÂ“b¯TemplateElementÍÚÍÛc¡[¡[Âb¯TemplateElementÍáÍôc³] upload complete: ³] upload complete: Âb¯TemplateElementÍÍc  ÃÂZ¯ReturnStatementÍÍ•X°ObjectExpressionÍÍ”—Y¨PropertyÍ%Í-ÂÂÂNªIdentifierÍ%Í'¢okW§LiteralÍ)Í-Ã¤true¤initY¨PropertyÍ<ÍoÂÂÂNªIdentifierÍ<ÍG«recordingID\±LogicalExpressionÍIÍoU°MemberExpressionÍIÍ`NªIdentifierÍIÍT«audioResultNªIdentifierÍUÍ`«recordingIDÂÂ¢??U°MemberExpressionÍdÍoNªIdentifierÍdÍl¨metadataNªIdentifierÍmÍo¢idÂÂ¤initY¨PropertyÍ~Í¯ÂÂÂNªIdentifierÍ~Í°metadataFileName\±LogicalExpressionÍÍ¯U°MemberExpressionÍÍ§NªIdentifierÍÍ®metadataResultNªIdentifierÍŸÍ§¨fileNameÂÂ¢??W§LiteralÍ«Í¯À¤null¤initY¨PropertyÍ¾ÍéÂÂÂNªIdentifierÍ¾ÍË­audioFileName\±LogicalExpressionÍÍÍéU°MemberExpressionÍÍÍáNªIdentifierÍÍÍØ«audioResultNªIdentifierÍÙÍá¨fileNameÂÂ¢??W§LiteralÍåÍéÀ¤null¤initY¨PropertyÍøÍ/ÂÂÂNªIdentifierÍøÍ³metadataDisposition\±LogicalExpressionÍÍ/U°MemberExpressionÍÍ'NªIdentifierÍÍ®metadataResultNªIdentifierÍÍ'«dispositionÂÂ¢??W§LiteralÍ+Í/À¤null¤initY¨PropertyÍ>ÍoÂÂÂNªIdentifierÍ>ÍN°audioDisposition\±LogicalExpressionÍPÍoU°MemberExpressionÍPÍgNªIdentifierÍPÍ[«audioResultNªIdentifierÍ\Íg«dispositionÂÂ¢??W§LiteralÍkÍoÀ¤null¤initY¨PropertyÍ~Í‰ÂÂÂNªIdentifierÍ~Íƒ¥errorW§LiteralÍ…Í‰À¤null¤initQ°MethodDefinitionÍ¢Í‰ÂÂNªIdentifierÍ¨Í°¨postJSON¦methodR²FunctionExpressionÍ°Í‰ÀÂÂÃ’NªIdentifierÍ±Í´£urlNªIdentifierÍ¶Í½§payloadP®BlockStatementÍ¿Í‰’L³VariableDeclarationÍÊÍğ‘M²VariableDeclaratorÍĞÍïNªIdentifierÍĞÍÛ«httpRequest^®CallExpressionÍŞÍïU°MemberExpressionÍŞÍíNªIdentifierÍŞÍâ¤httpNªIdentifierÍãÍíªcreateHttpÂÂÂ¥constÔre–¤type¥start£end¥block§handler©finalizer¬TryStatementÍúÍ‚P®BlockStatementÍşÍä“L³VariableDeclarationÍÍs‘M²VariableDeclaratorÍÍrNªIdentifierÍÍ¨responseZ¯AwaitExpressionÍÍr^®CallExpressionÍ$ÍrU°MemberExpressionÍ$Í7NªIdentifierÍ$Í/«httpRequestNªIdentifierÍ0Í7§requestÂÂ’NªIdentifierÍ8Í;£urlX°ObjectExpressionÍ=Íq–Y¨PropertyÍPÍoÂÂÂNªIdentifierÍPÍV¦methodU°MemberExpressionÍXÍoU°MemberExpressionÍXÍjNªIdentifierÍXÍ\¤httpNªIdentifierÍ]Íj­RequestMethodÂÂNªIdentifierÍkÍo¤POSTÂÂ¤initY¨PropertyÍ‚ÍrÂÂÂNªIdentifierÍ‚Íˆ¦headerX°ObjectExpressionÍŠÍr“Y¨PropertyÍ¡ÍÃÂÂÂW§LiteralÍ¡Í¯¬Content-Type®'Content-Type'W§LiteralÍ±ÍÃ°application/json²'application/json'¤initY¨PropertyÍÚÍ#ÂÂÂW§LiteralÍÚÍé­Authorization¯'Authorization'[µConditionalExpressionÍëÍ#U°MemberExpressionÍëÍıU°MemberExpressionÍëÍöV®ThisExpressionÍëÍïNªIdentifierÍğÍö¦configÂÂNªIdentifierÍ÷Íı¦apiKeyÂÂa¯TemplateLiteralÍ Í‘U°MemberExpressionÍ
+ÍU°MemberExpressionÍ
+ÍV®ThisExpressionÍ
+ÍNªIdentifierÍÍ¦configÂÂNªIdentifierÍÍ¦apiKeyÂÂ’b¯TemplateElementÍÍc§Bearer §Bearer Âb¯TemplateElementÍÍc  ÃW§LiteralÍ!Í# ¢''¤initY¨PropertyÍ:Í_ÂÂÂW§LiteralÍ:ÍI­X-Upload-Type¯'X-Upload-Type'W§LiteralÍKÍ_²recording-metadata´'recording-metadata'¤init¤initY¨PropertyÍ…Í°ÂÂÂNªIdentifierÍ…Í©extraData^®CallExpressionÍÍ°U°MemberExpressionÍÍNªIdentifierÍÍ”¤JSONNªIdentifierÍ•Í©stringifyÂÂ“NªIdentifierÍŸÍ¦§payloadW§LiteralÍ¨Í¬À¤nullW§LiteralÍ®Í¯¡2Â¤initY¨PropertyÍÃÍëÂÂÂNªIdentifierÍÃÍÑ®expectDataTypeU°MemberExpressionÍÓÍëU°MemberExpressionÍÓÍäNªIdentifierÍÓÍ×¤httpNªIdentifierÍØÍä¬HttpDataTypeÂÂNªIdentifierÍåÍë¦STRINGÂÂ¤initY¨PropertyÍşÍ(ÂÂÂNªIdentifierÍşÍ®connectTimeoutU°MemberExpressionÍÍ(U°MemberExpressionÍÍV®ThisExpressionÍÍNªIdentifierÍÍ¦configÂÂNªIdentifierÍÍ(®requestTimeoutÂÂ¤initY¨PropertyÍ;ÍbÂÂÂNªIdentifierÍ;ÍF«readTimeoutU°MemberExpressionÍHÍbU°MemberExpressionÍHÍSV®ThisExpressionÍHÍLNªIdentifierÍMÍS¦configÂÂNªIdentifierÍTÍb®requestTimeoutÂÂ¤initÂ¥const[«IfStatementÍÍ\±LogicalExpressionÍ…ÍÃ\°BinaryExpressionÍ…Í¢U°MemberExpressionÍ…ÍšNªIdentifierÍ…Í¨responseNªIdentifierÍÍš¬responseCodeÂÂ£===W§LiteralÍŸÍ¢ÌÈ£200¢||\°BinaryExpressionÍ¦ÍÃU°MemberExpressionÍ¦Í»NªIdentifierÍ¦Í®¨responseNªIdentifierÍ¯Í»¬responseCodeÂÂ£===W§LiteralÍÀÍÃÌÉ£201P®BlockStatementÍÅÍ‘e¬TryStatementÍØÍP®BlockStatementÍÜÍ)‘Z¯ReturnStatementÍóÍ^®CallExpressionÍúÍU°MemberExpressionÍúÍNªIdentifierÍúÍş¤JSONNªIdentifierÍÿÍ¥parseÂÂ‘U°MemberExpressionÍÍNªIdentifierÍÍ¨responseNªIdentifierÍÍ¦resultÂÂÂÔrf•¤type¥start£end¥param¤body«CatchClauseÍ;ÍÀP®BlockStatementÍAÍ‘Z¯ReturnStatementÍXÍlX°ObjectExpressionÍ_Ík‘Y¨PropertyÍaÍiÂÂÂNªIdentifierÍaÍc¢okW§LiteralÍeÍiÃ¤true¤initÀÀZ¯ReturnStatementÍœÍÙX°ObjectExpressionÍ£ÍØ’Y¨PropertyÍ¥Í®ÂÂÂNªIdentifierÍ¥Í§¢okW§LiteralÍ©Í®Â¥false¤initY¨PropertyÍ°ÍÖÂÂÂNªIdentifierÍ°Íµ¥errora¯TemplateLiteralÍ·ÍÖ‘U°MemberExpressionÍ¿ÍÔNªIdentifierÍ¿ÍÇ¨responseNªIdentifierÍÈÍÔ¬responseCodeÂÂ’b¯TemplateElementÍ¸Í½c¥HTTP ¥HTTP Âb¯TemplateElementÍÕÍÕc  Ã¤initf«CatchClauseÍîÍ@NªIdentifierÍõÍø£errP®BlockStatementÍúÍ@‘Z¯ReturnStatementÍ	Í5X°ObjectExpressionÍÍ4’Y¨PropertyÍÍÂÂÂNªIdentifierÍÍ¢okW§LiteralÍÍÂ¥false¤initY¨PropertyÍÍ2ÂÂÂNªIdentifierÍÍ"¥errora¯TemplateLiteralÍ$Í2‘NªIdentifierÍ-Í0£err’b¯TemplateElementÍ%Í+c®ç½‘ç»œé”™è¯¯: ®ç½‘ç»œé”™è¯¯: Âb¯TemplateElementÍ1Í1c  Ã¤initP®BlockStatementÍRÍ‚‘S³ExpressionStatementÍaÍw^®CallExpressionÍaÍvU°MemberExpressionÍaÍtNªIdentifierÍaÍl«httpRequestNªIdentifierÍmÍt§destroyÂÂÂQ°MethodDefinitionÍÍÉÂÂNªIdentifierÍ•ÍŸªuploadFile¦methodR²FunctionExpressionÍŸÍÉÀÂÂÃ–NªIdentifierÍ Í££urlNªIdentifierÍ¥Í­¨filePathNªIdentifierÍ¯Íº«contentTypeNªIdentifierÍ¼ÍÆªuploadTypeNªIdentifierÍÈÍÓ«recordingIDNªIdentifierÍÕÍİ¨fileNameP®BlockStatementÍßÍÉ’L³VariableDeclarationÍêÍ‘M²VariableDeclaratorÍğÍNªIdentifierÍğÍû«httpRequest^®CallExpressionÍşÍU°MemberExpressionÍşÍNªIdentifierÍşÍ¤httpNªIdentifierÍÍªcreateHttpÂÂÂ¥conste¬TryStatementÍÍÂP®BlockStatementÍÍ$—L³VariableDeclarationÍXÍ‘M²VariableDeclaratorÍ^Í~NªIdentifierÍ^Íb¤stat^®CallExpressionÍeÍ~U°MemberExpressionÍeÍtNªIdentifierÍeÍk¦fileIoNªIdentifierÍlÍt¨statSyncÂÂ‘NªIdentifierÍuÍ}¨filePathÂ¥constL³VariableDeclarationÍÍÏ‘M²VariableDeclaratorÍ“ÍÎNªIdentifierÍ“Í—¤file^®CallExpressionÍšÍÎU°MemberExpressionÍšÍ©NªIdentifierÍšÍ ¦fileIoNªIdentifierÍ¡Í©¨openSyncÂÂ’NªIdentifierÍªÍ²¨filePathU°MemberExpressionÍ´ÍÍU°MemberExpressionÍ´ÍÃNªIdentifierÍ´Íº¦fileIoNªIdentifierÍ»ÍÃ¨OpenModeÂÂNªIdentifierÍÄÍÍ©READ_ONLYÂÂÂ¥constL³VariableDeclarationÍİÍê‘M²VariableDeclaratorÍáÍéNªIdentifierÍáÍé¨fileDataÀ£lete¬TryStatementÍøÍÈP®BlockStatementÍüÍy’S³ExpressionStatementÍÍ5T´AssignmentExpressionÍÍ4¡=NªIdentifierÍÍ¨fileDataÔrg•¤type¥start£end¦callee©arguments­NewExpressionÍÍ4NªIdentifierÍÍ)«ArrayBuffer‘U°MemberExpressionÍ*Í3NªIdentifierÍ*Í.¤statNªIdentifierÍ/Í3¤sizeÂÂS³ExpressionStatementÍGÍj^®CallExpressionÍGÍiU°MemberExpressionÍGÍVNªIdentifierÍGÍM¦fileIoNªIdentifierÍNÍV¨readSyncÂÂ’U°MemberExpressionÍWÍ^NªIdentifierÍWÍ[¤fileNªIdentifierÍ\Í^¢fdÂÂNªIdentifierÍ`Íh¨fileDataÂÀP®BlockStatementÍÍÈ‘S³ExpressionStatementÍ¢Í¹^®CallExpressionÍ¢Í¸U°MemberExpressionÍ¢Í²NªIdentifierÍ¢Í¨¦fileIoNªIdentifierÍ©Í²©closeSyncÂÂ‘NªIdentifierÍ³Í·¤fileÂL³VariableDeclarationÍÖÍ³‘M²VariableDeclaratorÍÜÍ²NªIdentifierÍÜÍä¨responseZ¯AwaitExpressionÍçÍ²^®CallExpressionÍíÍ²U°MemberExpressionÍíÍ NªIdentifierÍíÍø«httpRequestNªIdentifierÍùÍ §requestÂÂ’NªIdentifierÍÍ£urlX°ObjectExpressionÍÍ±–Y¨PropertyÍÍ8ÂÂÂNªIdentifierÍÍ¦methodU°MemberExpressionÍ!Í8U°MemberExpressionÍ!Í3NªIdentifierÍ!Í%¤httpNªIdentifierÍ&Í3­RequestMethodÂÂNªIdentifierÍ4Í8¤POSTÂÂ¤initY¨PropertyÍKÍÆÂÂÂNªIdentifierÍKÍQ¦headerX°ObjectExpressionÍSÍÆ–Y¨PropertyÍjÍ…ÂÂÂW§LiteralÍjÍx¬Content-Type®'Content-Type'NªIdentifierÍzÍ…«contentType¤initY¨PropertyÍœÍåÂÂÂW§LiteralÍœÍ«­Authorization¯'Authorization'[µConditionalExpressionÍ­ÍåU°MemberExpressionÍ­Í¿U°MemberExpressionÍ­Í¸V®ThisExpressionÍ­Í±NªIdentifierÍ²Í¸¦configÂÂNªIdentifierÍ¹Í¿¦apiKeyÂÂa¯TemplateLiteralÍÂÍà‘U°MemberExpressionÍÌÍŞU°MemberExpressionÍÌÍ×V®ThisExpressionÍÌÍĞNªIdentifierÍÑÍ×¦configÂÂNªIdentifierÍØÍŞ¦apiKeyÂÂ’b¯TemplateElementÍÃÍÊc§Bearer §Bearer Âb¯TemplateElementÍßÍßc  ÃW§LiteralÍãÍå ¢''¤initY¨PropertyÍüÍÂÂÂW§LiteralÍüÍ­X-Upload-Type¯'X-Upload-Type'NªIdentifierÍÍªuploadType¤initY¨PropertyÍ.ÍKÂÂÂW§LiteralÍ.Í>®X-Recording-ID°'X-Recording-ID'NªIdentifierÍ@ÍK«recordingID¤initY¨PropertyÍbÍyÂÂÂW§LiteralÍbÍo«X-File-Name­'X-File-Name'NªIdentifierÍqÍy¨fileName¤initY¨PropertyÍÍ³ÂÂÂW§LiteralÍÍ ®Content-Length°'Content-Length'^®CallExpressionÍ¢Í³NªIdentifierÍ¢Í¨¦String‘U°MemberExpressionÍ©Í²NªIdentifierÍ©Í­¤statNªIdentifierÍ®Í²¤sizeÂÂÂ¤init¤initY¨PropertyÍÙÍìÂÂÂNªIdentifierÍÙÍâ©extraDataNªIdentifierÍäÍì¨fileData¤initY¨PropertyÍÿÍ'ÂÂÂNªIdentifierÍÿÍ®expectDataTypeU°MemberExpressionÍÍ'U°MemberExpressionÍÍ NªIdentifierÍÍ¤httpNªIdentifierÍÍ ¬HttpDataTypeÂÂNªIdentifierÍ!Í'¦STRINGÂÂ¤initY¨PropertyÍ:ÍdÂÂÂNªIdentifierÍ:ÍH®connectTimeoutU°MemberExpressionÍJÍdU°MemberExpressionÍJÍUV®ThisExpressionÍJÍNNªIdentifierÍOÍU¦configÂÂNªIdentifierÍVÍd®requestTimeoutÂÂ¤initY¨PropertyÍwÍ¢ÂÂÂNªIdentifierÍwÍ‚«readTimeout\°BinaryExpressionÍ„Í¢U°MemberExpressionÍ„ÍU°MemberExpressionÍ„ÍV®ThisExpressionÍ„ÍˆNªIdentifierÍ‰Í¦configÂÂNªIdentifierÍÍ®requestTimeoutÂÂ¡*W§LiteralÍ¡Í¢¡3¤initÂ¥const[«IfStatementÍÁÍÎ\±LogicalExpressionÍÅÍ\°BinaryExpressionÍÅÍâU°MemberExpressionÍÅÍÚNªIdentifierÍÅÍÍ¨responseNªIdentifierÍÎÍÚ¬responseCodeÂÂ£===W§LiteralÍßÍâÌÈ£200¢||\°BinaryExpressionÍæÍU°MemberExpressionÍæÍûNªIdentifierÍæÍî¨responseNªIdentifierÍïÍû¬responseCodeÂÂ£===W§LiteralÍ ÍÌÉ£201P®BlockStatementÍÍÎ‘e¬TryStatementÍÍ¿P®BlockStatementÍÍi‘Z¯ReturnStatementÍ3ÍV^®CallExpressionÍ:ÍUU°MemberExpressionÍ:ÍDNªIdentifierÍ:Í>¤JSONNªIdentifierÍ?ÍD¥parseÂÂ‘U°MemberExpressionÍEÍTNªIdentifierÍEÍM¨responseNªIdentifierÍNÍT¦resultÂÂÂf«CatchClauseÍ{Í¿ÀP®BlockStatementÍÍ¿‘Z¯ReturnStatementÍ˜Í¬X°ObjectExpressionÍŸÍ«‘Y¨PropertyÍ¡Í©ÂÂÂNªIdentifierÍ¡Í£¢okW§LiteralÍ¥Í©Ã¤true¤initÀÀZ¯ReturnStatementÍÜÍX°ObjectExpressionÍãÍ’Y¨PropertyÍåÍîÂÂÂNªIdentifierÍåÍç¢okW§LiteralÍéÍîÂ¥false¤initY¨PropertyÍğÍÂÂÂNªIdentifierÍğÍõ¥errora¯TemplateLiteralÍ÷Í‘U°MemberExpressionÍÿÍNªIdentifierÍÿÍ¨responseNªIdentifierÍÍ¬responseCodeÂÂ’b¯TemplateElementÍøÍıc¥HTTP ¥HTTP Âb¯TemplateElementÍÍc  Ã¤initf«CatchClauseÍ.Í€NªIdentifierÍ5Í8£errP®BlockStatementÍ:Í€‘Z¯ReturnStatementÍIÍuX°ObjectExpressionÍPÍt’Y¨PropertyÍRÍ[ÂÂÂNªIdentifierÍRÍT¢okW§LiteralÍVÍ[Â¥false¤initY¨PropertyÍ]ÍrÂÂÂNªIdentifierÍ]Íb¥errora¯TemplateLiteralÍdÍr‘NªIdentifierÍmÍp£err’b¯TemplateElementÍeÍkc®ç½‘ç»œé”™è¯¯: ®ç½‘ç»œé”™è¯¯: Âb¯TemplateElementÍqÍqc  Ã¤initP®BlockStatementÍ’ÍÂ‘S³ExpressionStatementÍ¡Í·^®CallExpressionÍ¡Í¶U°MemberExpressionÍ¡Í´NªIdentifierÍ¡Í¬«httpRequestNªIdentifierÍ­Í´§destroyÂÂÂQ°MethodDefinitionÍÏÍµÂÂNªIdentifierÍÏÍã´buildMetadataPayload¦methodR²FunctionExpressionÍãÍµÀÂÂÂ‘NªIdentifierÍäÍì¨metadataP®BlockStatementÍîÍµ“L³VariableDeclarationÍùÍ:‘M²VariableDeclaratorÍÿÍ9NªIdentifierÍÿÍ§payloadX°ObjectExpressionÍ	Í9Y¨PropertyÍÍ0ÂÂÂNªIdentifierÍÍ#«recordingIDU°MemberExpressionÍ%Í0NªIdentifierÍ%Í-¨metadataNªIdentifierÍ.Í0¢idÂÂ¤initY¨PropertyÍ?ÍTÂÂÂNªIdentifierÍ?ÍD¥titleU°MemberExpressionÍFÍTNªIdentifierÍFÍN¨metadataNªIdentifierÍOÍT¥titleÂÂ¤initY¨PropertyÍcÍ~ÂÂÂNªIdentifierÍcÍk¨fileNameU°MemberExpressionÍmÍ~NªIdentifierÍmÍu¨metadataNªIdentifierÍvÍ~¨fileNameÂÂ¤initY¨PropertyÍÍ¤ÂÂÂNªIdentifierÍÍ“¦formatU°MemberExpressionÍ•Í¤NªIdentifierÍ•Í¨metadataNªIdentifierÍÍ¤¦formatÂÂ¤initY¨PropertyÍ³ÍÈÂÂÂNªIdentifierÍ³Í¸¥codecU°MemberExpressionÍºÍÈNªIdentifierÍºÍÂ¨metadataNªIdentifierÍÃÍÈ¥codecÂÂ¤initY¨PropertyÍ×ÍöÂÂÂNªIdentifierÍ×ÍáªsampleRateU°MemberExpressionÍãÍöNªIdentifierÍãÍë¨metadataNªIdentifierÍìÍöªsampleRateÂÂ¤initY¨PropertyÍÍ ÂÂÂNªIdentifierÍÍ¨channelsU°MemberExpressionÍÍ NªIdentifierÍÍ¨metadataNªIdentifierÍÍ ¨channelsÂÂ¤initY¨PropertyÍ/ÍHÂÂÂNªIdentifierÍ/Í6§bitrateU°MemberExpressionÍ8ÍHNªIdentifierÍ8Í@¨metadataNªIdentifierÍAÍH§bitrateÂÂ¤initY¨PropertyÍWÍrÂÂÂNªIdentifierÍWÍ_¨fileSizeU°MemberExpressionÍaÍrNªIdentifierÍaÍi¨metadataNªIdentifierÍjÍr¨fileSizeÂÂ¤initY¨PropertyÍÍœÂÂÂNªIdentifierÍÍ‰¨durationU°MemberExpressionÍ‹ÍœNªIdentifierÍ‹Í“¨metadataNªIdentifierÍ”Íœ¨durationÂÂ¤initY¨PropertyÍ«ÍÖÂÂÂNªIdentifierÍ«Í´©createdAt^®CallExpressionÍ¶ÍÖU°MemberExpressionÍ¶ÍÔU°MemberExpressionÍ¶ÍÈNªIdentifierÍ¶Í¾¨metadataNªIdentifierÍ¿ÍÈ©createdAtÂÂNªIdentifierÍÉÍÔ«toISOStringÂÂÂ¤initY¨PropertyÍåÍÂÂÂNªIdentifierÍåÍì§endedAt^®CallExpressionÍîÍU°MemberExpressionÍîÍ
+U°MemberExpressionÍîÍşNªIdentifierÍîÍö¨metadataNªIdentifierÍ÷Íş§endedAtÂÂNªIdentifierÍÿÍ
+«toISOStringÂÂÂ¤initY¨PropertyÍÍ.ÂÂÂNªIdentifierÍÍ¤tagsU°MemberExpressionÍ!Í.NªIdentifierÍ!Í)¨metadataNªIdentifierÍ*Í.¤tagsÂÂ¤init¥const[«IfStatementÍDÍ•\±LogicalExpressionÍHÍ}U°MemberExpressionÍHÍ\NªIdentifierÍHÍP¨metadataNªIdentifierÍQÍ\«studyFilingÂÂ¢&&d¯UnaryExpressionÍ`Í}¡!ÃU°MemberExpressionÍaÍ}U°MemberExpressionÍaÍuNªIdentifierÍaÍi¨metadataNªIdentifierÍjÍu«studyFilingÂÂNªIdentifierÍvÍ}§isEmptyÂÂP®BlockStatementÍÍ•‘S³ExpressionStatementÍÍŠT´AssignmentExpressionÍÍ‰¡=U°MemberExpressionÍÍ¡NªIdentifierÍÍ•§payloadNªIdentifierÍ–Í¡«studyFilingÂÂX°ObjectExpressionÍ¤Í‰”Y¨PropertyÍ·ÍÖÂÂÂNªIdentifierÍ·Í»¤typeU°MemberExpressionÍ½ÍÖU°MemberExpressionÍ½ÍÑNªIdentifierÍ½ÍÅ¨metadataNªIdentifierÍÆÍÑ«studyFilingÂÂNªIdentifierÍÒÍÖ¤typeÂÂ¤initY¨PropertyÍéÍÂÂÂNªIdentifierÍéÍğ§subjectU°MemberExpressionÍòÍU°MemberExpressionÍòÍNªIdentifierÍòÍú¨metadataNªIdentifierÍûÍ«studyFilingÂÂNªIdentifierÍÍ§subjectÂÂ¤initY¨PropertyÍ!ÍFÂÂÂNªIdentifierÍ!Í(§chapterU°MemberExpressionÍ*ÍFU°MemberExpressionÍ*Í>NªIdentifierÍ*Í2¨metadataNªIdentifierÍ3Í>«studyFilingÂÂNªIdentifierÍ?ÍF§chapterÂÂ¤initY¨PropertyÍYÍzÂÂÂNªIdentifierÍYÍ^¥topicU°MemberExpressionÍ`ÍzU°MemberExpressionÍ`ÍtNªIdentifierÍ`Íh¨metadataNªIdentifierÍiÍt«studyFilingÂÂNªIdentifierÍuÍz¥topicÂÂ¤initÀZ¯ReturnStatementÍŸÍ®NªIdentifierÍ¦Í­§payloadQ°MethodDefinitionÍ»ÍxÂÂNªIdentifierÍÁÍÌ«getFileSize¦methodR²FunctionExpressionÍÌÍxÀÂÂÃ‘NªIdentifierÍÍÍÑ¤pathP®BlockStatementÍÓÍx‘e¬TryStatementÍŞÍqP®BlockStatementÍâÍ>’L³VariableDeclarationÍñÍ‘M²VariableDeclaratorÍ÷ÍNªIdentifierÍ÷Íû¤stat^®CallExpressionÍşÍU°MemberExpressionÍşÍNªIdentifierÍşÍ¦fileIoNªIdentifierÍÍ¨statSyncÂÂ‘NªIdentifierÍÍ¤pathÂ¥constZ¯ReturnStatementÍ"Í3U°MemberExpressionÍ)Í2NªIdentifierÍ)Í-¤statNªIdentifierÍ.Í2¤sizeÂÂf«CatchClauseÍHÍqÀP®BlockStatementÍNÍq‘Z¯ReturnStatementÍ]ÍfW§LiteralÍdÍe ¡0ÀQ°MethodDefinitionÍ~Í!fÃÂNªIdentifierÍ‹Í•ªloadConfig¦methodR²FunctionExpressionÍ•Í!fÀÂÂÃ‘NªIdentifierÍ–Í£­settingsStoreP®BlockStatementÍ¥Í!f”L³VariableDeclarationÍ°Íø‘M²VariableDeclaratorÍ¶Í÷NªIdentifierÍ¶Í¿©serverURLZ¯AwaitExpressionÍÂÍ÷^®CallExpressionÍÈÍ÷U°MemberExpressionÍÈÍßNªIdentifierÍÈÍÕ­settingsStoreNªIdentifierÍÖÍß©getStringÂÂ’W§LiteralÍàÍò°upload.serverURL²'upload.serverURL'W§LiteralÍôÍö ¢''Â¥constL³VariableDeclarationÍ Í D‘M²VariableDeclaratorÍ Í CNªIdentifierÍ Í ¦apiKeyZ¯AwaitExpressionÍ Í C^®CallExpressionÍ Í CU°MemberExpressionÍ Í .NªIdentifierÍ Í $­settingsStoreNªIdentifierÍ %Í .©getStringÂÂ’W§LiteralÍ /Í >­upload.apiKey¯'upload.apiKey'W§LiteralÍ @Í B ¢''Â¥constL³VariableDeclarationÍ NÍ  ‘M²VariableDeclaratorÍ TÍ ŸNªIdentifierÍ TÍ b®requestTimeoutZ¯AwaitExpressionÍ eÍ Ÿ^®CallExpressionÍ kÍ ŸU°MemberExpressionÍ kÍ ‚NªIdentifierÍ kÍ x­settingsStoreNªIdentifierÍ yÍ ‚©getNumberÂÂ’W§LiteralÍ ƒÍ šµupload.requestTimeout·'upload.requestTimeout'W§LiteralÍ œÍ ¢30Â¥constZ¯ReturnStatementÍ ªÍ!_X°ObjectExpressionÍ ±Í!^“Y¨PropertyÍ ÀÍ ïÂÂÂNªIdentifierÍ ÀÍ É©serverURL\±LogicalExpressionÍ ËÍ ïNªIdentifierÍ ËÍ Ô©serverURL¢||W§LiteralÍ ØÍ ïµhttp://localhost:8000·'http://localhost:8000'¤initY¨PropertyÍ şÍ!ÂÂÂNªIdentifierÍ şÍ!¦apiKeyNªIdentifierÍ!Í!¦apiKey¤initY¨PropertyÍ!Í!SÂÂÂNªIdentifierÍ!Í!)®requestTimeout[µConditionalExpressionÍ!+Í!S\°BinaryExpressionÍ!+Í!=NªIdentifierÍ!+Í!9®requestTimeout¡>W§LiteralÍ!<Í!= ¡0NªIdentifierÍ!@Í!N®requestTimeoutW§LiteralÍ!QÍ!S¢30¤initQ°MethodDefinitionÍ!lÍ"/ÃÂNªIdentifierÍ!sÍ!‘¾recoveringStaleUploadingStatus¦methodR²FunctionExpressionÍ!‘Í"/ÀÂÂÂ‘NªIdentifierÍ!’Í!š¨metadataP®BlockStatementÍ!œÍ"/’[«IfStatementÍ!§Í!ï\°BinaryExpressionÍ!«Í!ĞU°MemberExpressionÍ!«Í!ÀNªIdentifierÍ!«Í!³¨metadataNªIdentifierÍ!´Í!À¬uploadStatusÂÂ£!==W§LiteralÍ!ÅÍ!Ğ©uploading«'uploading'Z¯ReturnStatementÍ!ßÍ!ïNªIdentifierÍ!æÍ!î¨metadataÀZ¯ReturnStatementÍ!ùÍ"(^®CallExpressionÍ" Í"'U°MemberExpressionÍ" Í"NªIdentifierÍ" Í"¨metadataNªIdentifierÍ"	Í"´copyWithUploadStatusÂÂ‘W§LiteralÍ"Í"&¦failed¨'failed'ÂÀ’Ôrh•¤type¥start£endªspecifiers¦source±ImportDeclarationÌ¥ÌÇ‘Ôri”¤type¥start£end¥local¶ImportDefaultSpecifierÌ¬Ì°NªIdentifierÌ¬Ì°¤httpW§LiteralÌ¶ÌÆ®@ohos.net.http°"@ohos.net.http"h±ImportDeclarationÌÉÌì‘i¶ImportDefaultSpecifierÌĞÌÖNªIdentifierÌĞÌÖ¦fileIoW§LiteralÌÜÌë­@ohos.file.fs¯"@ohos.file.fs"

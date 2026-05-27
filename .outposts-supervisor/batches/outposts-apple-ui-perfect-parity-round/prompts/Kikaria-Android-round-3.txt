@@ -1,0 +1,53 @@
+OUTPOSTS FORMAL TASK - APPLE UI PERFECT PARITY
+
+Mandatory preflight first:
+MODEL_CHECK_RESULT: Confirm current active model route is DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop immediately.
+PATH_CHECK_RESULT: Current working directory must be exactly /Users/vita/Vitemis/Outposts/Kikaria-Android. If not, stop immediately.
+SOURCE_READONLY_CHECK: Apple source path /Users/vita/Vitemis/Vela/Kikaria is read-only. Do not modify Apple source. All writes must stay inside /Users/vita/Vitemis/Outposts/Kikaria-Android. Do not access unrelated directories. Do not read or transmit secrets, tokens, private keys, .env, p12, provisioning profiles, SSH keys, API keys, or Keychain content.
+
+PROJECT_NAME: Kikaria-Android
+ROUND_INDEX: 3
+TARGET_PATH: /Users/vita/Vitemis/Outposts/Kikaria-Android
+SOURCE_READONLY_PATH: /Users/vita/Vitemis/Vela/Kikaria
+BATCH_NAME: outposts-apple-ui-perfect-parity-round
+
+Continue from prior reports. Do not restart migration and do not repeat completed P0/P1 work.
+
+Round 2 supervisor summary:
+- Build PASS: assembleDebug successful.
+- Tests PASS: testDebugUnitTest, 151 tests.
+- iPad portrait scaling and page-specific max widths were implemented and tested.
+- Review queue behavior was confirmed.
+- No connected emulator/device for visual validation.
+- Remaining: real UI smoke/device validation, review interaction polish, settings/home Apple visual parity, Android widget, true LaTeX decision.
+
+Round 3 objective:
+Prioritize safe Apple UI/layout/interaction parity that can be verified locally without adding a heavy LaTeX dependency:
+1. Re-read relevant Apple Kikaria UI only as needed, read-only.
+2. Compare current Android Home, Review, Settings, preset/goal/countdown flows against Apple UI structure.
+3. Implement the highest-value remaining UI/layout/interaction deltas without breaking review state machine.
+4. Add or improve testable smoke/unit hooks for review swipe/action behavior or tablet metrics if feasible.
+5. Run available Android build/tests. If build fails, fix build first.
+6. If no device/emulator is available, provide an exact manual visual smoke checklist.
+
+Do not introduce a heavyweight true LaTeX rendering library without explicit user approval; fallback improvements or a concrete proposal are OK.
+Do not commit, push, create PR, clean/reset/restore/checkout, or modify Apple source.
+
+Final report must include:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+APPLE_UI_PARITY_CHECKLIST
+UI_LAYOUT_ALIGNMENT_PROGRESS
+FUNCTIONAL_PARITY_PROGRESS
+BUILD_RESULT
+TEST_RESULT
+VISUAL_OR_UI_VALIDATION_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+BLOCKERS
+REGRESSION_RISKS
+NEXT_ROUND_RECOMMENDATION

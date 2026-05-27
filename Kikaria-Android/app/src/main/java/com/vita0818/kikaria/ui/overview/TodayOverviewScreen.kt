@@ -22,17 +22,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vita0818.kikaria.ui.components.KikariaBackButton
 import com.vita0818.kikaria.ui.components.KikariaGlassCard
-import com.vita0818.kikaria.ui.components.KikariaPageShell
+import com.vita0818.kikaria.ui.components.KikariaScrollPageShell
 import com.vita0818.kikaria.ui.theme.KikariaColors
 import com.vita0818.kikaria.ui.theme.KikariaTypography
+import com.vita0818.kikaria.ui.theme.rememberKikariaPhoneMetrics
 
 /**
  * Today Overview screen translated from the iOS TodayOverviewView in ContentView.swift.
  *
  * Shows today's study activity summary including mastered count vs goal,
- * various activity metrics, and a link to the review history calendar.
  */
 @Composable
 fun TodayOverviewScreen(
@@ -51,7 +50,6 @@ fun TodayOverviewScreen(
     val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
     val masteredDeepGreen = if (isDark) KikariaColors.MasteredDeepGreenDark
         else KikariaColors.MasteredDeepGreen
-    val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
     val blueGray = if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray
 
     val remainingToGoal = maxOf(0, dailyGoal - todayMasteredCount)
@@ -64,17 +62,10 @@ fun TodayOverviewScreen(
             "今天还很安静，可以从一个知识点开始。"
     }
 
-    KikariaPageShell {
-        Box(modifier = Modifier.fillMaxSize()) {
-            KikariaBackButton(onClick = onBack)
+    val metrics = rememberKikariaPhoneMetrics()
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp)
-                    .padding(top = 70.dp)
-            ) {
+    KikariaScrollPageShell(onBack = onBack, metrics = metrics) {
+        Spacer(modifier = Modifier.height(metrics.pageTopPadding))
                 Column {
                     Text(
                         text = KikariaTypography.mixedText(
@@ -227,8 +218,6 @@ fun TodayOverviewScreen(
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
-            }
-        }
     }
 }
 
@@ -271,6 +260,6 @@ private fun OverviewMetricCard(
                 maxLines = 1,
                 softWrap = false
             )
-        }
-    }
-}
+                    }
+                }
+            }

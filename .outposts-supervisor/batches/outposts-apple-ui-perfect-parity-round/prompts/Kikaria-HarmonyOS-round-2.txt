@@ -1,0 +1,49 @@
+OUTPOSTS FORMAL TASK - APPLE UI PERFECT PARITY
+
+Mandatory preflight first:
+MODEL_CHECK_RESULT: Confirm current active model route is DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop immediately.
+PATH_CHECK_RESULT: Current working directory must be exactly /Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS. If not, stop immediately.
+SOURCE_READONLY_CHECK: Apple source path /Users/vita/Vitemis/Vela/Kikaria is read-only. Do not modify Apple source. All writes must stay inside /Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS. Do not access unrelated directories. Do not read or transmit secrets, tokens, private keys, .env, p12, provisioning profiles, SSH keys, API keys, or Keychain content.
+
+PROJECT_NAME: Kikaria-HarmonyOS
+ROUND_INDEX: 2
+TARGET_PATH: /Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS
+APPLE_SOURCE_READONLY_PATH: /Users/vita/Vitemis/Vela/Kikaria
+
+Continue from Round 1. Do not redo the LiquidGlass component/index/settings/review work already completed.
+
+Round 1 status summary:
+- Build PASS: hvigorw assembleHap produced unsigned HAP; keep this green.
+- SmokeTest PASS for Markdown/model coverage.
+- Implemented LiquidGlassCard/Capsule/Circle, adaptive colors, Index two-column landscape, Settings and Review styling improvements.
+- Remaining UI differences: LiquidGlass not applied across all pages, Review/Settings need fuller two-column landscape wiring, Markdown import/export UI missing, iPad scaling/LaTeX/avatar/notification parity gaps.
+- Blockers: no device/emulator for visual validation; JAVA_HOME required for build shell; HAP unsigned.
+
+Round 2 tasks:
+1. Re-read Apple Kikaria source read-only only where needed for UI parity decisions.
+2. Apply the new LiquidGlass/adaptive component system to the highest-value remaining pages: PresetSelection, ScopeSelection, TodayOverview, Reinforcement, Mastered, MarkdownFormatGuide, EditKnowledgePoint, EditPreset, NewPreset, InitialProfileSetup, and Onboarding as time allows.
+3. Wire ReviewPage and SettingsPage two-column landscape layouts using the existing adaptive metrics; preserve portrait/mobile behavior.
+4. Implement Markdown import UI using @ohos.file.picker and export/share UI using platform-safe file/share APIs only if feasible without breaking HAP build. If platform APIs are uncertain, create a safe UI/service seam and report validation needs.
+5. Expand SmokeTest/hypium coverage for new UI/model paths where feasible.
+6. Keep unsigned HAP build passing. If build fails, fix build first.
+7. Provide manual visual validation checklist if device/emulator remains unavailable.
+8. Do not commit, push, or create PR.
+
+Final report only, structured and concise. Include:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+APPLE_UI_PARITY_CHECKLIST
+UI_LAYOUT_ALIGNMENT_PROGRESS
+FUNCTIONAL_PARITY_PROGRESS
+BUILD_RESULT
+TEST_RESULT
+VISUAL_OR_UI_VALIDATION_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+BLOCKERS
+REGRESSION_RISKS
+NEXT_ROUND_RECOMMENDATION

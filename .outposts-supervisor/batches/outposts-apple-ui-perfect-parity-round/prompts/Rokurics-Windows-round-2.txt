@@ -1,0 +1,49 @@
+OUTPOSTS FORMAL TASK - APPLE UI PERFECT PARITY
+
+Mandatory preflight first:
+MODEL_CHECK_RESULT: Confirm current active model route is DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop immediately.
+PATH_CHECK_RESULT: Current working directory must be exactly /Users/vita/Vitemis/Outposts/Rokurics-Windows. If not, stop immediately.
+SOURCE_READONLY_CHECK: Apple source path /Users/vita/Vitemis/Vela/Rokurics is read-only. Do not modify Apple source. All writes must stay inside /Users/vita/Vitemis/Outposts/Rokurics-Windows. Do not access unrelated directories. Do not read or transmit secrets, tokens, private keys, .env, p12, provisioning profiles, SSH keys, API keys, or Keychain content.
+
+PROJECT_NAME: Rokurics-Windows
+ROUND_INDEX: 2
+TARGET_PATH: /Users/vita/Vitemis/Outposts/Rokurics-Windows
+APPLE_SOURCE_READONLY_PATH: /Users/vita/Vitemis/Vela/Rokurics
+
+Continue from Round 1. Do not redo Mac theme/color/font/sidebar/chat/connection/settings/study-library visual parity already completed.
+
+Round 1 status summary:
+- Build/test HOST_ENV_BLOCKED because macOS host lacks .NET SDK.
+- Visual validation unavailable until Windows/.NET environment.
+- Implemented Mac theme color/gradient/font/glass/sidebar/chat/connection/settings/study-library visual parity.
+- Remaining UI differences: sidebar hover, folder color picker grid, recording hover-swap, action hover scale, chat input glass, disclosure animations, fingerprint toggle animation, connected-device mixed typography.
+- Remaining functional gaps: real AI provider HTTP clients, WhisperCpp provider, Kestrel HTTPS receiver, WASAPI capture, Study Library sync merge, dynamic filing picker candidates.
+
+Round 2 tasks:
+1. Continue static wiring without looping on dotnet restore/build/test if .NET SDK is still absent.
+2. Wire real AI provider HTTP client structure for OpenAI-compatible and Anthropic-compatible providers where safe, preserving existing provider settings UI.
+3. Add Kestrel HTTPS receiver service structure/self-signed cert seam and pairing endpoint routing stubs where safe.
+4. Add WASAPI and WhisperCpp interfaces/adapters as compile-ready structure if feasible without Windows-only runtime assumptions.
+5. Implement folder color picker grid and remaining Mac-like hover/animation parity where safe.
+6. Improve Study Library sync merge and filing picker candidate resolution toward Apple/macOS behavior.
+7. Explicitly report what must be verified on Windows/.NET, and do not claim build/test success unless actually run.
+8. Do not commit, push, or create PR.
+
+Final report only, structured and concise. Include:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+APPLE_UI_PARITY_CHECKLIST
+UI_LAYOUT_ALIGNMENT_PROGRESS
+FUNCTIONAL_PARITY_PROGRESS
+BUILD_RESULT
+TEST_RESULT
+VISUAL_OR_UI_VALIDATION_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+BLOCKERS
+REGRESSION_RISKS
+NEXT_ROUND_RECOMMENDATION

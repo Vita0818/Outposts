@@ -10,10 +10,10 @@ export class KnowledgePoint {
   content: string
   isReinforced: boolean
   reinforcementCount: number
-  lastReinforcedAt: number | null  // timestamp
+  lastReinforcedAt: number | null
   isMastered: boolean
-  createdAt: number   // timestamp
-  updatedAt: number   // timestamp
+  createdAt: number
+  updatedAt: number
 
   constructor(
     id: string,
@@ -95,7 +95,6 @@ export class KnowledgePreset {
 
 /**
  * ReviewMode - The mode of the current review session.
- * Translated from source/Kikaria/ContentView.swift (ReviewMode enum)
  */
 export enum ReviewMode {
   NORMAL = 'normal',
@@ -105,7 +104,6 @@ export enum ReviewMode {
 
 /**
  * StudyActivityType - Types of study activities tracked.
- * Translated from source/Kikaria/StudyTracking.swift
  */
 export enum StudyActivityType {
   VIEWED_HINT = 'viewedHint',
@@ -122,7 +120,7 @@ export enum StudyActivityType {
 export class StudyActivityRecord {
   id: string
   presetId: string
-  date: number  // timestamp
+  date: number
   type: StudyActivityType
   pointId: string
   pointTitle: string
@@ -144,6 +142,101 @@ export class StudyActivityRecord {
   }
 }
 
+/**
+ * DailyReviewRecord - Tracks daily review count per knowledge point.
+ * Translated from source/Kikaria/ContentView.swift (DailyReviewRecord)
+ */
+export interface DailyReviewRecord {
+  date: number  // timestamp of day start
+  count: number
+}
+
+/**
+ * UserProfile - User's profile information.
+ * Translated from source/Kikaria/ContentView.swift (UserProfile)
+ */
+export interface UserProfile {
+  displayName: string
+  userHandle: string
+  avatarIconName: string
+}
+
+/**
+ * PresetStudyState - Per-preset state including knowledge points, tags, records, settings.
+ * Translated from source/Kikaria/ContentView.swift (PresetStudyState)
+ */
+export class PresetStudyState {
+  presetId: string
+  knowledgePoints: KnowledgePoint[]
+  markdownText: string
+  selectedTags: Set<string>
+  dailyReviewRecords: Record<string, DailyReviewRecord>
+  activityRecords: StudyActivityRecord[]
+  dailyGoal: number
+  countdownStartDate: number | null
+  countdownEndDate: number | null
+  notificationsEnabled: boolean
+  notificationTime: number  // timestamp representing time-of-day
+  dangerPercent: number
+
+  constructor(
+    presetId: string,
+    knowledgePoints: KnowledgePoint[],
+    markdownText: string,
+    selectedTags: Set<string> = new Set(),
+    dailyReviewRecords: Record<string, DailyReviewRecord> = {},
+    activityRecords: StudyActivityRecord[] = [],
+    dailyGoal: number = 20,
+    countdownStartDate: number | null = null,
+    countdownEndDate: number | null = null,
+    notificationsEnabled: boolean = false,
+    notificationTime: number = PresetStudyState.defaultNotificationTime(),
+    dangerPercent: number = 80
+  ) {
+    this.presetId = presetId
+    this.knowledgePoints = knowledgePoints
+    this.markdownText = markdownText
+    this.selectedTags = selectedTags
+    this.dailyReviewRecords = dailyReviewRecords
+    this.activityRecords = activityRecords
+    this.dailyGoal = dailyGoal
+    this.countdownStartDate = countdownStartDate
+    this.countdownEndDate = countdownEndDate
+    this.notificationsEnabled = notificationsEnabled
+    this.notificationTime = notificationTime
+    this.dangerPercent = Math.min(Math.max(dangerPercent, 1), 100)
+  }
+
+  static defaultNotificationTime(): number {
+    const d = new Date()
+    d.setHours(21, 0, 0, 0)
+    return d.getTime()
+  }
+}
+
+/**
+ * AppRoute - Navigation route identifiers.
+ * Translated from source/Kikaria/ContentView.swift (AppRoute)
+ */
+export enum AppRoute {
+  SCOPE = 'scope',
+  REVIEW = 'review',
+  TODAY_OVERVIEW = 'todayOverview',
+  REVIEW_HISTORY = 'reviewHistory',
+  REINFORCEMENT = 'reinforcement',
+  REINFORCEMENT_REVIEW = 'reinforcementReview',
+  MASTERED = 'mastered',
+  MASTERED_REVIEW = 'masteredReview',
+  SETTINGS = 'settings',
+  EDIT_PROFILE = 'editProfile',
+  MARKDOWN_EDITOR = 'markdownEditor',
+  PRESET_SELECTION = 'presetSelection',
+  NEW_PRESET = 'newPreset',
+  MARKDOWN_FORMAT_GUIDE = 'markdownFormatGuide',
+  EDIT_PRESET = 'editPreset',
+  EDIT_KNOWLEDGE_POINT = 'editKnowledgePoint'
+}
+
 /** Generate a simple unique ID */
 export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
@@ -153,13 +246,13 @@ export function generateId(): string {
  * Parse Markdown text into an array of KnowledgePoints.
  * Translated from KnowledgePoint.parseMarkdown in source/Kikaria/KnowledgePoint.swift
  */
-export function parseMarkdown(markdown: string): KnowledgePoint[] {
+export function parseMarkdown(markdown: string, date: number = Date.now()): KnowledgePoint[] {
   const normalized = markdown.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
   const chunks = splitMarkdownIntoChunks(normalized)
   const points: KnowledgePoint[] = []
 
   for (const chunk of chunks) {
-    const point = parseChunk(chunk)
+    const point = parseChunk(chunk, date)
     if (point) {
       points.push(point)
     }
@@ -193,10 +286,9 @@ function splitMarkdownIntoChunks(markdown: string): string[] {
   return chunks
 }
 
-function parseChunk(chunk: string): KnowledgePoint | null {
+function parseChunk(chunk: string, date: number): KnowledgePoint | null {
   const lines = chunk.split('\n')
 
-  // Find title (first non-empty line starting with #)
   let titleIndex = -1
   for (let i = 0; i < lines.length; i++) {
     const trimmed = lines[i].trim()
@@ -205,18 +297,22 @@ function parseChunk(chunk: string): KnowledgePoint | null {
       break
     }
   }
-  if (titleIndex < 0) return null
+  if (titleIndex < 0) {
+    return null
+  }
 
   const rawTitle = lines[titleIndex].trim()
-  if (!rawTitle.startsWith('#')) return null
+  if (!rawTitle.startsWith('#')) {
+    return null
+  }
 
   const title = rawTitle.replace(/^#+\s*/, '').trim()
-  if (title.length === 0) return null
+  if (title.length === 0) {
+    return null
+  }
 
-  // Parse tags
   const tags = parseTags(lines)
 
-  // Find hint: and content: markers
   let hintIndex = -1
   let contentIndex = -1
   for (let i = 0; i < lines.length; i++) {
@@ -228,12 +324,16 @@ function parseChunk(chunk: string): KnowledgePoint | null {
     }
   }
 
-  if (hintIndex < 0 || contentIndex < 0 || hintIndex >= contentIndex) return null
+  if (hintIndex < 0 || contentIndex < 0 || hintIndex >= contentIndex) {
+    return null
+  }
 
   const hint = lines.slice(hintIndex + 1, contentIndex).join('\n').trim()
   const content = lines.slice(contentIndex + 1).join('\n').trim()
 
-  if (hint.length === 0 || content.length === 0) return null
+  if (hint.length === 0 || content.length === 0) {
+    return null
+  }
 
   return new KnowledgePoint(
     generateId(),
@@ -243,8 +343,8 @@ function parseChunk(chunk: string): KnowledgePoint | null {
     content,
     false,
     false,
-    Date.now(),
-    Date.now()
+    date,
+    date
   )
 }
 
@@ -255,8 +355,8 @@ function parseTags(lines: string[]): string[] {
       const tagText = line.trim().substring('tags:'.length)
       return tagText
         .split(/[,，]/)
-        .map(t => t.trim())
-        .filter(t => t.length > 0)
+        .map((t: string) => t.trim())
+        .filter((t: string) => t.length > 0)
     }
   }
   return []
@@ -269,4 +369,34 @@ export function markdownTextFromPoints(points: KnowledgePoint[]): string {
   return points.map(p => {
     return `# ${p.title}\n\ntags: ${p.tags.join(', ')}\n\nhint:\n${p.hint}\n\ncontent:\n${p.content}`
   }).join('\n\n---\n\n')
+}
+
+/**
+ * Countdown days calculation - mirrors iOS countdownDays(until:)
+ */
+export function countdownDays(targetDate: number | null): number | null {
+  if (targetDate === null) {
+    return null
+  }
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const target = new Date(targetDate)
+  target.setHours(0, 0, 0, 0)
+  const dayCount = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  return Math.max(0, dayCount)
+}
+
+/**
+ * Ordinal suffix for English dates
+ */
+export function ordinalSuffix(day: number): string {
+  if (day >= 11 && day <= 13) {
+    return 'th'
+  }
+  switch (day % 10) {
+    case 1: return 'st'
+    case 2: return 'nd'
+    case 3: return 'rd'
+    default: return 'th'
+  }
 }

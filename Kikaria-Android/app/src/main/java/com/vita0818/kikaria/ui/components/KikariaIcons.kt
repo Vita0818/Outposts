@@ -2,6 +2,8 @@ package com.vita0818.kikaria.ui.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Book
@@ -108,14 +110,14 @@ object KikariaIcons {
     val clearSearch: ImageVector = Icons.Filled.Close
 
     /** Source: "books.vertical.fill" — onboarding / presets */
-    val books: ImageVector = Icons.Filled.MenuBook
+    val books: ImageVector = Icons.AutoMirrored.Filled.MenuBook
 
     // ── Navigation destinations ──
     /** Source: "calendar" — calendar / today overview */
     val calendar: ImageVector = Icons.Filled.CalendarMonth
 
     /** Source: "slider.horizontal.3" — preset management */
-    val presets: ImageVector = Icons.Filled.List
+    val presets: ImageVector = Icons.AutoMirrored.Filled.List
 
     /** Source: "rectangle.3.group" — dashboard */
     val dashboard: ImageVector = Icons.Filled.Book

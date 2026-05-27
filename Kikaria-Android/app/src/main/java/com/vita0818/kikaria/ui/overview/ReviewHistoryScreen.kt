@@ -32,11 +32,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vita0818.kikaria.data.StudyActivityRecord
 import com.vita0818.kikaria.data.StudyActivityType
-import com.vita0818.kikaria.ui.components.KikariaBackButton
 import com.vita0818.kikaria.ui.components.KikariaGlassCard
-import com.vita0818.kikaria.ui.components.KikariaPageShell
+import com.vita0818.kikaria.ui.components.KikariaScrollPageShell
 import com.vita0818.kikaria.ui.theme.KikariaColors
 import com.vita0818.kikaria.ui.theme.KikariaTypography
+import com.vita0818.kikaria.ui.theme.rememberKikariaPhoneMetrics
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -58,8 +58,6 @@ fun ReviewHistoryScreen(
 
     var visibleMonth by remember { mutableStateOf(Calendar.getInstance().time) }
     var selectedDate by remember { mutableStateOf(Date()) }
-
-    val calendar = Calendar.getInstance()
 
     // Month title
     fun monthTitle(): String {
@@ -129,17 +127,10 @@ fun ReviewHistoryScreen(
 
     val weekdaySymbols = listOf("一", "二", "三", "四", "五", "六", "日")
 
-    KikariaPageShell {
-        Box(modifier = Modifier.fillMaxSize()) {
-            KikariaBackButton(onClick = onBack)
+    val metrics = rememberKikariaPhoneMetrics()
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp)
-                    .padding(top = 70.dp)
-            ) {
+    KikariaScrollPageShell(onBack = onBack, metrics = metrics) {
+        Spacer(modifier = Modifier.height(metrics.pageTopPadding))
                 Text(
                     text = KikariaTypography.mixedText("复习历史", size = 32, weight = FontWeight.Bold),
                     color = deepText
@@ -218,7 +209,6 @@ fun ReviewHistoryScreen(
 
                         // Calendar grid
                         val cells = monthCells()
-                        val today = Calendar.getInstance().time
                         cells.chunked(7).forEach { row ->
                             Row(modifier = Modifier.fillMaxWidth()) {
                                 row.forEach { date ->
@@ -372,7 +362,5 @@ fun ReviewHistoryScreen(
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
-            }
-        }
     }
-}
+    }

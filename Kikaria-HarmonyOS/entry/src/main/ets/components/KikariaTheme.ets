@@ -1,80 +1,85 @@
 /**
  * KikariaTheme - Color palette and visual style constants.
- * Translated from the KikariaTheme enum in source/Kikaria/ContentView.swift
+ * Translated from KikariaTheme enum in source/Kikaria/ContentView.swift
  *
- * The original uses adaptive (light/dark) colors via ColorScheme.
- * In HarmonyOS we use resource colors and ColorMode detection for a similar effect.
+ * Uses adaptive (light/dark) colors via AppStorage reactivity.
+ * AppStorage is a built-in ArkTS global, no import needed.
  */
 
+const DARK_MODE_KEY = 'kikaria_isDarkMode'
+
+/** Helper: reads current dark mode state from AppStorage at call time. */
+function isDark(): boolean {
+  const ref = AppStorage.ref<boolean>(DARK_MODE_KEY)
+  return ref !== undefined ? ref.get() === true : false
+}
+
+/** Adaptive color helper — returns light or dark value based on current mode. */
+function adaptive(light: string, dark: string): string {
+  return isDark() ? dark : light
+}
+
 export class KikariaColors {
-  // Primary blues
-  static readonly SKY_LIGHT = '#63BAF5'
-  static readonly SKY_DARK = '#4DB8F5'
-  static readonly CYAN_LIGHT = '#91E0E8'
-  static readonly CYAN_DARK = '#52CCD1'
-  static readonly MIST_LIGHT = '#E8F7FC'
-  static readonly MIST_DARK = '#152938'
-  static readonly BLUE_GRAY_LIGHT = '#9EB8CC'
-  static readonly BLUE_GRAY_DARK = '#7A9CB8'
+  static get SKY(): string { return adaptive('#63BAF5', '#4DAFDF') }
+  static get SKY_LIGHT(): string { return adaptive('#59A4E8', '#4590CC') }
+  static get CYAN(): string { return adaptive('#91E0E8', '#52CCD2') }
+  static get CYAN_LIGHT(): string { return adaptive('#7BCFD6', '#45B3BA') }
+  static get MIST(): string { return adaptive('#E8F7FC', '#152838') }
+  static get BLUE_GRAY_LIGHT(): string { return adaptive('#9EB8CC', '#7A9CB8') }
+  static get BLUE_GRAY_DARK(): string { return adaptive('#7A9CB8', '#5A7A96') }
 
-  // Mastered greens
-  static readonly MASTERED_GREEN_LIGHT = '#5CC28A'
-  static readonly MASTERED_GREEN_DARK = '#52D199'
-  static readonly MASTERED_DEEP_GREEN_LIGHT = '#1E784D'
-  static readonly MASTERED_DEEP_GREEN_DARK = '#94F0BD'
-  static readonly MASTERED_COMPLETED_GREEN_LIGHT = '#C9EDD6'
-  static readonly MASTERED_COMPLETED_GREEN_DARK = '#2E614D'
+  static get MASTERED_GREEN(): string { return adaptive('#5CC28A', '#52D180') }
+  static get MASTERED_DEEP_GREEN(): string { return adaptive('#1E784D', '#93EFBD') }
+  static get MASTERED_COMPLETED_GREEN(): string { return adaptive('#C9EDD6', '#2E614C') }
 
-  // Action colors
-  static readonly NEXT_AMBER_LIGHT = '#8A7DBF'
-  static readonly NEXT_AMBER_DARK = '#8C75D1'
-  static readonly REMOVE_CORAL_LIGHT = '#DB524D'
-  static readonly REMOVE_CORAL_DARK = '#FA6B6B'
+  static get NEXT_AMBER(): string { return adaptive('#8A7DBF', '#8C75D1') }
+  static get REMOVE_CORAL(): string { return adaptive('#DB524D', '#FA6B6B') }
 
-  // Text colors
-  static readonly DEEP_TEXT_LIGHT = '#214054'
-  static readonly DEEP_TEXT_DARK = '#E6F5FF'
-  static readonly SOFT_TEXT_LIGHT = '#6B8A9E'
-  static readonly SOFT_TEXT_DARK = '#A8C4DB'
-  static readonly TERTIARY_TEXT_LIGHT = '#94ADBF'
-  static readonly TERTIARY_TEXT_DARK = '#6E8CA8'
+  static get DEEP_TEXT(): string { return adaptive('#214054', '#E5F0FF') }
+  static get SOFT_TEXT(): string { return adaptive('#6B8A9E', '#A9C0D6') }
+  static get TERTIARY_TEXT(): string { return adaptive('#94ADBF', '#6E8BA5') }
 
-  // Surface / glass
-  static readonly GLASS_SURFACE_LIGHT = '#FFFFFF'
-  static readonly GLASS_SURFACE_DARK = '#0F2130'
-  static readonly GLASS_STROKE_ACCENT_LIGHT = '#91E0E8'
-  static readonly GLASS_STROKE_ACCENT_DARK = '#6BD6ED'
-  static readonly SHADOW_LIGHT = '#63BAF5'
-  static readonly SHADOW_DARK = '#00050D'
+  static get GLASS_SURFACE(): string { return adaptive('#FFFFFF', '#0F1F2D') }
+  static get GLASS_STROKE_ACCENT(): string { return adaptive('#91E0E8', '#6BD6EF') }
 
-  // Bubble colors
-  static readonly BUBBLE_MINT_LIGHT = '#BAF2E6'
-  static readonly BUBBLE_MINT_DARK = '#33948A'
-  static readonly BUBBLE_LAVENDER_LIGHT = '#BFC7FF'
-  static readonly BUBBLE_LAVENDER_DARK = '#524D94'
-  static readonly BUBBLE_GREEN_LIGHT = '#C7F2BD'
-  static readonly BUBBLE_GREEN_DARK = '#338057'
-  static readonly BUBBLE_WHITE_LIGHT = '#FFFFFF'
-  static readonly BUBBLE_WHITE_DARK = '#263B54'
+  static get PAGE_BG(): string { return adaptive('#EDF9FF', '#0A1625') }
+  static get PAGE_BG_START(): string { return adaptive('#EDF9FF', '#0A1625') }
+  static get PAGE_BG_MID(): string { return adaptive('#DBF2F8', '#0D1E30') }
+  static get PAGE_BG_END(): string { return adaptive('#F5FAFC', '#081420') }
 
-  // Page background approximations (gradients aren't directly available as constants)
-  static readonly PAGE_BG_LIGHT = '#EDF9FF'
-  static readonly PAGE_BG_DARK = '#05121C'
+  static get BUBBLE_MINT(): string { return adaptive('#BAF2E6', '#33947A') }
+  static get BUBBLE_LAVENDER(): string { return adaptive('#BFC7FF', '#4D458F') }
+  static get BUBBLE_GREEN(): string { return adaptive('#C7F2BD', '#3A6E33') }
+  static get BUBBLE_WHITE(): string { return adaptive('#FFFFFF', '#1A2A3A') }
 
-  // Functional aliases - use light versions as default
-  static SKY = KikariaColors.SKY_LIGHT
-  static CYAN = KikariaColors.CYAN_LIGHT
-  static MIST = KikariaColors.MIST_LIGHT
-  static DEEP_TEXT = KikariaColors.DEEP_TEXT_LIGHT
-  static SOFT_TEXT = KikariaColors.SOFT_TEXT_LIGHT
-  static GLASS_SURFACE = KikariaColors.GLASS_SURFACE_LIGHT
-  static MASTERED_GREEN = KikariaColors.MASTERED_GREEN_LIGHT
-  static NEXT_AMBER = KikariaColors.NEXT_AMBER_LIGHT
-  static REMOVE_CORAL = KikariaColors.REMOVE_CORAL_LIGHT
+  static get ACTION_GRADIENT_START(): string { return adaptive('#59A4E8', '#4590CC') }
+  static get ACTION_GRADIENT_END(): string { return adaptive('#7FD6DA', '#4FB4BA') }
+  static get MASTERED_GRADIENT_START(): string { return adaptive('#63C78B', '#4AAD70') }
+  static get MASTERED_GRADIENT_END(): string { return adaptive('#ADE8C2', '#3C8A5C') }
+  static get NEXT_GRADIENT_START(): string { return adaptive('#C7B8F0', '#7A6ABB') }
+  static get NEXT_GRADIENT_END(): string { return adaptive('#9487CC', '#5C4F94') }
+  static get REMOVE_GRADIENT_START(): string { return adaptive('#E56159', '#CC3D3D') }
+  static get REMOVE_GRADIENT_END(): string { return adaptive('#FA9480', '#E06060') }
+
+  static get SHADOW_COLOR(): string { return adaptive('#1A63BAF5', '#1A000000') }
+  static get CARD_BG(): string { return adaptive('#FFFFFF', '#132333') }
+  static get CARD_BG_TRANSLUCENT(): string { return adaptive('#FFFFFFCC', '#132333CC') }
+  static get OVERLAY_BG(): string { return adaptive('#80000000', '#B0000000') }
+}
+
+/** Toggle dark mode programmatically. Call from any component. */
+export function toggleDarkMode(): void {
+  const ref = AppStorage.setAndRef<boolean>(DARK_MODE_KEY, false)
+  ref.set(!ref.get())
+}
+
+export function isDarkModeEnabled(): boolean {
+  const ref = AppStorage.ref<boolean>(DARK_MODE_KEY)
+  return ref !== undefined ? ref.get() === true : false
 }
 
 /**
- * Typography scale translated from KikariaTypography in source/Kikaria/KikariaTypography.swift
+ * Typography scale translated from KikariaTypography
  * HarmonyOS uses 'vp' (virtual pixels) for font sizes.
  */
 export class KikariaTypography {
@@ -86,4 +91,5 @@ export class KikariaTypography {
   static readonly CHINESE_BUTTON = 17
   static readonly CHINESE_CAPTION = 12
   static readonly TAG_SIZE = 12
+  static readonly NUMBER_MEDIUM = 28
 }

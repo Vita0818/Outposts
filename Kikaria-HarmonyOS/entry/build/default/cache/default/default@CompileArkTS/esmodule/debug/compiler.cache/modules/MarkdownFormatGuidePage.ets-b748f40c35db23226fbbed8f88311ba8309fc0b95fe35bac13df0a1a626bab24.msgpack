@@ -1,0 +1,672 @@
+Ôr@Ÿªassertions¤code´customTransformCache¬dependencies¢id¤meta±moduleSideEffects¬originalCode±originalSourcemap«resolvedIds®sourcemapChainµsyntheticNamedExportsµtransformDependencies®transformFiles¨cacheAstÔrAÚ5§if (!("finalizeConstruction" in ViewPU.prototype)) {
+    Reflect.set(ViewPU.prototype, "finalizeConstruction", () => { });
+}
+/**
+ * MarkdownFormatGuidePage.ets - Documentation on Kikaria Markdown format.
+ *
+ * Translated from MarkdownFormatGuideView in source/Kikaria/ContentView.swift (line 5368)
+ */
+import { KikariaColors } from '../components/KikariaTheme';
+import { isPadLandscape, pageHorizontalPadding } from '../components/KikariaAdaptiveLayout';
+import { navPathStack } from '../data/NavigationService';
+/**
+ * NavDestination-compatible builder for NavPathStack migration.
+ * Usage: navPathStack.pushPathByName('MarkdownFormatGuide', undefined)
+ * Register in root Navigation's navDestination builder.
+ */
+export function MarkdownFormatGuideBuilder(name, param, parent = null) {
+    {
+        (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
+            if (isInitialRender) {
+                let componentCall = new MarkdownFormatGuideContent(parent ? parent : this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/MarkdownFormatGuidePage.ets", line: 17, col: 3 });
+                ViewPU.create(componentCall);
+                let paramsLambda = () => {
+                    return {};
+                };
+                componentCall.paramsGenerator_ = paramsLambda;
+            }
+            else {
+                (parent ? parent : this).updateStateVarsOfChildByElmtId(elmtId, {});
+            }
+        }, { name: "MarkdownFormatGuideContent" });
+    }
+}
+export class MarkdownFormatGuideContent extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.__contentPadH = new ObservedPropertySimplePU(24, this, "contentPadH");
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params) {
+        if (params.contentPadH !== undefined) {
+            this.contentPadH = params.contentPadH;
+        }
+    }
+    updateStateVars(params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+        this.__contentPadH.purgeDependencyOnElmtId(rmElmtId);
+    }
+    aboutToBeDeleted() {
+        this.__contentPadH.aboutToBeDeleted();
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    get contentPadH() {
+        return this.__contentPadH.get();
+    }
+    set contentPadH(newValue) {
+        this.__contentPadH.set(newValue);
+    }
+    aboutToAppear() {
+        this.contentPadH = pageHorizontalPadding();
+    }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            NavDestination.create(() => {
+                this.pageContent.bind(this)();
+            }, { moduleName: "entry", pagePath: "entry/src/main/ets/pages/MarkdownFormatGuidePage" });
+            NavDestination.hideTitleBar(true);
+            NavDestination.width('100%');
+            NavDestination.height('100%');
+        }, NavDestination);
+        NavDestination.pop();
+    }
+    pageContent(parent = null) {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Scroll.create();
+            Scroll.width('100%');
+            Scroll.height('100%');
+            Scroll.backgroundColor(KikariaColors.PAGE_BG);
+            Scroll.scrollBar(BarState.Off);
+        }, Scroll);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 18 });
+            Column.width('100%');
+            Column.constraintSize({ maxWidth: isPadLandscape() ? 760 : '100%' });
+            Column.padding({ left: this.contentPadH, right: this.contentPadH });
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.width('100%');
+            Row.padding({ left: 20, right: 20, top: 12, bottom: 12 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Button.createWithChild();
+            Button.backgroundColor(Color.Transparent);
+            Button.onClick(() => { navPathStack.pop(); });
+        }, Button);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('â† è¿”å›');
+            Text.fontSize(17);
+            Text.fontColor(KikariaColors.SOFT_TEXT);
+        }, Text);
+        Text.pop();
+        Button.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Markdown æ ¼å¼æŒ‡å—');
+            Text.fontSize(17);
+            Text.fontWeight(FontWeight.Medium);
+            Text.fontColor(KikariaColors.DEEP_TEXT);
+        }, Text);
+        Text.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Kikaria ä½¿ç”¨ Markdown æ ¼å¼å­˜å‚¨çŸ¥è¯†ç‚¹ã€‚æ¯ä¸ªçŸ¥è¯†ç‚¹ç”±ä»¥ä¸‹éƒ¨åˆ†ç»„æˆï¼š');
+            Text.fontSize(15);
+            Text.fontColor(KikariaColors.DEEP_TEXT);
+            Text.width('100%');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 8 });
+            Column.width('100%');
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('åŸºæœ¬ç»“æ„');
+            Text.fontSize(17);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(KikariaColors.DEEP_TEXT);
+            Text.width('100%');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(`# çŸ¥è¯†ç‚¹æ ‡é¢˜\n\ntags: æ ‡ç­¾1, æ ‡ç­¾2\n\nhint:\nè¿™é‡Œæ˜¯æç¤ºå†…å®¹ã€‚å¯ä»¥åŒ…å«å¤šè¡Œæ–‡å­—ï¼Œ\næ”¯æŒ Markdown åŸºæœ¬è¯­æ³•ã€‚\n\ncontent:\nè¿™é‡Œæ˜¯ç­”æ¡ˆå†…å®¹ã€‚åŒæ ·æ”¯æŒå¤šè¡Œæ–‡å­—ï¼Œ\nä»¥åŠ LaTeX æ•°å­¦å…¬å¼ï¼š$E = mc^2$ã€‚`);
+            Text.fontSize(13);
+            Text.fontColor(KikariaColors.SOFT_TEXT);
+            Text.backgroundColor(KikariaColors.MIST);
+            Text.borderRadius(12);
+            Text.padding(16);
+            Text.width('100%');
+            Text.fontFamily('monospace');
+        }, Text);
+        Text.pop();
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 8 });
+            Column.width('100%');
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('å¤šä¸ªçŸ¥è¯†ç‚¹');
+            Text.fontSize(17);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(KikariaColors.DEEP_TEXT);
+            Text.width('100%');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('ä½¿ç”¨ä¸‰ä¸ªçŸ­æ¨ªçº¿ --- åˆ†éš”å¤šä¸ªçŸ¥è¯†ç‚¹ï¼š');
+            Text.fontSize(15);
+            Text.fontColor(KikariaColors.DEEP_TEXT);
+            Text.width('100%');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(`# ç¬¬ä¸€ä¸ªçŸ¥è¯†ç‚¹\ntags: æ ‡ç­¾A\n\nhint:\næç¤ºA\n\ncontent:\nç­”æ¡ˆA\n\n---\n\n# ç¬¬äºŒä¸ªçŸ¥è¯†ç‚¹\ntags: æ ‡ç­¾B\n\nhint:\næç¤ºB\n\ncontent:\nç­”æ¡ˆB`);
+            Text.fontSize(13);
+            Text.fontColor(KikariaColors.SOFT_TEXT);
+            Text.backgroundColor(KikariaColors.MIST);
+            Text.borderRadius(12);
+            Text.padding(16);
+            Text.width('100%');
+            Text.fontFamily('monospace');
+        }, Text);
+        Text.pop();
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 8 });
+            Column.width('100%');
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('æ ‡ç­¾æ ¼å¼');
+            Text.fontSize(17);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(KikariaColors.DEEP_TEXT);
+            Text.width('100%');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('tags: åè·Ÿé€—å·ï¼ˆä¸­è‹±æ–‡å‡å¯ï¼‰åˆ†éš”çš„æ ‡ç­¾åˆ—è¡¨ã€‚æ ‡ç­¾ç”¨äºç­›é€‰å’Œç»„ç»‡çŸ¥è¯†ç‚¹ã€‚');
+            Text.fontSize(15);
+            Text.fontColor(KikariaColors.DEEP_TEXT);
+            Text.width('100%');
+        }, Text);
+        Text.pop();
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 8 });
+            Column.width('100%');
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('æ•°å­¦å…¬å¼');
+            Text.fontSize(17);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(KikariaColors.DEEP_TEXT);
+            Text.width('100%');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('Kikaria å†…åµŒæ”¯æŒ LaTeX æ•°å­¦å…¬å¼ï¼š\nè¡Œå†…å…¬å¼ï¼š$E = mc^2$\nå—çº§å…¬å¼ï¼š$$\\int_a^b f(x) dx$$\n\n(æ³¨ï¼šHarmonyOS ç‰ˆæœ¬ç›®å‰ä»¥æ–‡æœ¬å½¢å¼å±•ç¤ºå…¬å¼)');
+            Text.fontSize(15);
+            Text.fontColor(KikariaColors.DEEP_TEXT);
+            Text.width('100%');
+        }, Text);
+        Text.pop();
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 8 });
+            Column.width('100%');
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('å°è´´å£«');
+            Text.fontSize(17);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(KikariaColors.DEEP_TEXT);
+            Text.width('100%');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('â€¢ æ ‡é¢˜ä»¥ # å¼€å¤´ï¼Œåæ¥çŸ¥è¯†ç‚¹åç§°\nâ€¢ hint: å’Œ content: å¿…é¡»å„å ä¸€è¡Œï¼Œä»¥å†’å·ç»“å°¾\nâ€¢ æç¤ºå’Œç­”æ¡ˆçš„å†…å®¹ä»ä¸‹ä¸€è¡Œå¼€å§‹\nâ€¢ æ¯ä¸ªçŸ¥è¯†ç‚¹è‡³å°‘éœ€è¦æ ‡é¢˜ã€tagsã€hint å’Œ content\nâ€¢ æ ‡ç­¾æœ‰åŠ©äºåœ¨é¦–é¡µæŒ‰èŒƒå›´ç­›é€‰\nâ€¢ ä½¿ç”¨ --- åˆ†éš”ä¸åŒçš„çŸ¥è¯†ç‚¹');
+            Text.fontSize(15);
+            Text.fontColor(KikariaColors.DEEP_TEXT);
+            Text.width('100%');
+        }, Text);
+        Text.pop();
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.height(40);
+        }, Row);
+        Row.pop();
+        Column.pop();
+        Scroll.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+}
+class MarkdownFormatGuidePage extends ViewPU {
+    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
+        super(parent, __localStorage, elmtId, extraInfo);
+        if (typeof paramsLambda === "function") {
+            this.paramsGenerator_ = paramsLambda;
+        }
+        this.setInitiallyProvidedValue(params);
+        this.finalizeConstruction();
+    }
+    setInitiallyProvidedValue(params) {
+    }
+    updateStateVars(params) {
+    }
+    purgeVariableDependenciesOnElmtId(rmElmtId) {
+    }
+    aboutToBeDeleted() {
+        SubscriberManager.Get().delete(this.id__());
+        this.aboutToBeDeletedInternal();
+    }
+    initialRender() {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Navigation.create(new NavPathStack(), { moduleName: "entry", pagePath: "entry/src/main/ets/pages/MarkdownFormatGuidePage", isUserCreateStack: false });
+            Navigation.width('100%');
+            Navigation.height('100%');
+            Navigation.backgroundColor(KikariaColors.PAGE_BG);
+            Navigation.hideTitleBar(true);
+            Navigation.hideBackButton(true);
+        }, Navigation);
+        {
+            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                if (isInitialRender) {
+                    let componentCall = new MarkdownFormatGuideContent(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/MarkdownFormatGuidePage.ets", line: 132, col: 7 });
+                    ViewPU.create(componentCall);
+                    let paramsLambda = () => {
+                        return {};
+                    };
+                    componentCall.paramsGenerator_ = paramsLambda;
+                }
+                else {
+                    this.updateStateVarsOfChildByElmtId(elmtId, {});
+                }
+            }, { name: "MarkdownFormatGuideContent" });
+        }
+        Navigation.pop();
+    }
+    rerender() {
+        this.updateDirtyElements();
+    }
+    static getEntryName() {
+        return "MarkdownFormatGuidePage";
+    }
+}
+registerNamedRoute(() => new MarkdownFormatGuidePage(undefined, {}), "", { bundleName: "com.vita0818.kikaria", moduleName: "entry", pagePath: "pages/MarkdownFormatGuidePage", pageFullPath: "entry/src/main/ets/pages/MarkdownFormatGuidePage", integratedHsp: "false", moduleType: "followWithHap" });
+//# sourceMappingURL=MarkdownFormatGuidePage.js.mapÂ“Ù]/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/components/KikariaTheme.etsÙf/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/components/KikariaAdaptiveLayout.etsÙ\/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/data/NavigationService.etsÙc/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/pages/MarkdownFormatGuidePage.etsÔrBšªmoduleName±isLocalDependency¯isNodeEntryFile§pkgPath±belongProjectPath§pkgNameªpkgVersion±dependencyPkgInfo°belongModulePath¬shouldEmitJs¥entryÃÂÙ4/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entryÙ./Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS¥entry¥1.0.0Ô  Ù4/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entryÃÃÚ¾/**
+ * MarkdownFormatGuidePage.ets - Documentation on Kikaria Markdown format.
+ *
+ * Translated from MarkdownFormatGuideView in source/Kikaria/ContentView.swift (line 5368)
+ */
+import { KikariaColors } from '../components/KikariaTheme'
+import { isPadLandscape, pageHorizontalPadding } from '../components/KikariaAdaptiveLayout'
+import { navPathStack } from '../data/NavigationService'
+
+/**
+ * NavDestination-compatible builder for NavPathStack migration.
+ * Usage: navPathStack.pushPathByName('MarkdownFormatGuide', undefined)
+ * Register in root Navigation's navDestination builder.
+ */
+@Builder
+export function MarkdownFormatGuideBuilder(name: string, param: Object) {
+  MarkdownFormatGuideContent()
+}
+
+/**
+ * Reusable page content component (used by both @Entry and NavDestination).
+ */
+@Component
+export struct MarkdownFormatGuideContent {
+  @State contentPadH: number = 24
+
+  aboutToAppear(): void {
+    this.contentPadH = pageHorizontalPadding()
+  }
+
+  build() {
+    NavDestination() {
+      this.pageContent()
+    }
+    .hideTitleBar(true)
+    .width('100%')
+    .height('100%')
+  }
+
+  @Builder
+  pageContent() {
+    Scroll() {
+      Column({ space: 18 }) {
+        Row() {
+          Button() {
+            Text('â† è¿”å›')
+              .fontSize(17)
+              .fontColor(KikariaColors.SOFT_TEXT)
+          }
+          .backgroundColor(Color.Transparent)
+          .onClick(() => { navPathStack.pop() })
+
+          Blank()
+
+          Text('Markdown æ ¼å¼æŒ‡å—')
+            .fontSize(17)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(KikariaColors.DEEP_TEXT)
+        }
+        .width('100%')
+        .padding({ left: 20, right: 20, top: 12, bottom: 12 })
+
+        Text('Kikaria ä½¿ç”¨ Markdown æ ¼å¼å­˜å‚¨çŸ¥è¯†ç‚¹ã€‚æ¯ä¸ªçŸ¥è¯†ç‚¹ç”±ä»¥ä¸‹éƒ¨åˆ†ç»„æˆï¼š')
+          .fontSize(15)
+          .fontColor(KikariaColors.DEEP_TEXT)
+          .width('100%')
+
+        Column({ space: 8 }) {
+          Text('åŸºæœ¬ç»“æ„')
+            .fontSize(17).fontWeight(FontWeight.Bold)
+            .fontColor(KikariaColors.DEEP_TEXT).width('100%')
+          Text(`# çŸ¥è¯†ç‚¹æ ‡é¢˜\n\ntags: æ ‡ç­¾1, æ ‡ç­¾2\n\nhint:\nè¿™é‡Œæ˜¯æç¤ºå†…å®¹ã€‚å¯ä»¥åŒ…å«å¤šè¡Œæ–‡å­—ï¼Œ\næ”¯æŒ Markdown åŸºæœ¬è¯­æ³•ã€‚\n\ncontent:\nè¿™é‡Œæ˜¯ç­”æ¡ˆå†…å®¹ã€‚åŒæ ·æ”¯æŒå¤šè¡Œæ–‡å­—ï¼Œ\nä»¥åŠ LaTeX æ•°å­¦å…¬å¼ï¼š$E = mc^2$ã€‚`)
+            .fontSize(13).fontColor(KikariaColors.SOFT_TEXT)
+            .backgroundColor(KikariaColors.MIST).borderRadius(12)
+            .padding(16).width('100%').fontFamily('monospace')
+        }.width('100%')
+
+        Column({ space: 8 }) {
+          Text('å¤šä¸ªçŸ¥è¯†ç‚¹')
+            .fontSize(17).fontWeight(FontWeight.Bold)
+            .fontColor(KikariaColors.DEEP_TEXT).width('100%')
+          Text('ä½¿ç”¨ä¸‰ä¸ªçŸ­æ¨ªçº¿ --- åˆ†éš”å¤šä¸ªçŸ¥è¯†ç‚¹ï¼š')
+            .fontSize(15).fontColor(KikariaColors.DEEP_TEXT).width('100%')
+          Text(`# ç¬¬ä¸€ä¸ªçŸ¥è¯†ç‚¹\ntags: æ ‡ç­¾A\n\nhint:\næç¤ºA\n\ncontent:\nç­”æ¡ˆA\n\n---\n\n# ç¬¬äºŒä¸ªçŸ¥è¯†ç‚¹\ntags: æ ‡ç­¾B\n\nhint:\næç¤ºB\n\ncontent:\nç­”æ¡ˆB`)
+            .fontSize(13).fontColor(KikariaColors.SOFT_TEXT)
+            .backgroundColor(KikariaColors.MIST).borderRadius(12)
+            .padding(16).width('100%').fontFamily('monospace')
+        }.width('100%')
+
+        Column({ space: 8 }) {
+          Text('æ ‡ç­¾æ ¼å¼')
+            .fontSize(17).fontWeight(FontWeight.Bold)
+            .fontColor(KikariaColors.DEEP_TEXT).width('100%')
+          Text('tags: åè·Ÿé€—å·ï¼ˆä¸­è‹±æ–‡å‡å¯ï¼‰åˆ†éš”çš„æ ‡ç­¾åˆ—è¡¨ã€‚æ ‡ç­¾ç”¨äºç­›é€‰å’Œç»„ç»‡çŸ¥è¯†ç‚¹ã€‚')
+            .fontSize(15).fontColor(KikariaColors.DEEP_TEXT).width('100%')
+        }.width('100%')
+
+        Column({ space: 8 }) {
+          Text('æ•°å­¦å…¬å¼')
+            .fontSize(17).fontWeight(FontWeight.Bold)
+            .fontColor(KikariaColors.DEEP_TEXT).width('100%')
+          Text('Kikaria å†…åµŒæ”¯æŒ LaTeX æ•°å­¦å…¬å¼ï¼š\nè¡Œå†…å…¬å¼ï¼š$E = mc^2$\nå—çº§å…¬å¼ï¼š$$\\int_a^b f(x) dx$$\n\n(æ³¨ï¼šHarmonyOS ç‰ˆæœ¬ç›®å‰ä»¥æ–‡æœ¬å½¢å¼å±•ç¤ºå…¬å¼)')
+            .fontSize(15).fontColor(KikariaColors.DEEP_TEXT).width('100%')
+        }.width('100%')
+
+        Column({ space: 8 }) {
+          Text('å°è´´å£«')
+            .fontSize(17).fontWeight(FontWeight.Bold)
+            .fontColor(KikariaColors.DEEP_TEXT).width('100%')
+          Text('â€¢ æ ‡é¢˜ä»¥ # å¼€å¤´ï¼Œåæ¥çŸ¥è¯†ç‚¹åç§°\nâ€¢ hint: å’Œ content: å¿…é¡»å„å ä¸€è¡Œï¼Œä»¥å†’å·ç»“å°¾\nâ€¢ æç¤ºå’Œç­”æ¡ˆçš„å†…å®¹ä»ä¸‹ä¸€è¡Œå¼€å§‹\nâ€¢ æ¯ä¸ªçŸ¥è¯†ç‚¹è‡³å°‘éœ€è¦æ ‡é¢˜ã€tagsã€hint å’Œ content\nâ€¢ æ ‡ç­¾æœ‰åŠ©äºåœ¨é¦–é¡µæŒ‰èŒƒå›´ç­›é€‰\nâ€¢ ä½¿ç”¨ --- åˆ†éš”ä¸åŒçš„çŸ¥è¯†ç‚¹')
+            .fontSize(15).fontColor(KikariaColors.DEEP_TEXT).width('100%')
+        }.width('100%')
+
+        Row().height(40)
+      }
+      .width('100%')
+      .constraintSize({ maxWidth: isPadLandscape() ? 760 : '100%' })
+      .padding({ left: this.contentPadH, right: this.contentPadH })
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor(KikariaColors.PAGE_BG)
+    .scrollBar(BarState.Off)
+  }
+}
+
+@Entry
+@Component
+struct MarkdownFormatGuidePage {
+  build() {
+    Navigation() {
+      MarkdownFormatGuideContent()
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor(KikariaColors.PAGE_BG)
+    .hideTitleBar(true)
+    .hideBackButton(true)
+  }
+}
+ÀÔrC“Ù#../components/KikariaAdaptiveLayoutº../components/KikariaTheme¹../data/NavigationServiceÔrD—ªassertions¨external¢id¤meta±moduleSideEffectsªresolvedByµsyntheticNamedExportsAÂÙf/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/components/KikariaAdaptiveLayout.etsAÃªoh-resolveÂDAÂÙ]/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/components/KikariaTheme.etsAÃªoh-resolveÂDAÂÙ\/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/data/NavigationService.etsAÃªoh-resolveÂ“ÔrE–§version¤fileªsourceRoot§sources¥names¨mappingsºMarkdownFormatGuidePage.js ‘»MarkdownFormatGuidePage.etsÜ,‘”    ‘” ˜”   ” ”	 	” ” ” ”: :”; :š”   ” ”	 	” ” ”. .”0 0”6 6”Ì[ Ì[”Ì\ Ì[˜”   ” ”	 	” ” ” ”8 8”9 8‘”  	 ‘” ˜”   ” ” ”* *”+ +”/ 7”1 9”6 ÌF’”( ”ÌB ‘” ””   ” ” ”' (‘”  ’”: ”< !‘” ’” 	” ’” 	” ’” ” ˜” ” ” 	” ” ”0 ,”2 .”3 .’” ” ‘” •”  ”  
+”  ”   ”-  ”” "”' "”( "”, "”” #”  #
+”! #”' #”” $”! $”" $”( $‘” %’” (” (’” )” )
+–” )” )
+” Ìw” Ìw
+” Ìw” Ìw–” )” )
+” Ìx” Ìx” Ìx”  Ìx˜” )” )
+” Ìy”" Ìy”# Ìy”0 Ìy"”1 Ìy#”8 Ìy*˜” )” )
+” Ìz” Ìz” Ìz”% Ìz”& Ìz”) Ìz˜” *” *” *” *”! *”# *”% *”' *–” *” *” Ìs” Ìs” Ìs” ÌsÜ ” *” *” Ìt”! Ìt”" Ìt”$ Ìt”, Ìt ”. Ìt"”< Ìt0”> Ìt2”? Ìt3”Ì@ Ìt4”ÌA Ìt5”ÌD Ìt8”ÌE Ìt9”ÌF Ìt:”ÌG Ìt;”ÌM ÌtÌA”ÌO ÌtÌCÜ ” *” *” Ìu” Ìu” Ìu” Ìu”! Ìu”# Ìu”' Ìu”( Ìu”3 Ìu'”5 Ìu)”: Ìu.”< Ìu0”Ì@ Ìu4”ÌA Ìu5”ÌL ÌuÌ@”ÌN ÌuÌB’” +” +–” +” +” ;	” ;” ;” ;Ü ” +” +” <	” <” <” <” <”  <”" <”$ <”) <"”+ <$”- <&”/ <(”2 <+”4 <-”6 </”8 <1”> <7”Ì@ <9”ÌB <;”ÌD <=’” ,
+” ,˜” ,
+” ,” 1”" 1”# 1”( 1 ”) 1!”4 1,Ÿ” ,
+” ,” 2” 2” 2” 2”  2”# 2”/ 2'”0 2(”3 2+”5 2-”6 2-”7 2.”8 2/”” -” -” -” -–” -” -” .” .” .” .˜” -” -” /” /” /”( /&”) /'”2 /0’” -” -’” ,
+” ,’” 4
+” 4’” 4
+” 4”” 6
+” 6” 6”' 6–” 6
+” 6” 7” 7” 7” 7˜” 6
+” 6” 8” 8” 8”& 8"”' 8#”- 8)˜” 6
+” 6” 9” 9” 9”( 9$”) 9%”2 9.’” 6
+” 6’” +” +”” >” >” >”ÌC >8–” >” >” ?” ?” ?” ?˜” >” >” Ì@” Ì@” Ì@”( Ì@"”) Ì@#”2 Ì@,–” >” >” ÌA” ÌA” ÌA” ÌA’” >” >˜” ÌC” ÌC” ÌC” ÌC”! ÌC”# ÌC”$ ÌC”& ÌC–” ÌC” ÌC” ÌK
+” ÌK” ÌK” ÌK”” ÌD
+” ÌD” ÌD” ÌD–” ÌD
+” ÌD” ÌE” ÌE” ÌE” ÌE˜” ÌD
+” ÌD” ÌE” ÌE$” ÌE%”& ÌE/”' ÌE0”+ ÌE4˜” ÌD
+” ÌD” ÌF” ÌF” ÌF”( ÌF$”) ÌF%”2 ÌF.–” ÌD
+” ÌD” ÌF0” ÌF5” ÌF6” ÌF<’” ÌD
+” ÌD”” ÌG
+” ÌG” ÌG”Ìœ ÌGÌ“–” ÌG
+” ÌG” ÌH” ÌH” ÌH” ÌH˜” ÌG
+” ÌG” ÌH” ÌH#” ÌH$”( ÌH1”) ÌH2”2 ÌH;˜” ÌG
+” ÌG” ÌI”  ÌI”! ÌI”. ÌI*”/ ÌI+”3 ÌI/–” ÌG
+” ÌG” ÌI1” ÌI=” ÌI>”  ÌIÌ@–” ÌG
+” ÌG” ÌJ” ÌJ” ÌJ” ÌJ–” ÌG
+” ÌG” ÌJ” ÌJ” ÌJ” ÌJ%–” ÌG
+” ÌG” ÌJ'” ÌJ1” ÌJ2”' ÌJ=’” ÌG
+” ÌG’” ÌC” ÌC˜” ÌM” ÌM” ÌM” ÌM”! ÌM”# ÌM”$ ÌM”& ÌM–” ÌM” ÌM” ÌW
+” ÌW” ÌW” ÌW”” ÌN
+” ÌN” ÌN” ÌN–” ÌN
+” ÌN” ÌO” ÌO” ÌO” ÌO˜” ÌN
+” ÌN” ÌO” ÌO$” ÌO%”& ÌO/”' ÌO0”+ ÌO4˜” ÌN
+” ÌN” ÌP” ÌP” ÌP”( ÌP$”) ÌP%”2 ÌP.–” ÌN
+” ÌN” ÌP0” ÌP5” ÌP6” ÌP<’” ÌN
+” ÌN”” ÌQ
+” ÌQ” ÌQ”. ÌQ%–” ÌQ
+” ÌQ” ÌR” ÌR” ÌR” ÌR˜” ÌQ
+” ÌQ” ÌR” ÌR#” ÌR$”( ÌR1”) ÌR2”2 ÌR;–” ÌQ
+” ÌQ” ÌR=” ÌRÌB” ÌRÌC” ÌRÌI’” ÌQ
+” ÌQ”” ÌS
+” ÌS” ÌS”Ì‰ ÌSÌ€–” ÌS
+” ÌS” ÌT” ÌT” ÌT” ÌT˜” ÌS
+” ÌS” ÌT” ÌT#” ÌT$”( ÌT1”) ÌT2”2 ÌT;˜” ÌS
+” ÌS” ÌU”  ÌU”! ÌU”. ÌU*”/ ÌU+”3 ÌU/–” ÌS
+” ÌS” ÌU1” ÌU=” ÌU>”  ÌUÌ@–” ÌS
+” ÌS” ÌV” ÌV” ÌV” ÌV–” ÌS
+” ÌS” ÌV” ÌV” ÌV” ÌV%–” ÌS
+” ÌS” ÌV'” ÌV1” ÌV2”' ÌV=’” ÌS
+” ÌS’” ÌM” ÌM˜” ÌY” ÌY” ÌY” ÌY”! ÌY”# ÌY”$ ÌY”& ÌY–” ÌY” ÌY” Ì_
+” Ì_” Ì_” Ì_”” ÌZ
+” ÌZ” ÌZ” ÌZ–” ÌZ
+” ÌZ” Ì[” Ì[” Ì[” Ì[˜” ÌZ
+” ÌZ” Ì[” Ì[$” Ì[%”& Ì[/”' Ì[0”+ Ì[4˜” ÌZ
+” ÌZ” Ì\” Ì\” Ì\”( Ì\$”) Ì\%”2 Ì\.–” ÌZ
+” ÌZ” Ì\0” Ì\5” Ì\6” Ì\<’” ÌZ
+” ÌZ”” Ì]
+” Ì]” Ì]”Ì@ Ì]7–” Ì]
+” Ì]” Ì^” Ì^” Ì^” Ì^˜” Ì]
+” Ì]” Ì^” Ì^#” Ì^$”( Ì^1”) Ì^2”2 Ì^;–” Ì]
+” Ì]” Ì^=” Ì^ÌB” Ì^ÌC” Ì^ÌI’” Ì]
+” Ì]’” ÌY” ÌY˜” Ìa” Ìa” Ìa” Ìa”! Ìa”# Ìa”$ Ìa”& Ìa–” Ìa” Ìa” Ìg
+” Ìg” Ìg” Ìg”” Ìb
+” Ìb” Ìb” Ìb–” Ìb
+” Ìb” Ìc” Ìc” Ìc” Ìc˜” Ìb
+” Ìb” Ìc” Ìc$” Ìc%”& Ìc/”' Ìc0”+ Ìc4˜” Ìb
+” Ìb” Ìd” Ìd” Ìd”( Ìd$”) Ìd%”2 Ìd.–” Ìb
+” Ìb” Ìd0” Ìd5” Ìd6” Ìd<’” Ìb
+” Ìb”” Ìe
+” Ìe” Ìe”Ì~ ÌeÌu–” Ìe
+” Ìe” Ìf” Ìf” Ìf” Ìf˜” Ìe
+” Ìe” Ìf” Ìf#” Ìf$”( Ìf1”) Ìf2”2 Ìf;–” Ìe
+” Ìe” Ìf=” ÌfÌB” ÌfÌC” ÌfÌI’” Ìe
+” Ìe’” Ìa” Ìa˜” Ìi” Ìi” Ìi” Ìi”! Ìi”# Ìi”$ Ìi”& Ìi–” Ìi” Ìi” Ìo
+” Ìo” Ìo” Ìo”” Ìj
+” Ìj” Ìj” Ìj–” Ìj
+” Ìj” Ìk” Ìk” Ìk” Ìk˜” Ìj
+” Ìj” Ìk” Ìk$” Ìk%”& Ìk/”' Ìk0”+ Ìk4˜” Ìj
+” Ìj” Ìl” Ìl” Ìl”( Ìl$”) Ìl%”2 Ìl.–” Ìj
+” Ìj” Ìl0” Ìl5” Ìl6” Ìl<’” Ìj
+” Ìj”” Ìm
+” Ìm” Ìm”Ì¦ ÌmÌ–” Ìm
+” Ìm” Ìn” Ìn” Ìn” Ìn˜” Ìm
+” Ìm” Ìn” Ìn#” Ìn$”( Ìn1”) Ìn2”2 Ìn;–” Ìm
+” Ìm” Ìn=” ÌnÌB” ÌnÌC” ÌnÌI’” Ìm
+” Ìm’” Ìi” Ìi’” Ìq” Ìq–” Ìq” Ìq” Ìq” Ìq” Ìq” Ìq’” Ìq” Ìq’” *” *’” )” )
+‘” Ì{’” Ì€” Ì€‘” Ì~ ‘” Ì|‘” Ì’” Ì‚” Ì‚–” Ì‚” Ì‚” Ì…” Ì…
+” Ì…”# Ì…–” Ì‚” Ì‚” Ì†” Ì†” Ì†”$ Ì†˜” Ì‚” Ì‚” Ì‡”& Ì‡”' Ì‡”4 Ì‡"”5 Ì‡#”< Ì‡*–” Ì‚” Ì‚” Ìˆ”# Ìˆ”$ Ìˆ”( Ìˆ–” Ì‚” Ì‚” Ì‰”% Ì‰”& Ì‰”* Ì‰’”, Ìƒ”ÌF Ìƒ ’” Ì‚” Ì‚‘” ÌŠÔrF–§version¤file§sources®sourcesContent¥names¨mappingsÀ‘À‘ÀÜ5‘”    ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”  	 ‘”  
+ ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”    ‘”  ! ‘”  " ‘”  # ‘”  $ ‘”  % ‘”  & ‘”  ' ‘”  ( ‘”  ) ‘”  * ‘”  + ‘”  , ‘”  - ‘”  . ‘”  / ‘”  0 ‘”  1 ‘”  2 ‘”  3 ‘”  4 ‘”  5 ‘”  6 ‘”  7 ‘”  8 ‘”  9 ‘”  : ‘”  ; ‘”  < ‘”  = ‘”  > ‘”  ? ‘”  Ì@ ‘”  ÌA ‘”  ÌB ‘”  ÌC ‘”  ÌD ‘”  ÌE ‘”  ÌF ‘”  ÌG ‘”  ÌH ‘”  ÌI ‘”  ÌJ ‘”  ÌK ‘”  ÌL ‘”  ÌM ‘”  ÌN ‘”  ÌO ‘”  ÌP ‘”  ÌQ ‘”  ÌR ‘”  ÌS ‘”  ÌT ‘”  ÌU ‘”  ÌV ‘”  ÌW ‘”  ÌX ‘”  ÌY ‘”  ÌZ ‘”  Ì[ ‘”  Ì\ ‘”  Ì] ‘”  Ì^ ‘”  Ì_ ‘”  Ì` ‘”  Ìa ‘”  Ìb ‘”  Ìc ‘”  Ìd ‘”  Ìe ‘”  Ìf ‘”  Ìg ‘”  Ìh ‘”  Ìi ‘”  Ìj ‘”  Ìk ‘”  Ìl ‘”  Ìm ‘”  Ìn ‘”  Ìo ‘”  Ìp ‘”  Ìq ‘”  Ìr ‘”  Ìs ‘”  Ìt ‘”  Ìu ‘”  Ìv ‘”  Ìw ‘”  Ìx ‘”  Ìy ‘”  Ìz ‘”  Ì{ ‘”  Ì| ‘”  Ì} ‘”  Ì~ ‘”  Ì ‘”  Ì€ ‘”  Ì ‘”  Ì‚ ‘”  Ìƒ ‘”  Ì„ ‘”  Ì… ‘”  Ì† ‘”  Ì‡ ‘”  Ìˆ ‘”  Ì‰ ‘”  ÌŠ ‘”  Ì‹ ‘”  ÌŒ ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì‘ ‘”  Ì’ ‘”  Ì“ ‘”  Ì” ‘”  Ì• ‘”  Ì– ‘”  Ì— ‘”  Ì˜ ‘”  Ì™ ‘”  Ìš ‘”  Ì› ‘”  Ìœ ‘”  Ì ‘”  Ì ‘”  ÌŸ ‘”  Ì  ‘”  Ì¡ ‘”  Ì¢ ‘”  Ì£ ‘”  Ì¤ ‘”  Ì¥ ‘”  Ì¦ ‘”  Ì§ ‘”  Ì¨ ‘”  Ì© ‘”  Ìª ‘”  Ì« ‘”  Ì¬ ‘”  Ì­ ‘”  Ì® ‘”  Ì¯ ‘”  Ì° ‘”  Ì± ‘”  Ì² ‘”  Ì³ ‘”  Ì´ ‘”  Ìµ ‘”  Ì¶ ‘”  Ì· ‘”  Ì¸ ‘”  Ì¹ ‘”  Ìº ‘”  Ì» ‘”  Ì¼ ‘”  Ì½ ‘”  Ì¾ ‘”  Ì¿ ‘”  ÌÀ ‘”  ÌÁ ‘”  ÌÂ ‘”  ÌÃ ‘”  ÌÄ ‘”  ÌÅ ‘”  ÌÆ ‘”  ÌÇ ‘”  ÌÈ ‘”  ÌÉ ‘”  ÌÊ ‘”  ÌË ‘”  ÌÌ ‘”  ÌÍ ‘”  ÌÎ ‘”  ÌÏ ‘”  ÌĞ ‘”  ÌÑ ‘”  ÌÒ ‘”  ÌÓ ‘”  ÌÔ ‘”  ÌÕ ‘”  ÌÖ ‘”  Ì× ‘”  ÌØ ‘”  ÌÙ ‘”  ÌÚ ‘”  ÌÛ ‘”  ÌÜ ‘”  Ìİ ‘”  ÌŞ ‘”  Ìß ‘”  Ìà ‘”  Ìá ‘”  Ìâ ‘”  Ìã ‘”  Ìä ‘”  Ìå ‘”  Ìæ ‘”  Ìç ‘”  Ìè ‘”  Ìé ‘”  Ìê ‘”  Ìë ‘”  Ìì ‘”  Ìí ‘”  Ìî ‘”  Ìï ‘”  Ìğ ‘”  Ìñ ‘”  Ìò ‘”  Ìó ‘”  Ìô ‘”  Ìõ ‘”  Ìö ‘”  Ì÷ ‘”  Ìø ‘”  Ìù ‘”  Ìú ‘”  Ìû ‘”  Ìü ‘”  Ìı ‘”  Ìş ‘”  Ìÿ ‘”  Í  ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í	 ‘”  Í
+ ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í  ‘”  Í! ‘”  Í" ‘”  Í# ‘”  Í$ ‘”  Í% ‘”  Í& ‘”  Í' ‘”  Í( ‘”  Í) ‘”  Í* ‘”  Í+ ‘”  Í, ‘”  Í- ‘”  Í. ‘”  Í/ ‘”  Í0 ‘”  Í1 ‘”  Í2 ‘”  Í3 ‘”  Í4 ÔrG’§missing¦pluginÃ¦genAbcÂÔ  ÔrH”²dynamicImportCache¹exportAllDeclarationCache»exportNamedDeclarationCache«importCache’ÔrI–¤type¥start£end«declarationªspecifiers¦source¶ExportNamedDeclarationÍÛÍÔrJ™¤type¥start£end¢idªexpression©generator¥async¦params¤body³FunctionDeclarationÍâÍÔrK”¤type¥start£end¤nameªIdentifierÍëÍºMarkdownFormatGuideBuilderÂÂÂ“KªIdentifierÍÍ
+¤nameKªIdentifierÍÍ¥paramÔrL•¤type¥start£end¤left¥right±AssignmentPatternÍÍ KªIdentifierÍÍ¦parentÔrM•¤type¥start£end¥value£raw§LiteralÍÍ À¤nullÔrN”¤type¥start£end¤body®BlockStatementÍ"Í‘N®BlockStatementÍ)Í‘ÔrO”¤type¥start£endªexpression³ExpressionStatementÍ4ÍÔrP–¤type¥start£end¦callee©arguments¨optional®CallExpressionÍ4ÍÔrQ—¤type¥start£end¦object¨property¨computed¨optional°MemberExpressionÍ4ÍfÔrR–¤type¥start£end¤testªconsequent©alternateµConditionalExpressionÍ5ÍKKªIdentifierÍ5Í;¦parentKªIdentifierÍ>ÍD¦parentÔrS“¤type¥start£end®ThisExpressionÍGÍKKªIdentifierÍMÍf¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍgÍŞÀÂÂÂ’KªIdentifierÍhÍn¦elmtIdKªIdentifierÍpÍ¯isInitialRenderN®BlockStatementÍ„ÍŞ‘R«IfStatementÍ“ÍÓKªIdentifierÍ—Í¦¯isInitialRenderN®BlockStatementÍ¨ÍZ”ÔrT•¤type¥start£end¬declarations¤kind³VariableDeclarationÍ»Í|‘ÔrU•¤type¥start£end¢id¤init²VariableDeclaratorÍ¿Í{KªIdentifierÍ¿ÍÌ­componentCallÔrV•¤type¥start£end¦callee©arguments­NewExpressionÍÏÍ{KªIdentifierÍÓÍíºMarkdownFormatGuideContent–RµConditionalExpressionÍîÍKªIdentifierÍîÍô¦parentKªIdentifierÍ÷Íı¦parentS®ThisExpressionÍ ÍÔrW”¤type¥start£endªproperties°ObjectExpressionÍÍKªIdentifierÍ
+Í©undefinedKªIdentifierÍÍ¦elmtIdJ·ArrowFunctionExpressionÍÍ&ÀÂÂÂN®BlockStatementÍ#Í&W°ObjectExpressionÍ(Íz“ÔrX™¤type¥start£end¦method©shorthand¨computed£key¥value¤kind¨PropertyÍ*ÍfÂÂÂKªIdentifierÍ*Í.¤pageM§LiteralÍ0ÍfÙ4entry/src/main/ets/pages/MarkdownFormatGuidePage.etsÙ6"entry/src/main/ets/pages/MarkdownFormatGuidePage.ets"¤initX¨PropertyÍhÍpÂÂÂKªIdentifierÍhÍl¤lineM§LiteralÍnÍp¢17¤initX¨PropertyÍrÍxÂÂÂKªIdentifierÍrÍu£colM§LiteralÍwÍx¡3¤init£letO³ExpressionStatementÍÍ«P®CallExpressionÍÍªQ°MemberExpressionÍÍ›KªIdentifierÍÍ”¦ViewPUKªIdentifierÍ•Í›¦createÂÂ‘KªIdentifierÍœÍ©­componentCallÂT³VariableDeclarationÍ½Í‘U²VariableDeclaratorÍÁÍ
+KªIdentifierÍÁÍÍ¬paramsLambdaJ·ArrowFunctionExpressionÍĞÍ
+ÀÂÂÂN®BlockStatementÍÖÍ
+‘ÔrY”¤type¥start£end¨argument¯ReturnStatementÍíÍ÷W°ObjectExpressionÍôÍö£letO³ExpressionStatementÍÍKÔrZ–¤type¥start£end¨operator¤left¥right´AssignmentExpressionÍÍJ¡=Q°MemberExpressionÍÍ;KªIdentifierÍÍ*­componentCallKªIdentifierÍ+Í;°paramsGenerator_ÂÂKªIdentifierÍ>ÍJ¬paramsLambdaN®BlockStatementÍmÍÓ‘O³ExpressionStatementÍ€ÍÄP®CallExpressionÍ€ÍÃQ°MemberExpressionÍ€Í·RµConditionalExpressionÍÍ—KªIdentifierÍÍ‡¦parentKªIdentifierÍŠÍ¦parentS®ThisExpressionÍ“Í—KªIdentifierÍ™Í·¾updateStateVarsOfChildByElmtIdÂÂ’KªIdentifierÍ¸Í¾¦elmtIdW°ObjectExpressionÍÀÍÂÂW°ObjectExpressionÍàÍ‘X¨PropertyÍâÍÂÂÂKªIdentifierÍâÍæ¤nameM§LiteralÍèÍºMarkdownFormatGuideContent¼"MarkdownFormatGuideContent"¤initÂÀI¶ExportNamedDeclarationÍÍ)¢Ôr[–¤type¥start£end¢idªsuperClass¤body°ClassDeclarationÍÍ)¢KªIdentifierÍ!Í;ºMarkdownFormatGuideContentKªIdentifierÍDÍJ¦ViewPUN©ClassBodyÍKÍ)¢›Ôr\˜¤type¥start£end¦static¨computed£key¤kind¥value°MethodDefinitionÍRÍÂÂKªIdentifierÍRÍ]«constructor«constructorJ²FunctionExpressionÍ]ÍÀÂÂÂ–KªIdentifierÍ^Íd¦parentKªIdentifierÍfÍl¦paramsKªIdentifierÍnÍ|®__localStorageL±AssignmentPatternÍ~Í‰KªIdentifierÍ~Í„¦elmtIdÔr]–¤type¥start£end¨operator¦prefix¨argument¯UnaryExpressionÍ‡Í‰¡-ÃM§LiteralÍˆÍ‰¡1L±AssignmentPatternÍ‹Í£KªIdentifierÍ‹Í—¬paramsLambdaKªIdentifierÍšÍ£©undefinedKªIdentifierÍ¥Í®©extraInfoN®BlockStatementÍ°Í•O³ExpressionStatementÍ»ÍìP®CallExpressionÍ»ÍëS¥SuperÍ»ÍÀ”KªIdentifierÍÁÍÇ¦parentKªIdentifierÍÉÍ×®__localStorageKªIdentifierÍÙÍß¦elmtIdKªIdentifierÍáÍê©extraInfoÂR«IfStatementÍöÍ]Ôr^–¤type¥start£end¤left¨operator¥right°BinaryExpressionÍúÍ]¯UnaryExpressionÍúÍ¦typeofÃKªIdentifierÍÍ¬paramsLambda£===M§LiteralÍÍ¨functionª"function"N®BlockStatementÍÍ]‘O³ExpressionStatementÍ-ÍRZ´AssignmentExpressionÍ-ÍQ¡=Q°MemberExpressionÍ-ÍBS®ThisExpressionÍ-Í1KªIdentifierÍ2ÍB°paramsGenerator_ÂÂKªIdentifierÍEÍQ¬paramsLambdaÀO³ExpressionStatementÍgÍ²Z´AssignmentExpressionÍgÍ±¡=Q°MemberExpressionÍgÍyS®ThisExpressionÍgÍkKªIdentifierÍlÍy­__contentPadHÂÂV­NewExpressionÍ|Í±KªIdentifierÍ€Í˜¸ObservedPropertySimplePU“M§LiteralÍ™Í›¢24S®ThisExpressionÍÍ¡M§LiteralÍ£Í°«contentPadH­"contentPadH"O³ExpressionStatementÍ¼ÍãP®CallExpressionÍ¼ÍâQ°MemberExpressionÍ¼ÍÚS®ThisExpressionÍ¼ÍÀKªIdentifierÍÁÍÚ¹setInitiallyProvidedValueÂÂ‘KªIdentifierÍÛÍá¦paramsÂO³ExpressionStatementÍíÍ	P®CallExpressionÍíÍQ°MemberExpressionÍíÍS®ThisExpressionÍíÍñKªIdentifierÍòÍ´finalizeConstructionÂÂÂ\°MethodDefinitionÍÍ°ÂÂKªIdentifierÍÍ/¹setInitiallyProvidedValue¦methodJ²FunctionExpressionÍ/Í°ÀÂÂÂ‘KªIdentifierÍ0Í6¦paramsN®BlockStatementÍ8Í°‘R«IfStatementÍCÍ©^°BinaryExpressionÍGÍgQ°MemberExpressionÍGÍYKªIdentifierÍGÍM¦paramsKªIdentifierÍNÍY«contentPadHÂÂ£!==KªIdentifierÍ^Íg©undefinedN®BlockStatementÍiÍ©‘O³ExpressionStatementÍxÍZ´AssignmentExpressionÍxÍ¡=Q°MemberExpressionÍxÍˆS®ThisExpressionÍxÍ|KªIdentifierÍ}Íˆ«contentPadHÂÂQ°MemberExpressionÍ‹ÍKªIdentifierÍ‹Í‘¦paramsKªIdentifierÍ’Í«contentPadHÂÂÀ\°MethodDefinitionÍ¶ÍÖÂÂKªIdentifierÍ¶ÍÅ¯updateStateVars¦methodJ²FunctionExpressionÍÅÍÖÀÂÂÂ‘KªIdentifierÍÆÍÌ¦paramsN®BlockStatementÍÎÍÖ\°MethodDefinitionÍÜÍ	OÂÂKªIdentifierÍÜÍıÙ!purgeVariableDependenciesOnElmtId¦methodJ²FunctionExpressionÍıÍ	OÀÂÂÂ‘KªIdentifierÍşÍ	¨rmElmtIdN®BlockStatementÍ	Í	O‘O³ExpressionStatementÍ	Í	HP®CallExpressionÍ	Í	GQ°MemberExpressionÍ	Í	=Q°MemberExpressionÍ	Í	%S®ThisExpressionÍ	Í	KªIdentifierÍ	Í	%­__contentPadHÂÂKªIdentifierÍ	&Í	=·purgeDependencyOnElmtIdÂÂ‘KªIdentifierÍ	>Í	F¨rmElmtIdÂ\°MethodDefinitionÍ	UÍ
+ ÂÂKªIdentifierÍ	UÍ	e°aboutToBeDeleted¦methodJ²FunctionExpressionÍ	eÍ
+ ÀÂÂÂN®BlockStatementÍ	hÍ
+ “O³ExpressionStatementÍ	sÍ	™P®CallExpressionÍ	sÍ	˜Q°MemberExpressionÍ	sÍ	–Q°MemberExpressionÍ	sÍ	…S®ThisExpressionÍ	sÍ	wKªIdentifierÍ	xÍ	…­__contentPadHÂÂKªIdentifierÍ	†Í	–°aboutToBeDeletedÂÂÂO³ExpressionStatementÍ	£Í	ÏP®CallExpressionÍ	£Í	ÎQ°MemberExpressionÍ	£Í	ÁP®CallExpressionÍ	£Í	ºQ°MemberExpressionÍ	£Í	¸KªIdentifierÍ	£Í	´±SubscriberManagerKªIdentifierÍ	µÍ	¸£GetÂÂÂKªIdentifierÍ	»Í	Á¦deleteÂÂ‘P®CallExpressionÍ	ÂÍ	ÍQ°MemberExpressionÍ	ÂÍ	ËS®ThisExpressionÍ	ÂÍ	ÆKªIdentifierÍ	ÇÍ	Ë¤id__ÂÂÂÂO³ExpressionStatementÍ	ÙÍ	ùP®CallExpressionÍ	ÙÍ	øQ°MemberExpressionÍ	ÙÍ	öS®ThisExpressionÍ	ÙÍ	İKªIdentifierÍ	ŞÍ	ö¸aboutToBeDeletedInternalÂÂÂ\°MethodDefinitionÍ
+Í
+JÂÂKªIdentifierÍ
+
+Í
+«contentPadH£getJ²FunctionExpressionÍ
+Í
+JÀÂÂÂN®BlockStatementÍ
+Í
+J‘Y¯ReturnStatementÍ
+#Í
+CP®CallExpressionÍ
+*Í
+BQ°MemberExpressionÍ
+*Í
+@Q°MemberExpressionÍ
+*Í
+<S®ThisExpressionÍ
+*Í
+.KªIdentifierÍ
+/Í
+<­__contentPadHÂÂKªIdentifierÍ
+=Í
+@£getÂÂÂ\°MethodDefinitionÍ
+PÍ
+ÂÂKªIdentifierÍ
+TÍ
+_«contentPadH£setJ²FunctionExpressionÍ
+_Í
+ÀÂÂÂ‘KªIdentifierÍ
+`Í
+h¨newValueN®BlockStatementÍ
+jÍ
+‘O³ExpressionStatementÍ
+uÍ
+–P®CallExpressionÍ
+uÍ
+•Q°MemberExpressionÍ
+uÍ
+‹Q°MemberExpressionÍ
+uÍ
+‡S®ThisExpressionÍ
+uÍ
+yKªIdentifierÍ
+zÍ
+‡­__contentPadHÂÂKªIdentifierÍ
+ˆÍ
+‹£setÂÂ‘KªIdentifierÍ
+ŒÍ
+”¨newValueÂ\°MethodDefinitionÍ
+£Í
+ğÂÂKªIdentifierÍ
+£Í
+°­aboutToAppear¦methodJ²FunctionExpressionÍ
+°Í
+ğÀÂÂÂN®BlockStatementÍ
+³Í
+ğ‘O³ExpressionStatementÍ
+¾Í
+éZ´AssignmentExpressionÍ
+¾Í
+è¡=Q°MemberExpressionÍ
+¾Í
+ÎS®ThisExpressionÍ
+¾Í
+ÂKªIdentifierÍ
+ÃÍ
+Î«contentPadHÂÂP®CallExpressionÍ
+ÑÍ
+èKªIdentifierÍ
+ÑÍ
+æµpageHorizontalPaddingÂ\°MethodDefinitionÍ
+öÍÛÂÂKªIdentifierÍ
+öÍ­initialRender¦methodJ²FunctionExpressionÍÍÛÀÂÂÂN®BlockStatementÍÍÛ’O³ExpressionStatementÍÍµP®CallExpressionÍÍ´Q°MemberExpressionÍÍ/S®ThisExpressionÍÍKªIdentifierÍÍ/¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ0Í£ÀÂÂÂ’KªIdentifierÍ1Í7¦elmtIdKªIdentifierÍ9ÍH¯isInitialRenderN®BlockStatementÍMÍ£”O³ExpressionStatementÍ\ÍP®CallExpressionÍ\ÍQ°MemberExpressionÍ\ÍqKªIdentifierÍ\Íj®NavDestinationKªIdentifierÍkÍq¦createÂÂ’J·ArrowFunctionExpressionÍrÍ¸ÀÂÂÂN®BlockStatementÍxÍ¸‘O³ExpressionStatementÍ‹Í©P®CallExpressionÍ‹Í¨P®CallExpressionÍ‹Í¦Q°MemberExpressionÍ‹Í Q°MemberExpressionÍ‹Í›S®ThisExpressionÍ‹ÍKªIdentifierÍÍ›«pageContentÂÂKªIdentifierÍœÍ ¤bindÂÂ‘S®ThisExpressionÍ¡Í¥ÂÂW°ObjectExpressionÍºÍ’X¨PropertyÍ¼ÍÏÂÂÂKªIdentifierÍ¼ÍÆªmoduleNameM§LiteralÍÈÍÏ¥entry§"entry"¤initX¨PropertyÍÑÍÂÂÂKªIdentifierÍÑÍÙ¨pagePathM§LiteralÍÛÍÙ0entry/src/main/ets/pages/MarkdownFormatGuidePageÙ2"entry/src/main/ets/pages/MarkdownFormatGuidePage"¤initÂO³ExpressionStatementÍÍAP®CallExpressionÍÍ@Q°MemberExpressionÍÍ:KªIdentifierÍÍ-®NavDestinationKªIdentifierÍ.Í:¬hideTitleBarÂÂ‘M§LiteralÍ;Í?Ã¤trueÂO³ExpressionStatementÍOÍlP®CallExpressionÍOÍkQ°MemberExpressionÍOÍcKªIdentifierÍOÍ]®NavDestinationKªIdentifierÍ^Íc¥widthÂÂ‘M§LiteralÍdÍj¤100%¦'100%'ÂO³ExpressionStatementÍzÍ˜P®CallExpressionÍzÍ—Q°MemberExpressionÍzÍKªIdentifierÍzÍˆ®NavDestinationKªIdentifierÍ‰Í¦heightÂÂ‘M§LiteralÍÍ–¤100%¦'100%'ÂKªIdentifierÍ¥Í³®NavDestinationÂO³ExpressionStatementÍ¿ÍÔP®CallExpressionÍ¿ÍÓQ°MemberExpressionÍ¿ÍÑKªIdentifierÍ¿ÍÍ®NavDestinationKªIdentifierÍÎÍÑ£popÂÂÂ\°MethodDefinitionÍáÍ)aÂÂKªIdentifierÍáÍì«pageContent¦methodJ²FunctionExpressionÍìÍ)aÀÂÂÂ‘L±AssignmentPatternÍíÍúKªIdentifierÍíÍó¦parentM§LiteralÍöÍúÀ¤nullN®BlockStatementÍüÍ)aÜ 2O³ExpressionStatementÍÍ'P®CallExpressionÍÍ&Q°MemberExpressionÍÍ%S®ThisExpressionÍÍKªIdentifierÍÍ%¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ&ÍÀÂÂÂ’KªIdentifierÍ'Í-¦elmtIdKªIdentifierÍ/Í>¯isInitialRenderN®BlockStatementÍCÍ•O³ExpressionStatementÍRÍbP®CallExpressionÍRÍaQ°MemberExpressionÍRÍ_KªIdentifierÍRÍX¦ScrollKªIdentifierÍYÍ_¦createÂÂÂO³ExpressionStatementÍpÍ…P®CallExpressionÍpÍ„Q°MemberExpressionÍpÍ|KªIdentifierÍpÍv¦ScrollKªIdentifierÍwÍ|¥widthÂÂ‘M§LiteralÍ}Íƒ¤100%¦'100%'ÂO³ExpressionStatementÍ“Í©P®CallExpressionÍ“Í¨Q°MemberExpressionÍ“Í KªIdentifierÍ“Í™¦ScrollKªIdentifierÍšÍ ¦heightÂÂ‘M§LiteralÍ¡Í§¤100%¦'100%'ÂO³ExpressionStatementÍ·ÍåP®CallExpressionÍ·ÍäQ°MemberExpressionÍ·ÍÍKªIdentifierÍ·Í½¦ScrollKªIdentifierÍ¾ÍÍ¯backgroundColorÂÂ‘Q°MemberExpressionÍÎÍãKªIdentifierÍÎÍÛ­KikariaColorsKªIdentifierÍÜÍã§PAGE_BGÂÂÂO³ExpressionStatementÍóÍP®CallExpressionÍóÍQ°MemberExpressionÍóÍKªIdentifierÍóÍù¦ScrollKªIdentifierÍúÍ©scrollBarÂÂ‘Q°MemberExpressionÍÍKªIdentifierÍÍ¨BarStateKªIdentifierÍÍ£OffÂÂÂKªIdentifierÍÍ%¦ScrollÂO³ExpressionStatementÍ1ÍvP®CallExpressionÍ1ÍuQ°MemberExpressionÍ1ÍOS®ThisExpressionÍ1Í5KªIdentifierÍ6ÍO¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍPÍlÀÂÂÂ’KªIdentifierÍQÍW¦elmtIdKªIdentifierÍYÍh¯isInitialRenderN®BlockStatementÍmÍl”O³ExpressionStatementÍ|Í™P®CallExpressionÍ|Í˜Q°MemberExpressionÍ|Í‰KªIdentifierÍ|Í‚¦ColumnKªIdentifierÍƒÍ‰¦createÂÂ‘W°ObjectExpressionÍŠÍ—‘X¨PropertyÍŒÍ•ÂÂÂKªIdentifierÍŒÍ‘¥spaceM§LiteralÍ“Í•¢18¤initÂO³ExpressionStatementÍ§Í¼P®CallExpressionÍ§Í»Q°MemberExpressionÍ§Í³KªIdentifierÍ§Í­¦ColumnKªIdentifierÍ®Í³¥widthÂÂ‘M§LiteralÍ´Íº¤100%¦'100%'ÂO³ExpressionStatementÍÊÍP®CallExpressionÍÊÍQ°MemberExpressionÍÊÍßKªIdentifierÍÊÍĞ¦ColumnKªIdentifierÍÑÍß®constraintSizeÂÂ‘W°ObjectExpressionÍàÍ‘X¨PropertyÍâÍÂÂÂKªIdentifierÍâÍê¨maxWidthRµConditionalExpressionÍìÍP®CallExpressionÍìÍüKªIdentifierÍìÍú®isPadLandscapeÂM§LiteralÍÿÍÍø£760M§LiteralÍÍ¤100%¦'100%'¤initÂO³ExpressionStatementÍÍaP®CallExpressionÍÍ`Q°MemberExpressionÍÍ+KªIdentifierÍÍ#¦ColumnKªIdentifierÍ$Í+§paddingÂÂ‘W°ObjectExpressionÍ,Í_’X¨PropertyÍ.ÍDÂÂÂKªIdentifierÍ.Í2¤leftQ°MemberExpressionÍ4ÍDS®ThisExpressionÍ4Í8KªIdentifierÍ9ÍD«contentPadHÂÂ¤initX¨PropertyÍFÍ]ÂÂÂKªIdentifierÍFÍK¥rightQ°MemberExpressionÍMÍ]S®ThisExpressionÍMÍQKªIdentifierÍRÍ]«contentPadHÂÂ¤initÂKªIdentifierÍnÍt¦ColumnÂO³ExpressionStatementÍ€ÍRP®CallExpressionÍ€ÍQQ°MemberExpressionÍ€ÍS®ThisExpressionÍ€Í„KªIdentifierÍ…Í¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍŸÍKÀÂÂÂ’KªIdentifierÍ Í¦¦elmtIdKªIdentifierÍ¨Í·¯isInitialRenderN®BlockStatementÍ¼ÍK“O³ExpressionStatementÍËÍØP®CallExpressionÍËÍ×Q°MemberExpressionÍËÍÕKªIdentifierÍËÍÎ£RowKªIdentifierÍÏÍÕ¦createÂÂÂO³ExpressionStatementÍæÍøP®CallExpressionÍæÍ÷Q°MemberExpressionÍæÍïKªIdentifierÍæÍé£RowKªIdentifierÍêÍï¥widthÂÂ‘M§LiteralÍğÍö¤100%¦'100%'ÂO³ExpressionStatementÍÍ@P®CallExpressionÍÍ?Q°MemberExpressionÍÍKªIdentifierÍÍ	£RowKªIdentifierÍ
+Í§paddingÂÂ‘W°ObjectExpressionÍÍ>”X¨PropertyÍÍÂÂÂKªIdentifierÍÍ¤leftM§LiteralÍÍ¢20¤initX¨PropertyÍÍ'ÂÂÂKªIdentifierÍÍ#¥rightM§LiteralÍ%Í'¢20¤initX¨PropertyÍ)Í0ÂÂÂKªIdentifierÍ)Í,£topM§LiteralÍ.Í0¢12¤initX¨PropertyÍ2Í<ÂÂÂKªIdentifierÍ2Í8¦bottomM§LiteralÍ:Í<¢12¤initÂKªIdentifierÍMÍP£RowÂO³ExpressionStatementÍ\ÍIP®CallExpressionÍ\ÍHQ°MemberExpressionÍ\ÍzS®ThisExpressionÍ\Í`KªIdentifierÍaÍz¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ{Í?ÀÂÂÂ’KªIdentifierÍ|Í‚¦elmtIdKªIdentifierÍ„Í“¯isInitialRenderN®BlockStatementÍ˜Í?“O³ExpressionStatementÍ§ÍÀP®CallExpressionÍ§Í¿Q°MemberExpressionÍ§Í½KªIdentifierÍ§Í­¦ButtonKªIdentifierÍ®Í½¯createWithChildÂÂÂO³ExpressionStatementÍÎÍøP®CallExpressionÍÎÍ÷Q°MemberExpressionÍÎÍäKªIdentifierÍÎÍÔ¦ButtonKªIdentifierÍÕÍä¯backgroundColorÂÂ‘Q°MemberExpressionÍåÍöKªIdentifierÍåÍê¥ColorKªIdentifierÍëÍö«TransparentÂÂÂO³ExpressionStatementÍÍ4P®CallExpressionÍÍ3Q°MemberExpressionÍÍKªIdentifierÍÍ¦ButtonKªIdentifierÍÍ§onClickÂÂ‘J·ArrowFunctionExpressionÍÍ2ÀÂÂÂN®BlockStatementÍÍ2‘O³ExpressionStatementÍÍ0P®CallExpressionÍÍ/Q°MemberExpressionÍÍ-KªIdentifierÍÍ)¬navPathStackKªIdentifierÍ*Í-£popÂÂÂÂKªIdentifierÍAÍG¦ButtonÂO³ExpressionStatementÍSÍP®CallExpressionÍSÍQ°MemberExpressionÍSÍqS®ThisExpressionÍSÍWKªIdentifierÍXÍq¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍrÍÀÂÂÂ’KªIdentifierÍsÍy¦elmtIdKªIdentifierÍ{ÍŠ¯isInitialRenderN®BlockStatementÍÍ“O³ExpressionStatementÍÍ²P®CallExpressionÍÍ±Q°MemberExpressionÍÍ©KªIdentifierÍÍ¢¤TextKªIdentifierÍ£Í©¦createÂÂ‘M§LiteralÍªÍ°ªâ† è¿”å›¬'â† è¿”å›'ÂO³ExpressionStatementÍÀÍÒP®CallExpressionÍÀÍÑQ°MemberExpressionÍÀÍÍKªIdentifierÍÀÍÄ¤TextKªIdentifierÍÅÍÍ¨fontSizeÂÂ‘M§LiteralÍÎÍĞ¢17ÂO³ExpressionStatementÍàÍP®CallExpressionÍàÍQ°MemberExpressionÍàÍîKªIdentifierÍàÍä¤TextKªIdentifierÍåÍî©fontColorÂÂ‘Q°MemberExpressionÍïÍKªIdentifierÍïÍü­KikariaColorsKªIdentifierÍıÍ©SOFT_TEXTÂÂÂKªIdentifierÍÍ¤TextÂO³ExpressionStatementÍ%Í0P®CallExpressionÍ%Í/Q°MemberExpressionÍ%Í-KªIdentifierÍ%Í)¤TextKªIdentifierÍ*Í-£popÂÂÂO³ExpressionStatementÍ:ÍGP®CallExpressionÍ:ÍFQ°MemberExpressionÍ:ÍDKªIdentifierÍ:Í@¦ButtonKªIdentifierÍAÍD£popÂÂÂO³ExpressionStatementÍQÍ¿P®CallExpressionÍQÍ¾Q°MemberExpressionÍQÍoS®ThisExpressionÍQÍUKªIdentifierÍVÍo¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍpÍ¶ÀÂÂÂ’KªIdentifierÍqÍw¦elmtIdKªIdentifierÍyÍˆ¯isInitialRenderN®BlockStatementÍÍ¶‘O³ExpressionStatementÍœÍ«P®CallExpressionÍœÍªQ°MemberExpressionÍœÍ¨KªIdentifierÍœÍ¡¥BlankKªIdentifierÍ¢Í¨¦createÂÂÂKªIdentifierÍ¸Í½¥BlankÂO³ExpressionStatementÍÉÍÕP®CallExpressionÍÉÍÔQ°MemberExpressionÍÉÍÒKªIdentifierÍÉÍÎ¥BlankKªIdentifierÍÏÍÒ£popÂÂÂO³ExpressionStatementÍßÍáP®CallExpressionÍßÍàQ°MemberExpressionÍßÍıS®ThisExpressionÍßÍãKªIdentifierÍäÍı¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍşÍÙÀÂÂÂ’KªIdentifierÍÿÍ¦elmtIdKªIdentifierÍÍ¯isInitialRenderN®BlockStatementÍÍÙ”O³ExpressionStatementÍ*ÍGP®CallExpressionÍ*ÍFQ°MemberExpressionÍ*Í5KªIdentifierÍ*Í.¤TextKªIdentifierÍ/Í5¦createÂÂ‘M§LiteralÍ6ÍEµMarkdown æ ¼å¼æŒ‡å—·'Markdown æ ¼å¼æŒ‡å—'ÂO³ExpressionStatementÍUÍgP®CallExpressionÍUÍfQ°MemberExpressionÍUÍbKªIdentifierÍUÍY¤TextKªIdentifierÍZÍb¨fontSizeÂÂ‘M§LiteralÍcÍe¢17ÂO³ExpressionStatementÍuÍ˜P®CallExpressionÍuÍ—Q°MemberExpressionÍuÍ„KªIdentifierÍuÍy¤TextKªIdentifierÍzÍ„ªfontWeightÂÂ‘Q°MemberExpressionÍ…Í–KªIdentifierÍ…ÍªFontWeightKªIdentifierÍÍ–¦MediumÂÂÂO³ExpressionStatementÍ¦ÍÎP®CallExpressionÍ¦ÍÍQ°MemberExpressionÍ¦Í´KªIdentifierÍ¦Íª¤TextKªIdentifierÍ«Í´©fontColorÂÂ‘Q°MemberExpressionÍµÍÌKªIdentifierÍµÍÂ­KikariaColorsKªIdentifierÍÃÍÌ©DEEP_TEXTÂÂÂKªIdentifierÍÛÍß¤TextÂO³ExpressionStatementÍëÍöP®CallExpressionÍëÍõQ°MemberExpressionÍëÍóKªIdentifierÍëÍï¤TextKªIdentifierÍğÍó£popÂÂÂO³ExpressionStatementÍ Í
+P®CallExpressionÍ Í	Q°MemberExpressionÍ ÍKªIdentifierÍ Í£RowKªIdentifierÍÍ£popÂÂÂO³ExpressionStatementÍÍ"P®CallExpressionÍÍ!Q°MemberExpressionÍÍ2S®ThisExpressionÍÍKªIdentifierÍÍ2¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ3ÍÀÂÂÂ’KªIdentifierÍ4Í:¦elmtIdKªIdentifierÍ<ÍK¯isInitialRenderN®BlockStatementÍPÍ”O³ExpressionStatementÍ_Í˜P®CallExpressionÍ_Í—Q°MemberExpressionÍ_ÍjKªIdentifierÍ_Íc¤TextKªIdentifierÍdÍj¦createÂÂ‘M§LiteralÍkÍ–ÙWKikaria ä½¿ç”¨ Markdown æ ¼å¼å­˜å‚¨çŸ¥è¯†ç‚¹ã€‚æ¯ä¸ªçŸ¥è¯†ç‚¹ç”±ä»¥ä¸‹éƒ¨åˆ†ç»„æˆï¼šÙY'Kikaria ä½¿ç”¨ Markdown æ ¼å¼å­˜å‚¨çŸ¥è¯†ç‚¹ã€‚æ¯ä¸ªçŸ¥è¯†ç‚¹ç”±ä»¥ä¸‹éƒ¨åˆ†ç»„æˆï¼š'ÂO³ExpressionStatementÍ¦Í¸P®CallExpressionÍ¦Í·Q°MemberExpressionÍ¦Í³KªIdentifierÍ¦Íª¤TextKªIdentifierÍ«Í³¨fontSizeÂÂ‘M§LiteralÍ´Í¶¢15ÂO³ExpressionStatementÍÆÍîP®CallExpressionÍÆÍíQ°MemberExpressionÍÆÍÔKªIdentifierÍÆÍÊ¤TextKªIdentifierÍËÍÔ©fontColorÂÂ‘Q°MemberExpressionÍÕÍìKªIdentifierÍÕÍâ­KikariaColorsKªIdentifierÍãÍì©DEEP_TEXTÂÂÂO³ExpressionStatementÍüÍP®CallExpressionÍüÍQ°MemberExpressionÍüÍKªIdentifierÍüÍ ¤TextKªIdentifierÍÍ¥widthÂÂ‘M§LiteralÍÍ¤100%¦'100%'ÂKªIdentifierÍÍ ¤TextÂO³ExpressionStatementÍ,Í7P®CallExpressionÍ,Í6Q°MemberExpressionÍ,Í4KªIdentifierÍ,Í0¤TextKªIdentifierÍ1Í4£popÂÂÂO³ExpressionStatementÍAÍàP®CallExpressionÍAÍßQ°MemberExpressionÍAÍ_S®ThisExpressionÍAÍEKªIdentifierÍFÍ_¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ`ÍÖÀÂÂÂ’KªIdentifierÍaÍg¦elmtIdKªIdentifierÍiÍx¯isInitialRenderN®BlockStatementÍ}ÍÖ’O³ExpressionStatementÍŒÍ¨P®CallExpressionÍŒÍ§Q°MemberExpressionÍŒÍ™KªIdentifierÍŒÍ’¦ColumnKªIdentifierÍ“Í™¦createÂÂ‘W°ObjectExpressionÍšÍ¦‘X¨PropertyÍœÍ¤ÂÂÂKªIdentifierÍœÍ¡¥spaceM§LiteralÍ£Í¤¡8¤initÂO³ExpressionStatementÍ¶ÍËP®CallExpressionÍ¶ÍÊQ°MemberExpressionÍ¶ÍÂKªIdentifierÍ¶Í¼¦ColumnKªIdentifierÍ½ÍÂ¥widthÂÂ‘M§LiteralÍÃÍÉ¤100%¦'100%'ÂKªIdentifierÍØÍŞ¦ColumnÂO³ExpressionStatementÍêÍP®CallExpressionÍêÍQ°MemberExpressionÍêÍS®ThisExpressionÍêÍîKªIdentifierÍïÍ¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ	ÍúÀÂÂÂ’KªIdentifierÍ
+Í¦elmtIdKªIdentifierÍÍ!¯isInitialRenderN®BlockStatementÍ&Íú•O³ExpressionStatementÍ5ÍIP®CallExpressionÍ5ÍHQ°MemberExpressionÍ5Í@KªIdentifierÍ5Í9¤TextKªIdentifierÍ:Í@¦createÂÂ‘M§LiteralÍAÍG¬åŸºæœ¬ç»“æ„®'åŸºæœ¬ç»“æ„'ÂO³ExpressionStatementÍWÍiP®CallExpressionÍWÍhQ°MemberExpressionÍWÍdKªIdentifierÍWÍ[¤TextKªIdentifierÍ\Íd¨fontSizeÂÂ‘M§LiteralÍeÍg¢17ÂO³ExpressionStatementÍwÍ˜P®CallExpressionÍwÍ—Q°MemberExpressionÍwÍ†KªIdentifierÍwÍ{¤TextKªIdentifierÍ|Í†ªfontWeightÂÂ‘Q°MemberExpressionÍ‡Í–KªIdentifierÍ‡Í‘ªFontWeightKªIdentifierÍ’Í–¤BoldÂÂÂO³ExpressionStatementÍ¦ÍÎP®CallExpressionÍ¦ÍÍQ°MemberExpressionÍ¦Í´KªIdentifierÍ¦Íª¤TextKªIdentifierÍ«Í´©fontColorÂÂ‘Q°MemberExpressionÍµÍÌKªIdentifierÍµÍÂ­KikariaColorsKªIdentifierÍÃÍÌ©DEEP_TEXTÂÂÂO³ExpressionStatementÍÜÍïP®CallExpressionÍÜÍîQ°MemberExpressionÍÜÍæKªIdentifierÍÜÍà¤TextKªIdentifierÍáÍæ¥widthÂÂ‘M§LiteralÍçÍí¤100%¦'100%'ÂKªIdentifierÍüÍ ¤TextÂO³ExpressionStatementÍÍP®CallExpressionÍÍQ°MemberExpressionÍÍKªIdentifierÍÍ¤TextKªIdentifierÍÍ£popÂÂÂO³ExpressionStatementÍ!Í-P®CallExpressionÍ!Í,Q°MemberExpressionÍ!Í?S®ThisExpressionÍ!Í%KªIdentifierÍ&Í?¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ@Í%ÀÂÂÂ’KªIdentifierÍAÍG¦elmtIdKªIdentifierÍIÍX¯isInitialRenderN®BlockStatementÍ]Í%˜O³ExpressionStatementÍlÍşP®CallExpressionÍlÍıQ°MemberExpressionÍlÍwKªIdentifierÍlÍp¤TextKªIdentifierÍqÍw¦createÂÂ‘Ôr_•¤type¥start£end«expressions¦quasis¯TemplateLiteralÍxÍü‘Ôr`•¤type¥start£end¥value¤tail¯TemplateElementÍyÍûÔra’£raw¦cookedÙö# çŸ¥è¯†ç‚¹æ ‡é¢˜\n\ntags: æ ‡ç­¾1, æ ‡ç­¾2\n\nhint:\nè¿™é‡Œæ˜¯æç¤ºå†…å®¹ã€‚å¯ä»¥åŒ…å«å¤šè¡Œæ–‡å­—ï¼Œ\næ”¯æŒ Markdown åŸºæœ¬è¯­æ³•ã€‚\n\ncontent:\nè¿™é‡Œæ˜¯ç­”æ¡ˆå†…å®¹ã€‚åŒæ ·æ”¯æŒå¤šè¡Œæ–‡å­—ï¼Œ\nä»¥åŠ LaTeX æ•°å­¦å…¬å¼ï¼š$E = mc^2$ã€‚Ùì# çŸ¥è¯†ç‚¹æ ‡é¢˜
+
+tags: æ ‡ç­¾1, æ ‡ç­¾2
+
+hint:
+è¿™é‡Œæ˜¯æç¤ºå†…å®¹ã€‚å¯ä»¥åŒ…å«å¤šè¡Œæ–‡å­—ï¼Œ
+æ”¯æŒ Markdown åŸºæœ¬è¯­æ³•ã€‚
+
+content:
+è¿™é‡Œæ˜¯ç­”æ¡ˆå†…å®¹ã€‚åŒæ ·æ”¯æŒå¤šè¡Œæ–‡å­—ï¼Œ
+ä»¥åŠ LaTeX æ•°å­¦å…¬å¼ï¼š$E = mc^2$ã€‚ÃÂO³ExpressionStatementÍÍP®CallExpressionÍÍQ°MemberExpressionÍÍKªIdentifierÍÍ¤TextKªIdentifierÍÍ¨fontSizeÂÂ‘M§LiteralÍÍ¢13ÂO³ExpressionStatementÍ,ÍTP®CallExpressionÍ,ÍSQ°MemberExpressionÍ,Í:KªIdentifierÍ,Í0¤TextKªIdentifierÍ1Í:©fontColorÂÂ‘Q°MemberExpressionÍ;ÍRKªIdentifierÍ;ÍH­KikariaColorsKªIdentifierÍIÍR©SOFT_TEXTÂÂÂO³ExpressionStatementÍbÍ‹P®CallExpressionÍbÍŠQ°MemberExpressionÍbÍvKªIdentifierÍbÍf¤TextKªIdentifierÍgÍv¯backgroundColorÂÂ‘Q°MemberExpressionÍwÍ‰KªIdentifierÍwÍ„­KikariaColorsKªIdentifierÍ…Í‰¤MISTÂÂÂO³ExpressionStatementÍ™Í¯P®CallExpressionÍ™Í®Q°MemberExpressionÍ™ÍªKªIdentifierÍ™Í¤TextKªIdentifierÍÍª¬borderRadiusÂÂ‘M§LiteralÍ«Í­¢12ÂO³ExpressionStatementÍ½ÍÎP®CallExpressionÍ½ÍÍQ°MemberExpressionÍ½ÍÉKªIdentifierÍ½ÍÁ¤TextKªIdentifierÍÂÍÉ§paddingÂÂ‘M§LiteralÍÊÍÌ¢16ÂO³ExpressionStatementÍÜÍïP®CallExpressionÍÜÍîQ°MemberExpressionÍÜÍæKªIdentifierÍÜÍà¤TextKªIdentifierÍáÍæ¥widthÂÂ‘M§LiteralÍçÍí¤100%¦'100%'ÂO³ExpressionStatementÍıÍP®CallExpressionÍıÍQ°MemberExpressionÍıÍKªIdentifierÍıÍ¤TextKªIdentifierÍÍªfontFamilyÂÂ‘M§LiteralÍÍ©monospace«'monospace'ÂKªIdentifierÍ'Í+¤TextÂO³ExpressionStatementÍ7ÍBP®CallExpressionÍ7ÍAQ°MemberExpressionÍ7Í?KªIdentifierÍ7Í;¤TextKªIdentifierÍ<Í?£popÂÂÂO³ExpressionStatementÍLÍYP®CallExpressionÍLÍXQ°MemberExpressionÍLÍVKªIdentifierÍLÍR¦ColumnKªIdentifierÍSÍV£popÂÂÂO³ExpressionStatementÍcÍP®CallExpressionÍcÍQ°MemberExpressionÍcÍS®ThisExpressionÍcÍgKªIdentifierÍhÍ¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ‚ÍøÀÂÂÂ’KªIdentifierÍƒÍ‰¦elmtIdKªIdentifierÍ‹Íš¯isInitialRenderN®BlockStatementÍŸÍø’O³ExpressionStatementÍ®ÍÊP®CallExpressionÍ®ÍÉQ°MemberExpressionÍ®Í»KªIdentifierÍ®Í´¦ColumnKªIdentifierÍµÍ»¦createÂÂ‘W°ObjectExpressionÍ¼ÍÈ‘X¨PropertyÍ¾ÍÆÂÂÂKªIdentifierÍ¾ÍÃ¥spaceM§LiteralÍÅÍÆ¡8¤initÂO³ExpressionStatementÍØÍíP®CallExpressionÍØÍìQ°MemberExpressionÍØÍäKªIdentifierÍØÍŞ¦ColumnKªIdentifierÍßÍä¥widthÂÂ‘M§LiteralÍåÍë¤100%¦'100%'ÂKªIdentifierÍúÍ ¦ColumnÂO³ExpressionStatementÍÍ%P®CallExpressionÍÍ$Q°MemberExpressionÍÍ*S®ThisExpressionÍÍKªIdentifierÍÍ*¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ+ÍÀÂÂÂ’KªIdentifierÍ,Í2¦elmtIdKªIdentifierÍ4ÍC¯isInitialRenderN®BlockStatementÍHÍ•O³ExpressionStatementÍWÍlP®CallExpressionÍWÍkQ°MemberExpressionÍWÍbKªIdentifierÍWÍ[¤TextKªIdentifierÍ\Íb¦createÂÂ‘M§LiteralÍcÍj¯å¤šä¸ªçŸ¥è¯†ç‚¹±'å¤šä¸ªçŸ¥è¯†ç‚¹'ÂO³ExpressionStatementÍzÍŒP®CallExpressionÍzÍ‹Q°MemberExpressionÍzÍ‡KªIdentifierÍzÍ~¤TextKªIdentifierÍÍ‡¨fontSizeÂÂ‘M§LiteralÍˆÍŠ¢17ÂO³ExpressionStatementÍšÍ»P®CallExpressionÍšÍºQ°MemberExpressionÍšÍ©KªIdentifierÍšÍ¤TextKªIdentifierÍŸÍ©ªfontWeightÂÂ‘Q°MemberExpressionÍªÍ¹KªIdentifierÍªÍ´ªFontWeightKªIdentifierÍµÍ¹¤BoldÂÂÂO³ExpressionStatementÍÉÍñP®CallExpressionÍÉÍğQ°MemberExpressionÍÉÍ×KªIdentifierÍÉÍÍ¤TextKªIdentifierÍÎÍ×©fontColorÂÂ‘Q°MemberExpressionÍØÍïKªIdentifierÍØÍå­KikariaColorsKªIdentifierÍæÍï©DEEP_TEXTÂÂÂO³ExpressionStatementÍÿÍP®CallExpressionÍÿÍQ°MemberExpressionÍÿÍ	KªIdentifierÍÿÍ¤TextKªIdentifierÍÍ	¥widthÂÂ‘M§LiteralÍ
+Í¤100%¦'100%'ÂKªIdentifierÍÍ#¤TextÂO³ExpressionStatementÍ/Í:P®CallExpressionÍ/Í9Q°MemberExpressionÍ/Í7KªIdentifierÍ/Í3¤TextKªIdentifierÍ4Í7£popÂÂÂO³ExpressionStatementÍDÍ=P®CallExpressionÍDÍ<Q°MemberExpressionÍDÍbS®ThisExpressionÍDÍHKªIdentifierÍIÍb¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍcÍ5ÀÂÂÂ’KªIdentifierÍdÍj¦elmtIdKªIdentifierÍlÍ{¯isInitialRenderN®BlockStatementÍ€Í5”O³ExpressionStatementÍÍ³P®CallExpressionÍÍ²Q°MemberExpressionÍÍšKªIdentifierÍÍ“¤TextKªIdentifierÍ”Íš¦createÂÂ‘M§LiteralÍ›Í±Ù2ä½¿ç”¨ä¸‰ä¸ªçŸ­æ¨ªçº¿ --- åˆ†éš”å¤šä¸ªçŸ¥è¯†ç‚¹ï¼šÙ4'ä½¿ç”¨ä¸‰ä¸ªçŸ­æ¨ªçº¿ --- åˆ†éš”å¤šä¸ªçŸ¥è¯†ç‚¹ï¼š'ÂO³ExpressionStatementÍÁÍÓP®CallExpressionÍÁÍÒQ°MemberExpressionÍÁÍÎKªIdentifierÍÁÍÅ¤TextKªIdentifierÍÆÍÎ¨fontSizeÂÂ‘M§LiteralÍÏÍÑ¢15ÂO³ExpressionStatementÍáÍ	P®CallExpressionÍáÍQ°MemberExpressionÍáÍïKªIdentifierÍáÍå¤TextKªIdentifierÍæÍï©fontColorÂÂ‘Q°MemberExpressionÍğÍKªIdentifierÍğÍı­KikariaColorsKªIdentifierÍşÍ©DEEP_TEXTÂÂÂO³ExpressionStatementÍÍ*P®CallExpressionÍÍ)Q°MemberExpressionÍÍ!KªIdentifierÍÍ¤TextKªIdentifierÍÍ!¥widthÂÂ‘M§LiteralÍ"Í(¤100%¦'100%'ÂKªIdentifierÍ7Í;¤TextÂO³ExpressionStatementÍGÍRP®CallExpressionÍGÍQQ°MemberExpressionÍGÍOKªIdentifierÍGÍK¤TextKªIdentifierÍLÍO£popÂÂÂO³ExpressionStatementÍ\ÍUP®CallExpressionÍ\ÍTQ°MemberExpressionÍ\ÍzS®ThisExpressionÍ\Í`KªIdentifierÍaÍz¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ{ÍMÀÂÂÂ’KªIdentifierÍ|Í‚¦elmtIdKªIdentifierÍ„Í“¯isInitialRenderN®BlockStatementÍ˜ÍM˜O³ExpressionStatementÍ§Í&P®CallExpressionÍ§Í%Q°MemberExpressionÍ§Í²KªIdentifierÍ§Í«¤TextKªIdentifierÍ¬Í²¦createÂÂ‘_¯TemplateLiteralÍ³Í$‘`¯TemplateElementÍ´Í#aÙŸ# ç¬¬ä¸€ä¸ªçŸ¥è¯†ç‚¹\ntags: æ ‡ç­¾A\n\nhint:\næç¤ºA\n\ncontent:\nç­”æ¡ˆA\n\n---\n\n# ç¬¬äºŒä¸ªçŸ¥è¯†ç‚¹\ntags: æ ‡ç­¾B\n\nhint:\næç¤ºB\n\ncontent:\nç­”æ¡ˆBÙ# ç¬¬ä¸€ä¸ªçŸ¥è¯†ç‚¹
+tags: æ ‡ç­¾A
+
+hint:
+æç¤ºA
+
+content:
+ç­”æ¡ˆA
+
+---
+
+# ç¬¬äºŒä¸ªçŸ¥è¯†ç‚¹
+tags: æ ‡ç­¾B
+
+hint:
+æç¤ºB
+
+content:
+ç­”æ¡ˆBÃÂO³ExpressionStatementÍ4ÍFP®CallExpressionÍ4ÍEQ°MemberExpressionÍ4ÍAKªIdentifierÍ4Í8¤TextKªIdentifierÍ9ÍA¨fontSizeÂÂ‘M§LiteralÍBÍD¢13ÂO³ExpressionStatementÍTÍ|P®CallExpressionÍTÍ{Q°MemberExpressionÍTÍbKªIdentifierÍTÍX¤TextKªIdentifierÍYÍb©fontColorÂÂ‘Q°MemberExpressionÍcÍzKªIdentifierÍcÍp­KikariaColorsKªIdentifierÍqÍz©SOFT_TEXTÂÂÂO³ExpressionStatementÍŠÍ³P®CallExpressionÍŠÍ²Q°MemberExpressionÍŠÍKªIdentifierÍŠÍ¤TextKªIdentifierÍÍ¯backgroundColorÂÂ‘Q°MemberExpressionÍŸÍ±KªIdentifierÍŸÍ¬­KikariaColorsKªIdentifierÍ­Í±¤MISTÂÂÂO³ExpressionStatementÍÁÍ×P®CallExpressionÍÁÍÖQ°MemberExpressionÍÁÍÒKªIdentifierÍÁÍÅ¤TextKªIdentifierÍÆÍÒ¬borderRadiusÂÂ‘M§LiteralÍÓÍÕ¢12ÂO³ExpressionStatementÍåÍöP®CallExpressionÍåÍõQ°MemberExpressionÍåÍñKªIdentifierÍåÍé¤TextKªIdentifierÍêÍñ§paddingÂÂ‘M§LiteralÍòÍô¢16ÂO³ExpressionStatementÍÍP®CallExpressionÍÍQ°MemberExpressionÍÍKªIdentifierÍÍ¤TextKªIdentifierÍ	Í¥widthÂÂ‘M§LiteralÍÍ¤100%¦'100%'ÂO³ExpressionStatementÍ%ÍBP®CallExpressionÍ%ÍAQ°MemberExpressionÍ%Í4KªIdentifierÍ%Í)¤TextKªIdentifierÍ*Í4ªfontFamilyÂÂ‘M§LiteralÍ5Í@©monospace«'monospace'ÂKªIdentifierÍOÍS¤TextÂO³ExpressionStatementÍ_ÍjP®CallExpressionÍ_ÍiQ°MemberExpressionÍ_ÍgKªIdentifierÍ_Íc¤TextKªIdentifierÍdÍg£popÂÂÂO³ExpressionStatementÍtÍP®CallExpressionÍtÍ€Q°MemberExpressionÍtÍ~KªIdentifierÍtÍz¦ColumnKªIdentifierÍ{Í~£popÂÂÂO³ExpressionStatementÍ‹Í*P®CallExpressionÍ‹Í)Q°MemberExpressionÍ‹Í©S®ThisExpressionÍ‹ÍKªIdentifierÍÍ©¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍªÍ ÀÂÂÂ’KªIdentifierÍ«Í±¦elmtIdKªIdentifierÍ³ÍÂ¯isInitialRenderN®BlockStatementÍÇÍ ’O³ExpressionStatementÍÖÍòP®CallExpressionÍÖÍñQ°MemberExpressionÍÖÍãKªIdentifierÍÖÍÜ¦ColumnKªIdentifierÍİÍã¦createÂÂ‘W°ObjectExpressionÍäÍğ‘X¨PropertyÍæÍîÂÂÂKªIdentifierÍæÍë¥spaceM§LiteralÍíÍî¡8¤initÂO³ExpressionStatementÍ ÍP®CallExpressionÍ ÍQ°MemberExpressionÍ ÍKªIdentifierÍ Í¦ColumnKªIdentifierÍÍ¥widthÂÂ‘M§LiteralÍÍ¤100%¦'100%'ÂKªIdentifierÍ"Í(¦ColumnÂO³ExpressionStatementÍ4Í LP®CallExpressionÍ4Í KQ°MemberExpressionÍ4ÍRS®ThisExpressionÍ4Í8KªIdentifierÍ9ÍR¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍSÍ DÀÂÂÂ’KªIdentifierÍTÍZ¦elmtIdKªIdentifierÍ\Ík¯isInitialRenderN®BlockStatementÍpÍ D•O³ExpressionStatementÍÍ“P®CallExpressionÍÍ’Q°MemberExpressionÍÍŠKªIdentifierÍÍƒ¤TextKªIdentifierÍ„ÍŠ¦createÂÂ‘M§LiteralÍ‹Í‘¬æ ‡ç­¾æ ¼å¼®'æ ‡ç­¾æ ¼å¼'ÂO³ExpressionStatementÍ¡Í³P®CallExpressionÍ¡Í²Q°MemberExpressionÍ¡Í®KªIdentifierÍ¡Í¥¤TextKªIdentifierÍ¦Í®¨fontSizeÂÂ‘M§LiteralÍ¯Í±¢17ÂO³ExpressionStatementÍÁÍâP®CallExpressionÍÁÍáQ°MemberExpressionÍÁÍĞKªIdentifierÍÁÍÅ¤TextKªIdentifierÍÆÍĞªfontWeightÂÂ‘Q°MemberExpressionÍÑÍàKªIdentifierÍÑÍÛªFontWeightKªIdentifierÍÜÍà¤BoldÂÂÂO³ExpressionStatementÍğÍ P®CallExpressionÍğÍ Q°MemberExpressionÍğÍşKªIdentifierÍğÍô¤TextKªIdentifierÍõÍş©fontColorÂÂ‘Q°MemberExpressionÍÿÍ KªIdentifierÍÿÍ ­KikariaColorsKªIdentifierÍ Í ©DEEP_TEXTÂÂÂO³ExpressionStatementÍ &Í 9P®CallExpressionÍ &Í 8Q°MemberExpressionÍ &Í 0KªIdentifierÍ &Í *¤TextKªIdentifierÍ +Í 0¥widthÂÂ‘M§LiteralÍ 1Í 7¤100%¦'100%'ÂKªIdentifierÍ FÍ J¤TextÂO³ExpressionStatementÍ VÍ aP®CallExpressionÍ VÍ `Q°MemberExpressionÍ VÍ ^KªIdentifierÍ VÍ Z¤TextKªIdentifierÍ [Í ^£popÂÂÂO³ExpressionStatementÍ kÍ!vP®CallExpressionÍ kÍ!uQ°MemberExpressionÍ kÍ ‰S®ThisExpressionÍ kÍ oKªIdentifierÍ pÍ ‰¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ ŠÍ!nÀÂÂÂ’KªIdentifierÍ ‹Í ‘¦elmtIdKªIdentifierÍ “Í ¢¯isInitialRenderN®BlockStatementÍ §Í!n”O³ExpressionStatementÍ ¶Í ìP®CallExpressionÍ ¶Í ëQ°MemberExpressionÍ ¶Í ÁKªIdentifierÍ ¶Í º¤TextKªIdentifierÍ »Í Á¦createÂÂ‘M§LiteralÍ ÂÍ êÙftags: åè·Ÿé€—å·ï¼ˆä¸­è‹±æ–‡å‡å¯ï¼‰åˆ†éš”çš„æ ‡ç­¾åˆ—è¡¨ã€‚æ ‡ç­¾ç”¨äºç­›é€‰å’Œç»„ç»‡çŸ¥è¯†ç‚¹ã€‚Ùh'tags: åè·Ÿé€—å·ï¼ˆä¸­è‹±æ–‡å‡å¯ï¼‰åˆ†éš”çš„æ ‡ç­¾åˆ—è¡¨ã€‚æ ‡ç­¾ç”¨äºç­›é€‰å’Œç»„ç»‡çŸ¥è¯†ç‚¹ã€‚'ÂO³ExpressionStatementÍ úÍ!P®CallExpressionÍ úÍ!Q°MemberExpressionÍ úÍ!KªIdentifierÍ úÍ ş¤TextKªIdentifierÍ ÿÍ!¨fontSizeÂÂ‘M§LiteralÍ!Í!
+¢15ÂO³ExpressionStatementÍ!Í!BP®CallExpressionÍ!Í!AQ°MemberExpressionÍ!Í!(KªIdentifierÍ!Í!¤TextKªIdentifierÍ!Í!(©fontColorÂÂ‘Q°MemberExpressionÍ!)Í!@KªIdentifierÍ!)Í!6­KikariaColorsKªIdentifierÍ!7Í!@©DEEP_TEXTÂÂÂO³ExpressionStatementÍ!PÍ!cP®CallExpressionÍ!PÍ!bQ°MemberExpressionÍ!PÍ!ZKªIdentifierÍ!PÍ!T¤TextKªIdentifierÍ!UÍ!Z¥widthÂÂ‘M§LiteralÍ![Í!a¤100%¦'100%'ÂKªIdentifierÍ!pÍ!t¤TextÂO³ExpressionStatementÍ!€Í!‹P®CallExpressionÍ!€Í!ŠQ°MemberExpressionÍ!€Í!ˆKªIdentifierÍ!€Í!„¤TextKªIdentifierÍ!…Í!ˆ£popÂÂÂO³ExpressionStatementÍ!•Í!¢P®CallExpressionÍ!•Í!¡Q°MemberExpressionÍ!•Í!ŸKªIdentifierÍ!•Í!›¦ColumnKªIdentifierÍ!œÍ!Ÿ£popÂÂÂO³ExpressionStatementÍ!¬Í"KP®CallExpressionÍ!¬Í"JQ°MemberExpressionÍ!¬Í!ÊS®ThisExpressionÍ!¬Í!°KªIdentifierÍ!±Í!Ê¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ!ËÍ"AÀÂÂÂ’KªIdentifierÍ!ÌÍ!Ò¦elmtIdKªIdentifierÍ!ÔÍ!ã¯isInitialRenderN®BlockStatementÍ!èÍ"A’O³ExpressionStatementÍ!÷Í"P®CallExpressionÍ!÷Í"Q°MemberExpressionÍ!÷Í"KªIdentifierÍ!÷Í!ı¦ColumnKªIdentifierÍ!şÍ"¦createÂÂ‘W°ObjectExpressionÍ"Í"‘X¨PropertyÍ"Í"ÂÂÂKªIdentifierÍ"Í"¥spaceM§LiteralÍ"Í"¡8¤initÂO³ExpressionStatementÍ"!Í"6P®CallExpressionÍ"!Í"5Q°MemberExpressionÍ"!Í"-KªIdentifierÍ"!Í"'¦ColumnKªIdentifierÍ"(Í"-¥widthÂÂ‘M§LiteralÍ".Í"4¤100%¦'100%'ÂKªIdentifierÍ"CÍ"I¦ColumnÂO³ExpressionStatementÍ"UÍ#mP®CallExpressionÍ"UÍ#lQ°MemberExpressionÍ"UÍ"sS®ThisExpressionÍ"UÍ"YKªIdentifierÍ"ZÍ"s¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ"tÍ#eÀÂÂÂ’KªIdentifierÍ"uÍ"{¦elmtIdKªIdentifierÍ"}Í"Œ¯isInitialRenderN®BlockStatementÍ"‘Í#e•O³ExpressionStatementÍ" Í"´P®CallExpressionÍ" Í"³Q°MemberExpressionÍ" Í"«KªIdentifierÍ" Í"¤¤TextKªIdentifierÍ"¥Í"«¦createÂÂ‘M§LiteralÍ"¬Í"²¬æ•°å­¦å…¬å¼®'æ•°å­¦å…¬å¼'ÂO³ExpressionStatementÍ"ÂÍ"ÔP®CallExpressionÍ"ÂÍ"ÓQ°MemberExpressionÍ"ÂÍ"ÏKªIdentifierÍ"ÂÍ"Æ¤TextKªIdentifierÍ"ÇÍ"Ï¨fontSizeÂÂ‘M§LiteralÍ"ĞÍ"Ò¢17ÂO³ExpressionStatementÍ"âÍ#P®CallExpressionÍ"âÍ#Q°MemberExpressionÍ"âÍ"ñKªIdentifierÍ"âÍ"æ¤TextKªIdentifierÍ"çÍ"ñªfontWeightÂÂ‘Q°MemberExpressionÍ"òÍ#KªIdentifierÍ"òÍ"üªFontWeightKªIdentifierÍ"ıÍ#¤BoldÂÂÂO³ExpressionStatementÍ#Í#9P®CallExpressionÍ#Í#8Q°MemberExpressionÍ#Í#KªIdentifierÍ#Í#¤TextKªIdentifierÍ#Í#©fontColorÂÂ‘Q°MemberExpressionÍ# Í#7KªIdentifierÍ# Í#-­KikariaColorsKªIdentifierÍ#.Í#7©DEEP_TEXTÂÂÂO³ExpressionStatementÍ#GÍ#ZP®CallExpressionÍ#GÍ#YQ°MemberExpressionÍ#GÍ#QKªIdentifierÍ#GÍ#K¤TextKªIdentifierÍ#LÍ#Q¥widthÂÂ‘M§LiteralÍ#RÍ#X¤100%¦'100%'ÂKªIdentifierÍ#gÍ#k¤TextÂO³ExpressionStatementÍ#wÍ#‚P®CallExpressionÍ#wÍ#Q°MemberExpressionÍ#wÍ#KªIdentifierÍ#wÍ#{¤TextKªIdentifierÍ#|Í#£popÂÂÂO³ExpressionStatementÍ#ŒÍ$ÕP®CallExpressionÍ#ŒÍ$ÔQ°MemberExpressionÍ#ŒÍ#ªS®ThisExpressionÍ#ŒÍ#KªIdentifierÍ#‘Í#ª¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ#«Í$ÍÀÂÂÂ’KªIdentifierÍ#¬Í#²¦elmtIdKªIdentifierÍ#´Í#Ã¯isInitialRenderN®BlockStatementÍ#ÈÍ$Í”O³ExpressionStatementÍ#×Í$KP®CallExpressionÍ#×Í$JQ°MemberExpressionÍ#×Í#âKªIdentifierÍ#×Í#Û¤TextKªIdentifierÍ#ÜÍ#â¦createÂÂ‘M§LiteralÍ#ãÍ$IÙ£Kikaria å†…åµŒæ”¯æŒ LaTeX æ•°å­¦å…¬å¼ï¼š
+è¡Œå†…å…¬å¼ï¼š$E = mc^2$
+å—çº§å…¬å¼ï¼š$$\int_a^b f(x) dx$$
+
+(æ³¨ï¼šHarmonyOS ç‰ˆæœ¬ç›®å‰ä»¥æ–‡æœ¬å½¢å¼å±•ç¤ºå…¬å¼)Ùª'Kikaria å†…åµŒæ”¯æŒ LaTeX æ•°å­¦å…¬å¼ï¼š\nè¡Œå†…å…¬å¼ï¼š$E = mc^2$\nå—çº§å…¬å¼ï¼š$$\\int_a^b f(x) dx$$\n\n(æ³¨ï¼šHarmonyOS ç‰ˆæœ¬ç›®å‰ä»¥æ–‡æœ¬å½¢å¼å±•ç¤ºå…¬å¼)'ÂO³ExpressionStatementÍ$YÍ$kP®CallExpressionÍ$YÍ$jQ°MemberExpressionÍ$YÍ$fKªIdentifierÍ$YÍ$]¤TextKªIdentifierÍ$^Í$f¨fontSizeÂÂ‘M§LiteralÍ$gÍ$i¢15ÂO³ExpressionStatementÍ$yÍ$¡P®CallExpressionÍ$yÍ$ Q°MemberExpressionÍ$yÍ$‡KªIdentifierÍ$yÍ$}¤TextKªIdentifierÍ$~Í$‡©fontColorÂÂ‘Q°MemberExpressionÍ$ˆÍ$ŸKªIdentifierÍ$ˆÍ$•­KikariaColorsKªIdentifierÍ$–Í$Ÿ©DEEP_TEXTÂÂÂO³ExpressionStatementÍ$¯Í$ÂP®CallExpressionÍ$¯Í$ÁQ°MemberExpressionÍ$¯Í$¹KªIdentifierÍ$¯Í$³¤TextKªIdentifierÍ$´Í$¹¥widthÂÂ‘M§LiteralÍ$ºÍ$À¤100%¦'100%'ÂKªIdentifierÍ$ÏÍ$Ó¤TextÂO³ExpressionStatementÍ$ßÍ$êP®CallExpressionÍ$ßÍ$éQ°MemberExpressionÍ$ßÍ$çKªIdentifierÍ$ßÍ$ã¤TextKªIdentifierÍ$äÍ$ç£popÂÂÂO³ExpressionStatementÍ$ôÍ%P®CallExpressionÍ$ôÍ% Q°MemberExpressionÍ$ôÍ$şKªIdentifierÍ$ôÍ$ú¦ColumnKªIdentifierÍ$ûÍ$ş£popÂÂÂO³ExpressionStatementÍ%Í%ªP®CallExpressionÍ%Í%©Q°MemberExpressionÍ%Í%)S®ThisExpressionÍ%Í%KªIdentifierÍ%Í%)¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ%*Í% ÀÂÂÂ’KªIdentifierÍ%+Í%1¦elmtIdKªIdentifierÍ%3Í%B¯isInitialRenderN®BlockStatementÍ%GÍ% ’O³ExpressionStatementÍ%VÍ%rP®CallExpressionÍ%VÍ%qQ°MemberExpressionÍ%VÍ%cKªIdentifierÍ%VÍ%\¦ColumnKªIdentifierÍ%]Í%c¦createÂÂ‘W°ObjectExpressionÍ%dÍ%p‘X¨PropertyÍ%fÍ%nÂÂÂKªIdentifierÍ%fÍ%k¥spaceM§LiteralÍ%mÍ%n¡8¤initÂO³ExpressionStatementÍ%€Í%•P®CallExpressionÍ%€Í%”Q°MemberExpressionÍ%€Í%ŒKªIdentifierÍ%€Í%†¦ColumnKªIdentifierÍ%‡Í%Œ¥widthÂÂ‘M§LiteralÍ%Í%“¤100%¦'100%'ÂKªIdentifierÍ%¢Í%¨¦ColumnÂO³ExpressionStatementÍ%´Í&ËP®CallExpressionÍ%´Í&ÊQ°MemberExpressionÍ%´Í%ÒS®ThisExpressionÍ%´Í%¸KªIdentifierÍ%¹Í%Ò¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ%ÓÍ&ÃÀÂÂÂ’KªIdentifierÍ%ÔÍ%Ú¦elmtIdKªIdentifierÍ%ÜÍ%ë¯isInitialRenderN®BlockStatementÍ%ğÍ&Ã•O³ExpressionStatementÍ%ÿÍ&P®CallExpressionÍ%ÿÍ&Q°MemberExpressionÍ%ÿÍ&
+KªIdentifierÍ%ÿÍ&¤TextKªIdentifierÍ&Í&
+¦createÂÂ‘M§LiteralÍ&Í&©å°è´´å£««'å°è´´å£«'ÂO³ExpressionStatementÍ& Í&2P®CallExpressionÍ& Í&1Q°MemberExpressionÍ& Í&-KªIdentifierÍ& Í&$¤TextKªIdentifierÍ&%Í&-¨fontSizeÂÂ‘M§LiteralÍ&.Í&0¢17ÂO³ExpressionStatementÍ&@Í&aP®CallExpressionÍ&@Í&`Q°MemberExpressionÍ&@Í&OKªIdentifierÍ&@Í&D¤TextKªIdentifierÍ&EÍ&OªfontWeightÂÂ‘Q°MemberExpressionÍ&PÍ&_KªIdentifierÍ&PÍ&ZªFontWeightKªIdentifierÍ&[Í&_¤BoldÂÂÂO³ExpressionStatementÍ&oÍ&—P®CallExpressionÍ&oÍ&–Q°MemberExpressionÍ&oÍ&}KªIdentifierÍ&oÍ&s¤TextKªIdentifierÍ&tÍ&}©fontColorÂÂ‘Q°MemberExpressionÍ&~Í&•KªIdentifierÍ&~Í&‹­KikariaColorsKªIdentifierÍ&ŒÍ&•©DEEP_TEXTÂÂÂO³ExpressionStatementÍ&¥Í&¸P®CallExpressionÍ&¥Í&·Q°MemberExpressionÍ&¥Í&¯KªIdentifierÍ&¥Í&©¤TextKªIdentifierÍ&ªÍ&¯¥widthÂÂ‘M§LiteralÍ&°Í&¶¤100%¦'100%'ÂKªIdentifierÍ&ÅÍ&É¤TextÂO³ExpressionStatementÍ&ÕÍ&àP®CallExpressionÍ&ÕÍ&ßQ°MemberExpressionÍ&ÕÍ&İKªIdentifierÍ&ÕÍ&Ù¤TextKªIdentifierÍ&ÚÍ&İ£popÂÂÂO³ExpressionStatementÍ&êÍ([P®CallExpressionÍ&êÍ(ZQ°MemberExpressionÍ&êÍ'S®ThisExpressionÍ&êÍ&îKªIdentifierÍ&ïÍ'¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ'	Í(SÀÂÂÂ’KªIdentifierÍ'
+Í'¦elmtIdKªIdentifierÍ'Í'!¯isInitialRenderN®BlockStatementÍ'&Í(S”O³ExpressionStatementÍ'5Í'ÑP®CallExpressionÍ'5Í'ĞQ°MemberExpressionÍ'5Í'@KªIdentifierÍ'5Í'9¤TextKªIdentifierÍ':Í'@¦createÂÂ‘M§LiteralÍ'AÍ'ÏÚ-â€¢ æ ‡é¢˜ä»¥ # å¼€å¤´ï¼Œåæ¥çŸ¥è¯†ç‚¹åç§°
+â€¢ hint: å’Œ content: å¿…é¡»å„å ä¸€è¡Œï¼Œä»¥å†’å·ç»“å°¾
+â€¢ æç¤ºå’Œç­”æ¡ˆçš„å†…å®¹ä»ä¸‹ä¸€è¡Œå¼€å§‹
+â€¢ æ¯ä¸ªçŸ¥è¯†ç‚¹è‡³å°‘éœ€è¦æ ‡é¢˜ã€tagsã€hint å’Œ content
+â€¢ æ ‡ç­¾æœ‰åŠ©äºåœ¨é¦–é¡µæŒ‰èŒƒå›´ç­›é€‰
+â€¢ ä½¿ç”¨ --- åˆ†éš”ä¸åŒçš„çŸ¥è¯†ç‚¹Ú4'â€¢ æ ‡é¢˜ä»¥ # å¼€å¤´ï¼Œåæ¥çŸ¥è¯†ç‚¹åç§°\nâ€¢ hint: å’Œ content: å¿…é¡»å„å ä¸€è¡Œï¼Œä»¥å†’å·ç»“å°¾\nâ€¢ æç¤ºå’Œç­”æ¡ˆçš„å†…å®¹ä»ä¸‹ä¸€è¡Œå¼€å§‹\nâ€¢ æ¯ä¸ªçŸ¥è¯†ç‚¹è‡³å°‘éœ€è¦æ ‡é¢˜ã€tagsã€hint å’Œ content\nâ€¢ æ ‡ç­¾æœ‰åŠ©äºåœ¨é¦–é¡µæŒ‰èŒƒå›´ç­›é€‰\nâ€¢ ä½¿ç”¨ --- åˆ†éš”ä¸åŒçš„çŸ¥è¯†ç‚¹'ÂO³ExpressionStatementÍ'ßÍ'ñP®CallExpressionÍ'ßÍ'ğQ°MemberExpressionÍ'ßÍ'ìKªIdentifierÍ'ßÍ'ã¤TextKªIdentifierÍ'äÍ'ì¨fontSizeÂÂ‘M§LiteralÍ'íÍ'ï¢15ÂO³ExpressionStatementÍ'ÿÍ('P®CallExpressionÍ'ÿÍ(&Q°MemberExpressionÍ'ÿÍ(KªIdentifierÍ'ÿÍ(¤TextKªIdentifierÍ(Í(©fontColorÂÂ‘Q°MemberExpressionÍ(Í(%KªIdentifierÍ(Í(­KikariaColorsKªIdentifierÍ(Í(%©DEEP_TEXTÂÂÂO³ExpressionStatementÍ(5Í(HP®CallExpressionÍ(5Í(GQ°MemberExpressionÍ(5Í(?KªIdentifierÍ(5Í(9¤TextKªIdentifierÍ(:Í(?¥widthÂÂ‘M§LiteralÍ(@Í(F¤100%¦'100%'ÂKªIdentifierÍ(UÍ(Y¤TextÂO³ExpressionStatementÍ(eÍ(pP®CallExpressionÍ(eÍ(oQ°MemberExpressionÍ(eÍ(mKªIdentifierÍ(eÍ(i¤TextKªIdentifierÍ(jÍ(m£popÂÂÂO³ExpressionStatementÍ(zÍ(‡P®CallExpressionÍ(zÍ(†Q°MemberExpressionÍ(zÍ(„KªIdentifierÍ(zÍ(€¦ColumnKªIdentifierÍ(Í(„£popÂÂÂO³ExpressionStatementÍ(‘Í)P®CallExpressionÍ(‘Í)Q°MemberExpressionÍ(‘Í(¯S®ThisExpressionÍ(‘Í(•KªIdentifierÍ(–Í(¯¹observeComponentCreation2ÂÂ’J·ArrowFunctionExpressionÍ(°Í)ÀÂÂÂ’KªIdentifierÍ(±Í(·¦elmtIdKªIdentifierÍ(¹Í(È¯isInitialRenderN®BlockStatementÍ(ÍÍ)’O³ExpressionStatementÍ(ÜÍ(éP®CallExpressionÍ(ÜÍ(èQ°MemberExpressionÍ(ÜÍ(æKªIdentifierÍ(ÜÍ(ß£RowKªIdentifierÍ(àÍ(æ¦createÂÂÂO³ExpressionStatementÍ(÷Í)P®CallExpressionÍ(÷Í)Q°MemberExpressionÍ(÷Í)KªIdentifierÍ(÷Í(ú£RowKªIdentifierÍ(ûÍ)¦heightÂÂ‘M§LiteralÍ)Í)(¢40ÂKªIdentifierÍ)Í)£RowÂO³ExpressionStatementÍ)"Í),P®CallExpressionÍ)"Í)+Q°MemberExpressionÍ)"Í))KªIdentifierÍ)"Í)%£RowKªIdentifierÍ)&Í))£popÂÂÂO³ExpressionStatementÍ)6Í)CP®CallExpressionÍ)6Í)BQ°MemberExpressionÍ)6Í)@KªIdentifierÍ)6Í)<¦ColumnKªIdentifierÍ)=Í)@£popÂÂÂO³ExpressionStatementÍ)MÍ)ZP®CallExpressionÍ)MÍ)YQ°MemberExpressionÍ)MÍ)WKªIdentifierÍ)MÍ)S¦ScrollKªIdentifierÍ)TÍ)W£popÂÂÂ\°MethodDefinitionÍ)gÍ)ŸÂÂKªIdentifierÍ)gÍ)o¨rerender¦methodJ²FunctionExpressionÍ)oÍ)ŸÀÂÂÂN®BlockStatementÍ)rÍ)Ÿ‘O³ExpressionStatementÍ)}Í)˜P®CallExpressionÍ)}Í)—Q°MemberExpressionÍ)}Í)•S®ThisExpressionÍ)}Í)KªIdentifierÍ)‚Í)•³updateDirtyElementsÂÂÂÀ“Ôrb•¤type¥start£endªspecifiers¦source±ImportDeclarationÍ6Íq‘Ôrc•¤type¥start£end¨imported¥local¯ImportSpecifierÍ?ÍLKªIdentifierÍ?ÍL­KikariaColorsKªIdentifierÍ?ÍL­KikariaColorsM§LiteralÍTÍpº../components/KikariaTheme¼'../components/KikariaTheme'b±ImportDeclarationÍsÍÏ’c¯ImportSpecifierÍ|ÍŠKªIdentifierÍ|ÍŠ®isPadLandscapeKªIdentifierÍ|ÍŠ®isPadLandscapec¯ImportSpecifierÍŒÍ¡KªIdentifierÍŒÍ¡µpageHorizontalPaddingKªIdentifierÍŒÍ¡µpageHorizontalPaddingM§LiteralÍ©ÍÎÙ#../components/KikariaAdaptiveLayoutÙ%'../components/KikariaAdaptiveLayout'b±ImportDeclarationÍÑÍ
+‘c¯ImportSpecifierÍÚÍæKªIdentifierÍÚÍæ¬navPathStackKªIdentifierÍÚÍæ¬navPathStackM§LiteralÍîÍ	¹../data/NavigationService»'../data/NavigationService'

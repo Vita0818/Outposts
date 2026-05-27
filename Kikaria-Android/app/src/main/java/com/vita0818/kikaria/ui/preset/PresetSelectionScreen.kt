@@ -1,5 +1,8 @@
 package com.vita0818.kikaria.ui.preset
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -8,13 +11,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,18 +25,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vita0818.kikaria.data.KnowledgePreset
-import com.vita0818.kikaria.ui.components.KikariaBackButton
 import com.vita0818.kikaria.ui.components.KikariaGlassCard
-import com.vita0818.kikaria.ui.components.KikariaPageShell
+import com.vita0818.kikaria.ui.components.KikariaScrollPageShell
 import com.vita0818.kikaria.ui.theme.KikariaColors
 import com.vita0818.kikaria.ui.theme.KikariaTypography
+import com.vita0818.kikaria.ui.theme.rememberKikariaPhoneMetrics
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 /**
  * Preset Selection screen translated from the iOS PresetSelectionView in ContentView.swift.
@@ -52,26 +54,35 @@ fun PresetSelectionScreen(
     onSwitchPreset: (KnowledgePreset) -> Unit,
     onNewPreset: () -> Unit = {},
     onEditPreset: (KnowledgePreset) -> Unit = {},
-    onDeletePreset: (KnowledgePreset) -> Unit = {}
+    onDeletePreset: (KnowledgePreset) -> Unit = {},
+    onImportPreset: ((String, String) -> Unit)? = null
 ) {
     val isDark = isSystemInDarkTheme()
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
     val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
     val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+    val context = LocalContext.current
 
     var pendingDelete by remember { mutableStateOf<KnowledgePreset?>(null) }
 
-    KikariaPageShell {
-        Box(modifier = Modifier.fillMaxSize()) {
-            KikariaBackButton(onClick = onBack)
+    val filePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            try {
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    val text = BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).readText()
+                    val name = uri.lastPathSegment?.removeSuffix(".md") ?: "导入预设"
+                    onImportPreset?.invoke(name, text)
+                }
+            } catch (_: Exception) { }
+        }
+    }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp)
-                    .padding(top = 70.dp)
-            ) {
+    val metrics = rememberKikariaPhoneMetrics()
+
+    KikariaScrollPageShell(onBack = onBack, metrics = metrics) {
+        Spacer(modifier = Modifier.height(metrics.pageTopPadding))
                 // Title row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -102,40 +113,57 @@ fun PresetSelectionScreen(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // New preset button
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(22.dp))
-                        .shadow(
-                            16.dp, RoundedCornerShape(22.dp),
-                            ambientColor = sky.copy(alpha = 0.18f),
-                            spotColor = sky.copy(alpha = 0.18f)
-                        )
-                        .background(
-                            if (isDark) KikariaColors.ActionGradientDark
-                            else KikariaColors.ActionGradientLight
-                        )
-                        .clickable { onNewPreset() }
-                        .padding(horizontal = 20.dp, vertical = 18.dp),
-                    contentAlignment = Alignment.Center
+                // Action buttons: file import + manual create
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(22.dp))
+                            .shadow(
+                                16.dp, RoundedCornerShape(22.dp),
+                                ambientColor = sky.copy(alpha = 0.18f),
+                                spotColor = sky.copy(alpha = 0.18f)
+                            )
+                            .background(
+                                if (isDark) KikariaColors.ActionGradientDark
+                                else KikariaColors.ActionGradientLight
+                            )
+                            .clickable { filePicker.launch(arrayOf("text/*", "*/*")) }
+                            .padding(horizontal = 16.dp, vertical = 16.dp),
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "+",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.padding(start = 10.dp))
-                        Text(
-                            text = "上传新预设",
-                            fontSize = 17.sp,
+                            text = "导入文件",
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(22.dp))
+                            .shadow(
+                                12.dp, RoundedCornerShape(22.dp),
+                                ambientColor = sky.copy(alpha = 0.10f),
+                                spotColor = sky.copy(alpha = 0.10f)
+                            )
+                            .background(
+                                (if (isDark) KikariaColors.GlassSurfaceDark
+                                else KikariaColors.GlassSurface).copy(alpha = 0.44f)
+                            )
+                            .clickable { onNewPreset() }
+                            .padding(horizontal = 16.dp, vertical = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "手动创建",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = deepText
                         )
                     }
                 }
@@ -188,8 +216,7 @@ fun PresetSelectionScreen(
                 }
 
                 // Delete confirmation
-                if (pendingDelete != null) {
-                    val preset = pendingDelete!!
+                pendingDelete?.let { preset ->
                     Spacer(modifier = Modifier.height(16.dp))
                     KikariaGlassCard(
                         modifier = Modifier.fillMaxWidth(),
@@ -264,8 +291,6 @@ fun PresetSelectionScreen(
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
-            }
-        }
     }
 }
 
@@ -420,7 +445,7 @@ private fun PresetCard(
                         )
                     }
                 }
-            }
+    }
+    }
         }
     }
-}

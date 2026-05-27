@@ -1,21 +1,23 @@
 package com.vita0818.kikaria.ui.settings
 
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -28,203 +30,141 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vita0818.kikaria.ui.components.KikariaBackButton
+import com.vita0818.kikaria.ui.components.KikariaFormPageShell
 import com.vita0818.kikaria.ui.components.KikariaGlassCard
-import com.vita0818.kikaria.ui.components.KikariaPageShell
+import com.vita0818.kikaria.ui.components.KikariaIcons
 import com.vita0818.kikaria.ui.components.KikariaProfileAvatar
 import com.vita0818.kikaria.ui.theme.KikariaColors
 import com.vita0818.kikaria.ui.theme.KikariaTypography
+import com.vita0818.kikaria.ui.theme.rememberKikariaPhoneMetrics
 
-/**
- * Edit profile screen translated from the iOS EditProfileView in ContentView.swift.
- *
- * Allows editing the user's display name and handle, with avatar display.
- */
 @Composable
 fun EditProfileScreen(
     initialDisplayName: String,
     initialHandle: String,
+    initialAvatarUri: String? = null,
     onBack: () -> Unit,
-    onSave: (displayName: String, handle: String) -> Unit
+    onSave: (displayName: String, handle: String) -> Unit,
+    onAvatarChanged: ((String?) -> Unit)? = null
 ) {
     val isDark = isSystemInDarkTheme()
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
-    val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
-    val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+    val context = LocalContext.current
 
     var displayName by remember { mutableStateOf(initialDisplayName) }
     var userHandle by remember { mutableStateOf(initialHandle) }
+    var avatarUri by remember { mutableStateOf(initialAvatarUri) }
 
-    KikariaPageShell {
-        Box(modifier = Modifier.fillMaxSize()) {
-            KikariaBackButton(onClick = onBack)
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            val uriStr = uri.toString()
+            avatarUri = uriStr
+            onAvatarChanged?.invoke(uriStr)
+        }
+    }
 
-            Column(
+    val metrics = rememberKikariaPhoneMetrics()
+
+    KikariaFormPageShell(
+        title = "编辑个人资料",
+        onBack = onBack,
+        metrics = metrics,
+        closeIcon = KikariaIcons.back,
+        actionLabel = "保存",
+        onAction = {
+            val tn = displayName.trim()
+            val th = userHandle.trim().trimStart('@')
+            onSave(tn.ifEmpty { "Kikaria" }, th.ifEmpty { "user" })
+            onBack()
+        }
+    ) {
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            val avatarBitmap = remember(avatarUri) {
+                try {
+                    val uri = avatarUri?.let { Uri.parse(it) }
+                    if (uri != null) {
+                        context.contentResolver.openInputStream(uri)?.use { stream ->
+                            BitmapFactory.decodeStream(stream)
+                        }?.asImageBitmap()
+                    } else null
+                } catch (_: Exception) { null }
+            }
+
+            if (avatarBitmap != null) {
+                Image(
+                    bitmap = avatarBitmap,
+                    contentDescription = "头像",
+                    modifier = Modifier
+                        .size(92.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                KikariaProfileAvatar(size = 92.dp, displayName = displayName)
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp)
-                    .padding(top = 70.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(
+                        if (isDark) KikariaColors.GlassSurfaceDark.copy(alpha = 0.44f)
+                        else KikariaColors.GlassSurface.copy(alpha = 0.44f)
+                    )
+                    .clickable { imagePicker.launch("image/*") }
+                    .padding(horizontal = 18.dp, vertical = 11.dp)
             ) {
-                // Title row with save button
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = KikariaTypography.mixedText(
-                            "编辑个人资料",
-                            size = 24,
-                            weight = FontWeight.Bold
-                        ),
-                        color = deepText,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(14.dp))
-                            .clickable {
-                                val trimmedName = displayName.trim()
-                                val trimmedHandle = userHandle.trim().trimStart('@')
-                                onSave(
-                                    trimmedName.ifEmpty { "Kikaria" },
-                                    trimmedHandle.ifEmpty { "user" }
-                                )
-                                onBack()
-                            }
-                            .background(sky.copy(alpha = 0.18f))
-                            .padding(horizontal = 16.dp, vertical = 10.dp)
-                    ) {
-                        Text(
-                            "保存",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = sky
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Avatar section
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    KikariaProfileAvatar(
-                        size = 92.dp,
-                        displayName = displayName
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Text(
-                        text = "更换头像",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = deepText,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(
-                                (if (isDark) KikariaColors.GlassSurfaceDark
-                                else KikariaColors.GlassSurface).copy(alpha = 0.38f)
-                            )
-                            .padding(horizontal = 18.dp, vertical = 11.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Display name field
-                ProfileTextField(
-                    title = "显示名称",
-                    value = displayName,
-                    onValueChange = { displayName = it },
-                    isDark = isDark
+                Text(
+                    "更换头像",
+                    fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = deepText
                 )
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // User handle field
-                ProfileTextField(
-                    title = "用户 ID",
-                    value = userHandle,
-                    onValueChange = { userHandle = it },
-                    isDark = isDark
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
             }
         }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        ProfileTextField("显示名称", displayName, { displayName = it }, isDark)
+        Spacer(modifier = Modifier.height(10.dp))
+        ProfileTextField("用户 ID", userHandle, { userHandle = it }, isDark)
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
-// ─── Profile Text Field ───
-
 @Composable
-private fun ProfileTextField(
-    title: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    isDark: Boolean
-) {
+private fun ProfileTextField(title: String, value: String, onValueChange: (String) -> Unit, isDark: Boolean) {
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
     val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
-    val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
 
     Column {
         Text(
-            text = KikariaTypography.mixedText(
-                title,
-                size = 14,
-                weight = FontWeight.SemiBold
-            ),
-            color = softText,
-            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+            KikariaTypography.mixedText(title, size = 14, weight = FontWeight.SemiBold),
+            color = softText, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
         )
-
-        val shape = RoundedCornerShape(20.dp)
-        KikariaGlassCard(
-            modifier = Modifier.fillMaxWidth(),
-            cornerRadius = 20.dp,
-            fillOpacity = 0.50f,
-            shadowElevation = 12.dp,
-            shadowOpacity = 0.08f
-        ) {
+        KikariaGlassCard(Modifier.fillMaxWidth(), cornerRadius = 20.dp, fillOpacity = 0.50f, shadowElevation = 12.dp, shadowOpacity = 0.08f) {
             TextField(
-                value = value,
-                onValueChange = onValueChange,
-                textStyle = TextStyle(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = deepText
-                ),
+                value = value, onValueChange = onValueChange,
+                textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal, color = deepText),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
                     cursorColor = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
                 ),
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.None
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                placeholder = {
-                    Text(
-                        text = title,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = softText.copy(alpha = 0.5f)
-                    )
-                }
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
+                modifier = Modifier.fillMaxWidth(), singleLine = true,
+                placeholder = { Text(title, fontSize = 16.sp, fontWeight = FontWeight.Normal, color = softText.copy(alpha = 0.5f)) }
             )
         }
     }

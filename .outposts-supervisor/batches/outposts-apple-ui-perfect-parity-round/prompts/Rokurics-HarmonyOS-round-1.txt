@@ -1,0 +1,46 @@
+OUTPOSTS FORMAL TASK - APPLE UI PERFECT PARITY
+
+Mandatory preflight first:
+MODEL_CHECK_RESULT: Confirm current active model route is DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop immediately.
+PATH_CHECK_RESULT: Current working directory must be exactly /Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS. If not, stop immediately.
+SOURCE_READONLY_CHECK: Apple source path /Users/vita/Vitemis/Vela/Rokurics is read-only. Do not modify Apple source. All writes must stay inside /Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS. Do not access unrelated directories. Do not read or transmit secrets, tokens, private keys, .env, p12, provisioning profiles, SSH keys, API keys, or Keychain content.
+
+PROJECT_NAME: Rokurics-HarmonyOS
+ROUND_INDEX: 1
+TARGET_PATH: /Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS
+APPLE_SOURCE_READONLY_PATH: /Users/vita/Vitemis/Vela/Rokurics
+
+This batch continues prior migration work. Do not restart from round 1 of the whole project and do not repeat already completed P0/P1 work.
+
+Primary objective: restore build if needed, then perfect Apple UI/layout parity.
+
+Tasks:
+1. Read the latest project recovery/batch reports in /Users/vita/Vitemis/Outposts/.outposts-supervisor that relate to Rokurics-HarmonyOS.
+2. Mandatory first priority: if ArkTS strict-mode compile errors or HAP build blockers still exist, fix those before adding more UI.
+3. Once build is recovered/preserved, read the Apple Rokurics source read-only and identify real Apple dashboard, recording, Study Library, RecordingDetail, AI/provider, upload/export, mini-player/waveform, navigation, settings, connection, and iPad layout intent.
+4. Read the current target UI implementation and create an Apple UI parity checklist.
+5. Compare target UI against Apple UI yourself. Do not wait for user-provided differences.
+6. Implement the highest-impact safe UI/layout/interaction parity fixes in the HarmonyOS target.
+7. Focus especially on Study Library, RecordingDetail, AI/provider, export UI, upload/recording flow, shared UI components, and device validation path.
+8. Keep unsigned HAP/CLI build passing. Do not pile on features while build is broken.
+9. If UI/preview/device validation is possible, run it; otherwise provide a concrete executable UI smoke/visual review checklist.
+10. Do not commit, push, or create PR.
+
+Final report only, structured and concise. Do not paste long diffs or long logs. Include:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+APPLE_UI_PARITY_CHECKLIST
+UI_LAYOUT_ALIGNMENT_PROGRESS
+FUNCTIONAL_PARITY_PROGRESS
+BUILD_RESULT
+TEST_RESULT
+VISUAL_OR_UI_VALIDATION_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+BLOCKERS
+REGRESSION_RISKS
+NEXT_ROUND_RECOMMENDATION
