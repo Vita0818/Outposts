@@ -33,7 +33,7 @@ import { RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity, g
 import { StudyFolderStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/StudyFolderStore";
 import { BackIcon, BulletListIcon, TrashIcon, EllipsisIcon, DocBadgeIcon, NoteBadgeIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
 const LEVELS: string[] = ['type', 'subject', 'chapter', 'topic'];
-const FOLDER_COLORS: string[] = ['#59C7C2', '#9EE8C7', '#73C7F0', '#E06B6E', '#B8A6D6', '#F0C060'];
+const FOLDER_COLORS: string[] = ['#59C7C2', '#9EE8C7', '#73C7F0', '#E06B6E', '#B8A6D6', '#6B9FD4'];
 interface FilingGroup {
     key: string;
     label: string;

@@ -29,7 +29,7 @@ import { formatDuration, formatShortTime } from "@bundle:com.vita0818.rokurics/e
 import { RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 import { StudyFolderStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/StudyFolderStore";
 const HIERARCHY_LEVELS: string[] = ['type', 'subject', 'chapter', 'topic'];
-const FOLDER_COLORS: string[] = ['#59C7C2', '#9EE8C7', '#73C7F0', '#E06B6E', '#B8A6D6', '#F0C060'];
+const FOLDER_COLORS: string[] = ['#59C7C2', '#9EE8C7', '#73C7F0', '#E06B6E', '#B8A6D6', '#6B9FD4'];
 interface FilingGroup {
     path: string;
     level: string;
