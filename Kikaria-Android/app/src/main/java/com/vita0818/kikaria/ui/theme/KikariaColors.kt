@@ -44,7 +44,7 @@ object KikariaColors {
     val DeepTextDark = Color(0xFFE6F5FF)
     val SoftTextDark = Color(0xFFA8C4DB)
     val TertiaryTextDark = Color(0xFF6E8CA6)
-    val GlassSurfaceDark = Color(0xFF0F212E)
+    val GlassSurfaceDark = Color(0xFF1B3448)
     val GlassStrokeAccentDark = Color(0xFF6BD6ED)
     val ShadowDark = Color(0xFF00050D)
     val BubbleMintDark = Color(0xFF33948A)

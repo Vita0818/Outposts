@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -169,19 +170,17 @@ fun ProfileSetupScreen(
                         }
 
                         // Action button — "开始使用"
+                        // Apple ref: ContentView.swift line 6196-6207
+                        // iOS uses .opacity(canSave ? 1 : 0.48) on the whole button, keeping the gradient
                         Box(
                             modifier = Modifier
                                 .padding(top = 4.dp)
                                 .fillMaxWidth()
+                                .alpha(if (canSave) 1f else 0.48f)
                                 .shadow(16.dp, RoundedCornerShape(28.dp),
                                     spotColor = sky.copy(alpha = if (canSave) 0.22f else 0.04f))
                                 .clip(RoundedCornerShape(28.dp))
-                                .background(
-                                    if (canSave) actionGrad
-                                    else Brush.linearGradient(
-                                        listOf(glassSurface.copy(alpha = 0.3f), glassSurface.copy(alpha = 0.3f))
-                                    )
-                                )
+                                .background(actionGrad)
                                 .clickable(enabled = canSave) {
                                     val trimmedName = displayName.trim()
                                     if (trimmedName.isNotEmpty()) {
@@ -202,8 +201,7 @@ fun ProfileSetupScreen(
                                 text = "开始使用",
                                 fontSize = if (isExpanded) 18.sp else 17.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = if (canSave) Color.White
-                                    else Color.White.copy(alpha = 0.48f)
+                                color = Color.White
                             )
                         }
                     }

@@ -32,7 +32,9 @@
                   Padding="12,4"
                   Background="Transparent">
             <ListView.Resources>
-                <!-- Custom ListViewItem style with aqua gradient selection matching Mac -->
+                <!-- Custom ListViewItem style matching MacSidebarItemButton:
+                     Selected: diagonal mint→aqua gradient (topLeading→bottomTrailing)
+                     Hover: glass surface with border -->
                 <Style TargetType="ListViewItem">
                     <Setter Property="Padding" Value="12,10" />
                     <Setter Property="Margin" Value="0,3" />
@@ -42,18 +44,62 @@
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="ListViewItem">
-                                <Grid x:Name="RootGrid" CornerRadius="15">
-                                    <Grid.Background>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                            <GradientStop Color="#034FBEBA" Offset="0" />
-                                            <GradientStop Color="#0394E6C2" Offset="1" />
-                                        </LinearGradientBrush>
-                                    </Grid.Background>
+                                <Grid x:Name="RootGrid" CornerRadius="15" Background="Transparent">
                                     <ContentPresenter x:Name="ContentPresenter"
                                                       Content="{TemplateBinding Content}"
                                                       ContentTemplate="{TemplateBinding ContentTemplate}"
                                                       Padding="{TemplateBinding Padding}"
                                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroup x:Name="CommonStates">
+                                            <VisualState x:Name="Normal" />
+                                            <VisualState x:Name="PointerOver">
+                                                <VisualState.Setters>
+                                                    <Setter Target="RootGrid.Background">
+                                                        <Setter.Value>
+                                                            <SolidColorBrush Color="#184FBEBA" />
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                            <VisualState x:Name="Pressed">
+                                                <VisualState.Setters>
+                                                    <Setter Target="RootGrid.Background">
+                                                        <Setter.Value>
+                                                            <SolidColorBrush Color="#104FBEBA" />
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                        <VisualStateGroup x:Name="SelectionStates">
+                                            <VisualState x:Name="Unselected" />
+                                            <VisualState x:Name="Selected">
+                                                <VisualState.Setters>
+                                                    <Setter Target="RootGrid.Background">
+                                                        <Setter.Value>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                                <GradientStop Color="#6B94E6C2" Offset="0" />
+                                                                <GradientStop Color="#424FBEBA" Offset="1" />
+                                                            </LinearGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                            <VisualState x:Name="SelectedUnfocused">
+                                                <VisualState.Setters>
+                                                    <Setter Target="RootGrid.Background">
+                                                        <Setter.Value>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                                <GradientStop Color="#4294E6C2" Offset="0" />
+                                                                <GradientStop Color="#264FBEBA" Offset="1" />
+                                                            </LinearGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                    </VisualStateManager.VisualStateGroups>
                                 </Grid>
                             </ControlTemplate>
                         </Setter.Value>
@@ -86,17 +132,29 @@
             </ListViewItem>
         </ListView>
 
-        <!-- Bottom: Profile / Settings button — matching Mac sidebar profile button -->
+        <!-- Bottom: Profile / Settings button — matching MacSidebarView profile button
+             Mac: Circle with person.fill (aqua), glass surface / accent gradient bg, white stroke -->
         <Button Grid.Row="2"
                 x:Name="SettingsButton"
                 Click="OnSettingsClicked"
                 Margin="14"
                 Padding="12,10"
                 HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Left">
+                HorizontalContentAlignment="Left"
+                Background="Transparent">
             <StackPanel Orientation="Horizontal" Spacing="10">
-                <PersonPicture Width="30" Height="30"
-                               Initials="{x:Bind UserInitials, Mode=OneWay}" />
+                <!-- Person icon circle — Mac: 30x30, person.fill (aqua), glass surface bg, white stroke -->
+                <Border Width="30" Height="30"
+                        CornerRadius="15"
+                        Background="#7A4FBEBA"
+                        BorderBrush="#75FFFFFF"
+                        BorderThickness="1">
+                    <FontIcon Glyph="&#xE77B;"
+                              FontSize="13"
+                              Foreground="#4FBEBA"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+                </Border>
                 <StackPanel Spacing="2">
                     <TextBlock Text="{x:Bind UserDisplayName, Mode=OneWay, FallbackValue='User'}"
                                FontSize="13" FontWeight="SemiBold" />

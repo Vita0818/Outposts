@@ -5,12 +5,20 @@ import { router } from '@kit.ArkUI'
 import { UserProfile } from '../models/UserProfile'
 import { SettingsStore } from '../services/SettingsStore'
 import { OpenAICompatibleClient, AIConfiguration, ProviderHealthResult } from '../services/OpenAICompatibleClient'
-import { RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
+import { colorAlpha,  RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
 
 function formatTime(d: Date): string {
   const h = String(d.getHours()).padStart(2, '0')
   const m = String(d.getMinutes()).padStart(2, '0')
   return `${h}:${m}`
+}
+
+function isEnglishLabel(text: string): boolean {
+  return /^[A-Za-z]/.test(text)
+}
+
+function isTechValue(text: string): boolean {
+  return /[.\\-_]/.test(text) || /^[a-z]/.test(text)
 }
 
 @Entry
@@ -40,6 +48,8 @@ struct SettingsPage {
   @State uploadAPIKey: string = ''
   @State isSavingUpload: boolean = false
   @State uploadSavedMessage: string = ''
+  @State showProfileEditor: boolean = false
+  @State showAIEditor: boolean = false
 
   aboutToAppear(): void {
     this.loadAllSettings()
@@ -158,308 +168,207 @@ struct SettingsPage {
       .padding({ left: 16, right: 16, top: 56, bottom: 24 })
 
       Scroll() {
-        Column({ space: 24 }) {
-          // Avatar
-          Column({ space: 12 }) {
-            Circle()
-              .width(80)
-              .height(80)
-              .fill(RokuricsColors.aqua + '20')
-            Text(this.profile.initial)
-              .fontSize(32)
-              .fontWeight(FontWeight.SemiBold)
-              .fontColor(RokuricsColors.aqua)
+        Column({ space: 28 }) {
+          // ── Profile avatar area ──
+          Column({ space: 10 }) {
+            Stack() {
+              Circle()
+                .width(72).height(72)
+                .fill(colorAlpha(RokuricsColors.aqua, '18'))
+              Text(this.profile.initial)
+                .fontSize(28)
+                .fontWeight(FontWeight.SemiBold)
+                .fontColor(RokuricsColors.aqua)
+            }
             Text(this.profile.displayName)
-              .fontSize(20)
+              .fontSize(18)
               .fontWeight(FontWeight.SemiBold)
               .fontColor(RokuricsColors.deepText)
             Text(this.profile.displayHandle)
-              .fontSize(14)
-              .fontColor(RokuricsColors.softText)
+              .fontSize(12)
+              .fontColor(RokuricsColors.tertiaryText)
+
+            Button() {
+              Text('编辑个人资料')
+                .fontSize(13)
+                .fontWeight(FontWeight.Medium)
+                .fontColor(RokuricsColors.softText)
+            }
+            .padding({ left: 18, right: 18, top: 7, bottom: 7 })
+            .borderRadius(16)
+            .backgroundColor(Color.Transparent)
+            .border({ width: 1, color: colorAlpha(RokuricsColors.softText, '30'), radius: 16 })
+            .onClick(() => { this.showProfileEditor = !this.showProfileEditor })
           }
           .width('100%')
 
-          // Profile form
-          Column({ space: 16 }) {
-            Column({ space: 6 }) {
-              Text('显示名称').fontSize(12).fontColor(RokuricsColors.softText)
-              TextInput({ text: this.displayName, placeholder: '输入显示名称' })
-                .fontSize(16).fontColor(RokuricsColors.deepText)
-                .backgroundColor(RokuricsColors.glassSurface + '80')
-                .borderRadius(10).padding({ left: 14, right: 14, top: 10, bottom: 10 })
-                .onChange((value: string) => { this.displayName = value })
-            }
-            .width('100%')
-
-            Column({ space: 6 }) {
-              Text('账号 (@handle)').fontSize(12).fontColor(RokuricsColors.softText)
-              TextInput({ text: this.handle, placeholder: '输入账号' })
-                .fontSize(16).fontColor(RokuricsColors.deepText)
-                .backgroundColor(RokuricsColors.glassSurface + '80')
-                .borderRadius(10).padding({ left: 14, right: 14, top: 10, bottom: 10 })
-                .onChange((value: string) => { this.handle = value })
-            }
-            .width('100%')
-
-            Button() {
-              Text('保存').fontSize(16).fontWeight(FontWeight.SemiBold).fontColor(Color.White)
-            }
-            .width('100%').height(48).borderRadius(12)
-            .backgroundColor(RokuricsColors.aqua)
-            .enabled(!this.isSaving)
-            .onClick(() => this.saveProfile())
-
-            if (this.savedMessage.length > 0) {
-              Text(this.savedMessage).fontSize(13)
-                .fontColor(this.savedMessage.startsWith('已保存') ? RokuricsColors.mint : RokuricsColors.coral)
-            }
-          }
-          .padding(20).borderRadius(20)
-          .backgroundColor(RokuricsColors.glassSurface + '66')
-
-          // AI Provider Configuration
-          Column({ space: 16 }) {
-            Text('AI 提供商配置')
-              .fontSize(16).fontWeight(FontWeight.SemiBold)
-              .fontColor(RokuricsColors.deepText)
-
-            // Provider kind toggle
-            Row({ space: 12 }) {
-              Text('提供商').fontSize(14).fontColor(RokuricsColors.softText).width(80)
-              Row({ space: 0 }) {
-                Button() {
-                  Text('Mock')
-                    .fontSize(13)
-                    .fontColor(this.aiProviderKind === 'mock' ? Color.White : RokuricsColors.softText)
-                }
-                .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-                .borderRadius({ topLeft: 8, bottomLeft: 8 })
-                .backgroundColor(this.aiProviderKind === 'mock' ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50')
-                .onClick(() => { this.aiProviderKind = 'mock' })
-
-                Button() {
-                  Text('OpenAI')
-                    .fontSize(13)
-                    .fontColor(this.aiProviderKind === 'openaiCompatible' ? Color.White : RokuricsColors.softText)
-                }
-                .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-                .borderRadius({ topRight: 8, bottomRight: 8 })
-                .backgroundColor(this.aiProviderKind === 'openaiCompatible' ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50')
-                .onClick(() => { this.aiProviderKind = 'openaiCompatible' })
+          // Expandable profile editor
+          if (this.showProfileEditor) {
+            Column({ space: 12 }) {
+              Column({ space: 4 }) {
+                Text('显示名称').fontSize(11).fontColor(RokuricsColors.tertiaryText)
+                TextInput({ text: this.displayName, placeholder: '输入显示名称' })
+                  .fontSize(15).fontColor(RokuricsColors.deepText)
+                  .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '60'))
+                  .borderRadius(8).padding({ left: 12, right: 12, top: 9, bottom: 9 })
+                  .onChange((value: string) => { this.displayName = value })
               }
-            }
-
-            if (this.aiProviderKind === 'openaiCompatible') {
-              Column({ space: 12 }) {
-                Column({ space: 4 }) {
-                  Text('API 地址').fontSize(12).fontColor(RokuricsColors.softText)
-                  TextInput({ text: this.aiBaseURL, placeholder: 'https://api.openai.com/v1' })
-                    .fontSize(14).fontColor(RokuricsColors.deepText)
-                    .backgroundColor(RokuricsColors.glassSurface + '40')
-                    .borderRadius(8).padding({ left: 12, right: 12, top: 8, bottom: 8 })
-                    .onChange((value: string) => { this.aiBaseURL = value })
-                }
-
-                Column({ space: 4 }) {
-                  Text('模型名称').fontSize(12).fontColor(RokuricsColors.softText)
-                  TextInput({ text: this.aiModelName, placeholder: 'gpt-4o-mini' })
-                    .fontSize(14).fontColor(RokuricsColors.deepText)
-                    .backgroundColor(RokuricsColors.glassSurface + '40')
-                    .borderRadius(8).padding({ left: 12, right: 12, top: 8, bottom: 8 })
-                    .onChange((value: string) => { this.aiModelName = value })
-                }
-
-                Column({ space: 4 }) {
-                  Text('API Key').fontSize(12).fontColor(RokuricsColors.softText)
-                  TextInput({ text: this.aiAPIKey, placeholder: 'sk-...' })
-                    .fontSize(14).fontColor(RokuricsColors.deepText)
-                    .type(InputType.Password)
-                    .backgroundColor(RokuricsColors.glassSurface + '40')
-                    .borderRadius(8).padding({ left: 12, right: 12, top: 8, bottom: 8 })
-                    .onChange((value: string) => { this.aiAPIKey = value })
-                }
-
-                Row({ space: 12 }) {
-                  Column({ space: 4 }) {
-                    Text('温度').fontSize(12).fontColor(RokuricsColors.softText)
-                    TextInput({ text: String(this.aiTemperature), placeholder: '0.3' })
-                      .fontSize(14).fontColor(RokuricsColors.deepText)
-                      .type(InputType.Number)
-                      .backgroundColor(RokuricsColors.glassSurface + '40')
-                      .borderRadius(8).padding({ left: 12, right: 12, top: 8, bottom: 8 })
-                      .onChange((value: string) => {
-                        const n = parseFloat(value)
-                        if (!isNaN(n)) this.aiTemperature = n
-                      })
-                  }
-                  .layoutWeight(1)
-
-                  Column({ space: 4 }) {
-                    Text('最大 Tokens').fontSize(12).fontColor(RokuricsColors.softText)
-                    TextInput({ text: String(this.aiMaxTokens), placeholder: '2000' })
-                      .fontSize(14).fontColor(RokuricsColors.deepText)
-                      .type(InputType.Number)
-                      .backgroundColor(RokuricsColors.glassSurface + '40')
-                      .borderRadius(8).padding({ left: 12, right: 12, top: 8, bottom: 8 })
-                      .onChange((value: string) => {
-                        const n = parseInt(value)
-                        if (!isNaN(n)) this.aiMaxTokens = n
-                      })
-                  }
-                  .layoutWeight(1)
-                }
-                .width('100%')
-
-                if (this.testConnectionResult.length > 0) {
-                  Text(this.testConnectionResult)
-                    .fontSize(13)
-                    .fontColor(this.testConnectionResult === '连接成功' ? RokuricsColors.mint : RokuricsColors.coral)
-                }
+              Column({ space: 4 }) {
+                Text('账号 (@handle)').fontSize(11).fontColor(RokuricsColors.tertiaryText)
+                TextInput({ text: this.handle, placeholder: '输入账号' })
+                  .fontSize(15).fontColor(RokuricsColors.deepText)
+                  .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '60'))
+                  .borderRadius(8).padding({ left: 12, right: 12, top: 9, bottom: 9 })
+                  .onChange((value: string) => { this.handle = value })
               }
-            }
-
-            // Provider health summary
-            Column({ space: 6 }) {
-              Text('提供商状态')
-                .fontSize(14).fontWeight(FontWeight.SemiBold)
-                .fontColor(RokuricsColors.deepText)
-                .width('100%')
-
-              Row() {
-                Circle()
-                  .width(8).height(8)
-                  .fill(this.providerHealthSummary.startsWith('已连接') ? RokuricsColors.mint : RokuricsColors.tertiaryText)
-                Text(this.aiProviderKind === 'openaiCompatible' ? 'OpenAI 兼容模式' : 'Mock 模式')
-                  .fontSize(13).fontColor(RokuricsColors.softText)
-                  .margin({ left: 6 })
-              }
-
-              if (this.aiProviderKind === 'openaiCompatible') {
-                Row() {
-                  Text('模型:')
-                    .fontSize(11).fontColor(RokuricsColors.tertiaryText)
-                  Text(this.aiModelName)
-                    .fontSize(11).fontColor(RokuricsColors.deepText)
-                    .margin({ left: 4 })
-                }
-              }
-
-              if (this.providerHealthSummary.length > 0) {
-                Text(this.providerHealthSummary)
-                  .fontSize(12)
-                  .fontColor(this.providerHealthSummary.startsWith('已连接') ?
-                    RokuricsColors.mint : RokuricsColors.coral)
-              }
-
-              if (this.providerLatency.length > 0) {
-                Text(`延迟: ${this.providerLatency}`)
-                  .fontSize(11)
-                  .fontColor(RokuricsColors.tertiaryText)
-              }
-
-              if (this.lastConnectionTest.length > 0) {
-                Text(`上次测试: ${this.lastConnectionTest}`)
-                  .fontSize(11)
-                  .fontColor(RokuricsColors.tertiaryText)
-              }
-
-              if (this.providerModels.length > 0) {
-                Text(`可用模型 (${this.providerModels.length}):`)
-                  .fontSize(11).fontColor(RokuricsColors.tertiaryText)
-                  .margin({ top: 6 })
-                Text(this.providerModels.join(', '))
-                  .fontSize(10).fontColor(RokuricsColors.softText)
-                  .maxLines(3).textOverflow({ overflow: TextOverflow.Ellipsis })
-              }
-            }
-            .width('100%')
-            .padding(12).borderRadius(12)
-            .backgroundColor(RokuricsColors.glassSurface + '30')
-            .margin({ top: 4 })
-
-            Row({ space: 12 }) {
-              if (this.aiProviderKind === 'openaiCompatible') {
-                Button() {
-                  Text(this.isTestingConnection ? '测试中...' : '测试连接')
-                    .fontSize(13).fontColor(RokuricsColors.aqua)
-                }
-                .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-                .border({ width: 1, color: RokuricsColors.aqua + '40', radius: 8 })
-                .backgroundColor(Color.Transparent)
-                .enabled(!this.isTestingConnection)
-                .onClick(() => this.testConnection())
-              }
-
-              Blank()
-
               Button() {
-                Text('保存 AI 配置')
+                Text(this.isSaving ? '保存中...' : '保存')
                   .fontSize(14).fontWeight(FontWeight.SemiBold).fontColor(Color.White)
               }
-              .padding({ left: 20, right: 20, top: 10, bottom: 10 })
-              .borderRadius(10)
+              .width('100%').height(42).borderRadius(10)
               .backgroundColor(RokuricsColors.aqua)
+              .enabled(!this.isSaving)
+              .onClick(() => this.saveProfile())
+              if (this.savedMessage.length > 0) {
+                Text(this.savedMessage).fontSize(12)
+                  .fontColor(this.savedMessage.startsWith('已保存') ? RokuricsColors.mint : RokuricsColors.coral)
+              }
+            }
+            .padding(16).borderRadius(16)
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '50'))
+            .width('100%')
+          }
+
+          // ── 转写 section ──
+          this.SettingsSection('转写') {
+            Column() {
+              this.SettingsRow('Provider', 'Mac 安全转写')
+              this.SettingsDivider()
+              this.SettingsRow('模型', 'whisper.cpp')
+              this.SettingsDivider()
+              Row() {
+                this.SettingsLinkRowContent('授权与测试')
+              }
+              .width('100%')
+              .padding({ left: 16, right: 16, top: 13, bottom: 13 })
+              .onClick(() => {
+                this.getUIContext().getRouter().pushUrl({ url: 'pages/AuthTestPage' })
+              })
+            }
+          }
+
+          // ── AI section ──
+          this.SettingsSection('AI') {
+            Column() {
+              Row() {
+                this.SettingsRowContent('Provider', this.aiProviderKind === 'mock' ? 'Mock' : 'OpenAI')
+              }
+              .onClick(() => { this.showAIEditor = !this.showAIEditor })
+              this.SettingsDivider()
+              Row() {
+                this.SettingsRowContent('模型', this.aiModelName)
+              }
+              .onClick(() => { this.showAIEditor = !this.showAIEditor })
+              this.SettingsDivider()
+              Row() {
+                this.SettingsLinkRowContent('API 设置')
+              }
+              .onClick(() => { this.showAIEditor = !this.showAIEditor })
+              this.SettingsDivider()
+              Row() {
+                this.SettingsLinkRowContent('测试')
+              }
+              .onClick(() => this.testConnection())
+            }
+          }
+
+          // ── AI detail editor (expandable) ──
+          if (this.showAIEditor) {
+            Column({ space: 12 }) {
+              // Provider kind toggle
+              Row({ space: 0 }) {
+                Button() {
+                  Text('Mock').fontSize(12)
+                    .fontColor(this.aiProviderKind === 'mock' ? Color.White : RokuricsColors.softText)
+                }
+                .padding({ left: 14, right: 14, top: 6, bottom: 6 })
+                .borderRadius({ topLeft: 8, bottomLeft: 8 })
+                .backgroundColor(this.aiProviderKind === 'mock' ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '40'))
+                .onClick(() => { this.aiProviderKind = 'mock' })
+                Button() {
+                  Text('OpenAI').fontSize(12)
+                    .fontColor(this.aiProviderKind === 'openaiCompatible' ? Color.White : RokuricsColors.softText)
+                }
+                .padding({ left: 14, right: 14, top: 6, bottom: 6 })
+                .borderRadius({ topRight: 8, bottomRight: 8 })
+                .backgroundColor(this.aiProviderKind === 'openaiCompatible' ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '40'))
+                .onClick(() => { this.aiProviderKind = 'openaiCompatible' })
+              }
+              if (this.aiProviderKind === 'openaiCompatible') {
+                this.SettingsInput('API 地址', this.aiBaseURL, 'https://api.openai.com/v1',
+                  (v: string) => { this.aiBaseURL = v })
+                this.SettingsInput('模型名称', this.aiModelName, 'gpt-4o-mini',
+                  (v: string) => { this.aiModelName = v })
+                this.SettingsInput('API Key', this.aiAPIKey, 'sk-...',
+                  (v: string) => { this.aiAPIKey = v }, true)
+                Row({ space: 8 }) {
+                  this.SettingsInput('温度', String(this.aiTemperature), '0.3',
+                    (v: string) => { const n = parseFloat(v); if (!isNaN(n)) this.aiTemperature = n }, false, true)
+                  this.SettingsInput('最大 Tokens', String(this.aiMaxTokens), '2000',
+                    (v: string) => { const n = parseInt(v); if (!isNaN(n)) this.aiMaxTokens = n }, false, true)
+                }
+                .width('100%')
+                if (this.aiProviderKind === 'openaiCompatible') {
+                  Row({ space: 8 }) {
+                    Button() {
+                      Text(this.isTestingConnection ? '测试中...' : '测试连接')
+                        .fontSize(12).fontColor(RokuricsColors.aqua)
+                    }
+                    .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+                    .border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 6 })
+                    .backgroundColor(Color.Transparent)
+                    .enabled(!this.isTestingConnection)
+                    .onClick(() => this.testConnection())
+                    if (this.testConnectionResult.length > 0) {
+                      Text(this.testConnectionResult).fontSize(11)
+                        .fontColor(this.testConnectionResult === '连接成功' ? RokuricsColors.mint : RokuricsColors.coral)
+                    }
+                  }
+                }
+              }
+              Button() {
+                Text('保存 AI 配置').fontSize(13).fontWeight(FontWeight.SemiBold).fontColor(Color.White)
+              }
+              .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+              .borderRadius(8).backgroundColor(RokuricsColors.aqua)
               .enabled(!this.isSavingAI)
               .onClick(() => this.saveAIConfig())
+              if (this.aiSavedMessage.length > 0) {
+                Text(this.aiSavedMessage).fontSize(11)
+                  .fontColor(this.aiSavedMessage.startsWith('AI') ? RokuricsColors.mint : RokuricsColors.coral)
+              }
             }
-            .width('100%')
+            .width('100%').padding(14).borderRadius(16)
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '50'))
+          }
 
-            if (this.aiSavedMessage.length > 0) {
-              Text(this.aiSavedMessage)
-                .fontSize(13)
-                .fontColor(this.aiSavedMessage.startsWith('AI') ? RokuricsColors.mint : RokuricsColors.coral)
+          // ── 关于 section ──
+          this.SettingsSection('关于') {
+            Column() {
+              this.SettingsRow('存储', '本机')
+              this.SettingsDivider()
+              Row() {
+                this.SettingsLinkRowContent('隐私政策')
+              }
+              .width('100%')
+              .padding({ left: 16, right: 16, top: 13, bottom: 13 })
+              .onClick(() => {
+                this.getUIContext().getRouter().pushUrl({ url: 'pages/PrivacyPolicyPage' })
+              })
+              this.SettingsDivider()
+              this.SettingsRow('版权', '1.0 (1)')
             }
           }
-          .padding(20).borderRadius(20)
-          .backgroundColor(RokuricsColors.glassSurface + '66')
-
-          // Upload server configuration
-          Column({ space: 12 }) {
-            Text('上传服务器配置')
-              .fontSize(16).fontWeight(FontWeight.SemiBold)
-              .fontColor(RokuricsColors.deepText)
-            Column({ space: 4 }) {
-              Text('服务器地址').fontSize(12).fontColor(RokuricsColors.softText)
-              TextInput({ text: this.uploadServerURL, placeholder: 'http://your-server.com' })
-                .fontSize(14).fontColor(RokuricsColors.deepText)
-                .backgroundColor(RokuricsColors.glassSurface + '40')
-                .borderRadius(8).padding({ left: 12, right: 12, top: 8, bottom: 8 })
-                .onChange((v: string) => { this.uploadServerURL = v })
-            }
-            Column({ space: 4 }) {
-              Text('API Key（可选）').fontSize(12).fontColor(RokuricsColors.softText)
-              TextInput({ text: this.uploadAPIKey, placeholder: 'Bearer token' })
-                .fontSize(14).fontColor(RokuricsColors.deepText)
-                .type(InputType.Password)
-                .backgroundColor(RokuricsColors.glassSurface + '40')
-                .borderRadius(8).padding({ left: 12, right: 12, top: 8, bottom: 8 })
-                .onChange((v: string) => { this.uploadAPIKey = v })
-            }
-            Button() {
-              Text('保存上传配置')
-                .fontSize(14).fontWeight(FontWeight.SemiBold).fontColor(Color.White)
-            }
-            .width('100%').height(44).borderRadius(10)
-            .backgroundColor(RokuricsColors.aqua)
-            .enabled(!this.isSavingUpload)
-            .onClick(() => this.saveUploadConfig())
-            if (this.uploadSavedMessage.length > 0) {
-              Text(this.uploadSavedMessage).fontSize(13)
-                .fontColor(this.uploadSavedMessage.startsWith('上传') ? RokuricsColors.mint : RokuricsColors.coral)
-            }
-          }
-          .padding(20).borderRadius(20)
-          .backgroundColor(RokuricsColors.glassSurface + '66')
-
-          // About
-          Column({ space: 8 }) {
-            Text('关于 Rokurics').fontSize(15).fontWeight(FontWeight.SemiBold).fontColor(RokuricsColors.deepText)
-            Text('版本 1.0.0').fontSize(13).fontColor(RokuricsColors.tertiaryText)
-            Text('学习录音与 AI 笔记\nHarmonyOS 平台').fontSize(13).fontColor(RokuricsColors.softText).textAlign(TextAlign.Center)
-          }
-          .width('100%').padding(20).borderRadius(20)
-          .backgroundColor(RokuricsColors.glassSurface + '40')
-          .margin({ top: 12 })
         }
         .width('100%')
         .padding({ left: 16, right: 16, bottom: 40 })
@@ -467,6 +376,120 @@ struct SettingsPage {
       .width('100%').layoutWeight(1)
     }
     .width('100%').height('100%')
-    .backgroundColor(RokuricsColors.pageBackground)
+    .linearGradient({
+      direction: GradientDirection.RightBottom,
+      colors: [
+        [RokuricsColors.pageGradientStart, 1.0],
+        [RokuricsColors.pageGradientMid, 1.0],
+        [RokuricsColors.pageGradientEnd, 1.0]
+      ]
+    })
+  }
+
+  // ── Settings grouped card builders ──
+
+  @Builder
+  SettingsSection(title: string, child: WrappedBuilder<[]>) {
+    Column({ space: 8 }) {
+      Text(title)
+        .fontSize(13)
+        .fontWeight(FontWeight.Medium)
+        .fontColor(RokuricsColors.tertiaryText)
+        .padding({ left: 6 })
+        .width('100%')
+      Column() {
+        child.builder()
+      }
+      .width('100%')
+      .borderRadius(18)
+      .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'))
+      .border({
+        width: 1,
+        color: {
+          colors: [
+            [0xFFFFFF, 0.10],
+            [RokuricsColors.glassStroke, 0.08],
+            [RokuricsColors.glassStrokeAccent, 0.06]
+          ],
+          direction: GradientDirection.RightBottom
+        },
+        radius: 18
+      } as BorderOptions)
+    }
+    .width('100%')
+  }
+
+  @Builder
+  SettingsRow(label: string, value: string) {
+    Row() {
+      this.SettingsRowContent(label, value)
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 13, bottom: 13 })
+  }
+
+  @Builder
+  SettingsRowContent(label: string, value: string) {
+    Text(label)
+      .fontSize(15)
+      .fontWeight(FontWeight.Medium)
+      .fontColor(RokuricsColors.deepText)
+      .fontFamily(isEnglishLabel(label) ? 'serif' : 'sans-serif')
+    Blank()
+    Text(value)
+      .fontSize(14)
+      .fontWeight(FontWeight.Regular)
+      .fontColor(RokuricsColors.softText)
+      .fontFamily(isTechValue(value) ? 'monospace' : (isEnglishLabel(value) ? 'serif' : 'sans-serif'))
+  }
+
+  @Builder
+  SettingsLinkRow(label: string) {
+    Row() {
+      this.SettingsLinkRowContent(label)
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 13, bottom: 13 })
+  }
+
+  @Builder
+  SettingsLinkRowContent(label: string) {
+    Text(label)
+      .fontSize(15)
+      .fontWeight(FontWeight.Medium)
+      .fontColor(RokuricsColors.deepText)
+      .fontFamily(isEnglishLabel(label) ? 'serif' : 'sans-serif')
+    Blank()
+    Text('查看')
+      .fontSize(14)
+      .fontWeight(FontWeight.Regular)
+      .fontColor(RokuricsColors.aqua)
+    Text('›')
+      .fontSize(16)
+      .fontColor(RokuricsColors.tertiaryText)
+      .margin({ left: 2 })
+  }
+
+  @Builder
+  SettingsDivider() {
+    Divider()
+      .strokeWidth(0.5)
+      .color(colorAlpha(RokuricsColors.softText, '10'))
+      .margin({ left: 16, right: 16 })
+  }
+
+  @Builder
+  SettingsInput(label: string, value: string, placeholder: string,
+                onChange: (v: string) => void, isPassword?: boolean, isNumber?: boolean) {
+    Column({ space: 3 }) {
+      Text(label).fontSize(10).fontColor(RokuricsColors.tertiaryText)
+      TextInput({ text: value, placeholder: placeholder })
+        .fontSize(13).fontColor(RokuricsColors.deepText)
+        .type(isPassword ? InputType.Password : isNumber ? InputType.Number : InputType.Normal)
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'))
+        .borderRadius(6).padding({ left: 10, right: 10, top: 7, bottom: 7 })
+        .onChange(onChange)
+    }
+    .layoutWeight(1)
   }
 }

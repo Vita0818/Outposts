@@ -1,27 +1,38 @@
 /**
  * Theme system - mirrors RokuricsColors.swift + RokuricsTypography.swift + glass modifiers
  */
-// ── Colors ──
+// ── Color utility: converts #RRGGBB base + AA alpha suffix to HarmonyOS #AARRGGBB ──
+export function colorAlpha(baseHex: string, alphaHex: string): string {
+    return '#' + alphaHex + baseHex.substring(1);
+}
+// ── Colors (dark mode — mirrors RokuricsColors.swift adaptive dark values) ──
 export class RokuricsColors {
-    static readonly aqua = '#59C7C2';
-    static readonly mint = '#9EE8C7';
-    static readonly mistGreen = '#E2F9EF';
-    static readonly softTeal = '#75B3B5';
-    static readonly skyCyan = '#73C7F0';
-    static readonly paleAqua = '#C4F5E8';
-    static readonly coral = '#E06B6E';
-    static readonly deepText = '#1A424A';
-    static readonly softText = '#638F94';
-    static readonly tertiaryText = '#94B3B8';
-    static readonly glassSurface = '#FFFFFF';
-    static readonly glassStroke = '#EFFAF8';
-    static readonly glassStrokeAccent = '#91E8D6';
-    static readonly shadowColor = '#4AB8A8';
-    static readonly pageBackground = '#EFFAF8';
-    static readonly actionStart = '#4FC2C0';
-    static readonly actionEnd = '#99E6C2';
-    static readonly recordingAccentStart = '#DB6B6B';
-    static readonly recordingAccentEnd = '#F5AD94';
+    static readonly aqua = '#57D6D1';
+    static readonly mint = '#52BD94';
+    static readonly mistGreen = '#0F2B26';
+    static readonly softTeal = '#85CCCC';
+    static readonly skyCyan = '#4DB3EB';
+    static readonly paleAqua = '#266B61';
+    static readonly coral = '#F5757A';
+    static readonly deepText = '#E6FAF7';
+    static readonly softText = '#A8D1D1';
+    static readonly tertiaryText = '#759EA1';
+    static readonly glassSurface = '#0D2424';
+    static readonly glassStroke = '#8ADBD1';
+    static readonly glassStrokeAccent = '#61D4C2';
+    static readonly shadowColor = '#000808';
+    static readonly pageBackground = '#051414';
+    static readonly actionStart = '#128080';
+    static readonly actionEnd = '#2BAB82';
+    static readonly recordingAccentStart = '#D14257';
+    static readonly recordingAccentEnd = '#E0706B';
+    // ── Page gradient color stops (mirrors pageGradient dark in RokuricsColors.swift) ──
+    static readonly pageGradientStart = '#051414';
+    static readonly pageGradientMid = '#0A2B29';
+    static readonly pageGradientEnd = '#030D12';
+    // ── Action/orb gradient stops (mirrors actionGradient dark in RokuricsColors.swift) ──
+    static readonly actionGradientStart = '#128080';
+    static readonly actionGradientEnd = '#2BAB82';
 }
 // ── Typography ──
 export interface Font {
@@ -72,22 +83,22 @@ export function darkModeGlassOpacity(lightHexAlpha: string, isDark: boolean): st
     return scaled.toString(16).padStart(2, '0').toUpperCase();
 }
 // Pre-computed glass opacity strings (hex alpha for appending to colors).
-// Light mode defaults (matching Apple light mode fill/stroke opacities):
-export const glassFillOpacity = 'A8'; // ~66% light → ~51% dark
-export const glassStrokeHighOpacity = '44'; // ~27% light → ~21% dark
-export const glassStrokeMidOpacity = '12'; // ~7% light  → ~5% dark
-export const glassAccentOpacity = '08'; // ~3% light  → ~2% dark
-// Reusable glass card backing (mirrors rokuricsLiquidGlassCard) ──
+// Dark mode defaults (scaled from light 0.78× fill, 0.82× stroke, per Apple RokuricsGlassStyle):
+export const glassFillOpacity = '5C'; // min(0.66*0.78, 0.36) → ~36% fill
+export const glassStrokeHighOpacity = '38'; // min(0.27*0.82, 0.34) → ~22% stroke
+export const glassStrokeMidOpacity = '0E'; // min(0.07*0.82, 0.34) → ~5% stroke
+export const glassAccentOpacity = '0A'; // ~4% accent
+// Reusable glass card backing (mirrors rokuricsLiquidGlassCard dark mode) ──
 export function GlassCardContent(child: WrappedBuilder<[
 ]>, parent = null): void {
     const __child__ = child;
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender, child = __child__) => {
         Column.create();
-        Column.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(96:3)", "entry");
+        Column.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(110:3)", "entry");
         Column.borderRadius(20);
-        Column.backgroundColor(RokuricsColors.glassSurface + 'A8');
+        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
         Column.shadow({
-            color: RokuricsColors.shadowColor + '18',
+            color: colorAlpha(RokuricsColors.shadowColor, '18'),
             radius: 18,
             offsetY: 10
         });
@@ -95,9 +106,9 @@ export function GlassCardContent(child: WrappedBuilder<[
             width: 1,
             color: {
                 colors: [
-                    [0xFFFFFF, 0.44],
-                    [0xEFFAF8, 0.18],
-                    [0x91E8D6, 0.14]
+                    [0xFFFFFF, 0.22],
+                    [RokuricsColors.glassStroke, 0.18],
+                    [RokuricsColors.glassStrokeAccent, 0.24]
                 ],
                 direction: GradientDirection.RightBottom
             },
@@ -107,18 +118,18 @@ export function GlassCardContent(child: WrappedBuilder<[
     child.builder.bind(this)();
     Column.pop();
 }
-// ── Glass circle (mirrors rokuricsGlassCircle) ──
+// ── Glass circle (mirrors rokuricsGlassCircle dark mode) ──
 export function GlassCircle(size: number, child: WrappedBuilder<[
 ]>, parent = null): void {
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         Stack.create();
-        Stack.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(123:3)", "entry");
+        Stack.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(137:3)", "entry");
         Stack.width(size);
         Stack.height(size);
         Stack.borderRadius(size / 2);
-        Stack.backgroundColor(RokuricsColors.glassSurface + '66');
+        Stack.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '5C'));
         Stack.shadow({
-            color: RokuricsColors.shadowColor + '12',
+            color: colorAlpha(RokuricsColors.shadowColor, '12'),
             radius: 14,
             offsetY: 7
         });
@@ -126,9 +137,9 @@ export function GlassCircle(size: number, child: WrappedBuilder<[
             width: 1,
             color: {
                 colors: [
-                    [0xFFFFFF, 0.44],
-                    [0xEFFAF8, 0.14],
-                    [0x59C7C2, 0.12]
+                    [0xFFFFFF, 0.22],
+                    [RokuricsColors.glassStroke, 0.14],
+                    [RokuricsColors.aqua, 0.24]
                 ],
                 direction: GradientDirection.RightBottom
             },
@@ -142,22 +153,22 @@ export function GlassCircle(size: number, child: WrappedBuilder<[
 export function StatusPill(text: string, color: string, parent = null): void {
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         Row.create({ space: 6 });
-        Row.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(152:3)", "entry");
+        Row.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(166:3)", "entry");
         Row.padding({ left: 10, right: 10, top: 5, bottom: 5 });
         Row.borderRadius(12);
-        Row.backgroundColor(color + '18');
-        Row.border({ width: 1, color: color + '30', radius: 12 });
+        Row.backgroundColor(colorAlpha(color, '18'));
+        Row.border({ width: 1, color: colorAlpha(color, '30'), radius: 12 });
     }, Row);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         Circle.create();
-        Circle.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(153:5)", "entry");
+        Circle.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(167:5)", "entry");
         Circle.width(8);
         Circle.height(8);
         Circle.fill(color);
     }, Circle);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         Text.create(text);
-        Text.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(157:5)", "entry");
+        Text.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(171:5)", "entry");
         Text.fontSize(11);
         Text.fontWeight(FontWeight.Medium);
         Text.fontColor(color);
@@ -166,17 +177,17 @@ export function StatusPill(text: string, color: string, parent = null): void {
     Text.pop();
     Row.pop();
 }
-// ── Icon circle button (mirrors RokuricsIconCircleButton) ──
+// ── Icon circle button (mirrors RokuricsIconCircleButton dark mode) ──
 export function IconCircleButton(symbol: string, size: number, tint: string, onClick: () => void, parent = null): void {
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         Button.createWithChild();
-        Button.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(172:3)", "entry");
+        Button.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(186:3)", "entry");
         Button.width(size);
         Button.height(size);
         Button.borderRadius(size / 2);
-        Button.backgroundColor(RokuricsColors.glassSurface + '66');
+        Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '5C'));
         Button.shadow({
-            color: RokuricsColors.shadowColor + '10',
+            color: colorAlpha(RokuricsColors.shadowColor, '10'),
             radius: 12,
             offsetY: 6
         });
@@ -184,9 +195,9 @@ export function IconCircleButton(symbol: string, size: number, tint: string, onC
             width: 1,
             color: {
                 colors: [
-                    [0xFFFFFF, 0.44],
-                    [0xEFFAF8, 0.14],
-                    [0x59C7C2, 0.12]
+                    [0xFFFFFF, 0.22],
+                    [RokuricsColors.glassStroke, 0.14],
+                    [RokuricsColors.aqua, 0.24]
                 ],
                 direction: GradientDirection.RightBottom
             },
@@ -196,7 +207,7 @@ export function IconCircleButton(symbol: string, size: number, tint: string, onC
     }, Button);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         Text.create(symbol);
-        Text.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(173:5)", "entry");
+        Text.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(187:5)", "entry");
         Text.fontSize(size * 0.42);
         Text.fontWeight(FontWeight.SemiBold);
         Text.fontColor(tint);
@@ -209,38 +220,38 @@ export function WaveformIcon(size: number, parent = null): void {
     const __size__ = size;
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender, size = __size__) => {
         Stack.create();
-        Stack.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(205:3)", "entry");
+        Stack.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(219:3)", "entry");
         Stack.width(size);
         Stack.height(size);
         Stack.borderRadius(size / 2);
-        Stack.backgroundColor(RokuricsColors.glassSurface + '56');
+        Stack.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '4A'));
         Stack.border({
             width: 1,
             color: {
                 colors: [
-                    [0xFFFFFF, 0.38],
-                    [0xEFFAF8, 0.12],
-                    [0x59C7C2, 0.10]
+                    [0xFFFFFF, 0.20],
+                    [RokuricsColors.glassStroke, 0.12],
+                    [RokuricsColors.aqua, 0.20]
                 ],
                 direction: GradientDirection.RightBottom
             },
             radius: size / 2
         } as BorderOptions);
         Stack.shadow({
-            color: RokuricsColors.shadowColor + '08',
+            color: colorAlpha(RokuricsColors.shadowColor, '08'),
             radius: 9,
             offsetY: 4
         });
     }, Stack);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender, size = __size__) => {
         Row.create({ space: size * 0.1 });
-        Row.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(206:5)", "entry");
+        Row.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(220:5)", "entry");
         Row.justifyContent(FlexAlign.Center);
         Row.alignItems(VerticalAlign.Center);
     }, Row);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender, size = __size__) => {
         Rect.create();
-        Rect.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(207:7)", "entry");
+        Rect.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(221:7)", "entry");
         Rect.width(size * 0.12);
         Rect.height(size * 0.18);
         Rect.radius(size * 0.06);
@@ -248,7 +259,7 @@ export function WaveformIcon(size: number, parent = null): void {
     }, Rect);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender, size = __size__) => {
         Rect.create();
-        Rect.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(212:7)", "entry");
+        Rect.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(226:7)", "entry");
         Rect.width(size * 0.12);
         Rect.height(size * 0.40);
         Rect.radius(size * 0.06);
@@ -256,7 +267,7 @@ export function WaveformIcon(size: number, parent = null): void {
     }, Rect);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender, size = __size__) => {
         Rect.create();
-        Rect.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(217:7)", "entry");
+        Rect.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(231:7)", "entry");
         Rect.width(size * 0.12);
         Rect.height(size * 0.28);
         Rect.radius(size * 0.06);
@@ -264,7 +275,7 @@ export function WaveformIcon(size: number, parent = null): void {
     }, Rect);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender, size = __size__) => {
         Rect.create();
-        Rect.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(222:7)", "entry");
+        Rect.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(236:7)", "entry");
         Rect.width(size * 0.12);
         Rect.height(size * 0.56);
         Rect.radius(size * 0.06);
@@ -272,7 +283,7 @@ export function WaveformIcon(size: number, parent = null): void {
     }, Rect);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender, size = __size__) => {
         Rect.create();
-        Rect.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(227:7)", "entry");
+        Rect.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(241:7)", "entry");
         Rect.width(size * 0.12);
         Rect.height(size * 0.34);
         Rect.radius(size * 0.06);
@@ -285,7 +296,7 @@ export function WaveformIcon(size: number, parent = null): void {
 export function SegmentedButton(labels: string[], selectedIndex: number, onSelect: (index: number) => void, parent = null): void {
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         Row.create({ space: 0 });
-        Row.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(266:3)", "entry");
+        Row.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(280:3)", "entry");
     }, Row);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         ForEach.create();
@@ -293,9 +304,9 @@ export function SegmentedButton(labels: string[], selectedIndex: number, onSelec
             const label = _item;
             (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
                 Button.createWithChild();
-                Button.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(268:7)", "entry");
+                Button.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(282:7)", "entry");
                 Button.padding({ left: 14, right: 14, top: 7, bottom: 7 });
-                Button.backgroundColor(index === selectedIndex ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50');
+                Button.backgroundColor(index === selectedIndex ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
                 Button.borderRadius(index === 0 ?
                     { topLeft: 8, bottomLeft: 8 } :
                     index === labels.length - 1 ?
@@ -304,7 +315,7 @@ export function SegmentedButton(labels: string[], selectedIndex: number, onSelec
             }, Button);
             (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
                 Text.create(label);
-                Text.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(269:9)", "entry");
+                Text.debugLine("entry/src/main/ets/utils/RokuricsTheme.ets(283:9)", "entry");
                 Text.fontSize(13);
                 Text.fontColor(index === selectedIndex ? Color.White : RokuricsColors.softText);
             }, Text);

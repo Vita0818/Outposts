@@ -3,17 +3,15 @@ package com.vita0818.kikaria.ui.overview
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -139,81 +137,75 @@ fun TodayOverviewScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // ── Metric grid (2×2) ──
-                Row(
+                // ── Metric grid (2×2), matches iOS LazyVGrid ──
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    OverviewMetricCard(
-                        title = "查看答案",
-                        value = "$todayReviewCount",
-                        modifier = Modifier.weight(1f)
-                    )
-                    OverviewMetricCard(
-                        title = "总已掌握",
-                        value = "$totalMasteredCount",
-                        modifier = Modifier.weight(1f)
-                    )
+                    item {
+                        OverviewMetricCard(
+                            title = "查看答案",
+                            value = "$todayReviewCount"
+                        )
+                    }
+                    item {
+                        OverviewMetricCard(
+                            title = "总已掌握",
+                            value = "$totalMasteredCount"
+                        )
+                    }
+                    item {
+                        OverviewMetricCard(
+                            title = "查看提示",
+                            value = "$todayHintCount"
+                        )
+                    }
+                    item {
+                        OverviewMetricCard(
+                            title = "倒数",
+                            value = if (countdownDays > 0) "${countdownDays} 天" else "--"
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OverviewMetricCard(
-                        title = "查看提示",
-                        value = "$todayHintCount",
-                        modifier = Modifier.weight(1f)
-                    )
-                    OverviewMetricCard(
-                        title = "倒数",
-                        value = if (countdownDays > 0) "${countdownDays}天" else "--",
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // ── Review History link ──
-                Box(
+                // ── Review History link (matches iOS Button with calendar icon + chevron) ──
+                KikariaGlassCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onOpenHistory() }
+                        .clickable { onOpenHistory() },
+                    cornerRadius = 26.dp,
+                    fillOpacity = 0.38f
                 ) {
-                    KikariaGlassCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        cornerRadius = 26.dp,
-                        fillOpacity = 0.38f
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 19.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 20.dp, vertical = 19.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = KikariaTypography.mixedText(
-                                    "复习历史",
-                                    size = 18,
-                                    weight = FontWeight.SemiBold
-                                ),
-                                color = deepText,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                "📅",
-                                fontSize = 18.sp
-                            )
-                            Spacer(modifier = Modifier.padding(start = 12.dp))
-                            Text(
-                                "›",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = blueGray.copy(alpha = 0.52f)
-                            )
-                        }
+                        Text(
+                            text = KikariaTypography.mixedText(
+                                "复习历史",
+                                size = 18,
+                                weight = FontWeight.SemiBold
+                            ),
+                            color = deepText,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            "📅",
+                            fontSize = 18.sp
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            "›",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = blueGray.copy(alpha = 0.52f)
+                        )
                     }
                 }
 
@@ -226,15 +218,14 @@ fun TodayOverviewScreen(
 @Composable
 private fun OverviewMetricCard(
     title: String,
-    value: String,
-    modifier: Modifier = Modifier
+    value: String
 ) {
     val isDark = isSystemInDarkTheme()
     val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
 
     KikariaGlassCard(
-        modifier = modifier,
+        modifier = Modifier.fillMaxWidth(),
         cornerRadius = 24.dp,
         fillOpacity = 0.34f,
         shadowElevation = 14.dp,
@@ -260,6 +251,6 @@ private fun OverviewMetricCard(
                 maxLines = 1,
                 softWrap = false
             )
-                    }
-                }
-            }
+        }
+    }
+}

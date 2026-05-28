@@ -26,6 +26,48 @@ READY_FOR_USER_REVIEW
 
 `FILES_READ_SUMMARY` 只能摘要范围，不要求贴源码。`COMMANDS_RUN` 应列命令和结果摘要。`BUILD_RESULT`、`TEST_RESULT` 必须区分未运行、无法运行、失败、通过。
 
+当批次目标涉及 UI 复刻、截图对比或视觉验收时，每轮 Claude Code 报告还必须包含：
+
+```text
+QWEN_VISION_USED:
+REFERENCE_SCREENSHOTS:
+ACTUAL_SCREENSHOTS:
+VISION_COMPARISON_RESULT:
+MAJOR_VISUAL_DIFFERENCES:
+FIXES_FROM_VISUAL_REVIEW:
+REMAINING_VISUAL_DIFFERENCES:
+VISUAL_VALIDATION_LIMITATIONS:
+```
+
+当批次目标涉及视觉验收环境或截图闭环时，每轮 Claude Code 报告还必须包含：
+
+```text
+VISUAL_ENVIRONMENT:
+- ANDROID_STUDIO_RUNNING:
+- ANDROID_EMULATOR_STATUS:
+- ANDROID_DEVICE_SERIALS:
+- DEVECO_RUNNING:
+- HARMONYOS_PREVIEW_OR_DEVICE_STATUS:
+- WINDOWS_UI_ENV_STATUS:
+
+SCREENSHOT_EVIDENCE:
+- REFERENCE_SCREENSHOT_DIR:
+- ACTUAL_SCREENSHOT_DIR:
+- QWEN_OUTPUT_DIR:
+- SCREENSHOTS_GENERATED:
+- SCREENSHOTS_MISSING_REASON:
+
+QWEN_VISION_RESULT:
+- QWEN_VISION_AVAILABLE:
+- QWEN_VISION_USED:
+- INSPECT_SCREENSHOT_CALLED:
+- COMPARE_SCREENSHOTS_CALLED:
+- MAJOR_VISUAL_DIFFERENCES:
+- REMAINING_VISUAL_BLOCKERS:
+```
+
+Android 报告必须给出 `ANDROID_DEVICE_SERIALS` 和实际截图路径。HarmonyOS 报告必须说明截图是完整 IDE 截图还是裁剪后的 Preview 图。Windows 报告必须明确 `WINDOWS_UI_ENV_STATUS`，不能在 macOS host 无 Windows/.NET UI 环境时假装完成视觉验收。
+
 ## Codex 主管摘要字段
 
 Codex Agent 给用户的摘要应包含：
@@ -44,6 +86,10 @@ UNCERTAINTIES
 ```
 
 用户只需要看主管摘要。不得把 Claude Code 长报告整段贴给用户。必要时只摘取关键结论、阻塞、验证结果和下一步。
+
+当目标涉及 UI 复刻时，Codex 主管摘要应简要保留：是否使用 `qwen-vision`、是否有参考图、是否有实际渲染图、主要视觉差异、是否已根据视觉差异修正、剩余视觉验收阻塞。
+
+当目标涉及截图闭环时，Codex 主管摘要还应保留固定证据目录、截图文件是否生成、qwen 输出是否落盘、以及无法生成截图的具体原因。
 
 ## 项目状态字段
 
@@ -79,6 +125,16 @@ RUNNING_ROUNDS_WAITED_TO_FINISH
 STOP_REASON
 ```
 
+如果批次在时间预算和轮次预算尚未耗尽前结束，主管摘要必须明确解释提前结束原因：
+
+- 所有项目均达到硬终止状态。
+- 用户明确要求暂停。
+- 调度器发生误判并已记录修正。
+
+不得把 `READY_FOR_USER_REVIEW`、`REFERENCE_ONLY`、`WINDOWS_HOST_VALIDATION_PENDING` 或 actual screenshot unavailable 单独写成最终停止理由。此类软状态必须结合 remaining gaps、next recommendation、预算和轮次判断是否继续。
+
+当 `AUTO_CONTINUE_WITHIN_BUDGET=YES` 且项目仍有可执行下一步时，Codex 主管摘要应把项目标记为 `ROUND_COMPLETE_CONTINUE_ELIGIBLE`，而不是直接标记为终止态。
+
 ## 阻塞字段
 
 阻塞项必须明确：
@@ -102,6 +158,8 @@ SAFE_TO_CONTINUE_OTHER_PROJECTS
 - `PROMPT_DELIVERY_UNKNOWN`
 - `STATE_UNKNOWN`
 - `USER_REVIEW_REQUIRED`
+
+软状态不得混入硬阻塞字段。`REFERENCE_ONLY`、`QWEN_COMPARE_SCREENSHOTS_COMPLETED=NO`、`WINDOWS_HOST_VALIDATION_PENDING`、缺 actual screenshot、还有 remaining UI differences，都应进入 `NEXT_ACTION` 或 `REMAINING_WORK`，除非同时存在真实硬阻塞。
 
 ## crash recovery 摘要格式
 

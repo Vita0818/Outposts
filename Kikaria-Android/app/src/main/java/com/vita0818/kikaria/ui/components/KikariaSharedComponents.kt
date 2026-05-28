@@ -476,8 +476,8 @@ fun KikariaGlassCard(
     content: @Composable () -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
-    // Dark mode: opacity *= 0.82, clamped to 0.38
-    val adjustedFill = if (isDark) minOf(fillOpacity * 0.82f, 0.38f) else fillOpacity
+    // Dark mode: slightly reduced opacity for visual comfort
+    val adjustedFill = if (isDark) minOf(fillOpacity * 0.94f, 0.56f) else fillOpacity
     val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
     val shadowColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky)
         .copy(alpha = if (isDark) maxOf(shadowOpacity * 0.58f, 0.08f) else shadowOpacity)

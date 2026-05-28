@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.rokurics.app.data.AudioFileStore
 import com.rokurics.app.data.StudyLibraryStore
 import com.rokurics.app.domain.model.StudyItemMetadata
+import com.rokurics.app.ui.theme.adaptivePageGradientBrush
 import com.rokurics.app.ui.theme.RokuricsColors
 import java.io.File
 
@@ -68,7 +69,7 @@ fun StudyReadingPage(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFFF0FAF8))
+                .background(adaptivePageGradientBrush())
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {

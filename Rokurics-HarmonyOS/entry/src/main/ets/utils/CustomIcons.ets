@@ -2,7 +2,7 @@
  * Custom drawn icons replacing emoji placeholders
  * Uses standalone @Builder functions for cross-page reuse
  */
-import { RokuricsColors } from './RokuricsTheme'
+import { colorAlpha,  RokuricsColors } from './RokuricsTheme'
 
 // ── Back arrow ──
 @Builder
@@ -72,7 +72,7 @@ export function BooksIcon(size: number, color: string) {
       .width(size * 0.18)
       .height(size * 0.48)
       .radius(size * 0.03)
-      .fill(color + 'CC')
+      .fill(colorAlpha(color, 'CC'))
       .rotate({ angle: 8 })
       .position({ x: size * 0.40, y: size * 0.05 })
     Rect()
@@ -138,13 +138,13 @@ export function TrashIcon(size: number, color: string) {
 
     // Inner lines
     Rect().width(size * 0.03).height(size * 0.22)
-      .radius(size * 0.01).fill('#FFFFFF33')
+      .radius(size * 0.01).fill('#33FFFFFF')
       .position({ x: size * 0.20, y: size * 0.26 })
     Rect().width(size * 0.03).height(size * 0.28)
-      .radius(size * 0.01).fill('#FFFFFF33')
+      .radius(size * 0.01).fill('#33FFFFFF')
       .position({ x: size * 0.30, y: size * 0.22 })
     Rect().width(size * 0.03).height(size * 0.18)
-      .radius(size * 0.01).fill('#FFFFFF33')
+      .radius(size * 0.01).fill('#33FFFFFF')
       .position({ x: size * 0.40, y: size * 0.28 })
   }
   .width(size * 0.65)
@@ -168,17 +168,17 @@ export function DocBadgeIcon(size: number, color: string) {
         [size * 0.45, size * 0.18],
         [size * 0.32, 0]
       ] as [number, number][])
-      .fill('#FFFFFF40')
+      .fill('#40FFFFFF')
       .position({ x: 0, y: 0 })
     // Lines
     Rect().width(size * 0.28).height(size * 0.04)
-      .radius(size * 0.02).fill('#FFFFFF60')
+      .radius(size * 0.02).fill('#60FFFFFF')
       .position({ x: size * 0.08, y: size * 0.20 })
     Rect().width(size * 0.20).height(size * 0.04)
-      .radius(size * 0.02).fill('#FFFFFF40')
+      .radius(size * 0.02).fill('#40FFFFFF')
       .position({ x: size * 0.08, y: size * 0.32 })
     Rect().width(size * 0.24).height(size * 0.04)
-      .radius(size * 0.02).fill('#FFFFFF40')
+      .radius(size * 0.02).fill('#40FFFFFF')
       .position({ x: size * 0.08, y: size * 0.44 })
   }
   .width(size)
@@ -194,7 +194,7 @@ export function NoteBadgeIcon(size: number, color: string) {
       .width(size * 0.22)
       .height(size * 0.10)
       .radius(size * 0.03)
-      .fill('#FFFFFF50')
+      .fill('#50FFFFFF')
       .position({ x: size * 0.16, y: 0 })
     // Board
     Rect()
@@ -205,13 +205,13 @@ export function NoteBadgeIcon(size: number, color: string) {
       .position({ x: size * 0.05, y: size * 0.10 })
     // Lines
     Rect().width(size * 0.24).height(size * 0.04)
-      .radius(size * 0.02).fill('#FFFFFF60')
+      .radius(size * 0.02).fill('#60FFFFFF')
       .position({ x: size * 0.12, y: size * 0.22 })
     Rect().width(size * 0.18).height(size * 0.04)
-      .radius(size * 0.02).fill('#FFFFFF40')
+      .radius(size * 0.02).fill('#40FFFFFF')
       .position({ x: size * 0.12, y: size * 0.34 })
     Rect().width(size * 0.22).height(size * 0.04)
-      .radius(size * 0.02).fill('#FFFFFF40')
+      .radius(size * 0.02).fill('#40FFFFFF')
       .position({ x: size * 0.12, y: size * 0.46 })
   }
   .width(size)
@@ -269,12 +269,12 @@ export function BulletListIcon(size: number, color: string) {
   Column({ space: size * 0.16 }) {
     Row({ space: size * 0.14 }) {
       Circle().width(size * 0.14).height(size * 0.14).fill(color)
-      Rect().width(size * 0.56).height(size * 0.09).radius(size * 0.04).fill(color + '40')
+      Rect().width(size * 0.56).height(size * 0.09).radius(size * 0.04).fill(colorAlpha(color, '40'))
     }
     .width(size * 0.74)
     Row({ space: size * 0.14 }) {
       Circle().width(size * 0.14).height(size * 0.14).fill(color)
-      Rect().width(size * 0.44).height(size * 0.09).radius(size * 0.04).fill(color + '40')
+      Rect().width(size * 0.44).height(size * 0.09).radius(size * 0.04).fill(colorAlpha(color, '40'))
     }
     .width(size * 0.74)
   }
@@ -329,6 +329,53 @@ export function SendIcon(size: number, color: string) {
     .fill(color)
     .width(size)
     .height(size)
+}
+
+// ── Person / avatar silhouette ──
+@Builder
+export function PersonIcon(size: number, color: string) {
+  Stack({ alignContent: Alignment.Top }) {
+    // Head
+    Circle()
+      .width(size * 0.36)
+      .height(size * 0.36)
+      .fill(color)
+      .position({ x: size * 0.32, y: 0 })
+    // Body (rounded trapezoid approximated with shapes)
+    Circle()
+      .width(size * 0.7)
+      .height(size * 0.7)
+      .fill(color)
+      .position({ x: size * 0.15, y: size * 0.34 })
+  }
+  .width(size)
+  .height(size)
+}
+
+// ── Edit / pencil ──
+@Builder
+export function EditIcon(size: number, color: string) {
+  Stack() {
+    // Pencil body (diagonal line)
+    Rect()
+      .width(size * 0.08)
+      .height(size * 0.7)
+      .radius(size * 0.04)
+      .fill(color)
+      .rotate({ angle: -45 })
+    // Pencil tip triangle
+    Polygon()
+      .points([
+        [size * 0.05, size * 0.02],
+        [size * 0.26, size * 0.56],
+        [size * 0.06, size * 0.56]
+      ] as [number, number][])
+      .fill(color)
+      .rotate({ angle: -45 })
+      .position({ x: size * -0.04, y: size * -0.08 })
+  }
+  .width(size * 0.5)
+  .height(size * 0.6)
 }
 
 // ── Cloud upload ──

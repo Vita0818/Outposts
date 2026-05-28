@@ -2,7 +2,7 @@
  * Device connection card - mirrors DeviceConnectionCard.swift
  * Reusable card showing Mac connection status, port, and status pills
  */
-import { RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity,
+import { colorAlpha, RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity,
   glassStrokeMidOpacity } from '../utils/RokuricsTheme'
 import { ConnectionIcon } from '../utils/CustomIcons'
 
@@ -84,7 +84,7 @@ export struct DeviceConnectionCard {
           .padding({ left: 8, right: 8, top: 3, bottom: 3 })
           .borderRadius(8)
           .backgroundColor(
-            this.connectionStatus === 'connected' ? RokuricsColors.mint + '18' : RokuricsColors.tertiaryText + '14'
+            this.connectionStatus === 'connected' ? colorAlpha(RokuricsColors.mint, '18') : colorAlpha(RokuricsColors.tertiaryText, '14')
           )
 
           Blank()
@@ -98,7 +98,7 @@ export struct DeviceConnectionCard {
           }
           .padding({ left: 8, right: 8, top: 3, bottom: 3 })
           .borderRadius(8)
-          .backgroundColor(RokuricsColors.softTeal + '14')
+          .backgroundColor(colorAlpha(RokuricsColors.softTeal, '14'))
         }
         .width('100%')
         .margin({ top: 12 })
@@ -107,21 +107,21 @@ export struct DeviceConnectionCard {
     .width('100%')
     .padding(18)
     .borderRadius(28)
-    .backgroundColor(RokuricsColors.glassSurface + glassFillOpacity)
+    .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
     .border({
       width: 1,
       color: {
         colors: [
           [0xFFFFFF, glassStrokeHighOpacity],
-          [0xEFFAF8, glassStrokeMidOpacity],
-          [0x91E8D6, 0.10]
+          [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+          [RokuricsColors.glassStrokeAccent, 0.18]
         ],
         direction: GradientDirection.RightBottom
       },
       radius: 28
     } as BorderOptions)
     .shadow({
-      color: RokuricsColors.shadowColor + '10',
+      color: colorAlpha(RokuricsColors.shadowColor, '10'),
       radius: 17,
       offsetY: 9
     })
@@ -161,20 +161,20 @@ export struct MetricTile {
     .width('100%')
     .padding(14)
     .borderRadius(20)
-    .backgroundColor(RokuricsColors.glassSurface + '59')
+    .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '59'))
     .border({
       width: 1,
       color: {
         colors: [
-          [0xFFFFFF, 0.30],
-          [0xEFFAF8, 0.10]
+          [0xFFFFFF, 0.18],
+          [RokuricsColors.glassStroke, 0.10]
         ],
         direction: GradientDirection.RightBottom
       },
       radius: 20
     } as BorderOptions)
     .shadow({
-      color: RokuricsColors.shadowColor + '05',
+      color: colorAlpha(RokuricsColors.shadowColor, '05'),
       radius: 8,
       offsetY: 4
     })
@@ -219,26 +219,26 @@ export struct TransferQueueCard {
       .width('100%')
       .padding({ left: 14, right: 14, top: 10, bottom: 10 })
       .borderRadius(20)
-      .backgroundColor(RokuricsColors.glassSurface + '56')
+      .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '56'))
     }
     .width('100%')
     .padding(18)
     .borderRadius(28)
-    .backgroundColor(RokuricsColors.glassSurface + glassFillOpacity)
+    .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
     .border({
       width: 1,
       color: {
         colors: [
           [0xFFFFFF, glassStrokeHighOpacity],
-          [0xEFFAF8, glassStrokeMidOpacity],
-          [0x91E8D6, 0.10]
+          [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+          [RokuricsColors.glassStrokeAccent, 0.18]
         ],
         direction: GradientDirection.RightBottom
       },
       radius: 28
     } as BorderOptions)
     .shadow({
-      color: RokuricsColors.shadowColor + '10',
+      color: colorAlpha(RokuricsColors.shadowColor, '10'),
       radius: 17,
       offsetY: 9
     })

@@ -9,6 +9,8 @@
 - 不得让 Codex Agent 自己跑构建测试。
 - 不得让 Codex Agent 代替 Claude Code 判断源码迁移细节。
 - 不得把 Claude Code 自评当成用户验收。
+- 不得把 `qwen-vision` 当主 Agent。
+- 不得让 `qwen-vision` 修改文件。
 
 ## 终端禁区
 
@@ -24,11 +26,20 @@
 - 不得用“进程还活着”作为进展。
 - 不得等所有项目完成后才处理先完成项目。
 - 不得无预算无限运行。
+- 不得在时间预算和轮次预算尚未耗尽、且项目无硬阻塞时，因为软状态提前收束批次。
+- 不得把 `READY_FOR_USER_REVIEW` 当成默认终止态；必须检查 remaining gaps、next recommendation 和可执行下一步。
+- 不得把 `REFERENCE_ONLY` 当成失败或终止态。
+- 不得因为缺 actual screenshot 就停止 reference-first 修正；只要 reference screenshot 可用，就应继续利用 qwen reference 理解推进。
+- 不得把 `WINDOWS_HOST_VALIDATION_PENDING` 当成默认终止态；若仍可做静态 WinUI/XAML 修复，应继续。
 - 不得在时间预算到达后启动新轮。
 - 不得强杀正在正常运行的 Claude Code 来满足软时间预算。
 - 不得从第一轮重跑。
 - 不得重复发送上一轮 prompt。
 - 不得在状态未知时继续正式迁移。
+- 不得无限循环视觉微调；默认最多 2 轮视觉验收。
+- 不得把 Android Studio 当成每项目必须单独启动的 IDE；一个 Android Studio 可管理多个 Emulator。
+- 不得强行并行操作同一个 DevEco Preview；HarmonyOS 视觉验收建议串行。
+- 不得在边界事件尚未复盘前立刻启动下一批大规模功能调度。
 
 ## 用户反馈禁区
 
@@ -36,6 +47,8 @@
 - 不得用 Claude Code 报告覆盖用户手工观察。
 - 不得忽略用户要求暂停、停止、只汇报或等待确认。
 - 不得把用户指出的问题归为“已完成”而不安排下一轮处理。
+- 不得因为 `qwen-vision` 判断“相似”就跳过用户人工验收。
+- 用户人工视觉反馈优先级高于 `qwen-vision` 的匹配判断。
 
 ## 迁移边界禁区
 
@@ -54,12 +67,22 @@
 - 不得执行 `git restore .`。
 - 不得 commit、push、创建 PR，除非用户另行明确要求。
 - 不得清理 build、cache、`.gradle`、`intermediates`。
+- 不得删除、清理或修改 `~/.hvigor`。
+- 不得删除、清理或修改用户级 DevEco、HarmonyOS SDK、Hvigor、ohpm、npm、pnpm 缓存。
+- 不得全局安装 `pnpm`、npm 包、ohpm 包或任何全局工具链依赖。
+- 不得执行用户级或系统级工具链修复。工具链异常时只允许报告 `HOST_ENV_BLOCKED` 或 `TOOLCHAIN_REPAIR_NEEDS_USER`，等待用户处理。
+- HarmonyOS 项目的写入只允许发生在对应 Outposts 目标项目目录内；不得把“修编译”扩大成用户级环境改造。
+- 不得删除 `.outposts-supervisor/visual-evidence`。
+- 不得删除当前批次截图、qwen 输出、state、checkpoint、report 或 batch state。
+- 不得把“清理临时截图”作为任务收尾动作。
+- 如果需要重新截图，必须创建新的 `RUN_ID` 证据目录，而不是覆盖或删除旧证据。
 
 ## 安全禁区
 
 - 不得访问无关目录。
 - 不得读取或发送敏感信息。
 - 不得读取 `.env`、token、私钥、证书、p12、provisioning profile、ssh key、API key、Keychain 内容。
+- 不得把源码、密钥、token、`.env`、证书或私密配置传给 `qwen-vision`。
 - 不得把一次本地执行策略授权扩展为全局授权。
 - 不得在模型、计费或授权状态异常时继续正式迁移。
 
@@ -70,3 +93,13 @@
 - 不得省略构建或测试未运行的事实。
 - 不得把子项目源码细节写入主管摘要。
 - 不得假装已经读取或验证子项目源码。
+- 不得在没有截图的情况下假装完成视觉验收。
+- 不得把无效截图报告为有效视觉验收。
+- 全桌面截图不算有效 actual screenshot，除非明确裁剪出 App、Preview 或窗口区域。
+- `qwen-vision` 看过无效桌面截图，只能报告 `QWEN_CALLED=YES` 与 `QWEN_VALID_VISUAL_EVIDENCE=NO`，不得报告为有效验收。
+- 不得用 `qwen-vision` 替代构建和测试。
+- 不得在用户已确认 Android emulator 显示目标页面时继续误报“没有 Android emulator”，除非 `adb` 或截图命令实际失败。
+- 不得在用户已确认 DevEco Preview 显示目标页面时继续误报“没有 HarmonyOS Preview”，除非 Preview、设备或截图命令实际失败。
+- 不得把视觉证据截图散落到子项目源码目录或 Apple 源项目；必须写入 `.outposts-supervisor/visual-evidence/<BATCH_NAME>/<RUN_ID>/<PROJECT_NAME>/`。
+- 不得把错误 Android device serial 的截图当成当前项目截图。
+- 不得清理子项目 build/cache 来处理视觉证据；也不得删除当前 `RUN_ID` 的 visual-evidence 目录。

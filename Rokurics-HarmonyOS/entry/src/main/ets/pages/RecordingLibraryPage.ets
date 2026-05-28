@@ -5,13 +5,13 @@
 import { getSharedRecordingManager, RecordingManager } from '../services/RecordingManager'
 import { RecordingMetadata, StudyFilingPath, filingLevelTitle } from '../models/RecordingModels'
 import { formatDuration, formatShortTime } from '../utils/FormatHelpers'
-import { RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity,
+import { colorAlpha, RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity,
   glassStrokeMidOpacity, glassAccentOpacity } from '../utils/RokuricsTheme'
 import { StudyFolderStore } from '../services/StudyFolderStore'
 import { BackIcon, BulletListIcon, TrashIcon, EllipsisIcon, DocBadgeIcon, NoteBadgeIcon } from '../utils/CustomIcons'
 
 const LEVELS: string[] = ['type', 'subject', 'chapter', 'topic']
-const FOLDER_COLORS: string[] = ['#59C7C2', '#9EE8C7', '#73C7F0', '#E06B6E', '#B8A6D6', '#6B9FD4']
+const FOLDER_COLORS: string[] = [RokuricsColors.aqua, RokuricsColors.mint, RokuricsColors.skyCyan, RokuricsColors.coral, '#B8A6D6', '#6B9FD4']
 
 interface FilingGroup {
   key: string
@@ -43,7 +43,7 @@ struct RecordingLibraryPage {
   @State deleteTarget: string = ''
   @State deleteTargetName: string = ''
   @State showColorPicker: boolean = false
-  @State selectedColor: string = '#59C7C2'
+  @State selectedColor: string = RokuricsColors.aqua
 
   aboutToAppear(): void {
     this.loadAll()
@@ -180,7 +180,7 @@ struct RecordingLibraryPage {
     this.renameTarget = key
     this.renameText = key
     this.renameLevel = level
-    this.selectedColor = this.folderColorMap[key] ?? '#59C7C2'
+    this.selectedColor = this.folderColorMap[key] ?? RokuricsColors.aqua
     this.showRenameDialog = true
   }
 
@@ -214,10 +214,10 @@ struct RecordingLibraryPage {
     const match = folders.find(f => f.name === this.renameTarget)
     if (match) {
       await this.folderStore.renameFolder(match.id, newName)
-      if (this.selectedColor !== (this.folderColorMap[this.renameTarget] ?? '#59C7C2')) {
+      if (this.selectedColor !== (this.folderColorMap[this.renameTarget] ?? RokuricsColors.aqua)) {
         await this.folderStore.setColorToken(match.id, this.selectedColor)
       }
-    } else if (this.selectedColor !== '#59C7C2') {
+    } else if (this.selectedColor !== RokuricsColors.aqua) {
       // Create folder to persist color
       const record = await this.folderStore.createFolder(newName, level, this.browsePath)
       await this.folderStore.setColorToken(record.id, this.selectedColor)
@@ -275,9 +275,9 @@ struct RecordingLibraryPage {
         .width(44)
         .height(44)
         .borderRadius(22)
-        .backgroundColor(RokuricsColors.glassSurface + glassFillOpacity)
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
         .shadow({
-          color: RokuricsColors.shadowColor + '10',
+          color: colorAlpha(RokuricsColors.shadowColor, '10'),
           radius: 12,
           offsetY: 6
         })
@@ -286,8 +286,8 @@ struct RecordingLibraryPage {
           color: {
             colors: [
               [0xFFFFFF, glassStrokeHighOpacity],
-              [0xEFFAF8, glassStrokeMidOpacity],
-              [0x59C7C2, glassAccentOpacity]
+              [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+              [RokuricsColors.aqua, glassAccentOpacity]
             ],
             direction: GradientDirection.RightBottom
           },
@@ -342,7 +342,14 @@ struct RecordingLibraryPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(RokuricsColors.pageBackground)
+    .linearGradient({
+      direction: GradientDirection.RightBottom,
+      colors: [
+        [RokuricsColors.pageGradientStart, 1.0],
+        [RokuricsColors.pageGradientMid, 1.0],
+        [RokuricsColors.pageGradientEnd, 1.0]
+      ]
+    })
 
     // Rename dialog overlay with color picker
     if (this.showRenameDialog) {
@@ -354,7 +361,7 @@ struct RecordingLibraryPage {
 
           TextInput({ text: this.renameText, placeholder: '新名称' })
             .fontSize(16).fontColor(RokuricsColors.deepText)
-            .backgroundColor(RokuricsColors.glassSurface + '80')
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'))
             .borderRadius(10).padding(14)
             .onChange((v: string) => { this.renameText = v })
 
@@ -373,7 +380,7 @@ struct RecordingLibraryPage {
                 .justifyContent(FlexAlign.Center)
                 .border({
                   width: this.selectedColor === color ? 2 : 1,
-                  color: this.selectedColor === color ? Color.White : color + '40',
+                  color: this.selectedColor === color ? Color.White : colorAlpha(color, '40'),
                   radius: 14
                 })
                 .onClick(() => { this.selectedColor = color })
@@ -393,11 +400,11 @@ struct RecordingLibraryPage {
           }
           .width('100%').justifyContent(FlexAlign.End)
         }
-        .padding(24).borderRadius(20).backgroundColor(Color.White).width('85%')
-        .shadow({ radius: 30, color: '#00000020' })
+        .padding(24).borderRadius(20).backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6')).width('85%')
+        .shadow({ radius: 30, color: '#20000000' })
       }
       .width('100%').height('100%').justifyContent(FlexAlign.Center)
-      .backgroundColor('#00000050').position({ x: 0, y: 0 })
+      .backgroundColor('#50000000').position({ x: 0, y: 0 })
       .onClick(() => { this.showRenameDialog = false })
     }
 
@@ -423,11 +430,11 @@ struct RecordingLibraryPage {
           }
           .width('100%').justifyContent(FlexAlign.End)
         }
-        .padding(24).borderRadius(20).backgroundColor(Color.White).width('85%')
-        .shadow({ radius: 30, color: '#00000020' })
+        .padding(24).borderRadius(20).backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6')).width('85%')
+        .shadow({ radius: 30, color: '#20000000' })
       }
       .width('100%').height('100%').justifyContent(FlexAlign.Center)
-      .backgroundColor('#00000050').position({ x: 0, y: 0 })
+      .backgroundColor('#50000000').position({ x: 0, y: 0 })
       .onClick(() => { this.showDeleteConfirm = false })
     }
     }
@@ -457,14 +464,14 @@ struct RecordingLibraryPage {
             TextInput({ text: this.searchQuery, placeholder: '搜索录音...' })
               .fontSize(13).layoutWeight(1).height(36).borderRadius(18)
               .padding({ left: 14, right: 14 })
-              .backgroundColor(RokuricsColors.glassSurface + glassFillOpacity)
+              .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
               .onChange((v: string) => { this.searchQuery = v })
             Button() {
               Text(this.sortOrder === 'newest' ? '↓最新' : '↑最早')
                 .fontSize(11).fontWeight(FontWeight.Medium).fontColor(RokuricsColors.aqua)
             }
             .height(32).padding({ left: 10, right: 10 }).borderRadius(16)
-            .backgroundColor(RokuricsColors.aqua + '14')
+            .backgroundColor(colorAlpha(RokuricsColors.aqua, '14'))
             .onClick(() => { this.sortOrder = this.sortOrder === 'newest' ? 'oldest' : 'newest' })
           }
           .width('100%')
@@ -503,61 +510,71 @@ struct RecordingLibraryPage {
         .fontSize(15).fontWeight(FontWeight.SemiBold).fontColor(RokuricsColors.deepText)
         .width('100%')
 
-      Row({ space: 8 }) {
+      Row({ space: 10 }) {
         ForEach(this.currentGroups, (group: FilingGroup) => {
           Button() {
-            Column({ space: 6 }) {
-              // Color dot indicator
-              Row() {
+            Column({ space: 12 }) {
+              // Folder icon area
+              Stack() {
                 Circle()
-                  .width(10).height(10)
-                  .fill(this.folderColorMap[group.label] ?? RokuricsColors.aqua)
-                if (this.folderColorMap[group.label]) {
-                  Text(group.label)
-                    .fontSize(14).fontWeight(FontWeight.SemiBold)
-                    .fontColor(this.folderColorMap[group.label] ?? RokuricsColors.aqua)
-                    .maxLines(1)
+                  .width(48).height(48)
+                  .fill(colorAlpha(this.folderColorMap[group.label] ?? RokuricsColors.aqua, '24'))
+                // Simple folder shape using rounded rects
+                Column({ space: 0 }) {
+                  Rect()
+                    .width(28).height(4)
+                    .radius(2)
+                    .fill(this.folderColorMap[group.label] ?? RokuricsColors.aqua)
+                    .translate({ x: -4, y: 0 })
+                  Rect()
+                    .width(36).height(24)
+                    .radius({ topRight: 8, bottomLeft: 8, bottomRight: 8 })
+                    .fill(this.folderColorMap[group.label] ?? RokuricsColors.aqua)
                 }
               }
-              .width('100%')
+              .width(48).height(48)
 
-              if (!this.folderColorMap[group.label]) {
-                Text(group.label)
-                  .fontSize(14).fontWeight(FontWeight.SemiBold)
-                  .fontColor(RokuricsColors.deepText)
-                  .maxLines(1)
-                  .width('100%')
-              }
+              // Title
+              Text(group.label)
+                .fontSize(15)
+                .fontWeight(FontWeight.SemiBold)
+                .fontColor(RokuricsColors.deepText)
+                .maxLines(1)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-              Text(`${filingLevelTitle(group.level)} · ${group.count} 条`)
-                .fontSize(11).fontColor(RokuricsColors.tertiaryText)
-                .width('100%')
+              // Count
+              Text(`${group.count} 项`)
+                .fontSize(12)
+                .fontWeight(FontWeight.Regular)
+                .fontColor(RokuricsColors.tertiaryText)
             }
             .width('100%')
-            .padding(14)
-            .borderRadius(14)
-            .backgroundColor(this.folderColorMap[group.label] ?
-              this.folderColorMap[group.label] + '22' : RokuricsColors.glassSurface + glassFillOpacity)
+            .padding({ top: 20, bottom: 18, left: 12, right: 12 })
+            .borderRadius(20)
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
             .border({
-              width: this.folderColorMap[group.label] ? 1 : 0,
-              color: this.folderColorMap[group.label] ?
-                this.folderColorMap[group.label] + '44' : Color.Transparent,
-              radius: 14
-            })
-            .onClick(() => {
-              this.navigateToPath([group.label])
+              width: 1,
+              color: {
+                colors: [
+                  [0xFFFFFF, 0.12],
+                  [RokuricsColors.glassStroke, 0.08],
+                  [RokuricsColors.glassStrokeAccent, 0.08]
+                ],
+                direction: GradientDirection.RightBottom
+              },
+              radius: 20
+            } as BorderOptions)
+            .shadow({
+              color: colorAlpha(RokuricsColors.shadowColor, '06'),
+              radius: 10,
+              offsetY: 5
             })
           }
           .backgroundColor(Color.Transparent)
-          .width('48%')
-          .onClick(() => { /* handled by inner button */ })
-
-          // Context menu
-          Button() {
-            EllipsisIcon(14, RokuricsColors.tertiaryText)
-          }
-          .width(28).height(28).backgroundColor(Color.Transparent)
-          .onClick(() => this.openRenameDialog(group.label, group.level))
+          .layoutWeight(1)
+          .onClick(() => {
+            this.navigateToPath([group.label])
+          })
         })
       }
       .width('100%')
@@ -611,40 +628,72 @@ struct RecordingLibraryPage {
 
       // Sub-folder tiles if any at this level
       if (this.currentGroups.length > 0) {
-        Row({ space: 8 }) {
-          ForEach(this.currentGroups, (group: FilingGroup) => {
-            Button() {
-              Column({ space: 4 }) {
-                Text(group.label)
-                  .fontSize(13).fontWeight(FontWeight.SemiBold)
-                  .fontColor(RokuricsColors.deepText)
-                  .maxLines(1)
-                Text(`${group.count} 条`)
-                  .fontSize(11).fontColor(RokuricsColors.tertiaryText)
+        Column({ space: 6 }) {
+          Text('子分类')
+            .fontSize(12).fontWeight(FontWeight.Medium)
+            .fontColor(RokuricsColors.tertiaryText)
+            .padding({ left: 20 })
+            .width('100%')
+          Row({ space: 10 }) {
+            ForEach(this.currentGroups, (group: FilingGroup) => {
+              Button() {
+                Column({ space: 6 }) {
+                  // Small folder icon
+                  Stack() {
+                    Circle()
+                      .width(34).height(34)
+                      .fill(colorAlpha(this.folderColorMap[group.label] ?? RokuricsColors.aqua, '20'))
+                    Column({ space: 0 }) {
+                      Rect().width(18).height(3).radius(1.5)
+                        .fill(this.folderColorMap[group.label] ?? RokuricsColors.aqua)
+                        .translate({ x: -3, y: 0 })
+                      Rect().width(24).height(16)
+                        .radius({ topRight: 5, bottomLeft: 5, bottomRight: 5 })
+                        .fill(this.folderColorMap[group.label] ?? RokuricsColors.aqua)
+                    }
+                  }
+                  .width(34).height(34)
+
+                  Text(group.label)
+                    .fontSize(13).fontWeight(FontWeight.SemiBold)
+                    .fontColor(RokuricsColors.deepText)
+                    .maxLines(1)
+                  Text(`${group.count} 项`)
+                    .fontSize(10).fontColor(RokuricsColors.tertiaryText)
+                }
+                .width('100%')
+                .padding({ top: 14, bottom: 12, left: 10, right: 10 })
+                .borderRadius(16)
+                .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
+                .border({
+                  width: 1,
+                  color: {
+                    colors: [
+                      [0xFFFFFF, 0.12],
+                      [RokuricsColors.glassStroke, 0.08],
+                      [RokuricsColors.glassStrokeAccent, 0.08]
+                    ],
+                    direction: GradientDirection.RightBottom
+                  },
+                  radius: 16
+                } as BorderOptions)
+                .shadow({
+                  color: colorAlpha(RokuricsColors.shadowColor, '04'),
+                  radius: 6,
+                  offsetY: 3
+                })
               }
-              .padding({ left: 12, right: 12, top: 8, bottom: 8 })
-              .borderRadius(12)
-              .backgroundColor(RokuricsColors.glassSurface + glassFillOpacity)
-              .border({
-                width: 1,
-                color: {
-                  colors: [
-                    [0xFFFFFF, glassStrokeHighOpacity],
-                    [0xEFFAF8, glassStrokeMidOpacity]
-                  ],
-                  direction: GradientDirection.RightBottom
-                },
-                radius: 12
-              } as BorderOptions)
-            }
-            .backgroundColor(Color.Transparent)
-            .onClick(() => {
-              const newPath: string[] = []
-              for (const p of this.browsePath) newPath.push(p)
-              newPath.push(group.label)
-              this.navigateToPath(newPath)
+              .backgroundColor(Color.Transparent)
+              .layoutWeight(1)
+              .onClick(() => {
+                const newPath: string[] = []
+                for (const p of this.browsePath) newPath.push(p)
+                newPath.push(group.label)
+                this.navigateToPath(newPath)
+              })
             })
-          })
+          }
+          .width('100%')
         }
         .width('100%')
         .padding({ left: 16, right: 16, bottom: 12 })
@@ -696,7 +745,7 @@ struct RecordingLibraryPage {
                   Text('已上传').fontSize(10).fontColor(RokuricsColors.mint)
                 }
                 .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-                .borderRadius(6).backgroundColor(RokuricsColors.mint + '18')
+                .borderRadius(6).backgroundColor(colorAlpha(RokuricsColors.mint, '18'))
               }
               if (recording.transcriptionStatus === 'transcribed') {
                 DocBadgeIcon(14, RokuricsColors.aqua)
@@ -717,9 +766,9 @@ struct RecordingLibraryPage {
           .onClick(() => this.deleteAndReload(recording.id))
         }
         .width('100%').padding(14).borderRadius(16)
-        .backgroundColor(RokuricsColors.glassSurface + glassFillOpacity)
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
         .shadow({
-          color: RokuricsColors.shadowColor + '08',
+          color: colorAlpha(RokuricsColors.shadowColor, '08'),
           radius: 10, offsetY: 5
         })
         .border({
@@ -727,8 +776,8 @@ struct RecordingLibraryPage {
           color: {
             colors: [
               [0xFFFFFF, glassStrokeHighOpacity],
-              [0xEFFAF8, glassStrokeMidOpacity],
-              [0x91E8D6, glassAccentOpacity]
+              [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+              [RokuricsColors.glassStrokeAccent, glassAccentOpacity]
             ],
             direction: GradientDirection.RightBottom
           },
@@ -757,15 +806,15 @@ struct RecordingLibraryPage {
       .alignItems(VerticalAlign.Center)
     }
     .width(50).height(50).borderRadius(25)
-    .backgroundColor(RokuricsColors.glassSurface + '56')
-    .shadow({ color: RokuricsColors.shadowColor + '08', radius: 9, offsetY: 4 })
+    .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '56'))
+    .shadow({ color: colorAlpha(RokuricsColors.shadowColor, '08'), radius: 9, offsetY: 4 })
     .border({
       width: 1,
       color: {
         colors: [
-          [0xFFFFFF, 0.38],
-          [0xEFFAF8, 0.12],
-          [0x59C7C2, 0.10]
+          [0xFFFFFF, 0.18],
+          [RokuricsColors.glassStroke, 0.12],
+          [RokuricsColors.aqua, 0.10]
         ],
         direction: GradientDirection.RightBottom
       },
@@ -813,15 +862,15 @@ struct RecordingLibraryPage {
               .onClick(() => this.permDeleteAndReload(recording.id))
             }
             .width('100%').padding(14).borderRadius(16)
-            .backgroundColor(RokuricsColors.glassSurface + glassFillOpacity)
-            .shadow({ color: RokuricsColors.shadowColor + '08', radius: 8, offsetY: 4 })
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
+            .shadow({ color: colorAlpha(RokuricsColors.shadowColor, '08'), radius: 8, offsetY: 4 })
             .border({
               width: 1,
               color: {
                 colors: [
                   [0xFFFFFF, glassStrokeHighOpacity],
-                  [0xEFFAF8, glassStrokeMidOpacity],
-                  [0xE06B6E, 0.08]
+                  [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+                  [RokuricsColors.coral, 0.12]
                 ],
                 direction: GradientDirection.RightBottom
               },
@@ -844,8 +893,8 @@ struct RecordingLibraryPage {
     }
     .padding({ left: 10, right: 10, top: 5, bottom: 5 })
     .borderRadius(12)
-    .backgroundColor(active ? RokuricsColors.aqua : RokuricsColors.glassSurface + glassFillOpacity)
-    .border({ width: active ? 0 : 1, color: RokuricsColors.softText + '18', radius: 12 })
+    .backgroundColor(active ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
+    .border({ width: active ? 0 : 1, color: colorAlpha(RokuricsColors.softText, '18'), radius: 12 })
   }
 
   private getSortedRecordings(): RecordingMetadata[] {

@@ -26,7 +26,7 @@ import type { RecordingManager } from "@bundle:com.vita0818.rokurics/entry/ets/s
 import { StudyFilingPath, filingLevelTitle } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import type { RecordingMetadata } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import { formatDuration, formatShortTime } from "@bundle:com.vita0818.rokurics/entry/ets/utils/FormatHelpers";
-import { RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { colorAlpha, RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 import { StudyFolderStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/StudyFolderStore";
 const HIERARCHY_LEVELS: string[] = ['type', 'subject', 'chapter', 'topic'];
 const FOLDER_COLORS: string[] = ['#59C7C2', '#9EE8C7', '#73C7F0', '#E06B6E', '#B8A6D6', '#6B9FD4'];
@@ -549,7 +549,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                                     Column.width('90%');
                                     Column.padding(14);
                                     Column.borderRadius(14);
-                                    Column.backgroundColor(RokuricsColors.glassSurface + '66');
+                                    Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
                                     Column.margin({ left: 16, right: 16, bottom: 8 });
                                 }, Column);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -595,7 +595,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                                             Text.fontColor(this.newFolderLevel === level ? Color.White : RokuricsColors.softText);
                                             Text.padding({ left: 10, right: 10, top: 5, bottom: 5 });
                                             Text.borderRadius(12);
-                                            Text.backgroundColor(this.newFolderLevel === level ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50');
+                                            Text.backgroundColor(this.newFolderLevel === level ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
                                             Text.onClick(() => { this.newFolderLevel = level; });
                                         }, Text);
                                         Text.pop();
@@ -664,7 +664,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                                     TextInput.layoutWeight(1);
                                     TextInput.borderRadius(8);
                                     TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
-                                    TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+                                    TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                                     TextInput.onChange((v: string) => { this.newFolderName = v; });
                                 }, TextInput);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -729,10 +729,10 @@ class StudyLibraryBrowserPage extends ViewPU {
                                         Row.padding(16);
                                         Row.borderRadius(14);
                                         Row.backgroundColor(this.folderColorMap[group.label] ?
-                                            this.folderColorMap[group.label] + '22' : RokuricsColors.glassSurface + '66');
+                                            colorAlpha(this.folderColorMap[group.label], '22') : colorAlpha(RokuricsColors.glassSurface, '66'));
                                         Row.border({ width: this.folderColorMap[group.label] ? 1 : 0,
                                             color: this.folderColorMap[group.label] ?
-                                                this.folderColorMap[group.label] + '44' : Color.Transparent });
+                                                colorAlpha(this.folderColorMap[group.label], '44') : Color.Transparent });
                                         Row.onClick(() => {
                                             const path = [group.label];
                                             this.navigateTo(path);
@@ -967,7 +967,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                         Column.width('100%');
                         Column.height('100%');
                         Column.justifyContent(FlexAlign.Center);
-                        Column.backgroundColor('#00000050');
+                        Column.backgroundColor('#50000000');
                         Column.position({ x: 0, y: 0 });
                         Column.onClick(() => { this.showRenameFolder = false; this.editMessage = ''; });
                     }, Column);
@@ -977,7 +977,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                         Column.borderRadius(20);
                         Column.backgroundColor(Color.White);
                         Column.width('85%');
-                        Column.shadow({ radius: 30, color: '#00000020' });
+                        Column.shadow({ radius: 30, color: '#20000000' });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('重命名分类');
@@ -990,7 +990,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                         TextInput.create({ text: this.renameText, placeholder: '新名称' });
                         TextInput.fontSize(16);
                         TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + '80');
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'));
                         TextInput.borderRadius(10);
                         TextInput.padding(14);
                         TextInput.onChange((v: string) => { this.renameText = v; });
@@ -1066,7 +1066,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                         Column.width('100%');
                         Column.height('100%');
                         Column.justifyContent(FlexAlign.Center);
-                        Column.backgroundColor('#00000050');
+                        Column.backgroundColor('#50000000');
                         Column.position({ x: 0, y: 0 });
                         Column.onClick(() => { this.showDeleteConfirm = false; });
                     }, Column);
@@ -1076,7 +1076,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                         Column.borderRadius(20);
                         Column.backgroundColor(Color.White);
                         Column.width('85%');
-                        Column.shadow({ radius: 30, color: '#00000020' });
+                        Column.shadow({ radius: 30, color: '#20000000' });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('删除分类');
@@ -1142,7 +1142,7 @@ class StudyLibraryBrowserPage extends ViewPU {
             Row.width('100%');
             Row.padding({ left: 14, right: 14, top: 12, bottom: 12 });
             Row.borderRadius(12);
-            Row.backgroundColor(RokuricsColors.glassSurface + '50');
+            Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '50'));
             Row.onClick(() => this.openDetail(recording.id));
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {

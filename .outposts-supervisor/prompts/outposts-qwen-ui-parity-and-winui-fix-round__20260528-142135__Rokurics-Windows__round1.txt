@@ -1,0 +1,64 @@
+[Round 1] BATCH_NAME=outposts-qwen-ui-parity-and-winui-fix-round
+PROJECT_NAME=Rokurics-Windows
+
+MANDATORY PREFLIGHT
+1. MODEL_CHECK_RESULT: current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. Otherwise stop and report MODEL_MISMATCH.
+2. PATH_CHECK_RESULT: current working directory must be exactly /Users/vita/Vitemis/Outposts/Rokurics-Windows. Otherwise stop and report WORKDIR_MISMATCH.
+3. SOURCE_READONLY_CHECK: Apple source /Users/vita/Vitemis/Vela/Rokurics is read-only. All target writes must stay under /Users/vita/Vitemis/Outposts/Rokurics-Windows. Do not access unrelated directories. Do not read or transmit secrets, API keys, .env, tokens, certificates, p12, provisioning profiles, ssh keys, Keychain data, or private config.
+
+QWEN
+QWEN_REQUIRED=NO for this project in this batch. Do not call qwen-vision unless you independently need visual screenshot analysis and have safe image paths. Primary task is WinUI 3 build compatibility.
+
+TASK
+Fix WinUI 3 / Windows App SDK / C# Windows client XAML compatibility errors so Debug / ARM64 main project builds and can launch a window.
+
+Current diagnosis from user:
+- Project loads in Win11 ARM + Visual Studio 2022 and reaches XAML compilation.
+- ARM64 / RuntimeIdentifier environment issues are mostly resolved.
+- Do not reclassify this as missing VS/SDK unless new concrete evidence appears.
+- Main problem is WMC0011 Unknown member caused by non-WinUI 3 XAML properties.
+Known examples:
+- Window MinWidth / MinHeight
+- Border direct ToolTip
+- TextBlock FontVariant
+- SymbolIcon FontSize
+
+Required flow:
+1. Inspect current build/XAML errors and current XAML files.
+2. Fix WMC0011 Unknown member with minimal WinUI 3 compatible changes.
+3. Check for similar hallucinated XAML properties, not just the first error.
+4. Do not switch framework, do not convert to WPF/Avalonia, do not restructure architecture, do not make large business-logic changes.
+5. Build Debug / ARM64 if feasible in the available environment. If this Mac cannot run Windows build, provide exact remaining Visual Studio build steps and risk, but prioritize code compatibility fixes.
+6. For each removed/replaced property, report WinUI 3 compatible handling.
+
+FINAL REPORT FIELDS
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX=1
+QWEN_REQUIRED=NO
+QWEN_VISION_AVAILABLE
+QWEN_VISION_USED
+REFERENCE_SCREENSHOTS
+ACTUAL_SCREENSHOTS
+VISION_TOOLS_CALLED
+VISION_COMPARISON_RESULT
+USER_ACCEPTANCE_FEEDBACK_ADDRESSED
+APPLE_UI_PARITY_CHECKLIST
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+VISUAL_VALIDATION_LIMITATIONS
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION
+WINUI3_BUILD_TARGET
+WMC0011_ERRORS_FOUND
+INVALID_XAML_MEMBERS_FIXED
+WINUI3_API_COMPATIBILITY_NOTES
+DEBUG_ARM64_BUILD_RESULT
+WINDOW_LAUNCH_RESULT
+REMAINING_XAML_COMPILER_ERRORS

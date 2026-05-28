@@ -2,10 +2,15 @@
  * Mac connection page - mirrors MacConnectionView.swift
  * Pairing form, connection test, paired device view
  */
-import { RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity,
-  glassStrokeMidOpacity } from '../utils/RokuricsTheme'
-import { BackIcon } from '../utils/CustomIcons'
+import { colorAlpha, RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity,
+  glassStrokeMidOpacity, glassAccentOpacity } from '../utils/RokuricsTheme'
+import { BackIcon, ConnectionIcon } from '../utils/CustomIcons'
 import { DeviceConnectionCard } from '../components/DeviceConnectionCard'
+
+function nowTimeLabel(): string {
+  const d = new Date()
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
 
 @Entry
 @Component
@@ -33,9 +38,9 @@ struct MacConnectionPage {
         .width(44)
         .height(44)
         .borderRadius(22)
-        .backgroundColor(RokuricsColors.glassSurface + glassFillOpacity)
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
         .shadow({
-          color: RokuricsColors.shadowColor + '10',
+          color: colorAlpha(RokuricsColors.shadowColor, '10'),
           radius: 12,
           offsetY: 6
         })
@@ -44,8 +49,8 @@ struct MacConnectionPage {
           color: {
             colors: [
               [0xFFFFFF, glassStrokeHighOpacity],
-              [0xEFFAF8, glassStrokeMidOpacity],
-              [0x59C7C2, 0.10]
+              [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+              [RokuricsColors.aqua, 0.24]
             ],
             direction: GradientDirection.RightBottom
           },
@@ -70,7 +75,7 @@ struct MacConnectionPage {
           }
           .padding({ left: 8, right: 8, top: 4, bottom: 4 })
           .borderRadius(8)
-          .backgroundColor(RokuricsColors.tertiaryText + '14')
+          .backgroundColor(colorAlpha(RokuricsColors.tertiaryText, '14'))
         }
       }
       .width('100%')
@@ -93,7 +98,14 @@ struct MacConnectionPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(RokuricsColors.pageBackground)
+    .linearGradient({
+      direction: GradientDirection.RightBottom,
+      colors: [
+        [RokuricsColors.pageGradientStart, 1.0],
+        [RokuricsColors.pageGradientMid, 1.0],
+        [RokuricsColors.pageGradientEnd, 1.0]
+      ]
+    })
   }
 
   @Builder
@@ -121,21 +133,21 @@ struct MacConnectionPage {
       }
       .padding(18)
       .borderRadius(28)
-      .backgroundColor(RokuricsColors.glassSurface + glassFillOpacity)
+      .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
       .border({
         width: 1,
         color: {
           colors: [
             [0xFFFFFF, glassStrokeHighOpacity],
-            [0xEFFAF8, glassStrokeMidOpacity],
-            [0x91E8D6, 0.10]
+            [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+            [RokuricsColors.glassStrokeAccent, glassAccentOpacity]
           ],
           direction: GradientDirection.RightBottom
         },
         radius: 28
       } as BorderOptions)
       .shadow({
-        color: RokuricsColors.shadowColor + '10',
+        color: colorAlpha(RokuricsColors.shadowColor, '10'),
         radius: 17,
         offsetY: 9
       })
@@ -163,7 +175,7 @@ struct MacConnectionPage {
         .backgroundColor(this.canTest ? RokuricsColors.aqua : RokuricsColors.tertiaryText)
         .enabled(this.canTest && !this.isTesting)
         .shadow({
-          color: RokuricsColors.shadowColor + '14',
+          color: colorAlpha(RokuricsColors.shadowColor, '14'),
           radius: 14,
           offsetY: 8
         })
@@ -190,7 +202,7 @@ struct MacConnectionPage {
         .backgroundColor(this.canPair ? RokuricsColors.aqua : RokuricsColors.tertiaryText)
         .enabled(this.canPair && !this.isPairing)
         .shadow({
-          color: RokuricsColors.shadowColor + '14',
+          color: colorAlpha(RokuricsColors.shadowColor, '14'),
           radius: 14,
           offsetY: 8
         })
@@ -213,47 +225,150 @@ struct MacConnectionPage {
         .width('100%')
         .padding(14)
         .borderRadius(14)
-        .backgroundColor(RokuricsColors.glassSurface + '80')
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'))
       }
     }
   }
 
   @Builder
   PairedContent() {
-    Column({ space: 24 }) {
-      Blank()
-        .height(28)
-
-      // Connected device bubble
-      Column({ space: 16 }) {
+    Column({ space: 20 }) {
+      // Hero icon area with background orbs
+      Stack() {
+        // Background orbs
         Circle()
-          .width(88)
-          .height(88)
-          .fill(RokuricsColors.aqua)
-        Text('✓')
-          .fontSize(36)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(Color.White)
-        Text(this.deviceModel || 'Mac')
-          .fontSize(16)
-          .fontWeight(FontWeight.SemiBold)
-          .fontColor(RokuricsColors.deepText)
+          .width(160).height(160)
+          .fill(colorAlpha(RokuricsColors.aqua, '12'))
+          .position({ x: '10%', y: '5%' })
+        Circle()
+          .width(120).height(120)
+          .fill(colorAlpha(RokuricsColors.mint, '10'))
+          .position({ x: '60%', y: '70%' })
+
+        // Main hero circle with laptop icon
+        Column({ space: 0 }) {
+          Circle()
+            .width(100).height(100)
+            .linearGradient({
+              direction: GradientDirection.RightBottom,
+              colors: [
+                [RokuricsColors.actionGradientStart, 1.0],
+                [RokuricsColors.actionGradientEnd, 1.0]
+              ]
+            })
+            .shadow({
+              color: colorAlpha(RokuricsColors.aqua, '30'),
+              radius: 24,
+              offsetY: 10
+            })
+          ConnectionIcon(42, Color.White, true)
+            .position({ x: '50%', y: '50%' })
+            .translate({ x: '-50%', y: '-50%' })
+        }
+        .width(100).height(100)
       }
       .width('100%')
+      .height(180)
+      .justifyContent(FlexAlign.Center)
 
-      Blank()
-        .height(18)
+      // Device name and IP
+      Column({ space: 4 }) {
+        Text(this.deviceModel || 'MacBook Pro')
+          .fontSize(24)
+          .fontWeight(FontWeight.Bold)
+          .fontFamily('serif')
+          .fontColor(RokuricsColors.deepText)
+        Text(`10.195.248.123 · ${this.macPortText}`)
+          .fontSize(14)
+          .fontWeight(FontWeight.Medium)
+          .fontColor(RokuricsColors.softText)
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Center)
 
-      // Connected device card
-      DeviceConnectionCard({
-        isPaired: this.isPaired,
-        deviceModel: this.deviceModel,
-        portText: this.macPortText,
-        connectionStatus: this.connectionStatus
+      // Status info card
+      Column({ space: 8 }) {
+        this.StatusRow('状态', this.connectionStatus === 'connected' ? '已连接' : '离线')
+        Divider().strokeWidth(0.5).color(colorAlpha(RokuricsColors.softText, '14'))
+        this.StatusRow('最近连接', '0秒后')
+        Divider().strokeWidth(0.5).color(colorAlpha(RokuricsColors.softText, '14'))
+        this.StatusRow('最近同步', '暂无')
+      }
+      .width('100%')
+      .padding(16)
+      .borderRadius(20)
+      .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
+      .border({
+        width: 1,
+        color: {
+          colors: [
+            [0xFFFFFF, glassStrokeHighOpacity],
+            [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+            [RokuricsColors.glassStrokeAccent, glassAccentOpacity]
+          ],
+          direction: GradientDirection.RightBottom
+        },
+        radius: 20
+      } as BorderOptions)
+      .shadow({
+        color: colorAlpha(RokuricsColors.shadowColor, '10'),
+        radius: 16,
+        offsetY: 8
       })
 
-      // Actions
-      Column({ space: 12 }) {
+      // Action buttons
+      Column({ space: 10 }) {
+        Button() {
+          Row({ space: 8 }) {
+            Text('↻').fontSize(16).fontColor(Color.White)
+            Text('立即同步')
+              .fontSize(15)
+              .fontWeight(FontWeight.SemiBold)
+              .fontColor(Color.White)
+          }
+          .width('100%')
+          .height(48)
+          .justifyContent(FlexAlign.Center)
+        }
+        .width('100%')
+        .height(48)
+        .borderRadius(24)
+        .backgroundColor(RokuricsColors.aqua)
+        .shadow({
+          color: colorAlpha(RokuricsColors.aqua, '24'),
+          radius: 14,
+          offsetY: 6
+        })
+        .onClick(() => {
+          this.feedbackText = '同步完成 (Mock)'
+          this.feedbackError = ''
+        })
+
+        Button() {
+          Text('查看连接信息')
+            .fontSize(15)
+            .fontWeight(FontWeight.SemiBold)
+            .fontColor(RokuricsColors.deepText)
+            .width('100%')
+            .height(48)
+            .justifyContent(FlexAlign.Center)
+        }
+        .width('100%')
+        .height(48)
+        .borderRadius(24)
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
+        .border({
+          width: 1,
+          color: {
+            colors: [
+              [0xFFFFFF, glassStrokeHighOpacity],
+              [RokuricsColors.glassStroke, glassStrokeMidOpacity]
+            ],
+            direction: GradientDirection.RightBottom
+          },
+          radius: 24
+        } as BorderOptions)
+
         Button() {
           Text('断开连接')
             .fontSize(15)
@@ -266,19 +381,39 @@ struct MacConnectionPage {
         .width('100%')
         .height(48)
         .borderRadius(24)
-        .backgroundColor(RokuricsColors.glassSurface + glassFillOpacity)
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
         .border({
           width: 1,
-          color: RokuricsColors.coral + '40',
+          color: colorAlpha(RokuricsColors.coral, '40'),
           radius: 24
         })
         .onClick(() => {
           this.isPaired = false
           this.connectionStatus = 'offline'
           this.feedbackText = ''
+          this.feedbackError = ''
         })
       }
+      .width('100%')
     }
+    .width('100%')
+  }
+
+  @Builder
+  StatusRow(label: string, value: string) {
+    Row() {
+      Text(label)
+        .fontSize(14)
+        .fontWeight(FontWeight.Medium)
+        .fontColor(RokuricsColors.softText)
+      Blank()
+      Text(value)
+        .fontSize(14)
+        .fontWeight(FontWeight.SemiBold)
+        .fontColor(RokuricsColors.deepText)
+    }
+    .width('100%')
+    .padding({ left: 4, right: 4, top: 4, bottom: 4 })
   }
 
   @Builder
@@ -294,7 +429,7 @@ struct MacConnectionPage {
         .fontWeight(FontWeight.Medium)
         .fontColor(RokuricsColors.deepText)
         .type(isPassword ? InputType.Password : InputType.Normal)
-        .backgroundColor(RokuricsColors.glassSurface + '80')
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'))
         .borderRadius(10)
         .padding({ left: 14, right: 14, top: 10, bottom: 10 })
         .onChange(onChange)

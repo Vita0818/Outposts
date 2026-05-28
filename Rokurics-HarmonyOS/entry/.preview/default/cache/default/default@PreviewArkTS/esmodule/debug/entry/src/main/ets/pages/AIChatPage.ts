@@ -22,7 +22,7 @@ import { MockChatProvider, OpenAICompatibleChatProvider } from "@bundle:com.vita
 import { ChatStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/ChatStore";
 import { SettingsStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/SettingsStore";
 import type { AIConfiguration } from '../services/OpenAICompatibleClient';
-import { RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { colorAlpha, RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 import { SendIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
 class AIChatPage extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
@@ -272,7 +272,14 @@ class AIChatPage extends ViewPU {
             Column.debugLine("entry/src/main/ets/pages/AIChatPage.ets(114:5)", "entry");
             Column.width('100%');
             Column.height('100%');
-            Column.backgroundColor(RokuricsColors.pageBackground);
+            Column.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.pageGradientStart, 1.0],
+                    [RokuricsColors.pageGradientMid, 1.0],
+                    [RokuricsColors.pageGradientEnd, 1.0]
+                ]
+            });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Header
@@ -294,10 +301,10 @@ class AIChatPage extends ViewPU {
             // Glass circle back button
             Button.borderRadius(22);
             // Glass circle back button
-            Button.backgroundColor(RokuricsColors.glassSurface + '66');
+            Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
             // Glass circle back button
             Button.shadow({
-                color: RokuricsColors.shadowColor + '10',
+                color: colorAlpha(RokuricsColors.shadowColor, '10'),
                 radius: 12,
                 offsetY: 6
             });
@@ -306,9 +313,9 @@ class AIChatPage extends ViewPU {
                 width: 1,
                 color: {
                     colors: [
-                        [0xFFFFFF, 0.44],
-                        [0xEFFAF8, 0.14],
-                        [0x59C7C2, 0.12]
+                        [0xFFFFFF, 0.22],
+                        [RokuricsColors.glassStroke, 0.14],
+                        [RokuricsColors.aqua, 0.12]
                     ],
                     direction: GradientDirection.RightBottom
                 },
@@ -387,10 +394,10 @@ class AIChatPage extends ViewPU {
                         Column.create();
                         Column.debugLine("entry/src/main/ets/pages/AIChatPage.ets(186:9)", "entry");
                         Column.width('100%');
-                        Column.backgroundColor(RokuricsColors.glassSurface + 'F0');
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'F0'));
                         Column.borderRadius({ bottomLeft: 16, bottomRight: 16 });
                         Column.shadow({
-                            color: RokuricsColors.shadowColor + '20',
+                            color: colorAlpha(RokuricsColors.shadowColor, '20'),
                             radius: 16,
                             offsetY: 8
                         });
@@ -480,7 +487,7 @@ class AIChatPage extends ViewPU {
                                                     Row.padding({ left: 14, right: 14, top: 10, bottom: 10 });
                                                     Row.borderRadius(12);
                                                     Row.backgroundColor(conv.id === this.activeConversation?.id ?
-                                                        RokuricsColors.aqua + '14' : RokuricsColors.glassSurface + '50');
+                                                        colorAlpha(RokuricsColors.aqua, '14') : colorAlpha(RokuricsColors.glassSurface, '50'));
                                                     Row.onClick(() => this.selectConversation(conv.id));
                                                 }, Row);
                                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -566,24 +573,26 @@ class AIChatPage extends ViewPU {
                         Column.justifyContent(FlexAlign.Center);
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('Rokurics AI');
+                        Text.create('AI 对话');
                         Text.debugLine("entry/src/main/ets/pages/AIChatPage.ets(269:11)", "entry");
-                        Text.fontSize(28);
-                        Text.fontWeight(FontWeight.SemiBold);
-                        Text.fontColor(RokuricsColors.aqua);
+                        Text.fontSize(30);
+                        Text.fontWeight(FontWeight.Bold);
+                        Text.fontFamily('serif');
+                        Text.fontColor(RokuricsColors.deepText);
                     }, Text);
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create(`你好${this.displayName ? '，' + this.displayName : ''}`);
-                        Text.debugLine("entry/src/main/ets/pages/AIChatPage.ets(274:11)", "entry");
-                        Text.fontSize(24);
-                        Text.fontWeight(FontWeight.SemiBold);
+                        Text.create(`${this.displayName || '用户'}，你好！`);
+                        Text.debugLine("entry/src/main/ets/pages/AIChatPage.ets(275:11)", "entry");
+                        Text.fontSize(22);
+                        Text.fontWeight(FontWeight.Medium);
+                        Text.fontFamily('serif');
                         Text.fontColor(RokuricsColors.deepText);
                     }, Text);
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('基于你的学习资料进行智能问答');
-                        Text.debugLine("entry/src/main/ets/pages/AIChatPage.ets(279:11)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/AIChatPage.ets(281:11)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(RokuricsColors.softText);
                     }, Text);
@@ -591,7 +600,7 @@ class AIChatPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         // Quick prompt buttons
                         Row.create({ space: 8 });
-                        Row.debugLine("entry/src/main/ets/pages/AIChatPage.ets(284:11)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/AIChatPage.ets(286:11)", "entry");
                         // Quick prompt buttons
                         Row.margin({ top: 12 });
                     }, Row);
@@ -608,7 +617,7 @@ class AIChatPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(1, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         List.create({ space: 12 });
-                        List.debugLine("entry/src/main/ets/pages/AIChatPage.ets(295:9)", "entry");
+                        List.debugLine("entry/src/main/ets/pages/AIChatPage.ets(297:9)", "entry");
                         List.width('100%');
                         List.layoutWeight(1);
                         List.padding({ left: 16, right: 16 });
@@ -629,7 +638,7 @@ class AIChatPage extends ViewPU {
                                 };
                                 const itemCreation2 = (elmtId, isInitialRender) => {
                                     ListItem.create(deepRenderFunction, true);
-                                    ListItem.debugLine("entry/src/main/ets/pages/AIChatPage.ets(297:13)", "entry");
+                                    ListItem.debugLine("entry/src/main/ets/pages/AIChatPage.ets(299:13)", "entry");
                                 };
                                 const deepRenderFunction = (elmtId, isInitialRender) => {
                                     itemCreation(elmtId, isInitialRender);
@@ -655,7 +664,7 @@ class AIChatPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create(this.errorText);
-                        Text.debugLine("entry/src/main/ets/pages/AIChatPage.ets(310:9)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/AIChatPage.ets(312:9)", "entry");
                         Text.fontSize(12);
                         Text.fontColor(RokuricsColors.coral);
                         Text.padding({ left: 16, right: 16, top: 4, bottom: 4 });
@@ -673,7 +682,7 @@ class AIChatPage extends ViewPU {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Input bar
             Row.create();
-            Row.debugLine("entry/src/main/ets/pages/AIChatPage.ets(317:7)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/AIChatPage.ets(319:7)", "entry");
             // Input bar
             Row.width('100%');
             // Input bar
@@ -681,26 +690,26 @@ class AIChatPage extends ViewPU {
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             TextInput.create({ text: this.inputText, placeholder: '输入消息...' });
-            TextInput.debugLine("entry/src/main/ets/pages/AIChatPage.ets(318:9)", "entry");
+            TextInput.debugLine("entry/src/main/ets/pages/AIChatPage.ets(320:9)", "entry");
             TextInput.fontSize(15);
             TextInput.layoutWeight(1);
             TextInput.height(44);
             TextInput.borderRadius(22);
             TextInput.padding({ left: 16, right: 16 });
-            TextInput.backgroundColor(RokuricsColors.glassSurface + '80');
+            TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'));
             TextInput.onChange((value: string) => { this.inputText = value; });
         }, TextInput);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Button.createWithChild();
-            Button.debugLine("entry/src/main/ets/pages/AIChatPage.ets(327:9)", "entry");
+            Button.debugLine("entry/src/main/ets/pages/AIChatPage.ets(329:9)", "entry");
             Button.width(44);
             Button.height(44);
             Button.borderRadius(22);
             Button.backgroundColor(this.inputText.trim().length > 0 && !this.isGenerating ?
                 RokuricsColors.aqua : RokuricsColors.tertiaryText);
             Button.shadow({
-                color: (this.inputText.trim().length > 0 && !this.isGenerating ?
-                    RokuricsColors.aqua : RokuricsColors.tertiaryText) + '30',
+                color: colorAlpha((this.inputText.trim().length > 0 && !this.isGenerating ?
+                    RokuricsColors.aqua : RokuricsColors.tertiaryText), '30'),
                 radius: 10,
                 offsetY: 4
             });
@@ -716,7 +725,7 @@ class AIChatPage extends ViewPU {
     ChatBubble(msg: ChatMessage, parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
-            Row.debugLine("entry/src/main/ets/pages/AIChatPage.ets(356:5)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/AIChatPage.ets(365:5)", "entry");
             Row.width('100%');
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -725,24 +734,24 @@ class AIChatPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create();
-                        Column.debugLine("entry/src/main/ets/pages/AIChatPage.ets(358:9)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/AIChatPage.ets(367:9)", "entry");
                         Column.alignItems(HorizontalAlign.Start);
                         Column.constraintSize({ maxWidth: '80%' });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create(msg.content);
-                        Text.debugLine("entry/src/main/ets/pages/AIChatPage.ets(359:11)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/AIChatPage.ets(368:11)", "entry");
                         Text.fontSize(15);
                         Text.fontColor(RokuricsColors.deepText);
                         Text.padding(14);
                         Text.borderRadius({ topLeft: 4, topRight: 16, bottomLeft: 16, bottomRight: 16 });
-                        Text.backgroundColor(RokuricsColors.glassSurface + 'B8');
+                        Text.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'B8'));
                         Text.border({
                             width: 1,
                             color: {
                                 colors: [
-                                    [0xFFFFFF, 0.30],
-                                    [0xEFFAF8, 0.10]
+                                    [0xFFFFFF, 0.18],
+                                    [RokuricsColors.glassStroke, 0.10]
                                 ],
                                 direction: GradientDirection.RightBottom
                             },
@@ -753,7 +762,7 @@ class AIChatPage extends ViewPU {
                     Column.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Blank.create();
-                        Blank.debugLine("entry/src/main/ets/pages/AIChatPage.ets(379:9)", "entry");
+                        Blank.debugLine("entry/src/main/ets/pages/AIChatPage.ets(388:9)", "entry");
                     }, Blank);
                     Blank.pop();
                 });
@@ -762,25 +771,25 @@ class AIChatPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(1, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Blank.create();
-                        Blank.debugLine("entry/src/main/ets/pages/AIChatPage.ets(381:9)", "entry");
+                        Blank.debugLine("entry/src/main/ets/pages/AIChatPage.ets(390:9)", "entry");
                     }, Blank);
                     Blank.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create();
-                        Column.debugLine("entry/src/main/ets/pages/AIChatPage.ets(382:9)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/AIChatPage.ets(391:9)", "entry");
                         Column.alignItems(HorizontalAlign.End);
                         Column.constraintSize({ maxWidth: '80%' });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create(msg.content);
-                        Text.debugLine("entry/src/main/ets/pages/AIChatPage.ets(383:11)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/AIChatPage.ets(392:11)", "entry");
                         Text.fontSize(15);
                         Text.fontColor(Color.White);
                         Text.padding(14);
                         Text.borderRadius({ topLeft: 16, topRight: 4, bottomLeft: 16, bottomRight: 16 });
                         Text.backgroundColor(RokuricsColors.aqua);
                         Text.shadow({
-                            color: RokuricsColors.aqua + '20',
+                            color: colorAlpha(RokuricsColors.aqua, '20'),
                             radius: 8,
                             offsetY: 4
                         });
@@ -796,14 +805,14 @@ class AIChatPage extends ViewPU {
     QuickPrompt(text: string, parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(text);
-            Text.debugLine("entry/src/main/ets/pages/AIChatPage.ets(404:5)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/AIChatPage.ets(413:5)", "entry");
             Text.fontSize(13);
             Text.fontWeight(FontWeight.Medium);
             Text.fontColor(RokuricsColors.aqua);
             Text.padding({ left: 14, right: 14, top: 8, bottom: 8 });
             Text.borderRadius(16);
-            Text.backgroundColor(RokuricsColors.aqua + '10');
-            Text.border({ width: 1, color: RokuricsColors.aqua + '40', radius: 16 });
+            Text.backgroundColor(colorAlpha(RokuricsColors.aqua, '10'));
+            Text.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 16 });
             Text.onClick(() => {
                 this.inputText = text;
                 this.sendMessage();

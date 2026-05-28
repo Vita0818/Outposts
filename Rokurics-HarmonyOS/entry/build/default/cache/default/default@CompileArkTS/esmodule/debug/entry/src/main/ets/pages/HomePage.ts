@@ -16,7 +16,7 @@ import { getSharedRecordingManager } from "@bundle:com.vita0818.rokurics/entry/e
 import type { RecordingManager } from "@bundle:com.vita0818.rokurics/entry/ets/services/RecordingManager";
 import { RecordingState } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import { formatClock } from "@bundle:com.vita0818.rokurics/entry/ets/utils/FormatHelpers";
-import { RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity, glassStrokeMidOpacity } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { colorAlpha, RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity, glassStrokeMidOpacity } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 import { GearIcon, BooksIcon, ChatIcon, ConnectionIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
 import { hapticLight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/HapticFeedback";
 class HomePage extends ViewPU {
@@ -182,7 +182,14 @@ class HomePage extends ViewPU {
             Stack.create();
             Stack.width('100%');
             Stack.height('100%');
-            Stack.backgroundColor(RokuricsColors.pageBackground);
+            Stack.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.pageGradientStart, 1.0],
+                    [RokuricsColors.pageGradientMid, 1.0],
+                    [RokuricsColors.pageGradientEnd, 1.0]
+                ]
+            });
         }, Stack);
         // Ambient background bubbles
         this.AmbientBackground.bind(this)();
@@ -225,10 +232,10 @@ class HomePage extends ViewPU {
             // Profile avatar button (glass circle)
             Button.borderRadius(23 * this.headerScale);
             // Profile avatar button (glass circle)
-            Button.backgroundColor(RokuricsColors.glassSurface + '5C');
+            Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '5C'));
             // Profile avatar button (glass circle)
             Button.shadow({
-                color: RokuricsColors.shadowColor + '14',
+                color: colorAlpha(RokuricsColors.shadowColor, '14'),
                 radius: 12,
                 offsetY: 6
             });
@@ -292,60 +299,124 @@ class HomePage extends ViewPU {
             Stack.height(286 * this.orbScale);
         }, Stack);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Satellite 1
+            // Satellite 1: mint → paleAqua, opacity 0.42
             Circle.create();
-            // Satellite 1
+            // Satellite 1: mint → paleAqua, opacity 0.42
             Circle.width(88 * this.orbScale);
-            // Satellite 1
+            // Satellite 1: mint → paleAqua, opacity 0.42
             Circle.height(88 * this.orbScale);
-            // Satellite 1
-            Circle.fill(RokuricsColors.mint + '40');
-            // Satellite 1
+            // Satellite 1: mint → paleAqua, opacity 0.42
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.mint, 0.42],
+                    [RokuricsColors.paleAqua, 0.42]
+                ]
+            });
+            // Satellite 1: mint → paleAqua, opacity 0.42
+            Circle.stroke('#FFFFFF');
+            // Satellite 1: mint → paleAqua, opacity 0.42
+            Circle.strokeWidth(1);
+            // Satellite 1: mint → paleAqua, opacity 0.42
+            Circle.shadow({
+                color: colorAlpha(RokuricsColors.shadowColor, '08'),
+                radius: 14,
+                offsetY: 8
+            });
+            // Satellite 1: mint → paleAqua, opacity 0.42
             Circle.position({
                 x: (94 - this.breathePhase * 6) * this.orbScale + '%',
                 y: (28 + this.breathePhase * 4) * this.orbScale + '%'
             });
         }, Circle);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Satellite 2
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
             Circle.create();
-            // Satellite 2
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
             Circle.width(76 * this.orbScale);
-            // Satellite 2
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
             Circle.height(76 * this.orbScale);
-            // Satellite 2
-            Circle.fill(RokuricsColors.skyCyan + '32');
-            // Satellite 2
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.skyCyan, 0.32],
+                    [RokuricsColors.mistGreen, 0.32]
+                ]
+            });
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
+            Circle.stroke('#FFFFFF');
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
+            Circle.strokeWidth(1);
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
+            Circle.shadow({
+                color: colorAlpha(RokuricsColors.shadowColor, '08'),
+                radius: 14,
+                offsetY: 8
+            });
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
             Circle.position({
                 x: (60 + this.breathePhase * 5) * this.orbScale + '%',
                 y: (32 - this.breathePhase * 3) * this.orbScale + '%'
             });
         }, Circle);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Satellite 3
+            // Satellite 3: aqua → paleAqua, opacity 0.30
             Circle.create();
-            // Satellite 3
+            // Satellite 3: aqua → paleAqua, opacity 0.30
             Circle.width(74 * this.orbScale);
-            // Satellite 3
+            // Satellite 3: aqua → paleAqua, opacity 0.30
             Circle.height(74 * this.orbScale);
-            // Satellite 3
-            Circle.fill(RokuricsColors.aqua + '28');
-            // Satellite 3
+            // Satellite 3: aqua → paleAqua, opacity 0.30
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.aqua, 0.30],
+                    [RokuricsColors.paleAqua, 0.30]
+                ]
+            });
+            // Satellite 3: aqua → paleAqua, opacity 0.30
+            Circle.stroke('#FFFFFF');
+            // Satellite 3: aqua → paleAqua, opacity 0.30
+            Circle.strokeWidth(1);
+            // Satellite 3: aqua → paleAqua, opacity 0.30
+            Circle.shadow({
+                color: colorAlpha(RokuricsColors.shadowColor, '08'),
+                radius: 14,
+                offsetY: 8
+            });
+            // Satellite 3: aqua → paleAqua, opacity 0.30
             Circle.position({
                 x: (50 - this.breathePhase * 4) * this.orbScale + '%',
                 y: (68 + this.breathePhase * 3) * this.orbScale + '%'
             });
         }, Circle);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Satellite 4
+            // Satellite 4: mistGreen → mint, opacity 0.34
             Circle.create();
-            // Satellite 4
+            // Satellite 4: mistGreen → mint, opacity 0.34
             Circle.width(68 * this.orbScale);
-            // Satellite 4
+            // Satellite 4: mistGreen → mint, opacity 0.34
             Circle.height(68 * this.orbScale);
-            // Satellite 4
-            Circle.fill(RokuricsColors.mistGreen + '34');
-            // Satellite 4
+            // Satellite 4: mistGreen → mint, opacity 0.34
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.mistGreen, 0.34],
+                    [RokuricsColors.mint, 0.34]
+                ]
+            });
+            // Satellite 4: mistGreen → mint, opacity 0.34
+            Circle.stroke('#FFFFFF');
+            // Satellite 4: mistGreen → mint, opacity 0.34
+            Circle.strokeWidth(1);
+            // Satellite 4: mistGreen → mint, opacity 0.34
+            Circle.shadow({
+                color: colorAlpha(RokuricsColors.shadowColor, '08'),
+                radius: 14,
+                offsetY: 8
+            });
+            // Satellite 4: mistGreen → mint, opacity 0.34
             Circle.position({
                 x: (28 + this.breathePhase * 5) * this.orbScale + '%',
                 y: (62 - this.breathePhase * 3) * this.orbScale + '%'
@@ -361,7 +432,7 @@ class HomePage extends ViewPU {
             // Sound ripple (animated breathing)
             Circle.height(238 * this.orbScale);
             // Sound ripple (animated breathing)
-            Circle.stroke(RokuricsColors.aqua + '08');
+            Circle.stroke(colorAlpha(RokuricsColors.aqua, '08'));
             // Sound ripple (animated breathing)
             Circle.strokeWidth(1.4);
             // Sound ripple (animated breathing)
@@ -373,7 +444,7 @@ class HomePage extends ViewPU {
             Circle.create();
             Circle.width(202 * this.orbScale);
             Circle.height(202 * this.orbScale);
-            Circle.stroke(RokuricsColors.aqua + '10');
+            Circle.stroke(colorAlpha(RokuricsColors.aqua, '10'));
             Circle.strokeWidth(1.4);
             Circle.fill(Color.Transparent);
             Circle.opacity(0.10 + this.breathePhase * 0.05);
@@ -387,7 +458,7 @@ class HomePage extends ViewPU {
                         Circle.create();
                         Circle.width(222 * this.orbScale);
                         Circle.height(222 * this.orbScale);
-                        Circle.stroke(RokuricsColors.coral + '20');
+                        Circle.stroke(colorAlpha(RokuricsColors.coral, '20'));
                         Circle.strokeWidth(1.4);
                         Circle.fill(Color.Transparent);
                         Circle.opacity(0.16 + this.breathePhase * 0.08);
@@ -400,14 +471,14 @@ class HomePage extends ViewPU {
                         Circle.create();
                         Circle.width(222 * this.orbScale);
                         Circle.height(222 * this.orbScale);
-                        Circle.stroke(RokuricsColors.softTeal + '15');
+                        Circle.stroke(colorAlpha(RokuricsColors.softTeal, '15'));
                         Circle.strokeWidth(1.4);
                         Circle.fill(Color.Transparent);
                         Circle.opacity(0.11 + this.breathePhase * 0.06);
                     }, Circle);
                 });
             }
-            // Main orb
+            // Main orb with gradient fill
             else {
                 this.ifElseBranchUpdateFunction(2, () => {
                 });
@@ -415,17 +486,23 @@ class HomePage extends ViewPU {
         }, If);
         If.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Main orb
+            // Main orb with gradient fill
             Circle.create();
-            // Main orb
+            // Main orb with gradient fill
             Circle.width(190 * this.orbScale);
-            // Main orb
+            // Main orb with gradient fill
             Circle.height(190 * this.orbScale);
-            // Main orb
-            Circle.fill(RokuricsColors.actionStart);
-            // Main orb
+            // Main orb with gradient fill
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.actionGradientStart, 1.0],
+                    [RokuricsColors.actionGradientEnd, 1.0]
+                ]
+            });
+            // Main orb with gradient fill
             Circle.shadow({
-                color: RokuricsColors.shadowColor + '24',
+                color: colorAlpha(RokuricsColors.shadowColor, '24'),
                 radius: 30 * this.orbScale,
                 offsetY: 18 * this.orbScale
             });
@@ -484,7 +561,7 @@ class HomePage extends ViewPU {
             // Navigation Card with glass styling
             Row.borderRadius(30);
             // Navigation Card with glass styling
-            Row.backgroundColor(RokuricsColors.glassSurface + '66');
+            Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
             // Navigation Card with glass styling
             Row.border({
                 width: 1,
@@ -500,7 +577,7 @@ class HomePage extends ViewPU {
             } as BorderOptions);
             // Navigation Card with glass styling
             Row.shadow({
-                color: RokuricsColors.shadowColor + '12',
+                color: colorAlpha(RokuricsColors.shadowColor, '12'),
                 radius: 20,
                 offsetY: 11
             });
@@ -546,7 +623,7 @@ class HomePage extends ViewPU {
             // Divider
             Rect.height(54);
             // Divider
-            Rect.fill(RokuricsColors.softText + '14');
+            Rect.fill(colorAlpha(RokuricsColors.softText, '14'));
         }, Rect);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // AI Chat
@@ -587,7 +664,7 @@ class HomePage extends ViewPU {
             // Divider
             Rect.height(54);
             // Divider
-            Rect.fill(RokuricsColors.softText + '14');
+            Rect.fill(colorAlpha(RokuricsColors.softText, '14'));
         }, Rect);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Mac Connection
@@ -611,7 +688,7 @@ class HomePage extends ViewPU {
         }, Column);
         ConnectionIcon.bind(this)(27, RokuricsColors.softTeal, this.isMacPaired);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.isMacPaired ? '已连接' : '连接');
+            Text.create('Mac 连接');
             Text.fontSize(13);
             Text.fontWeight(FontWeight.SemiBold);
             Text.fontColor(RokuricsColors.deepText);
@@ -635,7 +712,7 @@ class HomePage extends ViewPU {
                         Row.create({ space: 8 });
                         Row.padding({ left: 14, right: 14, top: 8, bottom: 8 });
                         Row.borderRadius(14);
-                        Row.backgroundColor(RokuricsColors.glassSurface + glassFillOpacity);
+                        Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
                         Row.border({
                             width: 1,
                             color: {
@@ -686,29 +763,75 @@ class HomePage extends ViewPU {
             Stack.height('100%');
         }, Stack);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Large ambient bubbles
+            // Bubble 1: paleAqua → mint, opacity 0.30
             Circle.create();
-            // Large ambient bubbles
+            // Bubble 1: paleAqua → mint, opacity 0.30
             Circle.width(150);
-            // Large ambient bubbles
+            // Bubble 1: paleAqua → mint, opacity 0.30
             Circle.height(150);
-            // Large ambient bubbles
-            Circle.fill(RokuricsColors.paleAqua + '30');
-            // Large ambient bubbles
+            // Bubble 1: paleAqua → mint, opacity 0.30
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.paleAqua, 0.30],
+                    [RokuricsColors.mint, 0.30]
+                ]
+            });
+            // Bubble 1: paleAqua → mint, opacity 0.30
+            Circle.stroke('#FFFFFF');
+            // Bubble 1: paleAqua → mint, opacity 0.30
+            Circle.strokeWidth(1);
+            // Bubble 1: paleAqua → mint, opacity 0.30
+            Circle.opacity(0.30);
+            // Bubble 1: paleAqua → mint, opacity 0.30
             Circle.position({ x: -30, y: '-10%' });
         }, Circle);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
             Circle.create();
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
             Circle.width(190);
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
             Circle.height(190);
-            Circle.fill(RokuricsColors.skyCyan + '22');
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.skyCyan, 0.22],
+                    [RokuricsColors.mistGreen, 0.22]
+                ]
+            });
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
+            Circle.stroke('#FFFFFF');
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
+            Circle.strokeWidth(1);
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
+            Circle.opacity(0.22);
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
             Circle.position({ x: '85%', y: '15%' });
         }, Circle);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Bubble 3: mint → aqua, opacity 0.18
             Circle.create();
+            // Bubble 3: mint → aqua, opacity 0.18
             Circle.width(170);
+            // Bubble 3: mint → aqua, opacity 0.18
             Circle.height(170);
-            Circle.fill(RokuricsColors.mint + '18');
+            // Bubble 3: mint → aqua, opacity 0.18
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.mint, 0.18],
+                    [RokuricsColors.aqua, 0.18]
+                ]
+            });
+            // Bubble 3: mint → aqua, opacity 0.18
+            Circle.stroke('#FFFFFF');
+            // Bubble 3: mint → aqua, opacity 0.18
+            Circle.strokeWidth(1);
+            // Bubble 3: mint → aqua, opacity 0.18
+            Circle.opacity(0.18);
+            // Bubble 3: mint → aqua, opacity 0.18
             Circle.position({ x: '75%', y: '70%' });
         }, Circle);
         Stack.pop();

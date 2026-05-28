@@ -21,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -42,6 +43,10 @@ import com.rokurics.app.service.RecordingManager
 import com.rokurics.app.service.RokuricsRecordingState
 import com.rokurics.app.ui.theme.RokuricsAdaptiveMetrics
 import com.rokurics.app.ui.theme.RokuricsColors
+import com.rokurics.app.ui.theme.adaptivePageGradientBrush
+import com.rokurics.app.ui.theme.rokuricsGlassCard
+import com.rokurics.app.ui.theme.rokuricsGlassCapsule
+import com.rokurics.app.ui.theme.rokuricsGlassCircle
 import com.rokurics.app.ui.theme.rokuricsScaleClickable
 import kotlinx.coroutines.delay
 
@@ -66,6 +71,7 @@ fun RecordingSessionScreen(
 
     val context = LocalContext.current
     val isFiling = state == RokuricsRecordingState.FILING
+    var didRequestStart by remember { mutableStateOf(false) }
 
     // Low-power display mode
     var isLowPowerMode by remember { mutableStateOf(false) }
@@ -159,6 +165,23 @@ fun RecordingSessionScreen(
         recordingManager.startRecording()
     }
 
+    // Auto-start recording on appear (iPhone parity: startIfNeeded in onAppear)
+    LaunchedEffect(Unit) {
+        if (didRequestStart) return@LaunchedEffect
+        didRequestStart = true
+        when (state) {
+            RokuricsRecordingState.RECORDING, RokuricsRecordingState.PAUSED,
+            RokuricsRecordingState.REQUESTING_PERMISSION, RokuricsRecordingState.CONFIGURING_SESSION,
+            RokuricsRecordingState.STOPPING, RokuricsRecordingState.FILING,
+            RokuricsRecordingState.SAVING -> return@LaunchedEffect
+            RokuricsRecordingState.IDLE, RokuricsRecordingState.SAVED,
+            RokuricsRecordingState.PERMISSION_DENIED, RokuricsRecordingState.FAILED,
+            RokuricsRecordingState.NOTIFICATION_PERMISSION_DENIED -> {
+                startRecordingWithPermissionRequest()
+            }
+        }
+    }
+
     fun handleBack() {
         when (state) {
             RokuricsRecordingState.RECORDING, RokuricsRecordingState.PAUSED -> {
@@ -213,11 +236,7 @@ fun RecordingSessionScreen(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFFF0FAF8), Color(0xFFE8F8F4))
-                )
-            )
+            .background(adaptivePageGradientBrush())
     ) {
         val metrics = RokuricsAdaptiveMetrics(maxWidth.value, maxHeight.value)
         val horzPadding = metrics.horizontalPadding
@@ -249,7 +268,7 @@ fun RecordingSessionScreen(
         ) {
             Spacer(modifier = Modifier.height(if (metrics.isPadWidth) 24.dp else 18.dp))
 
-            // Header — back button only
+            // Header — back button (iPhone parity: RokuricsIconCircleButton with chevron.left)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -257,16 +276,20 @@ fun RecordingSessionScreen(
                 Box(
                     modifier = Modifier
                         .size(44.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.46f))
-                        .clickable { handleBack() },
+                        .rokuricsGlassCircle(
+                            fillOpacity = 0.36f,
+                            strokeOpacity = 0.50f,
+                            shadowOpacity = 0.14f,
+                            shadowRadius = 12.dp
+                        )
+                        .rokuricsScaleClickable(onClick = { handleBack() }),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "返回首页",
                         tint = RokuricsColors.deepText,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
@@ -295,11 +318,31 @@ fun RecordingSessionScreen(
                 label = "timerBlink"
             )
 
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(34.dp),
-                color = Color.White.copy(alpha = 0.36f),
-                shadowElevation = 12.dp
+            // Timer card — iPhone parity: rokuricsLiquidGlassCard styling
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(34.dp))
+                    .background(Color.White.copy(alpha = 0.36f))
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.42f),
+                                Color.White.copy(alpha = 0.06f),
+                                RokuricsColors.aqua.copy(alpha = 0.12f)
+                            ),
+                            start = Offset(0f, 0f),
+                            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                        ),
+                        RoundedCornerShape(34.dp)
+                    )
+                    .then(
+                        Modifier.shadow(
+                            elevation = 14.dp,
+                            shape = RoundedCornerShape(34.dp),
+                            spotColor = RokuricsColors.shadow.copy(alpha = 0.12f)
+                        )
+                    )
             ) {
                 Column(
                     modifier = Modifier
@@ -466,6 +509,24 @@ fun RecordingSessionScreen(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Upload hint — iPhone parity: "Mac 传输稍后支持" with glass capsule
+            Text(
+                text = "Mac 传输稍后支持",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = RokuricsColors.tertiaryText,
+                modifier = Modifier
+                    .rokuricsGlassCapsule(
+                        fillOpacity = 0.28f,
+                        strokeOpacity = 0.22f,
+                        shadowOpacity = 0.03f,
+                        shadowRadius = 4.dp
+                    )
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
             Spacer(modifier = Modifier.navigationBarsPadding())
@@ -802,27 +863,27 @@ fun RecordButton(
     enabled: Boolean = true,
     onClick: () -> Unit
 ) {
-    Surface(
+    Box(
         modifier = modifier
             .height(76.dp)
-            .rokuricsScaleClickable(onClick = onClick, enabled = enabled),
-        shape = RoundedCornerShape(24.dp),
-        color = if (enabled) Color.White.copy(alpha = 0.34f) else Color.White.copy(alpha = 0.20f),
-        tonalElevation = if (enabled) 2.dp else 0.dp,
-        shadowElevation = if (enabled) 6.dp else 1.dp,
-        border = if (enabled) androidx.compose.foundation.BorderStroke(
-            0.5.dp, color.copy(alpha = 0.34f)
-        ) else null
+            .rokuricsScaleClickable(onClick = onClick, enabled = enabled)
+            .rokuricsGlassCard(
+                cornerRadius = 24.dp,
+                fillOpacity = if (enabled) 0.38f else 0.24f,
+                strokeOpacity = 0.34f,
+                shadowOpacity = if (enabled) 0.08f else 0.03f,
+                shadowRadius = 12.dp
+            ),
+        contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = text,
-                tint = if (enabled) color else RokuricsColors.softText,
+                tint = if (enabled) color else RokuricsColors.tertiaryText,
                 modifier = Modifier.size(22.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -830,7 +891,7 @@ fun RecordButton(
                 text = text,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = if (enabled) color else RokuricsColors.softText
+                color = if (enabled) color else RokuricsColors.tertiaryText
             )
         }
     }

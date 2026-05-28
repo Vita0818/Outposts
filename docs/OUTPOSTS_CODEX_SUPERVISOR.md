@@ -38,14 +38,19 @@ Claude Code 负责：
 - 在授权范围内读取 Apple 源项目。
 - 在授权范围内读取和修改 Outposts 目标项目。
 - 运行目标项目需要的构建、测试、诊断命令。
+- 在 UI 复刻、截图对比或视觉验收任务中，按 `CLAUDE_CODE_VISUAL_MCP_PROTOCOL.md` 调用 `qwen-vision` 识别图片或比较截图。
 - 输出每轮结构化报告。
 - 明确报告改动、验证、失败、阻塞、剩余问题。
+
+`qwen-vision` 只是 Claude Code 可调用的视觉 MCP 工具，不是主 Agent。推理、取舍、文件修改、命令执行、构建、测试和总结仍由 Claude Code 主 Agent 完成。Codex Agent 本体不直接调用 `qwen-vision`，只在合适的正式任务 prompt 中要求 Claude Code 使用它。
 
 ## 用户反馈优先级
 
 用户验收反馈优先于 Claude Code 自评。
 
 如果 Claude Code 声称完成，但用户反馈存在视觉、行为、平台、构建、测试、迁移完整性问题，Codex Agent 必须把用户反馈提升为下一轮任务输入。不得用 Claude Code 的自评覆盖用户验收反馈。
+
+当用户人工视觉反馈与 `qwen-vision` 的相似度判断冲突时，用户人工视觉反馈优先。
 
 用户明确说暂停、停止、只汇报、等待确认时，Codex Agent 必须停止启动新轮。
 

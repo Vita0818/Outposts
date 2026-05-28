@@ -1,0 +1,33 @@
+# Checkpoint: outposts-qwen-vision-screenshot-loop
+
+RUN_ID: 20260528-111415
+BATCH_NAME: outposts-qwen-vision-screenshot-loop
+CHECKPOINT_AT: 2026-05-28 11:14:15 CST
+CHECKPOINT_TYPE: STARTED
+
+ROOT:
+- PWD: /Users/vita/Vitemis/Outposts
+- GIT_ROOT: /Users/vita/Vitemis/Outposts
+- ROOT_MATCH: YES
+
+PROJECT_CHECKPOINTS:
+- PROJECT_NAME: Rokurics-Android
+  TARGET_PATH: /Users/vita/Vitemis/Outposts/Rokurics-Android
+  LAST_CONFIRMED_ROUND: 0
+  LAST_PROMPT_SENT_AT: NONE
+  LAST_REPORT_RECEIVED_AT: NONE
+  LAST_KNOWN_STATUS: INITIALIZED
+  ROUNDS_COMPLETED: 0
+  BLOCKER: NONE
+  NEXT_ACTION: VISIBLE_TERMINAL_HANDSHAKE_THEN_SCREENSHOT_LOOP
+- PROJECT_NAME: Rokurics-HarmonyOS
+  TARGET_PATH: /Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS
+  LAST_CONFIRMED_ROUND: 0
+  LAST_PROMPT_SENT_AT: NONE
+  LAST_REPORT_RECEIVED_AT: NONE
+  LAST_KNOWN_STATUS: INITIALIZED
+  ROUNDS_COMPLETED: 0
+  BLOCKER: NONE
+  NEXT_ACTION: VISIBLE_TERMINAL_HANDSHAKE_THEN_SCREENSHOT_LOOP
+
+RECOVERY_NOTE: Resume only from visible Terminal facts and this checkpoint. Do not restart from a previous visual batch.

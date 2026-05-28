@@ -92,10 +92,15 @@ fun SettingsScreen(
 
         Spacer(Modifier.height(8.dp))
 
-        // Learning Settings
+        // Current Preset (matches iOS currentPresetOnlySection)
         SettingsSection("当前预设", scale = sScale) {
-            SettingsRow("当前预设", presetName, scale = srScale) { onOpenPresetSelection() }
-            SettingsDivider()
+            SettingsRow("当前预设", presetName, false, scale = srScale) { onOpenPresetSelection() }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // Learning Settings (matches iOS learningSettingsSection)
+        SettingsSection("学习", scale = sScale) {
             SettingsRow("每日学习目标", "$dailyGoal", scale = srScale) { showDailyGoalPicker = true }
             SettingsDivider()
             SettingsRow("倒数日", if (countdownDays > 0) "${countdownDays}天" else "未设置", scale = srScale) { showCountdownPicker = true }

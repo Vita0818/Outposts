@@ -1,0 +1,64 @@
+MANDATORY PREFLIGHT
+
+1. MODEL_CHECK_RESULT
+当前模型必须是 DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m] 这一类 Pro 路由。否则立即停止并只输出结构化报告。
+
+2. PATH_CHECK_RESULT
+当前工作目录必须严格等于 /Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS。否则立即停止并只输出结构化报告。
+
+3. SOURCE_READONLY_CHECK
+Apple 源项目只读路径：/Users/vita/Vitemis/Vela/Kikaria
+目标项目可写路径：/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS
+Apple 源项目绝不修改。所有写入只允许发生在当前目标项目路径内。不得访问无关目录。不得读取或发送 API Key、.env、token、密钥、证书、p12、provisioning profile、ssh key、Keychain 内容等敏感信息。
+
+本轮是 BATCH_NAME=outposts-qwen-vision-apple-ui-replica-pass 的 Round 1。本项目最多只做 1 轮。本轮涉及 UI / layout / interaction 视觉复刻任务。用户已确认 Claude Code 中 qwen-vision MCP 显示 connected · 3 tools。
+
+qwen-vision 使用规则：
+- qwen-vision 不是主模型。你作为 Claude Code / DeepSeek V4 Pro 主 Agent 负责推理、读源码、改文件、运行命令、构建、测试、总结。
+- qwen-vision 只负责 inspect_screenshot、compare_screenshots、extract_text_and_controls。
+- 不得让 qwen-vision 修改文件。
+- 不得把完整源码、密钥、token、.env、证书或私密配置传给 qwen-vision。
+- 如果当前会话里工具调用失败，报告 QWEN_VISION_AVAILABLE=NO 和原因；不要假装调用。
+- 如果有参考图或实际图，优先调用 qwen-vision；默认最多 2 次视觉分析/对比循环，避免无限微调。
+
+项目目标：
+- 用户验收反馈：当前编译错误，无法运行。
+- 本轮目标：先恢复编译；如果无法运行，就无法完成实际视觉截图验收，必须报告。
+- 编译恢复后，再借助 qwen-vision 做 UI 对照。
+- 构建未恢复前不得堆新功能。
+
+执行流程：
+1. 只读读取 Apple 源项目，找到真实 UI 结构、页面布局、导航结构、视觉层级和交互逻辑。
+2. 读取目标 HarmonyOS 项目，优先修复导致无法编译/无法运行的问题。
+3. 编译恢复前不要做大规模新功能堆叠。
+4. 若编译可恢复，尽可能获取 Apple 参考视觉依据和 HarmonyOS 实际渲染截图，优先 Preview / DevEco 可行截图路径 / HAP 可运行验证路径。
+5. 有参考图时调用 qwen-vision.inspect_screenshot；有实际图时调用 inspect_screenshot；两者都有时调用 compare_screenshots。
+6. 根据 qwen-vision 差异分析修改目标项目。
+7. 修改后尽量构建、测试、截图验证。
+8. 输出结构化报告，不要贴长日志。
+
+最终报告必须包含：
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+QWEN_VISION_AVAILABLE
+QWEN_VISION_USED
+REFERENCE_SCREENSHOTS
+ACTUAL_SCREENSHOTS
+VISION_TOOLS_CALLED
+VISION_COMPARISON_RESULT
+APPLE_UI_PARITY_CHECKLIST
+USER_ACCEPTANCE_FEEDBACK_ADDRESSED
+UI_LAYOUT_ALIGNMENT_PROGRESS
+FUNCTIONAL_PARITY_PROGRESS
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+VISUAL_VALIDATION_LIMITATIONS
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION

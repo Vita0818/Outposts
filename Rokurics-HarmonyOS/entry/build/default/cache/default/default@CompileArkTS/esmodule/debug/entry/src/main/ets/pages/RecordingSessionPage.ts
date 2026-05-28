@@ -20,7 +20,7 @@ import { getSharedRecordingManager } from "@bundle:com.vita0818.rokurics/entry/e
 import type { RecordingManager } from "@bundle:com.vita0818.rokurics/entry/ets/services/RecordingManager";
 import { RecordingState, StudyFilingPath } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import { formatClock, formatDuration } from "@bundle:com.vita0818.rokurics/entry/ets/utils/FormatHelpers";
-import { RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { colorAlpha, RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 import { PlayIcon, PauseIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
 const FILING_OPTIONS: Record<string, string[]> = {
     'type': ['课堂录音', '自学笔记', '会议记录', '访谈采访', '灵感记录', '其他'],
@@ -274,10 +274,10 @@ class RecordingSessionPage extends ViewPU {
             // Glass circle back button
             Button.borderRadius(22);
             // Glass circle back button
-            Button.backgroundColor(RokuricsColors.glassSurface + '66');
+            Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
             // Glass circle back button
             Button.shadow({
-                color: RokuricsColors.shadowColor + '10',
+                color: colorAlpha(RokuricsColors.shadowColor, '10'),
                 radius: 12,
                 offsetY: 6
             });
@@ -321,7 +321,7 @@ class RecordingSessionPage extends ViewPU {
                         Button.borderRadius(20);
                         Button.backgroundColor(RokuricsColors.coral);
                         Button.shadow({
-                            color: RokuricsColors.coral + '30',
+                            color: colorAlpha(RokuricsColors.coral, '30'),
                             radius: 12,
                             offsetY: 4
                         });
@@ -347,7 +347,7 @@ class RecordingSessionPage extends ViewPU {
                         Button.borderRadius(20);
                         Button.backgroundColor(RokuricsColors.aqua);
                         Button.shadow({
-                            color: RokuricsColors.aqua + '30',
+                            color: colorAlpha(RokuricsColors.aqua, '30'),
                             radius: 12,
                             offsetY: 4
                         });
@@ -389,10 +389,10 @@ class RecordingSessionPage extends ViewPU {
             // Timer card with glass styling (mirrors Apple's liquid glass card)
             Column.borderRadius(34);
             // Timer card with glass styling (mirrors Apple's liquid glass card)
-            Column.backgroundColor(RokuricsColors.glassSurface + '5C');
+            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '5C'));
             // Timer card with glass styling (mirrors Apple's liquid glass card)
             Column.shadow({
-                color: RokuricsColors.shadowColor + '12',
+                color: colorAlpha(RokuricsColors.shadowColor, '12'),
                 radius: 24,
                 offsetY: 14
             });
@@ -504,10 +504,10 @@ class RecordingSessionPage extends ViewPU {
                         // Pause/Resume button
                         Button.borderRadius(24);
                         // Pause/Resume button
-                        Button.backgroundColor(RokuricsColors.glassSurface + '61');
+                        Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '61'));
                         // Pause/Resume button
                         Button.shadow({
-                            color: RokuricsColors.shadowColor + '08',
+                            color: colorAlpha(RokuricsColors.shadowColor, '08'),
                             radius: 12,
                             offsetY: 6
                         });
@@ -579,7 +579,7 @@ class RecordingSessionPage extends ViewPU {
                         Button.borderRadius(36);
                         Button.backgroundColor(this.state === RecordingState.RECORDING ? RokuricsColors.coral : RokuricsColors.aqua);
                         Button.shadow({
-                            color: (this.state === RecordingState.RECORDING ? RokuricsColors.coral : RokuricsColors.aqua) + '40',
+                            color: colorAlpha((this.state === RecordingState.RECORDING ? RokuricsColors.coral : RokuricsColors.aqua), '40'),
                             radius: 18,
                             offsetY: 6
                         });
@@ -751,9 +751,9 @@ class RecordingSessionPage extends ViewPU {
             Column.width('100%');
             Column.padding(22);
             Column.borderRadius(30);
-            Column.backgroundColor(RokuricsColors.glassSurface + 'F5');
+            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'F5'));
             Column.shadow({
-                color: RokuricsColors.shadowColor + '1C',
+                color: colorAlpha(RokuricsColors.shadowColor, '1C'),
                 radius: 26,
                 offsetY: 14
             });
@@ -808,7 +808,7 @@ class RecordingSessionPage extends ViewPU {
             TextInput.fontSize(20);
             TextInput.fontWeight(FontWeight.SemiBold);
             TextInput.fontColor(RokuricsColors.deepText);
-            TextInput.backgroundColor(RokuricsColors.glassSurface + '80');
+            TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'));
             TextInput.borderRadius(12);
             TextInput.padding(16);
             TextInput.width('100%');
@@ -844,7 +844,7 @@ class RecordingSessionPage extends ViewPU {
                         TextInput.create({ text: this.filingTopic, placeholder: '输入主题名' });
                         TextInput.fontSize(14);
                         TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                         TextInput.borderRadius(8);
                         TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
                         TextInput.onChange((value: string) => { this.filingTopic = value; });
@@ -863,7 +863,7 @@ class RecordingSessionPage extends ViewPU {
                         TextInput.create({ text: this.filingChapter, placeholder: '输入章节名' });
                         TextInput.fontSize(14);
                         TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                         TextInput.borderRadius(8);
                         TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
                         TextInput.onChange((value: string) => { this.filingChapter = value; });
@@ -889,7 +889,7 @@ class RecordingSessionPage extends ViewPU {
                                 Text.fontColor(this.filingSubject === option ? Color.White : RokuricsColors.softText);
                                 Text.padding({ left: 10, right: 10, top: 6, bottom: 6 });
                                 Text.borderRadius(12);
-                                Text.backgroundColor(this.filingSubject === option ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50');
+                                Text.backgroundColor(this.filingSubject === option ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
                                 Text.onClick(() => {
                                     if (this.filingSubject === option) {
                                         this.filingSubject = '';
@@ -927,7 +927,7 @@ class RecordingSessionPage extends ViewPU {
                                 Text.fontColor(this.filingType === option ? Color.White : RokuricsColors.softText);
                                 Text.padding({ left: 10, right: 10, top: 6, bottom: 6 });
                                 Text.borderRadius(12);
-                                Text.backgroundColor(this.filingType === option ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50');
+                                Text.backgroundColor(this.filingType === option ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
                                 Text.onClick(() => {
                                     if (this.filingType === option) {
                                         this.filingType = '';
@@ -980,8 +980,8 @@ class RecordingSessionPage extends ViewPU {
             Button.layoutWeight(1);
             Button.height(48);
             Button.borderRadius(24);
-            Button.backgroundColor(RokuricsColors.glassSurface + '4D');
-            Button.border({ width: 1, color: RokuricsColors.softText + '20', radius: 24 });
+            Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '4D'));
+            Button.border({ width: 1, color: colorAlpha(RokuricsColors.softText, '20'), radius: 24 });
             Button.onClick(() => {
                 this.recordingManager.finalizeRecordingDirectSave();
                 this.getUIContext().getRouter().back();
@@ -1004,7 +1004,7 @@ class RecordingSessionPage extends ViewPU {
                 RokuricsColors.aqua : RokuricsColors.tertiaryText);
             Button.enabled(!!(this.filingType || this.filingSubject || this.filingChapter || this.filingTopic));
             Button.shadow({
-                color: RokuricsColors.shadowColor + '16',
+                color: colorAlpha(RokuricsColors.shadowColor, '16'),
                 radius: 14,
                 offsetY: 8
             });
@@ -1035,10 +1035,10 @@ class RecordingSessionPage extends ViewPU {
             Column.padding({ left: 8, right: 8, top: 6, bottom: 6 });
             Column.constraintSize({ minWidth: 64 });
             Column.borderRadius(13);
-            Column.backgroundColor(RokuricsColors.glassSurface + '56');
+            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '56'));
             Column.border({
                 width: 1,
-                color: enabled ? RokuricsColors.aqua + '46' : RokuricsColors.softText + '18',
+                color: enabled ? colorAlpha(RokuricsColors.aqua, '46') : colorAlpha(RokuricsColors.softText, '18'),
                 radius: 13
             });
             Column.opacity(enabled ? 1 : 0.46);
@@ -1072,14 +1072,14 @@ class RecordingSessionPage extends ViewPU {
             Circle.create();
             Circle.width(220);
             Circle.height(220);
-            Circle.fill(RokuricsColors.mint + '20');
+            Circle.fill(colorAlpha(RokuricsColors.mint, '20'));
             Circle.position({ x: -50, y: -150 });
         }, Circle);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Circle.create();
             Circle.width(260);
             Circle.height(260);
-            Circle.fill(RokuricsColors.skyCyan + '16');
+            Circle.fill(colorAlpha(RokuricsColors.skyCyan, '16'));
             Circle.position({ x: '85%', y: '75%' });
         }, Circle);
         Stack.pop();

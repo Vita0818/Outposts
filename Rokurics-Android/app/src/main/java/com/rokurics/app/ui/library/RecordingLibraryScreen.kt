@@ -18,6 +18,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -39,6 +41,9 @@ import com.rokurics.app.domain.sync.StudyLibraryBrowser
 import com.rokurics.app.service.RecordingManager
 import com.rokurics.app.ui.theme.RokuricsAdaptiveMetrics
 import com.rokurics.app.ui.theme.RokuricsColors
+import com.rokurics.app.ui.theme.adaptivePageGradientBrush
+import com.rokurics.app.ui.theme.rokuricsGlassCard
+import com.rokurics.app.ui.theme.rokuricsGlassCapsule
 import com.rokurics.app.ui.theme.rokuricsScaleClickable
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
@@ -64,6 +69,8 @@ fun RecordingLibraryScreen(
     var readingKind by remember { mutableStateOf(StudyReadingKind.TRANSCRIPT) }
     var uploadStatusMessage by remember { mutableStateOf<String?>(null) }
     var folderColorTargetId by remember { mutableStateOf<String?>(null) }
+    var showNewFolderDialog by remember { mutableStateOf(false) }
+    var newFolderName by remember { mutableStateOf("") }
 
     // Playback state
     var playingRecordingId by remember { mutableStateOf<String?>(null) }
@@ -137,6 +144,10 @@ fun RecordingLibraryScreen(
         isSeeking = false
     }
 
+    fun canCreateFolder(path: StudyBrowsePath): Boolean {
+        return path.components.size < 4
+    }
+
     // Compute browser content — refresh study library store from recordings
     val allItems = remember(recordings) { studyLibraryStore.allStudyItems() }
     val allFolders = remember { studyLibraryStore.allStudyFolders() }
@@ -191,36 +202,69 @@ fun RecordingLibraryScreen(
         return
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("学习库", fontSize = 18.sp, fontWeight = FontWeight.SemiBold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                    }
-                },
-                actions = {
-                    // Trash tab toggle
-                    FilterChip(
-                        selected = selectedTab == 1,
-                        onClick = {
-                            selectedTab = if (selectedTab == 1) 0 else 1
-                            browsePath = StudyBrowsePath()
-                        },
-                        label = { Text("已删除", fontSize = 12.sp) }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(adaptivePageGradientBrush())
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // ── Glass-style header (Apple parity: RokuricsMobilePageHeader) ──
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Glass circle back button
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.46f))
+                        .rokuricsScaleClickable(onClick = onBack),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "返回",
+                        tint = RokuricsColors.deepText,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Trash toggle (Apple parity: trailing action)
+                FilterChip(
+                    selected = selectedTab == 1,
+                    onClick = {
+                        selectedTab = if (selectedTab == 1) 0 else 1
+                        browsePath = StudyBrowsePath()
+                    },
+                    label = { Text("已删除", fontSize = 12.sp) },
+                    modifier = Modifier.height(36.dp)
+                )
+            }
+
+            // Page title (Apple parity: serif "学习库" with size 32)
+            Text(
+                text = "学习库",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
+                color = RokuricsColors.deepText,
+                modifier = Modifier.padding(horizontal = 20.dp)
             )
-        }
-    ) { padding ->
+
+            Spacer(modifier = Modifier.height(12.dp))
+
         if (selectedTab == 1) {
             // Trash view
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
-                    .background(Color(0xFFF0FAF8)),
+                    .background(adaptivePageGradientBrush()),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -238,7 +282,10 @@ fun RecordingLibraryScreen(
                         onDelete = { recordingManager.deleteRecording(rec.id) },
                         onRestore = { recordingManager.restoreRecording(rec.id) },
                         onPermanentDelete = { recordingManager.permanentlyDeleteRecording(rec.id) },
-                        onEditClick = { editingRecordingId = rec.id; editTitle = rec.title }
+                        onEditClick = { editingRecordingId = rec.id; editTitle = rec.title },
+                        onLocalTranscribe = {},
+                        onImportToChat = {},
+                        onGenerateNote = {}
                     )
                 }
             }
@@ -247,7 +294,6 @@ fun RecordingLibraryScreen(
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
             ) {
                 val metrics = RokuricsAdaptiveMetrics(maxWidth.value, maxHeight.value)
                 val horzPadding = metrics.horizontalPadding
@@ -260,10 +306,17 @@ fun RecordingLibraryScreen(
                     .then(if (metrics.isWide) Modifier.widthIn(max = contentMaxWidth) else Modifier),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Breadcrumb bar
-                BreadcrumbBar(
+                // Toolbar with breadcrumbs + action buttons (Apple parity)
+                LibraryToolbar(
                     path = browsePath,
-                    onNavigate = { browsePath = it }
+                    canCreateFolder = canCreateFolder(browsePath),
+                    onNavigate = { browsePath = it },
+                    onNewFolder = {
+                        newFolderName = ""
+                        showNewFolderDialog = true
+                    },
+                    onImportToChat = {},
+                    onOpenTrash = { selectedTab = 1 }
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -369,7 +422,9 @@ fun RecordingLibraryScreen(
                                     onRestore = {},
                                     onPermanentDelete = {},
                                     onEditClick = { editingRecordingId = rec.id; editTitle = rec.title },
-                                    onLocalTranscribe = { recordingManager.startLocalTranscription(rec.id) }
+                                    onLocalTranscribe = { recordingManager.startLocalTranscription(rec.id) },
+                                    onImportToChat = {},
+                                    onGenerateNote = { recordingManager.startNoteGeneration(rec.id) }
                                 )
                             }
                         }
@@ -472,9 +527,10 @@ fun RecordingLibraryScreen(
                         }
                     }
                 }
-            }
-        }
-    }
+            }  // close Surface
+        }  // close if(playing)
+    }  // close outer Column
+}  // close outer Box
 
     // Folder color picker dialog
     if (folderColorTargetId != null) {
@@ -556,6 +612,40 @@ fun RecordingLibraryScreen(
         )
     }
 
+    // New folder dialog
+    if (showNewFolderDialog) {
+        val levelName = browsePath.components.lastOrNull() ?: "文件夹"
+        AlertDialog(
+            onDismissRequest = { showNewFolderDialog = false },
+            title = { Text("新建$levelName") },
+            text = {
+                OutlinedTextField(
+                    value = newFolderName,
+                    onValueChange = { newFolderName = it },
+                    label = { Text(levelName) },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val trimmed = newFolderName.trim()
+                        if (trimmed.isNotEmpty()) {
+                            studyLibraryStore.createFolder(trimmed, browsePath)
+                            studyLibraryStore.refresh()
+                            newFolderName = ""
+                            showNewFolderDialog = false
+                        }
+                    },
+                    enabled = newFolderName.trim().isNotEmpty()
+                ) { Text("保存") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showNewFolderDialog = false }) { Text("取消") }
+            }
+        )
+    }
+
     // Edit dialog
     if (editingRecordingId != null) {
         AlertDialog(
@@ -630,7 +720,124 @@ fun BreadcrumbBar(
     }
 }
 
-// ── Folder Tile ──────────────────────────────────────────────────
+// ── Library Toolbar (Apple parity: browserNavigation HStack) ─────
+
+@Composable
+fun LibraryToolbar(
+    path: StudyBrowsePath,
+    canCreateFolder: Boolean,
+    onNavigate: (StudyBrowsePath) -> Unit,
+    onNewFolder: () -> Unit,
+    onImportToChat: () -> Unit,
+    onOpenTrash: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Back button
+        if (!path.isRoot) {
+            IconButton(
+                onClick = { onNavigate(path.parent) },
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    Icons.Default.ChevronLeft,
+                    contentDescription = "返回上一级",
+                    tint = RokuricsColors.aqua,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+        }
+
+        // Breadcrumbs
+        val crumbs = StudyLibraryBrowser.breadcrumbs(path)
+        crumbs.forEachIndexed { index, (label, crumbPath) ->
+            val isLast = index == crumbs.lastIndex
+            if (isLast) {
+                Text(
+                    text = label,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = RokuricsColors.deepText,
+                    modifier = Modifier
+                        .rokuricsGlassCapsule(
+                            fillOpacity = 0.30f,
+                            strokeOpacity = 0.28f,
+                            shadowOpacity = 0.03f,
+                            shadowRadius = 5.dp
+                        )
+                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            } else {
+                Surface(
+                    modifier = Modifier.clickable(enabled = true) { onNavigate(crumbPath) },
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.Transparent
+                ) {
+                    Text(
+                        text = label,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = RokuricsColors.softText,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            if (!isLast) {
+                Text(" / ", fontSize = 12.sp, color = RokuricsColors.softText)
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // New folder button
+        IconButton(
+            onClick = onNewFolder,
+            modifier = Modifier.size(36.dp),
+            enabled = canCreateFolder
+        ) {
+            Icon(
+                Icons.Default.Add,
+                contentDescription = "新建文件夹",
+                tint = if (canCreateFolder) RokuricsColors.aqua else RokuricsColors.tertiaryText,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        // Import to AI chat button
+        IconButton(
+            onClick = onImportToChat,
+            modifier = Modifier.size(36.dp)
+        ) {
+            Icon(
+                Icons.AutoMirrored.Filled.Chat,
+                contentDescription = "导入 AI 对话",
+                tint = RokuricsColors.aqua,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        // Trash button
+        IconButton(
+            onClick = onOpenTrash,
+            modifier = Modifier.size(36.dp)
+        ) {
+            Icon(
+                Icons.Default.Delete,
+                contentDescription = "废纸篓",
+                tint = RokuricsColors.softText,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -644,15 +851,21 @@ fun StudyFolderTile(
     val tileColor = Color(colorHex)
     val tileAlpha = if (folder.isFallback) 0.4f else 0.18f
 
-    Card(
+    Box(
         modifier = modifier
             .height(130.dp)
+            .rokuricsGlassCard(
+                cornerRadius = 18.dp,
+                fillOpacity = 0.42f,
+                strokeOpacity = 0.30f,
+                shadowOpacity = 0.06f,
+                shadowRadius = 10.dp
+            )
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick
             ),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.55f))
+        contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
@@ -723,7 +936,7 @@ fun EmptyLibraryState() {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
-                imageVector = Icons.Default.MenuBook,
+                imageVector = Icons.AutoMirrored.Filled.MenuBook,
                 contentDescription = null,
                 tint = RokuricsColors.aqua.copy(alpha = 0.5f),
                 modifier = Modifier.size(56.dp)
@@ -760,54 +973,81 @@ fun RecordingRow(
     onRestore: () -> Unit,
     onPermanentDelete: () -> Unit,
     onEditClick: () -> Unit,
-    onLocalTranscribe: () -> Unit = {}
+    onLocalTranscribe: () -> Unit = {},
+    onImportToChat: () -> Unit = {},
+    onGenerateNote: () -> Unit = {}
 ) {
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA) }
     var showMenu by remember { mutableStateOf(false) }
+    val isTranscribing = recording.transcriptionStatus == "queued" || recording.transcriptionStatus == "running"
+    val isGeneratingNote = recording.noteStatus == "queued" || recording.noteStatus == "running"
+    val hasAudio = recording.relativeAudioPath.isNotEmpty()
+    val hasTranscript = recording.transcriptionStatus == "transcribed"
 
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
+            .rokuricsGlassCard(
+                cornerRadius = 18.dp,
+                fillOpacity = 0.34f,
+                strokeOpacity = 0.30f,
+                shadowOpacity = 0.07f,
+                shadowRadius = 10.dp
+            )
             .then(
                 if (!isTrashed) Modifier.rokuricsScaleClickable(onClick = onClick)
                 else Modifier
-            ),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.52f)),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = 0.22f))
+            )
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Leading icon — Apple parity: waveform icon with glass circle
             if (!isTrashed) {
-                IconButton(onClick = onPlay, modifier = Modifier.size(40.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .rokuricsScaleClickable(onClick = onPlay),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
-                        imageVector = if (isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle,
+                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = if (isPlaying) "暂停" else "播放",
                         tint = if (isPlaying) RokuricsColors.coral else RokuricsColors.aqua,
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             } else {
                 Icon(Icons.Default.Mic, contentDescription = null, tint = RokuricsColors.aqua, modifier = Modifier.size(32.dp))
             }
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(14.dp))
+
+            // Title + metadata — Apple parity: VStack with title, date+duration
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = recording.title,
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = RokuricsColors.deepText,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "${dateFormat.format(recording.createdAt)} · ${formatDuration(recording.duration)}",
-                    fontSize = 12.sp,
-                    color = RokuricsColors.softText
-                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = dateFormat.format(recording.createdAt),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = RokuricsColors.softText
+                    )
+                    Text(
+                        text = formatDuration(recording.duration),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = RokuricsColors.softText
+                    )
+                }
                 if (!isTrashed) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -821,7 +1061,6 @@ fun RecordingRow(
                             StatusChip("笔记", ns, RokuricsColors.softTeal)
                         }
                     }
-                    // Upload progress bar
                     if (recording.uploadStatus == "uploading") {
                         val fraction = recording.uploadProgressFraction ?: 0.0
                         val description = recording.uploadProgressDescription ?: ""
@@ -843,16 +1082,78 @@ fun RecordingRow(
                     }
                 }
             }
+
+            // Inline action buttons — Apple parity: 4 icon buttons in trailing position
+            if (!isTrashed) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    // Play button
+                    IconButton(
+                        onClick = onPlay,
+                        modifier = Modifier.size(36.dp),
+                        enabled = hasAudio
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = "播放",
+                            tint = if (hasAudio) RokuricsColors.mint else RokuricsColors.tertiaryText,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    // Transcribe button
+                    IconButton(
+                        onClick = onLocalTranscribe,
+                        modifier = Modifier.size(36.dp),
+                        enabled = hasAudio && !isTranscribing
+                    ) {
+                        Icon(
+                            imageVector = if (recording.transcriptionStatus == "transcribed") Icons.Default.Refresh
+                            else Icons.Default.Search,
+                            contentDescription = "转写",
+                            tint = if (hasAudio && !isTranscribing) RokuricsColors.aqua
+                            else RokuricsColors.tertiaryText,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    // Note generation button
+                    IconButton(
+                        onClick = onGenerateNote,
+                        modifier = Modifier.size(36.dp),
+                        enabled = hasTranscript && !isGeneratingNote
+                    ) {
+                        Icon(
+                            imageVector = if (recording.noteStatus == "generated") Icons.Default.AutoAwesome
+                            else Icons.Default.AutoAwesome,
+                            contentDescription = "AI 总结",
+                            tint = if (hasTranscript && !isGeneratingNote) RokuricsColors.mint
+                            else RokuricsColors.tertiaryText,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    // Import to chat button
+                    IconButton(
+                        onClick = onImportToChat,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Chat,
+                            contentDescription = "导入 AI 对话",
+                            tint = RokuricsColors.aqua,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
+
+            // Context menu (rename, delete)
             Box {
                 IconButton(onClick = { showMenu = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "更多", tint = RokuricsColors.softText)
+                    Icon(Icons.Default.MoreVert, contentDescription = "更多", tint = RokuricsColors.softText, modifier = Modifier.size(18.dp))
                 }
                 DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
                     if (isTrashed) {
                         DropdownMenuItem(text = { Text("恢复") }, onClick = { showMenu = false; onRestore() })
                         DropdownMenuItem(text = { Text("永久删除") }, onClick = { showMenu = false; onPermanentDelete() })
                     } else {
-                        DropdownMenuItem(text = { Text("本地转写") }, onClick = { showMenu = false; onLocalTranscribe() })
                         DropdownMenuItem(text = { Text("重命名") }, onClick = { showMenu = false; onEditClick() })
                         DropdownMenuItem(text = { Text("删除") }, onClick = { showMenu = false; onDelete() })
                     }
@@ -876,13 +1177,22 @@ fun UploadStatusChip(status: String?) {
 
 @Composable
 fun StatusChip(label: String, value: String, color: Color) {
-    Surface(shape = RoundedCornerShape(6.dp), color = color.copy(alpha = 0.12f)) {
+    Box(
+        modifier = Modifier
+            .rokuricsGlassCapsule(
+                fillOpacity = 0.36f,
+                strokeOpacity = 0.30f,
+                shadowOpacity = 0.04f,
+                shadowRadius = 6.dp
+            ),
+        contentAlignment = Alignment.Center
+    ) {
         Text(
             text = value,
             fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold,
             color = color,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
         )
     }
 }

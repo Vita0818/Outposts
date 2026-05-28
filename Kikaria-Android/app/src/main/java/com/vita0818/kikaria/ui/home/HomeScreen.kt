@@ -36,9 +36,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -359,7 +362,7 @@ private fun HomeLandscapeLayout(
                         .fillMaxWidth()
                         .clickable { onOpenTodayOverview() },
                     cornerRadius = 28.dp,
-                    fillOpacity = 0.42f
+                    fillOpacity = 0.54f
                 ) {
                     Row(
                         modifier = Modifier
@@ -404,7 +407,7 @@ private fun HomeLandscapeLayout(
                 KikariaGlassCard(
                     modifier = Modifier.fillMaxWidth(),
                     cornerRadius = 28.dp,
-                    fillOpacity = 0.40f
+                    fillOpacity = 0.52f
                 ) {
                     Column {
                         Row(modifier = Modifier.fillMaxWidth()) {
@@ -490,6 +493,66 @@ private fun HomeLandscapeLayout(
 //  Shared Start Bubble — orbits + center circle, matches iOS StartReviewButton
 // ═══════════════════════════════════════════════════════════════════
 
+/**
+ * A decorative bubble with glassy translucent effect matching Apple's SoftBubble.
+ *
+ * Layers:
+ * 1. Gradient fill (base colour)
+ * 2. Radial highlight at top-left — white radial gradient simulating light reflection
+ * 3. Gradient stroke — white→transparent→cyan, top-left to bottom-right
+ * 4. Shadow
+ */
+@Composable
+private fun GlassyBubble(
+    sizeDp: androidx.compose.ui.unit.Dp,
+    fillColors: List<Color>,
+    shadowColor: Color,
+    modifier: Modifier = Modifier
+) {
+    val isDark = isSystemInDarkTheme()
+    val strokeCyan = if (isDark) KikariaColors.CyanDark else KikariaColors.Cyan
+
+    Box(
+        modifier = modifier
+            .size(sizeDp)
+            .shadow(14.dp, CircleShape,
+                ambientColor = shadowColor,
+                spotColor = shadowColor)
+            .clip(CircleShape)
+            .background(Brush.linearGradient(fillColors))
+            .drawWithContent {
+                drawContent()
+                val r = size.minDimension / 2f
+                // Radial highlight — white at top-left, fading out, mimicking light reflection
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        listOf(
+                            Color.White.copy(alpha = 0.18f),
+                            Color.White.copy(alpha = 0.04f),
+                            Color.Transparent
+                        ),
+                        center = Offset(size.width * 0.22f, size.height * 0.22f),
+                        radius = r
+                    )
+                )
+                // Gradient stroke — bright at top-left, fading to cyan at bottom-right
+                drawCircle(
+                    brush = Brush.linearGradient(
+                        listOf(
+                            Color.White.copy(alpha = 0.42f),
+                            Color.White.copy(alpha = 0.08f),
+                            strokeCyan.copy(alpha = 0.16f)
+                        ),
+                        start = Offset.Zero,
+                        end = Offset(size.width, size.height)
+                    ),
+                    radius = r - 0.5f * density,
+                    style = Stroke(width = 1f * density)
+                )
+            }
+    )
+}
+
 @Composable
 private fun KikariaStartBubble(
     onClick: () -> Unit,
@@ -554,86 +617,77 @@ private fun KikariaStartBubble(
                 .graphicsLayer { rotationZ = orbitAngle }
         ) {
             // Bubble 1: cyan+mint, 92dp, top-left (-96,-68)
-            Box(
+            GlassyBubble(
+                sizeDp = (92 * orbitScale).dp,
+                fillColors = listOf(bubble1Color.copy(alpha = 0.48f), bubble1Color2.copy(alpha = 0.48f)),
+                shadowColor = bubble1Color.copy(alpha = 0.12f),
                 modifier = Modifier
                     .align(Alignment.Center)
                     .offset(x = (-96 * orbitScale).dp, y = (-68 * orbitScale).dp)
-                    .size((92 * orbitScale).dp)
                     .graphicsLayer { scaleX = breathe; scaleY = breathe; rotationZ = -orbitAngle }
-                    .shadow(14.dp, CircleShape,
-                        ambientColor = bubble1Color.copy(alpha = 0.12f),
-                        spotColor = bubble1Color.copy(alpha = 0.12f))
-                    .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            listOf(bubble1Color.copy(alpha = 0.48f), bubble1Color2.copy(alpha = 0.48f))
-                        )
-                    )
             )
             // Bubble 2: lavender+mist, 80dp, top-right (102,-56)
-            Box(
+            GlassyBubble(
+                sizeDp = (80 * orbitScale).dp,
+                fillColors = listOf(bubble2Color.copy(alpha = 0.42f), bubble2Color2.copy(alpha = 0.42f)),
+                shadowColor = bubble2Color.copy(alpha = 0.11f),
                 modifier = Modifier
                     .align(Alignment.Center)
                     .offset(x = (102 * orbitScale).dp, y = (-56 * orbitScale).dp)
-                    .size((80 * orbitScale).dp)
                     .graphicsLayer { scaleX = 1f / breathe; scaleY = 1f / breathe; rotationZ = -orbitAngle }
-                    .shadow(14.dp, CircleShape,
-                        ambientColor = bubble2Color.copy(alpha = 0.11f),
-                        spotColor = bubble2Color.copy(alpha = 0.11f))
-                    .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            listOf(bubble2Color.copy(alpha = 0.42f), bubble2Color2.copy(alpha = 0.42f))
-                        )
-                    )
             )
             // Bubble 3: green+cyan, 78dp, bottom-right (92,80)
-            Box(
+            GlassyBubble(
+                sizeDp = (78 * orbitScale).dp,
+                fillColors = listOf(bubble3Color.copy(alpha = 0.38f), bubble3Color2.copy(alpha = 0.38f)),
+                shadowColor = bubble3Color.copy(alpha = 0.10f),
                 modifier = Modifier
                     .align(Alignment.Center)
                     .offset(x = (92 * orbitScale).dp, y = (80 * orbitScale).dp)
-                    .size((78 * orbitScale).dp)
                     .graphicsLayer { scaleX = breathe; scaleY = breathe; rotationZ = -orbitAngle }
-                    .shadow(14.dp, CircleShape,
-                        ambientColor = bubble3Color.copy(alpha = 0.10f),
-                        spotColor = bubble3Color.copy(alpha = 0.10f))
-                    .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            listOf(bubble3Color.copy(alpha = 0.38f), bubble3Color2.copy(alpha = 0.38f))
-                        )
-                    )
             )
             // Bubble 4: sky+white, 74dp, bottom-left (-106,78)
-            Box(
+            GlassyBubble(
+                sizeDp = (74 * orbitScale).dp,
+                fillColors = listOf(bubble4Color.copy(alpha = 0.36f), bubble4Color2.copy(alpha = 0.36f)),
+                shadowColor = bubble4Color.copy(alpha = 0.09f),
                 modifier = Modifier
                     .align(Alignment.Center)
                     .offset(x = (-106 * orbitScale).dp, y = (78 * orbitScale).dp)
-                    .size((74 * orbitScale).dp)
                     .graphicsLayer { scaleX = 1f / breathe; scaleY = 1f / breathe; rotationZ = -orbitAngle }
-                    .shadow(14.dp, CircleShape,
-                        ambientColor = bubble4Color.copy(alpha = 0.09f),
-                        spotColor = bubble4Color.copy(alpha = 0.09f))
-                    .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            listOf(bubble4Color.copy(alpha = 0.36f), bubble4Color2.copy(alpha = 0.36f))
-                        )
-                    )
             )
         }
 
-        // Center circle — 190dp actionGradient + radial overlay + arrow
+        // Center circle — 190dp actionGradient + radial overlay + gradient stroke + arrow
+        val centerStrokeCyan = if (isDark) KikariaColors.CyanDark else KikariaColors.Cyan
         Box(
             modifier = Modifier
                 .size(centerSize)
                 .graphicsLayer { scaleX = breathe; scaleY = breathe }
                 .shadow(28.dp, CircleShape, ambientColor = shadowC, spotColor = shadowC)
                 .clip(CircleShape).background(actionGrad)
+                .drawWithContent {
+                    drawContent()
+                    val r = size.minDimension / 2f
+                    // Gradient stroke — subtle glass edge
+                    drawCircle(
+                        brush = Brush.linearGradient(
+                            listOf(
+                                Color.White.copy(alpha = 0.32f),
+                                Color.White.copy(alpha = 0.06f),
+                                centerStrokeCyan.copy(alpha = 0.14f)
+                            ),
+                            start = Offset.Zero,
+                            end = Offset(size.width, size.height)
+                        ),
+                        radius = r - 0.4f * density,
+                        style = Stroke(width = 0.8f * density)
+                    )
+                }
                 .clickable { onClick() },
             contentAlignment = Alignment.Center
         ) {
-            // Radial gradient overlay
+            // Radial gradient overlay — white highlight from top-left
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -645,7 +699,7 @@ private fun KikariaStartBubble(
                                 Color.White.copy(alpha = 0.10f),
                                 Color.White.copy(alpha = 0.02f)
                             ),
-                            center = androidx.compose.ui.geometry.Offset(57f, 57f),
+                            center = Offset(57f, 57f),
                             radius = 150f
                         )
                     )
@@ -688,7 +742,7 @@ private fun HomeInfoCards(
                 .fillMaxWidth()
                 .clickable { onOpenTodayOverview() },
             cornerRadius = if (padPortrait) (28 * scale).dp else 25.dp,
-            fillOpacity = 0.42f
+            fillOpacity = 0.54f
         ) {
             Row(
                 modifier = Modifier
@@ -743,7 +797,7 @@ private fun HomeInfoCards(
         KikariaGlassCard(
             modifier = Modifier.fillMaxWidth(),
             cornerRadius = if (padPortrait) (28 * scale).dp else 28.dp,
-            fillOpacity = 0.40f
+            fillOpacity = 0.52f
         ) {
             Column {
                 Row(modifier = Modifier.fillMaxWidth()) {

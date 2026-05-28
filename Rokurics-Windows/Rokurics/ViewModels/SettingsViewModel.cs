@@ -34,7 +34,7 @@ public enum AIProviderPreset
 /// </summary>
 public partial class SettingsViewModel : ObservableObject
 {
-    [ObservableProperty] private string _selectedTranscriptionProvider = "Mock";
+    [ObservableProperty] private string _selectedTranscriptionProvider = "Mock Transcription";
     [ObservableProperty] private string _selectedNoteProvider = "Mock";
     [ObservableProperty] private string _selectedChatProvider = "Mock";
     [ObservableProperty] private string _openAiBaseUrl = "";
@@ -45,7 +45,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _anthropicModelName = "claude-sonnet-4-6";
     [ObservableProperty] private string _userDisplayName = "";
     [ObservableProperty] private string _userHandle = "";
-    [ObservableProperty] private string _whisperModelName = "ggml-large-v3-turbo";
+    [ObservableProperty] private string _whisperModelName = "Mock Transcription";
     [ObservableProperty] private string _whisperModelPath = "";
     [ObservableProperty] private string _whisperDefaultLanguage = "auto";
     [ObservableProperty] private bool _whisperPreferSegmentOutput;
@@ -75,7 +75,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool _isRefreshingModels;
     [ObservableProperty] private string _modelRefreshError = "";
 
-    public List<string> TranscriptionProviderOptions { get; } = new() { "Mock", "Whisper.cpp" };
+    public List<string> TranscriptionProviderOptions { get; } = new() { "Mock Transcription", "Whisper.cpp" };
     public List<string> NoteProviderOptions { get; } = new() { "Mock", "OpenAI-compatible", "Claude / Anthropic" };
     public List<string> ChatProviderOptions { get; } = new() { "Mock", "OpenAI-compatible", "Claude / Anthropic" };
 
@@ -202,7 +202,7 @@ public partial class SettingsViewModel : ObservableObject
 
 public sealed class AppSettings
 {
-    public string TranscriptionProvider { get; set; } = "Mock";
+    public string TranscriptionProvider { get; set; } = "Mock Transcription";
     public string NoteProvider { get; set; } = "Mock";
     public string ChatProvider { get; set; } = "Mock";
     public string OpenAIBaseUrl { get; set; } = "";

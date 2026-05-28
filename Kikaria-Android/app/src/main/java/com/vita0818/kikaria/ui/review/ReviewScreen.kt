@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -477,7 +478,7 @@ fun ReviewScreen(
                                 } else {
                                     ReviewActionButton(
                                         text = "查看答案",
-                                        icon = "≡",
+                                        icon = "▣",
                                         tone = ActionTone.Blue,
                                         isPrimary = true,
                                         buttonScale = metrics.reviewButtonScale,
@@ -729,31 +730,49 @@ private fun ReviewContentCards(
     deepText: Color
 ) {
     val isDark = isSystemInDarkTheme()
-    // Title card
-    KikariaGlassCard(
-        modifier = Modifier.fillMaxWidth(),
-        cornerRadius = 24.dp,
-        fillOpacity = 0.40f
-    ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Text(
-                text = KikariaTypography.mixedText(
-                    point.title, size = 24, weight = FontWeight.SemiBold
-                ),
-                color = deepText,
-                lineHeight = 32.sp
-            )
+    val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
+    val pillShape = RoundedCornerShape(KikariaDesign.PillRadius)
 
-            if (point.tags.isNotEmpty()) {
-                Spacer(Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    point.tags.forEach { tag ->
-                        KikariaTagChip(tag = tag)
-                    }
+    // Title group — matches Apple titleGroup: title + tags + review count pill
+    // NOT wrapped in a card; clean text on page background
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = KikariaTypography.mixedText(
+                point.title, size = 36, weight = FontWeight.SemiBold
+            ),
+            color = deepText,
+            textAlign = TextAlign.Center,
+            lineHeight = 44.sp,
+            modifier = Modifier.padding(horizontal = 22.dp)
+        )
+
+        if (point.tags.isNotEmpty()) {
+            Spacer(Modifier.height(18.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(horizontal = 22.dp)
+            ) {
+                point.tags.forEach { tag ->
+                    KikariaTagChip(tag = tag)
                 }
             }
+        }
 
-            Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(18.dp))
+
+        // Review count pill — matches Apple TodayReviewCountPill
+        Box(
+            modifier = Modifier
+                .clip(pillShape)
+                .shadow(12.dp, pillShape,
+                    ambientColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = 0.10f),
+                    spotColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = 0.10f))
+                .background(glassSurface.copy(alpha = if (isDark) 0.38f else 0.42f))
+                .padding(horizontal = 18.dp, vertical = 8.dp)
+        ) {
             Text(
                 text = KikariaTypography.mixedText(
                     "该知识点今日复习 ${viewModel.todayReviewCount} 次",
@@ -765,7 +784,7 @@ private fun ReviewContentCards(
         }
     }
 
-    Spacer(Modifier.height(14.dp))
+    Spacer(Modifier.height(18.dp))
 
     // Hint card
     AnimatedVisibility(
@@ -840,6 +859,7 @@ private fun TabletReviewActions(
             ReviewActionButton(
                 text = if (point?.isReinforced == true)
                     "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
+                icon = "+",
                 tone = ActionTone.Amber,
                 isPrimary = true,
                 buttonScale = buttonScale,
@@ -848,6 +868,7 @@ private fun TabletReviewActions(
             ReviewActionButton(
                 text = if (point?.isMastered == true)
                     "已设定为掌握" else "加入已掌握",
+                icon = if (point?.isMastered == true) null else "✓",
                 tone = ActionTone.Green,
                 isPrimary = point?.isMastered != true,
                 buttonScale = buttonScale,
@@ -857,6 +878,7 @@ private fun TabletReviewActions(
         ReviewMode.REINFORCEMENT -> {
             ReviewActionButton(
                 text = "移出重点集锦",
+                icon = "−",
                 tone = ActionTone.Red,
                 isPrimary = true,
                 buttonScale = buttonScale,
@@ -865,6 +887,7 @@ private fun TabletReviewActions(
             ReviewActionButton(
                 text = if (point?.isMastered == true)
                     "已设定为掌握" else "加入已掌握",
+                icon = if (point?.isMastered == true) null else "✓",
                 tone = ActionTone.Green,
                 isPrimary = point?.isMastered != true,
                 buttonScale = buttonScale,
@@ -875,6 +898,7 @@ private fun TabletReviewActions(
             ReviewActionButton(
                 text = if (point?.isReinforced == true)
                     "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
+                icon = "+",
                 tone = ActionTone.Amber,
                 isPrimary = true,
                 buttonScale = buttonScale,
@@ -882,6 +906,7 @@ private fun TabletReviewActions(
             )
             ReviewActionButton(
                 text = "移出已掌握",
+                icon = "−",
                 tone = ActionTone.Red,
                 isPrimary = true,
                 buttonScale = buttonScale,
@@ -894,7 +919,7 @@ private fun TabletReviewActions(
 
     ReviewActionButton(
         text = "下一个",
-        icon = "→",
+        icon = "↬",
         tone = ActionTone.Amber,
         isPrimary = false,
         buttonScale = buttonScale,
@@ -928,6 +953,7 @@ private fun ReviewBottomActionBar(
                         ReviewActionButton(
                             text = if (point?.isReinforced == true)
                                 "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
+                            icon = "+",
                             tone = ActionTone.Amber,
                             isPrimary = true,
                             buttonScale = buttonScale,
@@ -936,6 +962,7 @@ private fun ReviewBottomActionBar(
                         ReviewActionButton(
                             text = if (point?.isMastered == true)
                                 "已设定为掌握" else "加入已掌握",
+                            icon = if (point?.isMastered == true) null else "✓",
                             tone = ActionTone.Green,
                             isPrimary = point?.isMastered != true,
                             buttonScale = buttonScale,
@@ -945,6 +972,7 @@ private fun ReviewBottomActionBar(
                     ReviewMode.REINFORCEMENT -> {
                         ReviewActionButton(
                             text = "移出重点集锦",
+                            icon = "−",
                             tone = ActionTone.Red,
                             isPrimary = true,
                             buttonScale = buttonScale,
@@ -953,6 +981,7 @@ private fun ReviewBottomActionBar(
                         ReviewActionButton(
                             text = if (point?.isMastered == true)
                                 "已设定为掌握" else "加入已掌握",
+                            icon = if (point?.isMastered == true) null else "✓",
                             tone = ActionTone.Green,
                             isPrimary = point?.isMastered != true,
                             buttonScale = buttonScale,
@@ -963,6 +992,7 @@ private fun ReviewBottomActionBar(
                         ReviewActionButton(
                             text = if (point?.isReinforced == true)
                                 "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
+                            icon = "+",
                             tone = ActionTone.Amber,
                             isPrimary = true,
                             buttonScale = buttonScale,
@@ -970,6 +1000,7 @@ private fun ReviewBottomActionBar(
                         )
                         ReviewActionButton(
                             text = "移出已掌握",
+                            icon = "−",
                             tone = ActionTone.Red,
                             isPrimary = true,
                             buttonScale = buttonScale,
@@ -981,12 +1012,13 @@ private fun ReviewBottomActionBar(
 
             ReviewActionButton(
                 text = "下一个",
-                icon = "→",
+                icon = "↻",
                 tone = ActionTone.Amber,
                 isPrimary = false,
+                verticalContent = true,
                 buttonScale = buttonScale,
                 onClick = { viewModel.nextPoint() },
-                modifier = Modifier.weight(0.8f).height(110.dp)
+                modifier = Modifier.weight(0.54f).fillMaxHeight()
             )
         }
     }

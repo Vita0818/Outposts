@@ -1,0 +1,72 @@
+[Round 1] BATCH_NAME=outposts-qwen-visual-evidence-repair-round
+PROJECT_NAME=Rokurics-HarmonyOS
+
+MANDATORY PREFLIGHT
+1. MODEL_CHECK_RESULT: current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. Otherwise stop and report MODEL_MISMATCH.
+2. PATH_CHECK_RESULT: current working directory must be exactly /Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS. Otherwise stop and report WORKDIR_MISMATCH.
+3. SOURCE_READONLY_CHECK: Apple source /Users/vita/Vitemis/Vela/Rokurics is read-only. All target writes must stay under /Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS. Do not access unrelated directories. Do not read or transmit secrets, API keys, .env, tokens, certificates, p12, provisioning profiles, ssh keys, Keychain data, or private config.
+
+BOUNDARY RULES
+- Do not delete .outposts-supervisor/visual-evidence.
+- Do not delete screenshots, qwen output, state, checkpoint, report, or batch-state files.
+- Do not clean project build/cache/.hvigor.
+- Do not delete, clean, or modify ~/.hvigor.
+- Do not delete, clean, or modify user-level DevEco/HarmonyOS SDK caches.
+- Do not globally install pnpm, npm packages, ohpm packages, or toolchain dependencies.
+- Do not run global toolchain repair.
+- If toolchain repair requires user-level action, stop and report TOOLCHAIN_REPAIR_NEEDS_USER.
+- Do not run git clean/reset/restore/checkout.
+- Do not commit, push, or create PR.
+- qwen-vision only analyzes images and must not modify files.
+- Do not pass source code or secrets to qwen-vision.
+
+VISUAL EVIDENCE ROOT
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-qwen-visual-evidence-repair-round/20260528-171456/Rokurics-HarmonyOS
+Use reference/, actual/, and qwen/ under that root. If sandbox blocks direct writes there, write screenshots under this target project and report the blocker; do not delete them.
+
+TASK
+Only handle valid screenshot chain and yellow-block verification.
+
+Goal:
+- Obtain a valid App / DevEco Preview / emulator / device screenshot.
+- Do not use an uncropped macOS desktop screenshot as visual evidence.
+- Call qwen-vision inspect_screenshot on the valid screenshot.
+- Check whether abnormal large yellow blocks are present.
+- If qwen identifies yellow blocks, locate the color source and apply the smallest safe target-project fix.
+- Do not perform global toolchain repair.
+
+Required flow:
+1. Confirm qwen-vision availability.
+2. Try valid screenshot sources in this order: HarmonyOS device/emulator via hdc if target exists; DevEco Preview export or screenshot if available; cropped Preview region if using macOS screencapture.
+3. If using a full IDE screenshot, crop or otherwise make the App/Preview region explicit before counting it as valid evidence.
+4. Call qwen-vision inspect_screenshot on valid actual screenshot.
+5. Report QWEN_CALLED, QWEN_VALID_VISUAL_EVIDENCE, and QWEN_COMPARE_SCREENSHOTS_COMPLETED separately.
+6. If no valid screenshot can be obtained, stop and report exact blocker. Do not fake visual validation.
+7. If build/HAP verification requires user-level toolchain changes, stop and report TOOLCHAIN_REPAIR_NEEDS_USER.
+
+Final report must include:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX=1
+QWEN_CALLED
+QWEN_VALID_VISUAL_EVIDENCE
+QWEN_COMPARE_SCREENSHOTS_COMPLETED
+REFERENCE_SCREENSHOTS
+ACTUAL_SCREENSHOTS
+VISION_TOOLS_CALLED
+VISION_RESULT_SUMMARY
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION
+HARMONYOS_SCREENSHOT_STATUS
+YELLOW_BLOCKS_DETECTED
+COLOR_SOURCE_ANALYSIS
+COLOR_FIXES_APPLIED
+HAP_BUILD_RESULT
+TOOLCHAIN_BOUNDARY_COMPLIANCE

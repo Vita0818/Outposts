@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <Grid Background="{StaticResource RokuricsPageGradientBrush}">
+    <Grid Background="{StaticResource RokuricsPageGradientDarkBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
@@ -25,10 +25,11 @@
                     </Grid.ColumnDefinitions>
 
                     <Button Grid.Column="0"
-                            Content="←"
                             Style="{StaticResource RokuricsIconButtonStyle}"
                             Click="GoBack_Click"
-                            IsEnabled="{x:Bind CanGoBack, Mode=OneWay}" />
+                            IsEnabled="{x:Bind CanGoBack, Mode=OneWay}">
+                        <FontIcon Glyph="&#xE72B;" FontSize="13" />
+                    </Button>
 
                     <!-- Breadcrumbs -->
                     <ItemsControl Grid.Column="1"
@@ -52,18 +53,21 @@
                     </ItemsControl>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
-                        <Button Content="📁+"
-                                Style="{StaticResource RokuricsIconButtonStyle}"
+                        <Button Style="{StaticResource RokuricsIconButtonStyle}"
                                 Click="NewFolder_Click"
-                                ToolTipService.ToolTip="新建文件夹" />
-                        <Button Content="💬"
-                                Style="{StaticResource RokuricsIconButtonStyle}"
+                                ToolTipService.ToolTip="新建文件夹">
+                            <FontIcon Glyph="&#xE8B7;" FontSize="13" />
+                        </Button>
+                        <Button Style="{StaticResource RokuricsIconButtonStyle}"
                                 Click="ImportToChat_Click"
-                                ToolTipService.ToolTip="导入 AI 对话上下文" />
-                        <Button Content="🗑"
-                                Style="{StaticResource RokuricsIconButtonStyle}"
+                                ToolTipService.ToolTip="导入 AI 对话上下文">
+                            <FontIcon Glyph="&#xE8F2;" FontSize="13" />
+                        </Button>
+                        <Button Style="{StaticResource RokuricsIconButtonStyle}"
                                 Click="OpenTrash_Click"
-                                ToolTipService.ToolTip="打开废纸篓" />
+                                ToolTipService.ToolTip="打开废纸篓">
+                            <FontIcon Glyph="&#xE74D;" FontSize="13" />
+                        </Button>
                     </StackPanel>
                 </Grid>
 
@@ -109,9 +113,13 @@
                             </Grid.ColumnDefinitions>
 
                             <Button Grid.Column="0"
-                                    Content="← 返回"
                                     Style="{StaticResource RokuricsButtonStyle}"
-                                    Click="CloseDetail_Click" />
+                                    Click="CloseDetail_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE72B;" FontSize="12" />
+                                    <TextBlock Text="返回" FontSize="12" />
+                                </StackPanel>
+                            </Button>
 
                             <StackPanel Grid.Column="1" Margin="12,0" Spacing="4">
                                 <TextBlock Text="{x:Bind DetailTitle, Mode=OneWay}"
@@ -335,9 +343,14 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <Button Grid.Column="0" Content="← 返回"
+                            <Button Grid.Column="0"
                                     Style="{StaticResource RokuricsButtonStyle}"
-                                    Click="CloseTranscript_Click" />
+                                    Click="CloseTranscript_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE72B;" FontSize="12" />
+                                    <TextBlock Text="返回" FontSize="12" />
+                                </StackPanel>
+                            </Button>
 
                             <StackPanel Grid.Column="1" Margin="12,0" Spacing="4">
                                 <TextBlock x:Name="TranscriptTitle"
@@ -380,9 +393,14 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <Button Grid.Column="0" Content="← 返回"
+                            <Button Grid.Column="0"
                                     Style="{StaticResource RokuricsButtonStyle}"
-                                    Click="CloseNote_Click" />
+                                    Click="CloseNote_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE72B;" FontSize="12" />
+                                    <TextBlock Text="返回" FontSize="12" />
+                                </StackPanel>
+                            </Button>
 
                             <StackPanel Grid.Column="1" Margin="12,0" Spacing="4">
                                 <TextBlock x:Name="NoteTitle"

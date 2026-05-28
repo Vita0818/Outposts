@@ -16,8 +16,8 @@ import { getSharedRecordingManager } from "@bundle:com.vita0818.rokurics/entry/e
 import type { RecordingManager } from "@bundle:com.vita0818.rokurics/entry/ets/services/RecordingManager";
 import { RecordingState } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import { formatClock } from "@bundle:com.vita0818.rokurics/entry/ets/utils/FormatHelpers";
-import { RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity, glassStrokeMidOpacity } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
-import { GearIcon, BooksIcon, ChatIcon, ConnectionIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
+import { colorAlpha, RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity, glassStrokeMidOpacity } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { PersonIcon, BooksIcon, ChatIcon, ConnectionIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
 import { hapticLight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/HapticFeedback";
 class HomePage extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
@@ -183,7 +183,14 @@ class HomePage extends ViewPU {
             Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(72:5)", "entry");
             Stack.width('100%');
             Stack.height('100%');
-            Stack.backgroundColor(RokuricsColors.pageBackground);
+            Stack.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.pageGradientStart, 1.0],
+                    [RokuricsColors.pageGradientMid, 1.0],
+                    [RokuricsColors.pageGradientEnd, 1.0]
+                ]
+            });
         }, Stack);
         // Ambient background bubbles
         this.AmbientBackground.bind(this)();
@@ -192,6 +199,7 @@ class HomePage extends ViewPU {
             Column.debugLine("entry/src/main/ets/pages/HomePage.ets(76:7)", "entry");
             Column.width('100%');
             Column.height('100%');
+            Column.backgroundColor(Color.Transparent);
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Header
@@ -231,10 +239,10 @@ class HomePage extends ViewPU {
             // Profile avatar button (glass circle)
             Button.borderRadius(23 * this.headerScale);
             // Profile avatar button (glass circle)
-            Button.backgroundColor(RokuricsColors.glassSurface + '5C');
+            Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '5C'));
             // Profile avatar button (glass circle)
             Button.shadow({
-                color: RokuricsColors.shadowColor + '14',
+                color: colorAlpha(RokuricsColors.shadowColor, '14'),
                 radius: 12,
                 offsetY: 6
             });
@@ -243,9 +251,9 @@ class HomePage extends ViewPU {
                 width: 1,
                 color: {
                     colors: [
-                        [0xFFFFFF, 0.50],
-                        [0xEFFAF8, 0.16],
-                        [0x59C7C2, 0.14]
+                        [0xFFFFFF, 0.28],
+                        [RokuricsColors.glassStroke, 0.12],
+                        [RokuricsColors.aqua, 0.24]
                     ],
                     direction: GradientDirection.RightBottom
                 },
@@ -256,7 +264,7 @@ class HomePage extends ViewPU {
                 this.getUIContext().getRouter().pushUrl({ url: 'pages/SettingsPage' });
             });
         }, Button);
-        GearIcon.bind(this)(18 * this.headerScale, RokuricsColors.aqua);
+        PersonIcon.bind(this)(20 * this.headerScale, RokuricsColors.aqua);
         // Profile avatar button (glass circle)
         Button.pop();
         // Header
@@ -302,64 +310,128 @@ class HomePage extends ViewPU {
             Stack.height(286 * this.orbScale);
         }, Stack);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Satellite 1
+            // Satellite 1: mint → paleAqua, opacity 0.42
             Circle.create();
             Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(131:15)", "entry");
-            // Satellite 1
+            // Satellite 1: mint → paleAqua, opacity 0.42
             Circle.width(88 * this.orbScale);
-            // Satellite 1
+            // Satellite 1: mint → paleAqua, opacity 0.42
             Circle.height(88 * this.orbScale);
-            // Satellite 1
-            Circle.fill(RokuricsColors.mint + '40');
-            // Satellite 1
+            // Satellite 1: mint → paleAqua, opacity 0.42
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.mint, 0.42],
+                    [RokuricsColors.paleAqua, 0.42]
+                ]
+            });
+            // Satellite 1: mint → paleAqua, opacity 0.42
+            Circle.stroke('#FFFFFF');
+            // Satellite 1: mint → paleAqua, opacity 0.42
+            Circle.strokeWidth(1);
+            // Satellite 1: mint → paleAqua, opacity 0.42
+            Circle.shadow({
+                color: colorAlpha(RokuricsColors.shadowColor, '08'),
+                radius: 14,
+                offsetY: 8
+            });
+            // Satellite 1: mint → paleAqua, opacity 0.42
             Circle.position({
                 x: (94 - this.breathePhase * 6) * this.orbScale + '%',
                 y: (28 + this.breathePhase * 4) * this.orbScale + '%'
             });
         }, Circle);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Satellite 2
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
             Circle.create();
-            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(141:15)", "entry");
-            // Satellite 2
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(154:15)", "entry");
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
             Circle.width(76 * this.orbScale);
-            // Satellite 2
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
             Circle.height(76 * this.orbScale);
-            // Satellite 2
-            Circle.fill(RokuricsColors.skyCyan + '32');
-            // Satellite 2
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.skyCyan, 0.32],
+                    [RokuricsColors.mistGreen, 0.32]
+                ]
+            });
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
+            Circle.stroke('#FFFFFF');
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
+            Circle.strokeWidth(1);
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
+            Circle.shadow({
+                color: colorAlpha(RokuricsColors.shadowColor, '08'),
+                radius: 14,
+                offsetY: 8
+            });
+            // Satellite 2: skyCyan → mistGreen, opacity 0.32
             Circle.position({
                 x: (60 + this.breathePhase * 5) * this.orbScale + '%',
                 y: (32 - this.breathePhase * 3) * this.orbScale + '%'
             });
         }, Circle);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Satellite 3
+            // Satellite 3: aqua → paleAqua, opacity 0.30
             Circle.create();
-            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(151:15)", "entry");
-            // Satellite 3
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(177:15)", "entry");
+            // Satellite 3: aqua → paleAqua, opacity 0.30
             Circle.width(74 * this.orbScale);
-            // Satellite 3
+            // Satellite 3: aqua → paleAqua, opacity 0.30
             Circle.height(74 * this.orbScale);
-            // Satellite 3
-            Circle.fill(RokuricsColors.aqua + '28');
-            // Satellite 3
+            // Satellite 3: aqua → paleAqua, opacity 0.30
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.aqua, 0.30],
+                    [RokuricsColors.paleAqua, 0.30]
+                ]
+            });
+            // Satellite 3: aqua → paleAqua, opacity 0.30
+            Circle.stroke('#FFFFFF');
+            // Satellite 3: aqua → paleAqua, opacity 0.30
+            Circle.strokeWidth(1);
+            // Satellite 3: aqua → paleAqua, opacity 0.30
+            Circle.shadow({
+                color: colorAlpha(RokuricsColors.shadowColor, '08'),
+                radius: 14,
+                offsetY: 8
+            });
+            // Satellite 3: aqua → paleAqua, opacity 0.30
             Circle.position({
                 x: (50 - this.breathePhase * 4) * this.orbScale + '%',
                 y: (68 + this.breathePhase * 3) * this.orbScale + '%'
             });
         }, Circle);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Satellite 4
+            // Satellite 4: mistGreen → mint, opacity 0.34
             Circle.create();
-            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(161:15)", "entry");
-            // Satellite 4
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(200:15)", "entry");
+            // Satellite 4: mistGreen → mint, opacity 0.34
             Circle.width(68 * this.orbScale);
-            // Satellite 4
+            // Satellite 4: mistGreen → mint, opacity 0.34
             Circle.height(68 * this.orbScale);
-            // Satellite 4
-            Circle.fill(RokuricsColors.mistGreen + '34');
-            // Satellite 4
+            // Satellite 4: mistGreen → mint, opacity 0.34
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.mistGreen, 0.34],
+                    [RokuricsColors.mint, 0.34]
+                ]
+            });
+            // Satellite 4: mistGreen → mint, opacity 0.34
+            Circle.stroke('#FFFFFF');
+            // Satellite 4: mistGreen → mint, opacity 0.34
+            Circle.strokeWidth(1);
+            // Satellite 4: mistGreen → mint, opacity 0.34
+            Circle.shadow({
+                color: colorAlpha(RokuricsColors.shadowColor, '08'),
+                radius: 14,
+                offsetY: 8
+            });
+            // Satellite 4: mistGreen → mint, opacity 0.34
             Circle.position({
                 x: (28 + this.breathePhase * 5) * this.orbScale + '%',
                 y: (62 - this.breathePhase * 3) * this.orbScale + '%'
@@ -370,13 +442,13 @@ class HomePage extends ViewPU {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Sound ripple (animated breathing)
             Circle.create();
-            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(174:13)", "entry");
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(226:13)", "entry");
             // Sound ripple (animated breathing)
             Circle.width(238 * this.orbScale);
             // Sound ripple (animated breathing)
             Circle.height(238 * this.orbScale);
             // Sound ripple (animated breathing)
-            Circle.stroke(RokuricsColors.aqua + '08');
+            Circle.stroke(colorAlpha(RokuricsColors.aqua, '08'));
             // Sound ripple (animated breathing)
             Circle.strokeWidth(1.4);
             // Sound ripple (animated breathing)
@@ -386,10 +458,10 @@ class HomePage extends ViewPU {
         }, Circle);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Circle.create();
-            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(182:13)", "entry");
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(234:13)", "entry");
             Circle.width(202 * this.orbScale);
             Circle.height(202 * this.orbScale);
-            Circle.stroke(RokuricsColors.aqua + '10');
+            Circle.stroke(colorAlpha(RokuricsColors.aqua, '10'));
             Circle.strokeWidth(1.4);
             Circle.fill(Color.Transparent);
             Circle.opacity(0.10 + this.breathePhase * 0.05);
@@ -401,10 +473,10 @@ class HomePage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Circle.create();
-                        Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(192:15)", "entry");
+                        Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(244:15)", "entry");
                         Circle.width(222 * this.orbScale);
                         Circle.height(222 * this.orbScale);
-                        Circle.stroke(RokuricsColors.coral + '20');
+                        Circle.stroke(colorAlpha(RokuricsColors.coral, '20'));
                         Circle.strokeWidth(1.4);
                         Circle.fill(Color.Transparent);
                         Circle.opacity(0.16 + this.breathePhase * 0.08);
@@ -415,17 +487,17 @@ class HomePage extends ViewPU {
                 this.ifElseBranchUpdateFunction(1, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Circle.create();
-                        Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(200:15)", "entry");
+                        Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(252:15)", "entry");
                         Circle.width(222 * this.orbScale);
                         Circle.height(222 * this.orbScale);
-                        Circle.stroke(RokuricsColors.softTeal + '15');
+                        Circle.stroke(colorAlpha(RokuricsColors.softTeal, '15'));
                         Circle.strokeWidth(1.4);
                         Circle.fill(Color.Transparent);
                         Circle.opacity(0.11 + this.breathePhase * 0.06);
                     }, Circle);
                 });
             }
-            // Main orb
+            // Main orb with gradient fill
             else {
                 this.ifElseBranchUpdateFunction(2, () => {
                 });
@@ -433,18 +505,24 @@ class HomePage extends ViewPU {
         }, If);
         If.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Main orb
+            // Main orb with gradient fill
             Circle.create();
-            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(210:13)", "entry");
-            // Main orb
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(262:13)", "entry");
+            // Main orb with gradient fill
             Circle.width(190 * this.orbScale);
-            // Main orb
+            // Main orb with gradient fill
             Circle.height(190 * this.orbScale);
-            // Main orb
-            Circle.fill(RokuricsColors.actionStart);
-            // Main orb
+            // Main orb with gradient fill
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.actionGradientStart, 1.0],
+                    [RokuricsColors.actionGradientEnd, 1.0]
+                ]
+            });
+            // Main orb with gradient fill
             Circle.shadow({
-                color: RokuricsColors.shadowColor + '24',
+                color: colorAlpha(RokuricsColors.shadowColor, '24'),
                 radius: 30 * this.orbScale,
                 offsetY: 18 * this.orbScale
             });
@@ -456,7 +534,7 @@ class HomePage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create(this.getCenterText());
-                        Text.debugLine("entry/src/main/ets/pages/HomePage.ets(222:15)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/HomePage.ets(280:15)", "entry");
                         Text.fontSize(34 * this.orbScale);
                         Text.fontWeight(FontWeight.Bold);
                         Text.fontColor('#FFFFFF');
@@ -470,18 +548,18 @@ class HomePage extends ViewPU {
                 this.ifElseBranchUpdateFunction(1, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Stack.create();
-                        Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(229:15)", "entry");
+                        Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(287:15)", "entry");
                         Stack.opacity(0.97);
                     }, Stack);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Rect.create({ width: 56 * this.orbScale, height: 8 * this.orbScale });
-                        Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(230:17)", "entry");
+                        Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(288:17)", "entry");
                         Rect.radius(4);
                         Rect.fill(Color.White);
                     }, Rect);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Rect.create({ width: 8 * this.orbScale, height: 56 * this.orbScale });
-                        Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(233:17)", "entry");
+                        Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(291:17)", "entry");
                         Rect.radius(4);
                         Rect.fill(Color.White);
                     }, Rect);
@@ -495,13 +573,13 @@ class HomePage extends ViewPU {
         Button.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Blank.create();
-            Blank.debugLine("entry/src/main/ets/pages/HomePage.ets(255:9)", "entry");
+            Blank.debugLine("entry/src/main/ets/pages/HomePage.ets(313:9)", "entry");
         }, Blank);
         Blank.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Navigation Card with glass styling
             Row.create();
-            Row.debugLine("entry/src/main/ets/pages/HomePage.ets(258:9)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/HomePage.ets(316:9)", "entry");
             // Navigation Card with glass styling
             Row.width('88%');
             // Navigation Card with glass styling
@@ -509,15 +587,15 @@ class HomePage extends ViewPU {
             // Navigation Card with glass styling
             Row.borderRadius(30);
             // Navigation Card with glass styling
-            Row.backgroundColor(RokuricsColors.glassSurface + '66');
+            Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
             // Navigation Card with glass styling
             Row.border({
                 width: 1,
                 color: {
                     colors: [
-                        [0xFFFFFF, 0.44],
-                        [0xEFFAF8, 0.18],
-                        [0x91E8D6, 0.14]
+                        [0xFFFFFF, 0.24],
+                        [RokuricsColors.glassStroke, 0.14],
+                        [RokuricsColors.glassStrokeAccent, 0.24]
                     ],
                     direction: GradientDirection.RightBottom
                 },
@@ -525,7 +603,7 @@ class HomePage extends ViewPU {
             } as BorderOptions);
             // Navigation Card with glass styling
             Row.shadow({
-                color: RokuricsColors.shadowColor + '12',
+                color: colorAlpha(RokuricsColors.shadowColor, '12'),
                 radius: 20,
                 offsetY: 11
             });
@@ -535,7 +613,7 @@ class HomePage extends ViewPU {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Study Library
             Button.createWithChild();
-            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(260:11)", "entry");
+            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(318:11)", "entry");
             // Study Library
             Button.layoutWeight(1);
             // Study Library
@@ -549,7 +627,7 @@ class HomePage extends ViewPU {
         }, Button);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 8 });
-            Column.debugLine("entry/src/main/ets/pages/HomePage.ets(261:13)", "entry");
+            Column.debugLine("entry/src/main/ets/pages/HomePage.ets(319:13)", "entry");
             Column.width('100%');
             Column.height(104);
             Column.justifyContent(FlexAlign.Center);
@@ -557,7 +635,7 @@ class HomePage extends ViewPU {
         BooksIcon.bind(this)(27, RokuricsColors.aqua);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('学习库');
-            Text.debugLine("entry/src/main/ets/pages/HomePage.ets(263:15)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/HomePage.ets(321:15)", "entry");
             Text.fontSize(13);
             Text.fontWeight(FontWeight.SemiBold);
             Text.fontColor(RokuricsColors.deepText);
@@ -569,18 +647,18 @@ class HomePage extends ViewPU {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Divider
             Rect.create();
-            Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(280:11)", "entry");
+            Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(338:11)", "entry");
             // Divider
             Rect.width(1);
             // Divider
             Rect.height(54);
             // Divider
-            Rect.fill(RokuricsColors.softText + '14');
+            Rect.fill(colorAlpha(RokuricsColors.softText, '14'));
         }, Rect);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // AI Chat
             Button.createWithChild();
-            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(286:11)", "entry");
+            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(344:11)", "entry");
             // AI Chat
             Button.layoutWeight(1);
             // AI Chat
@@ -594,7 +672,7 @@ class HomePage extends ViewPU {
         }, Button);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 8 });
-            Column.debugLine("entry/src/main/ets/pages/HomePage.ets(287:13)", "entry");
+            Column.debugLine("entry/src/main/ets/pages/HomePage.ets(345:13)", "entry");
             Column.width('100%');
             Column.height(104);
             Column.justifyContent(FlexAlign.Center);
@@ -602,7 +680,7 @@ class HomePage extends ViewPU {
         ChatIcon.bind(this)(27, RokuricsColors.mint);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('AI 对话');
-            Text.debugLine("entry/src/main/ets/pages/HomePage.ets(289:15)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/HomePage.ets(347:15)", "entry");
             Text.fontSize(13);
             Text.fontWeight(FontWeight.SemiBold);
             Text.fontColor(RokuricsColors.deepText);
@@ -614,18 +692,18 @@ class HomePage extends ViewPU {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Divider
             Rect.create();
-            Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(306:11)", "entry");
+            Rect.debugLine("entry/src/main/ets/pages/HomePage.ets(364:11)", "entry");
             // Divider
             Rect.width(1);
             // Divider
             Rect.height(54);
             // Divider
-            Rect.fill(RokuricsColors.softText + '14');
+            Rect.fill(colorAlpha(RokuricsColors.softText, '14'));
         }, Rect);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Mac Connection
             Button.createWithChild();
-            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(312:11)", "entry");
+            Button.debugLine("entry/src/main/ets/pages/HomePage.ets(370:11)", "entry");
             // Mac Connection
             Button.layoutWeight(1);
             // Mac Connection
@@ -639,15 +717,15 @@ class HomePage extends ViewPU {
         }, Button);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 8 });
-            Column.debugLine("entry/src/main/ets/pages/HomePage.ets(313:13)", "entry");
+            Column.debugLine("entry/src/main/ets/pages/HomePage.ets(371:13)", "entry");
             Column.width('100%');
             Column.height(104);
             Column.justifyContent(FlexAlign.Center);
         }, Column);
         ConnectionIcon.bind(this)(27, RokuricsColors.softTeal, this.isMacPaired);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.isMacPaired ? '已连接' : '连接');
-            Text.debugLine("entry/src/main/ets/pages/HomePage.ets(315:15)", "entry");
+            Text.create('Mac 连接');
+            Text.debugLine("entry/src/main/ets/pages/HomePage.ets(373:15)", "entry");
             Text.fontSize(13);
             Text.fontWeight(FontWeight.SemiBold);
             Text.fontColor(RokuricsColors.deepText);
@@ -665,21 +743,21 @@ class HomePage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create();
-                        Column.debugLine("entry/src/main/ets/pages/HomePage.ets(356:11)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/HomePage.ets(414:11)", "entry");
                         Column.margin({ bottom: 34 * this.headerScale });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Row.create({ space: 8 });
-                        Row.debugLine("entry/src/main/ets/pages/HomePage.ets(357:13)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/HomePage.ets(415:13)", "entry");
                         Row.padding({ left: 14, right: 14, top: 8, bottom: 8 });
                         Row.borderRadius(14);
-                        Row.backgroundColor(RokuricsColors.glassSurface + glassFillOpacity);
+                        Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
                         Row.border({
                             width: 1,
                             color: {
                                 colors: [
                                     [0xFFFFFF, glassStrokeHighOpacity],
-                                    [0xEFFAF8, glassStrokeMidOpacity]
+                                    [RokuricsColors.glassStroke, glassStrokeMidOpacity]
                                 ],
                                 direction: GradientDirection.RightBottom
                             },
@@ -688,14 +766,14 @@ class HomePage extends ViewPU {
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Circle.create();
-                        Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(358:15)", "entry");
+                        Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(416:15)", "entry");
                         Circle.width(8);
                         Circle.height(8);
                         Circle.fill(RokuricsColors.mint);
                     }, Circle);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('Mac 已连接 · 8787');
-                        Text.debugLine("entry/src/main/ets/pages/HomePage.ets(362:15)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/HomePage.ets(420:15)", "entry");
                         Text.fontSize(12);
                         Text.fontWeight(FontWeight.Medium);
                         Text.fontColor(RokuricsColors.softText);
@@ -709,7 +787,7 @@ class HomePage extends ViewPU {
                 this.ifElseBranchUpdateFunction(1, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Blank.create();
-                        Blank.debugLine("entry/src/main/ets/pages/HomePage.ets(384:11)", "entry");
+                        Blank.debugLine("entry/src/main/ets/pages/HomePage.ets(442:11)", "entry");
                         Blank.height(18 * this.headerScale);
                     }, Blank);
                     Blank.pop();
@@ -723,37 +801,83 @@ class HomePage extends ViewPU {
     AmbientBackground(parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Stack.create();
-            Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(397:5)", "entry");
+            Stack.debugLine("entry/src/main/ets/pages/HomePage.ets(463:5)", "entry");
             Stack.width('100%');
             Stack.height('100%');
         }, Stack);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Large ambient bubbles
+            // Bubble 1: paleAqua → mint, opacity 0.30
             Circle.create();
-            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(399:7)", "entry");
-            // Large ambient bubbles
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(465:7)", "entry");
+            // Bubble 1: paleAqua → mint, opacity 0.30
             Circle.width(150);
-            // Large ambient bubbles
+            // Bubble 1: paleAqua → mint, opacity 0.30
             Circle.height(150);
-            // Large ambient bubbles
-            Circle.fill(RokuricsColors.paleAqua + '30');
-            // Large ambient bubbles
+            // Bubble 1: paleAqua → mint, opacity 0.30
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.paleAqua, 0.30],
+                    [RokuricsColors.mint, 0.30]
+                ]
+            });
+            // Bubble 1: paleAqua → mint, opacity 0.30
+            Circle.stroke('#FFFFFF');
+            // Bubble 1: paleAqua → mint, opacity 0.30
+            Circle.strokeWidth(1);
+            // Bubble 1: paleAqua → mint, opacity 0.30
+            Circle.opacity(0.30);
+            // Bubble 1: paleAqua → mint, opacity 0.30
             Circle.position({ x: -30, y: '-10%' });
         }, Circle);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
             Circle.create();
-            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(405:7)", "entry");
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(481:7)", "entry");
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
             Circle.width(190);
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
             Circle.height(190);
-            Circle.fill(RokuricsColors.skyCyan + '22');
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.skyCyan, 0.22],
+                    [RokuricsColors.mistGreen, 0.22]
+                ]
+            });
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
+            Circle.stroke('#FFFFFF');
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
+            Circle.strokeWidth(1);
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
+            Circle.opacity(0.22);
+            // Bubble 2: skyCyan → mistGreen, opacity 0.22
             Circle.position({ x: '85%', y: '15%' });
         }, Circle);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Bubble 3: mint → aqua, opacity 0.18
             Circle.create();
-            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(411:7)", "entry");
+            Circle.debugLine("entry/src/main/ets/pages/HomePage.ets(497:7)", "entry");
+            // Bubble 3: mint → aqua, opacity 0.18
             Circle.width(170);
+            // Bubble 3: mint → aqua, opacity 0.18
             Circle.height(170);
-            Circle.fill(RokuricsColors.mint + '18');
+            // Bubble 3: mint → aqua, opacity 0.18
+            Circle.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.mint, 0.18],
+                    [RokuricsColors.aqua, 0.18]
+                ]
+            });
+            // Bubble 3: mint → aqua, opacity 0.18
+            Circle.stroke('#FFFFFF');
+            // Bubble 3: mint → aqua, opacity 0.18
+            Circle.strokeWidth(1);
+            // Bubble 3: mint → aqua, opacity 0.18
+            Circle.opacity(0.18);
+            // Bubble 3: mint → aqua, opacity 0.18
             Circle.position({ x: '75%', y: '70%' });
         }, Circle);
         Stack.pop();

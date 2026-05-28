@@ -1,732 +1,0 @@
-Ôr@Ÿªassertions¤code´customTransformCache¬dependencies¢id¤meta±moduleSideEffects¬originalCode±originalSourcemap«resolvedIds®sourcemapChainµsyntheticNamedExportsµtransformDependencies®transformFiles¨cacheAstÔrAÚ)÷/**
- * KikariaMathRenderer - Converts LaTeX math to readable Unicode text.
- * Ported from readableMathFallback in KikariaMathFormulaView.swift
- */
-import { LatexTokenType, tokenizeLatex } from './KikariaLatexParser';
-/** Convert a LaTeX math expression to Unicode for display. */
-export function renderMathToUnicode(latex, isBlock = false) {
-    let s = latex.trim();
-    // Strip block delimiters if present
-    if (s.startsWith('$$') && s.endsWith('$$') && s.length >= 4) {
-        s = s.substring(2, s.length - 2).trim();
-    }
-    // Normalize
-    s = s.replace(/\\dfrac/g, '\\frac').replace(/\\tfrac/g, '\\frac');
-    s = s.replace(/\\operatorname\{sgn\}/g, 'sgn');
-    if (isBlock) {
-        s = replaceBracedCommand(s, '\\operatorname', (name) => name);
-    }
-    s = replaceBracedPairCommand(s, ['\\dfrac', '\\tfrac', '\\frac'], (num, den) => `${renderMathToUnicode(num)} / ${renderMathToUnicode(den)}`);
-    s = replaceBracedCommand(s, '\\sqrt', (v) => `âˆš(${renderMathToUnicode(v)})`);
-    s = replaceBracedCommand(s, '\\operatorname', (v) => v);
-    s = replaceBracedCommand(s, '\\mathrm', (v) => v);
-    s = replaceBracedCommand(s, '\\mathbf', (v) => v);
-    s = replaceBracedCommand(s, '\\text', (v) => v);
-    s = replaceBracedCommand(s, '\\bar', (v) => `${renderMathToUnicode(v)}Ì„`);
-    // Superscript: x^{2} â†’ xÂ², subscript: x_{1} â†’ xâ‚
-    s = replaceScriptBraces(s, '^', superscriptDigit);
-    s = replaceScriptBraces(s, '_', subscriptDigit);
-    // LaTeX symbol â†’ Unicode
-    const syms = {
-        '\\begin{cases}': '', '\\end{cases}': '', '\\begin{aligned}': '', '\\end{aligned}': '',
-        '\\begin{matrix}': '', '\\end{matrix}': '',
-        '\\\\': '\n', '&': '  ', '\\qquad': '  ', '\\quad': ' ', '\\,': ' ', '\\;': ' ',
-        '\\:': ' ', '\\!': '', '\\left': '', '\\right': '',
-        '\\Bigg': '', '\\bigg': '', '\\Big': '', '\\big': '',
-        // Integrals
-        '\\iiint': 'âˆ«âˆ«âˆ«', '\\iint': 'âˆ«âˆ«', '\\int': 'âˆ«', '\\oint': 'âˆ®',
-        // Sum, product, limit (with subscript rendering handled below)
-        '\\sum': 'Î£', '\\prod': 'Î ', '\\coprod': 'âˆ',
-        // Greek lowercase
-        '\\alpha': 'Î±', '\\beta': 'Î²', '\\gamma': 'Î³', '\\delta': 'Î´',
-        '\\epsilon': 'Îµ', '\\varepsilon': 'Îµ', '\\zeta': 'Î¶', '\\eta': 'Î·',
-        '\\theta': 'Î¸', '\\vartheta': 'Ï‘', '\\iota': 'Î¹', '\\kappa': 'Îº',
-        '\\lambda': 'Î»', '\\mu': 'Î¼', '\\nu': 'Î½', '\\xi': 'Î¾',
-        '\\pi': 'Ï€', '\\varpi': 'Ï–', '\\rho': 'Ï', '\\varrho': 'Ï±',
-        '\\sigma': 'Ïƒ', '\\varsigma': 'Ï‚', '\\tau': 'Ï„', '\\upsilon': 'Ï…',
-        '\\phi': 'Ï†', '\\varphi': 'Ï•', '\\chi': 'Ï‡', '\\psi': 'Ïˆ', '\\omega': 'Ï‰',
-        // Greek uppercase
-        '\\Gamma': 'Î“', '\\Delta': 'Î”', '\\Theta': 'Î˜', '\\Lambda': 'Î›',
-        '\\Xi': 'Î', '\\Pi': 'Î ', '\\Sigma': 'Î£', '\\Upsilon': 'Î¥',
-        '\\Phi': 'Î¦', '\\Psi': 'Î¨', '\\Omega': 'Î©',
-        // Operators
-        '\\partial': 'âˆ‚', '\\nabla': 'âˆ‡', '\\infty': 'âˆ', '\\emptyset': 'âˆ…',
-        '\\forall': 'âˆ€', '\\exists': 'âˆƒ', '\\neg': 'Â¬', '\\lnot': 'Â¬',
-        // Relations
-        '\\neq': 'â‰ ', '\\ne': 'â‰ ', '\\leq': 'â‰¤', '\\le': 'â‰¤',
-        '\\geq': 'â‰¥', '\\ge': 'â‰¥', '\\to': 'â†’', '\\rightarrow': 'â†’',
-        '\\leftarrow': 'â†', '\\Rightarrow': 'â‡’', '\\Leftrightarrow': 'â‡”',
-        '\\approx': 'â‰ˆ', '\\equiv': 'â‰¡', '\\sim': 'âˆ¼', '\\propto': 'âˆ',
-        '\\subset': 'âŠ‚', '\\subseteq': 'âŠ†', '\\supset': 'âŠƒ', '\\supseteq': 'âŠ‡',
-        '\\in': 'âˆˆ', '\\notin': 'âˆ‰', '\\ni': 'âˆ‹',
-        '\\parallel': 'âˆ¥', '\\perp': 'âŠ¥',
-        // Binary ops
-        '\\times': 'Ã—', '\\cdot': 'Â·', '\\div': 'Ã·', '\\pm': 'Â±', '\\mp': 'âˆ“',
-        '\\oplus': 'âŠ•', '\\ominus': 'âŠ–', '\\otimes': 'âŠ—', '\\oslash': 'âŠ˜',
-        '\\cup': 'âˆª', '\\cap': 'âˆ©', '\\setminus': '\\',
-        '\\land': 'âˆ§', '\\lor': 'âˆ¨', '\\wedge': 'âˆ§', '\\vee': 'âˆ¨',
-        // Arrows
-        '\\mapsto': 'â†¦', '\\longmapsto': 'âŸ¼', '\\iff': 'âŸº',
-        // Dots
-        '\\cdots': 'â‹¯', '\\ldots': 'â€¦', '\\vdots': 'â‹®', '\\ddots': 'â‹±',
-        // Misc
-        '\\angle': 'âˆ ', '\\triangle': 'â–³', '\\square': 'â–¡', '\\Box': 'â–¡',
-        '\\Re': 'â„œ', '\\Im': 'â„‘', '\\aleph': 'â„µ',
-        '\\hbar': 'â„', '\\ell': 'â„“', '\\wp': 'â„˜',
-        // Accents
-        '\\hat': 'Ì‚', '\\tilde': 'Ìƒ', '\\bar': 'Ì„', '\\vec': 'âƒ—', '\\dot': 'Ì‡',
-        '\\widehat': 'Ì‚', '\\widetilde': 'Ìƒ '
-    };
-    for (const sym of Object.keys(syms)) {
-        s = s.replace(new RegExp(escapeRegex(sym), 'g'), syms[sym]);
-    }
-    s = s.replace(/\\/g, '');
-    return normalizeWhitespace(s);
-}
-/** Render a rich text string with math tokens converted. */
-export function renderMathRichText(text) {
-    const tokens = tokenizeLatex(text);
-    let result = '';
-    for (const token of tokens) {
-        switch (token.type) {
-            case LatexTokenType.TEXT:
-            case LatexTokenType.FALLBACK:
-                result += token.value;
-                break;
-            case LatexTokenType.INLINE_MATH:
-                result += renderMathToUnicode(token.body, false);
-                break;
-            case LatexTokenType.BLOCK_MATH:
-                result += '\n' + renderMathToUnicode(token.body, true) + '\n';
-                break;
-        }
-    }
-    return result;
-}
-// --- helpers ---
-class BracedGroup {
-    constructor() {
-        this.value = '';
-        this.nextIdx = 0;
-    }
-}
-function escapeRegex(s) {
-    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-function normalizeWhitespace(s) {
-    const lines = s.split('\n');
-    const normalized = [];
-    for (let line of lines) {
-        line = line.trim();
-        while (line.includes('  ')) {
-            line = line.replace(/  /g, ' ');
-        }
-        if (line.length === 0) {
-            if (normalized.length > 0 && normalized[normalized.length - 1].length > 0) {
-                normalized.push(line);
-            }
-        }
-        else {
-            normalized.push(line);
-        }
-    }
-    return normalized.join('\n');
-}
-function replaceBracedCommand(text, cmd, transform) {
-    let result = '';
-    let i = 0;
-    while (i < text.length) {
-        if (text.substring(i).startsWith(cmd)) {
-            let cursor = i + cmd.length;
-            // skip whitespace
-            while (cursor < text.length && (text[cursor] === ' ' || text[cursor] === '\t')) {
-                cursor++;
-            }
-            const group = extractBracedGroup(text, cursor);
-            if (group) {
-                result += transform(group.value);
-                i = group.nextIdx;
-                continue;
-            }
-        }
-        result += text[i];
-        i++;
-    }
-    return result;
-}
-function replaceBracedPairCommand(text, cmds, transform) {
-    let result = '';
-    let i = 0;
-    while (i < text.length) {
-        let matchedCmd = '';
-        for (const cmd of cmds) {
-            if (text.substring(i).startsWith(cmd)) {
-                matchedCmd = cmd;
-                break;
-            }
-        }
-        if (matchedCmd.length > 0) {
-            let cursor = i + matchedCmd.length;
-            while (cursor < text.length && (text[cursor] === ' ' || text[cursor] === '\t')) {
-                cursor++;
-            }
-            const g1 = extractBracedGroup(text, cursor);
-            if (g1) {
-                cursor = g1.nextIdx;
-                while (cursor < text.length && (text[cursor] === ' ' || text[cursor] === '\t')) {
-                    cursor++;
-                }
-                const g2 = extractBracedGroup(text, cursor);
-                if (g2) {
-                    result += transform(g1.value, g2.value);
-                    i = g2.nextIdx;
-                    continue;
-                }
-            }
-        }
-        result += text[i];
-        i++;
-    }
-    return result;
-}
-/** Convert digit (0-9) or basic chars to Unicode superscript. */
-function superscriptDigit(s) {
-    const map = {
-        '0': 'â°', '1': 'Â¹', '2': 'Â²', '3': 'Â³', '4': 'â´',
-        '5': 'âµ', '6': 'â¶', '7': 'â·', '8': 'â¸', '9': 'â¹',
-        '+': 'âº', '-': 'â»', '=': 'â¼', '(': 'â½', ')': 'â¾',
-        'n': 'â¿', 'i': 'â±'
-    };
-    let result = '';
-    for (let i = 0; i < s.length; i++) {
-        result += map[s[i]] !== undefined ? map[s[i]] : s[i];
-    }
-    return result;
-}
-/** Convert digit (0-9) or basic chars to Unicode subscript. */
-function subscriptDigit(s) {
-    const map = {
-        '0': 'â‚€', '1': 'â‚', '2': 'â‚‚', '3': 'â‚ƒ', '4': 'â‚„',
-        '5': 'â‚…', '6': 'â‚†', '7': 'â‚‡', '8': 'â‚ˆ', '9': 'â‚‰',
-        '+': 'â‚Š', '-': 'â‚‹', '=': 'â‚Œ', '(': 'â‚', ')': 'â‚',
-        'a': 'â‚', 'e': 'â‚‘', 'o': 'â‚’', 'x': 'â‚“',
-        'i': 'áµ¢', 'j': 'â±¼', 'n': 'â‚™'
-    };
-    let result = '';
-    for (let i = 0; i < s.length; i++) {
-        result += map[s[i]] !== undefined ? map[s[i]] : s[i];
-    }
-    return result;
-}
-/** Replace ^{...} and _{...} patterns with Unicode script digits. */
-function replaceScriptBraces(text, scriptChar, transform) {
-    let result = '';
-    let i = 0;
-    while (i < text.length) {
-        if (text[i] === scriptChar && i + 1 < text.length) {
-            if (text[i + 1] === '{') {
-                const group = extractBracedGroup(text, i + 1);
-                if (group) {
-                    result += transform(group.value);
-                    i = group.nextIdx;
-                    continue;
-                }
-            }
-            // Single char script: x^2 or x_n
-            if (i + 1 < text.length) {
-                result += transform(text[i + 1]);
-                i += 2;
-                continue;
-            }
-        }
-        result += text[i];
-        i++;
-    }
-    return result;
-}
-function extractBracedGroup(text, start) {
-    if (start >= text.length || text[start] !== '{') {
-        return null;
-    }
-    let cursor = start + 1;
-    const begin = cursor;
-    let depth = 1;
-    while (cursor < text.length) {
-        if (text[cursor] === '{') {
-            depth++;
-        }
-        else if (text[cursor] === '}') {
-            depth--;
-            if (depth === 0) {
-                const result = new BracedGroup();
-                result.value = text.substring(begin, cursor);
-                result.nextIdx = cursor + 1;
-                return result;
-            }
-        }
-        cursor++;
-    }
-    return null;
-}
-//# sourceMappingURL=KikariaMathRenderer.js.mapÂ‘Ù^/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/model/KikariaLatexParser.etsÙ_/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/model/KikariaMathRenderer.etsÔrB›ªmoduleName±isLocalDependency¯isNodeEntryFile§pkgPath±belongProjectPath§pkgNameªpkgVersion±dependencyPkgInfo¯hostModulesInfo°belongModulePath¬shouldEmitJs¥entryÃÂÙ4/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entryÙ./Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS¥entry¥1.0.0Ô  ‘ÔrC’²hostDependencyName®hostModuleName¼../model/KikariaMathRenderer¥entryÙ4/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entryÃÃÚ&&/**
- * KikariaMathRenderer - Converts LaTeX math to readable Unicode text.
- * Ported from readableMathFallback in KikariaMathFormulaView.swift
- */
-import { LatexToken, LatexTokenType, tokenizeLatex } from './KikariaLatexParser'
-
-/** Convert a LaTeX math expression to Unicode for display. */
-export function renderMathToUnicode(latex: string, isBlock: boolean = false): string {
-  let s = latex.trim()
-  // Strip block delimiters if present
-  if (s.startsWith('$$') && s.endsWith('$$') && s.length >= 4) {
-    s = s.substring(2, s.length - 2).trim()
-  }
-  // Normalize
-  s = s.replace(/\\dfrac/g, '\\frac').replace(/\\tfrac/g, '\\frac')
-  s = s.replace(/\\operatorname\{sgn\}/g, 'sgn')
-
-  if (isBlock) {
-    s = replaceBracedCommand(s, '\\operatorname', (name: string) => name)
-  }
-
-  s = replaceBracedPairCommand(s, ['\\dfrac', '\\tfrac', '\\frac'],
-    (num: string, den: string) => `${renderMathToUnicode(num)} / ${renderMathToUnicode(den)}`)
-  s = replaceBracedCommand(s, '\\sqrt', (v: string) => `âˆš(${renderMathToUnicode(v)})`)
-  s = replaceBracedCommand(s, '\\operatorname', (v: string) => v)
-  s = replaceBracedCommand(s, '\\mathrm', (v: string) => v)
-  s = replaceBracedCommand(s, '\\mathbf', (v: string) => v)
-  s = replaceBracedCommand(s, '\\text', (v: string) => v)
-  s = replaceBracedCommand(s, '\\bar', (v: string) => `${renderMathToUnicode(v)}Ì„`)
-  // Superscript: x^{2} â†’ xÂ², subscript: x_{1} â†’ xâ‚
-  s = replaceScriptBraces(s, '^', superscriptDigit)
-  s = replaceScriptBraces(s, '_', subscriptDigit)
-
-  // LaTeX symbol â†’ Unicode
-  const syms: Record<string, string> = {
-    '\\begin{cases}': '', '\\end{cases}': '', '\\begin{aligned}': '', '\\end{aligned}': '',
-    '\\begin{matrix}': '', '\\end{matrix}': '',
-    '\\\\': '\n', '&': '  ', '\\qquad': '  ', '\\quad': ' ', '\\,': ' ', '\\;': ' ',
-    '\\:': ' ', '\\!': '', '\\left': '', '\\right': '',
-    '\\Bigg': '', '\\bigg': '', '\\Big': '', '\\big': '',
-    // Integrals
-    '\\iiint': 'âˆ«âˆ«âˆ«', '\\iint': 'âˆ«âˆ«', '\\int': 'âˆ«', '\\oint': 'âˆ®',
-    // Sum, product, limit (with subscript rendering handled below)
-    '\\sum': 'Î£', '\\prod': 'Î ', '\\coprod': 'âˆ',
-    // Greek lowercase
-    '\\alpha': 'Î±', '\\beta': 'Î²', '\\gamma': 'Î³', '\\delta': 'Î´',
-    '\\epsilon': 'Îµ', '\\varepsilon': 'Îµ', '\\zeta': 'Î¶', '\\eta': 'Î·',
-    '\\theta': 'Î¸', '\\vartheta': 'Ï‘', '\\iota': 'Î¹', '\\kappa': 'Îº',
-    '\\lambda': 'Î»', '\\mu': 'Î¼', '\\nu': 'Î½', '\\xi': 'Î¾',
-    '\\pi': 'Ï€', '\\varpi': 'Ï–', '\\rho': 'Ï', '\\varrho': 'Ï±',
-    '\\sigma': 'Ïƒ', '\\varsigma': 'Ï‚', '\\tau': 'Ï„', '\\upsilon': 'Ï…',
-    '\\phi': 'Ï†', '\\varphi': 'Ï•', '\\chi': 'Ï‡', '\\psi': 'Ïˆ', '\\omega': 'Ï‰',
-    // Greek uppercase
-    '\\Gamma': 'Î“', '\\Delta': 'Î”', '\\Theta': 'Î˜', '\\Lambda': 'Î›',
-    '\\Xi': 'Î', '\\Pi': 'Î ', '\\Sigma': 'Î£', '\\Upsilon': 'Î¥',
-    '\\Phi': 'Î¦', '\\Psi': 'Î¨', '\\Omega': 'Î©',
-    // Operators
-    '\\partial': 'âˆ‚', '\\nabla': 'âˆ‡', '\\infty': 'âˆ', '\\emptyset': 'âˆ…',
-    '\\forall': 'âˆ€', '\\exists': 'âˆƒ', '\\neg': 'Â¬', '\\lnot': 'Â¬',
-    // Relations
-    '\\neq': 'â‰ ', '\\ne': 'â‰ ', '\\leq': 'â‰¤', '\\le': 'â‰¤',
-    '\\geq': 'â‰¥', '\\ge': 'â‰¥', '\\to': 'â†’', '\\rightarrow': 'â†’',
-    '\\leftarrow': 'â†', '\\Rightarrow': 'â‡’', '\\Leftrightarrow': 'â‡”',
-    '\\approx': 'â‰ˆ', '\\equiv': 'â‰¡', '\\sim': 'âˆ¼', '\\propto': 'âˆ',
-    '\\subset': 'âŠ‚', '\\subseteq': 'âŠ†', '\\supset': 'âŠƒ', '\\supseteq': 'âŠ‡',
-    '\\in': 'âˆˆ', '\\notin': 'âˆ‰', '\\ni': 'âˆ‹',
-    '\\parallel': 'âˆ¥', '\\perp': 'âŠ¥',
-    // Binary ops
-    '\\times': 'Ã—', '\\cdot': 'Â·', '\\div': 'Ã·', '\\pm': 'Â±', '\\mp': 'âˆ“',
-    '\\oplus': 'âŠ•', '\\ominus': 'âŠ–', '\\otimes': 'âŠ—', '\\oslash': 'âŠ˜',
-    '\\cup': 'âˆª', '\\cap': 'âˆ©', '\\setminus': '\\',
-    '\\land': 'âˆ§', '\\lor': 'âˆ¨', '\\wedge': 'âˆ§', '\\vee': 'âˆ¨',
-    // Arrows
-    '\\mapsto': 'â†¦', '\\longmapsto': 'âŸ¼', '\\iff': 'âŸº',
-    // Dots
-    '\\cdots': 'â‹¯', '\\ldots': 'â€¦', '\\vdots': 'â‹®', '\\ddots': 'â‹±',
-    // Misc
-    '\\angle': 'âˆ ', '\\triangle': 'â–³', '\\square': 'â–¡', '\\Box': 'â–¡',
-    '\\Re': 'â„œ', '\\Im': 'â„‘', '\\aleph': 'â„µ',
-    '\\hbar': 'â„', '\\ell': 'â„“', '\\wp': 'â„˜',
-    // Accents
-    '\\hat': 'Ì‚', '\\tilde': 'Ìƒ', '\\bar': 'Ì„', '\\vec': 'âƒ—', '\\dot': 'Ì‡',
-    '\\widehat': 'Ì‚', '\\widetilde': 'Ìƒ '
-  }
-  for (const sym of Object.keys(syms)) {
-    s = s.replace(new RegExp(escapeRegex(sym), 'g'), syms[sym])
-  }
-  s = s.replace(/\\/g, '')
-  return normalizeWhitespace(s)
-}
-
-/** Render a rich text string with math tokens converted. */
-export function renderMathRichText(text: string): string {
-  const tokens = tokenizeLatex(text)
-  let result = ''
-  for (const token of tokens) {
-    switch (token.type) {
-      case LatexTokenType.TEXT:
-      case LatexTokenType.FALLBACK:
-        result += token.value
-        break
-      case LatexTokenType.INLINE_MATH:
-        result += renderMathToUnicode(token.body, false)
-        break
-      case LatexTokenType.BLOCK_MATH:
-        result += '\n' + renderMathToUnicode(token.body, true) + '\n'
-        break
-    }
-  }
-  return result
-}
-
-// --- helpers ---
-
-class BracedGroup {
-  value: string = ''
-  nextIdx: number = 0
-}
-
-function escapeRegex(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-function normalizeWhitespace(s: string): string {
-  const lines = s.split('\n')
-  const normalized: string[] = []
-  for (let line of lines) {
-    line = line.trim()
-    while (line.includes('  ')) {
-      line = line.replace(/  /g, ' ')
-    }
-    if (line.length === 0) {
-      if (normalized.length > 0 && normalized[normalized.length - 1].length > 0) {
-        normalized.push(line)
-      }
-    } else {
-      normalized.push(line)
-    }
-  }
-  return normalized.join('\n')
-}
-
-function replaceBracedCommand(
-  text: string, cmd: string, transform: (v: string) => string
-): string {
-  let result = ''
-  let i = 0
-  while (i < text.length) {
-    if (text.substring(i).startsWith(cmd)) {
-      let cursor = i + cmd.length
-      // skip whitespace
-      while (cursor < text.length && (text[cursor] === ' ' || text[cursor] === '\t')) {
-        cursor++
-      }
-      const group = extractBracedGroup(text, cursor)
-      if (group) {
-        result += transform(group.value)
-        i = group.nextIdx
-        continue
-      }
-    }
-    result += text[i]
-    i++
-  }
-  return result
-}
-
-function replaceBracedPairCommand(
-  text: string, cmds: string[], transform: (a: string, b: string) => string
-): string {
-  let result = ''
-  let i = 0
-  while (i < text.length) {
-    let matchedCmd = ''
-    for (const cmd of cmds) {
-      if (text.substring(i).startsWith(cmd)) {
-        matchedCmd = cmd
-        break
-      }
-    }
-    if (matchedCmd.length > 0) {
-      let cursor = i + matchedCmd.length
-      while (cursor < text.length && (text[cursor] === ' ' || text[cursor] === '\t')) {
-        cursor++
-      }
-      const g1 = extractBracedGroup(text, cursor)
-      if (g1) {
-        cursor = g1.nextIdx
-        while (cursor < text.length && (text[cursor] === ' ' || text[cursor] === '\t')) {
-          cursor++
-        }
-        const g2 = extractBracedGroup(text, cursor)
-        if (g2) {
-          result += transform(g1.value, g2.value)
-          i = g2.nextIdx
-          continue
-        }
-      }
-    }
-    result += text[i]
-    i++
-  }
-  return result
-}
-
-/** Convert digit (0-9) or basic chars to Unicode superscript. */
-function superscriptDigit(s: string): string {
-  const map: Record<string, string> = {
-    '0': 'â°', '1': 'Â¹', '2': 'Â²', '3': 'Â³', '4': 'â´',
-    '5': 'âµ', '6': 'â¶', '7': 'â·', '8': 'â¸', '9': 'â¹',
-    '+': 'âº', '-': 'â»', '=': 'â¼', '(': 'â½', ')': 'â¾',
-    'n': 'â¿', 'i': 'â±'
-  }
-  let result = ''
-  for (let i = 0; i < s.length; i++) {
-    result += map[s[i]] !== undefined ? map[s[i]] : s[i]
-  }
-  return result
-}
-
-/** Convert digit (0-9) or basic chars to Unicode subscript. */
-function subscriptDigit(s: string): string {
-  const map: Record<string, string> = {
-    '0': 'â‚€', '1': 'â‚', '2': 'â‚‚', '3': 'â‚ƒ', '4': 'â‚„',
-    '5': 'â‚…', '6': 'â‚†', '7': 'â‚‡', '8': 'â‚ˆ', '9': 'â‚‰',
-    '+': 'â‚Š', '-': 'â‚‹', '=': 'â‚Œ', '(': 'â‚', ')': 'â‚',
-    'a': 'â‚', 'e': 'â‚‘', 'o': 'â‚’', 'x': 'â‚“',
-    'i': 'áµ¢', 'j': 'â±¼', 'n': 'â‚™'
-  }
-  let result = ''
-  for (let i = 0; i < s.length; i++) {
-    result += map[s[i]] !== undefined ? map[s[i]] : s[i]
-  }
-  return result
-}
-
-/** Replace ^{...} and _{...} patterns with Unicode script digits. */
-function replaceScriptBraces(
-  text: string, scriptChar: string, transform: (s: string) => string
-): string {
-  let result = ''
-  let i = 0
-  while (i < text.length) {
-    if (text[i] === scriptChar && i + 1 < text.length) {
-      if (text[i + 1] === '{') {
-        const group = extractBracedGroup(text, i + 1)
-        if (group) {
-          result += transform(group.value)
-          i = group.nextIdx
-          continue
-        }
-      }
-      // Single char script: x^2 or x_n
-      if (i + 1 < text.length) {
-        result += transform(text[i + 1])
-        i += 2
-        continue
-      }
-    }
-    result += text[i]
-    i++
-  }
-  return result
-}
-
-function extractBracedGroup(text: string, start: number): BracedGroup | null {
-  if (start >= text.length || text[start] !== '{') {
-    return null
-  }
-  let cursor = start + 1
-  const begin = cursor
-  let depth = 1
-  while (cursor < text.length) {
-    if (text[cursor] === '{') {
-      depth++
-    } else if (text[cursor] === '}') {
-      depth--
-      if (depth === 0) {
-        const result = new BracedGroup()
-        result.value = text.substring(begin, cursor)
-        result.nextIdx = cursor + 1
-        return result
-      }
-    }
-    cursor++
-  }
-  return null
-}
-ÀÔrD‘´./KikariaLatexParserÔrE—ªassertions¨external¢id¤meta±moduleSideEffectsªresolvedByµsyntheticNamedExportsAÂÙ^/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/model/KikariaLatexParser.etsAÃªoh-resolveÂ“ÔrF–§version¤fileªsourceRoot§sources¥names¨mappings¶KikariaMathRenderer.js ‘·KikariaMathRenderer.etsÜ‘”    ‘” š”   ” ”	 ” #” %”& 2”( 4”. :”ÌD ÌP”ÌE ÌP’”   ”> >™”   ” ” ”# #”$ $”) 1”+ 3”5 ÌF”: ÌK™” ” ”	 ” 
-” ” ” ” ” ’” 	”( 	&Ü ” 
-” 
-”	 
-”
- 
-” 
-” 
-” 
-” 
-” 
-” 
-”  
-”( 
-&”) 
-'”- 
-+”. 
-,”2 
-0”3 
-1”4 
-2”: 
-8”> 
-<”? 
-=”ÌA 
-?Ü ” ”	 ” ” 	” 
-” ” ” ” ” ” ”# ”& "”' #”( $”) %”- )”/ +”0 +‘” ’” ” Ü ” ” ” ”	 ”
- ” ” ” ” ”& $”' %”( &”/ -”0 .”: 8”< :”ÌD ÌB”ÌE ÌC”ÌF ÌCœ” ” ” ”	 ”
- ” ” ”* (”, *”1 /”2 0”3 0”” ” ” ” Ü ” ”	 ” ”  ”! ”" ”$  ”4 0”6 2”7 3”; ?”= ÌA”? ÌC”Ì@ ÌD”ÌD ÌH”ÌE ÌI”ÌF ÌI‘” Ü #” ” ” ”  ”! ”"  ”$ "”% #”. ,”0 .”9 7”; 9”ÌC ÌA”ÌD ÌB”ÌF ”ÌG ”ÌJ ”ÌL ”ÌO ”ÌQ ”ÌS !”ÌT "”ÌW %”Ìj 8”Ìk 9”Ìn <”Ìo =”Ìu ÌC”Ìˆ ÌV”Ì‰ ÌW”ÌŒ ÌZ”Ì Ì[”Ì Ì]”Ì Ì^”Ì‘ Ì^Ü ” ” ” ” ” ” ”  ”( &”* (”+ )”, 2”. 4”0 6”1 7”6 <”ÌI ÌO”ÌJ ÌP”ÌK ÌQ”ÌL ÌR”ÌO ÌU”ÌP ÌV”ÌQ ÌVÜ ” ” ” ” ” ” ”  ”0 .”2 0”3 1”4 :”6 <”8 >”9 ?”: Ì@”; ÌA”< ÌAÜ ” ” ” ” ” ” ”  ”* (”, *”- +”. 4”0 6”2 8”3 9”4 :”5 ;”6 ;Ü ” ” ” ” ” ” ”  ”* (”, *”- +”. 4”0 6”2 8”3 9”4 :”5 ;”6 ;Ü ” ” ” ” ” ” ”  ”( &”* (”+ )”, 2”. 4”0 6”1 7”2 8”3 9”4 9Ü ” ” ” ” ” ” ”  ”' %”) '”* (”+ 1”- 3”/ 5”0 6”3 9”ÌF ÌL”ÌG ÌM”ÌH ÌN”ÌI ÌO”ÌL ÌR”ÌM ÌS”ÌN ÌS’” ”5 3œ” ” ” ” ” ” ” ”"  ”$ "”4 2”5 3”6 3œ” ” ” ” ” ” ” ”"  ”$ "”2 0”3 1”4 1’” !” !”” "”
- "” "” "'Ü ” #” #” #” #” #”, #(”. #*”0 #,”2 #.”ÌD #Ì@”ÌF #ÌB”ÌH #ÌD”ÌJ #ÌF”ÌZ #ÌV”Ì\ #ÌX”Ì^ #ÌZ˜” $” $” $” $” $”. $*”0 $,”2 $.Ü ” %” %
-” %” %” %” %” %” %”! %”* %&”, %(”0 %,”2 %.”: %6”< %8”? %;”ÌA %=”ÌF %ÌB”ÌH %ÌD”ÌK %ÌG”ÌM %ÌI”ÌR %ÌN”ÌT %ÌP”ÌW %ÌSÜ ” &” &	” &” &” &” &” &” &” &”' &#”) &%”+ &'”- &)”6 &2”8 &4”: &6Ü ” '” '” '” '” '” '”  '”" '”$ ' ”+ ''”- ')”/ '+”1 '-”8 '4”: '6”< '8’” (” (Ü ” )” )” )” )” )”" )”$ ) ”( )$”* )&”1 )-”3 )/”6 )2”8 )4”Ì@ )<”ÌB )>”ÌE )ÌA’” *”ÌG *ÌCœ” +” +” +” +” +” +”  +”# +”% +!”/ ++”1 +-”4 +0’” ,” ,Ü ” -” -” -” -” -”  -”" -”% -!”' -#”0 -,”2 -.”5 -1”7 -3”Ì@ -<”ÌB ->”ÌE -ÌAÜ ” .” .” .” .” .”( .$”* .&”- .)”/ .+”7 .3”9 .5”< .8”> .:”ÌE .ÌA”ÌG .ÌC”ÌJ .ÌFÜ ” /” /” /” /” /”$ / ”& /"”) /%”+ /'”3 //”5 /1”8 /4”: /6”ÌC /?”ÌE /ÌA”ÌH /ÌDÜ ” 0” 0” 0” 0” 0” 0”! 0”$ 0 ”& 0"”, 0(”. 0*”1 0-”3 0/”9 05”; 07”> 0:Ü ” 1” 1
-” 1” 1” 1” 1”  1”# 1”% 1!”, 1(”. 1*”1 1-”3 1/”= 19”? 1;”ÌB 1>Ü ” 2” 2” 2” 2” 2”$ 2 ”& 2"”) 2%”+ 2'”2 2.”4 20”7 23”9 25”ÌD 2Ì@”ÌF 2ÌB”ÌI 2ÌEÜ ” 3” 3” 3” 3” 3”  3”" 3”% 3!”' 3#”. 3*”0 3,”3 3/”5 31”< 38”> 3:”ÌA 3=”ÌC 3?”ÌL 3ÌH”ÌN 3ÌJ”ÌQ 3ÌM’” 4” 4Ü ” 5” 5” 5” 5” 5”! 5”# 5”& 5"”( 5$”1 5-”3 5/”6 52”8 54”ÌB 5>”ÌD 5Ì@”ÌG 5ÌCÜ ” 6” 6
-” 6” 6” 6” 6” 6”  6”" 6”+ 6'”- 6)”0 6,”2 6.”= 69”? 6;”ÌB 6>œ” 7” 7” 7” 7” 7” 7” 7”" 7”$ 7 ”- 7)”/ 7+”2 7.’” 8” 8Ü ” 9” 9” 9” 9” 9”# 9”% 9!”( 9$”* 9&”3 9/”5 91”8 94”: 96”ÌF 9ÌB”ÌH 9ÌD”ÌK 9ÌGÜ ” :” :” :” :” :”# :”% :!”( :$”* :&”1 :-”3 :/”6 :2”8 :4”Ì@ :<”ÌB :>”ÌE :ÌA’” ;” ;Ü ” <” <” <” <” <” <” <”! <”# <”* <&”, <(”/ <+”1 <-”7 <3”9 <5”< <8Ü ” =” =” =” =” =” =” =”! =”# =”) =%”+ ='”. =*”0 =,”> =:”Ì@ =<”ÌC =?œ” >” >” >” >” >”* >&”, >(”/ >+”1 >-”ÌC >?”ÌE >ÌA”ÌH >ÌDÜ ” ?” ?” ?” ?” ?”" ?”$ ? ”' ?#”) ?%”0 ?,”2 ?.”5 ?1”7 ?3”ÌA ?=”ÌC ??”ÌF ?ÌBÜ ” Ì@” Ì@” Ì@” Ì@” Ì@”% Ì@!”' Ì@#”* Ì@&”, Ì@(”6 Ì@2”8 Ì@4”; Ì@7”= Ì@9”ÌI Ì@ÌE”ÌK Ì@ÌG”ÌN Ì@ÌJœ” ÌA” ÌA
-” ÌA” ÌA” ÌA” ÌA”  ÌA”# ÌA”% ÌA!”+ ÌA'”- ÌA)”0 ÌA,˜” ÌB” ÌB” ÌB” ÌB” ÌB”# ÌB”% ÌB!”( ÌB$’” ÌC” ÌCÜ ” ÌD” ÌD” ÌD” ÌD” ÌD”  ÌD”" ÌD”% ÌD!”' ÌD#”. ÌD*”0 ÌD,”3 ÌD/”5 ÌD1”; ÌD7”= ÌD9”Ì@ ÌD<”ÌB ÌD>”ÌH ÌDÌD”ÌJ ÌDÌF”ÌM ÌDÌIÜ ” ÌE” ÌE” ÌE” ÌE” ÌE”" ÌE”$ ÌE ”' ÌE#”) ÌE%”3 ÌE/”5 ÌE1”8 ÌE4”: ÌE6”ÌD ÌEÌ@”ÌF ÌEÌB”ÌI ÌEÌEœ” ÌF” ÌF” ÌF” ÌF” ÌF” ÌF” ÌF”" ÌF”$ ÌF ”0 ÌF,”2 ÌF.”6 ÌF2Ü ” ÌG” ÌG” ÌG” ÌG” ÌG” ÌG”  ÌG”# ÌG”% ÌG!”. ÌG*”0 ÌG,”3 ÌG/”5 ÌG1”< ÌG8”> ÌG:”ÌA ÌG=’” ÌH” ÌHœ” ÌI” ÌI” ÌI” ÌI” ÌI”' ÌI#”) ÌI%”, ÌI(”. ÌI*”5 ÌI1”7 ÌI3”: ÌI6’” ÌJ” ÌJÜ ” ÌK” ÌK” ÌK” ÌK” ÌK”! ÌK”# ÌK”& ÌK"”( ÌK$”1 ÌK-”3 ÌK/”6 ÌK2”8 ÌK4”ÌA ÌK=”ÌC ÌK?”ÌF ÌKÌB’” ÌL” ÌLÜ ” ÌM” ÌM” ÌM” ÌM” ÌM”$ ÌM ”& ÌM"”) ÌM%”+ ÌM'”5 ÌM1”7 ÌM3”: ÌM6”< ÌM8”ÌC ÌM?”ÌE ÌMÌA”ÌH ÌMÌDœ” ÌN” ÌN
-” ÌN” ÌN” ÌN” ÌN” ÌN”  ÌN”" ÌN”+ ÌN'”- ÌN)”0 ÌN,œ” ÌO” ÌO” ÌO” ÌO” ÌO” ÌO”  ÌO”# ÌO”% ÌO!”+ ÌO'”- ÌO)”0 ÌO,’” ÌP” ÌPÜ ” ÌQ” ÌQ” ÌQ” ÌQ” ÌQ” ÌQ”! ÌQ”$ ÌQ ”& ÌQ"”- ÌQ)”/ ÌQ+”2 ÌQ.”4 ÌQ0”; ÌQ7”= ÌQ9”Ì@ ÌQ<”ÌB ÌQ>”ÌI ÌQÌE”ÌK ÌQÌG”ÌN ÌQÌJ˜” ÌR” ÌR” ÌR” ÌR” ÌR”' ÌR#”) ÌR%”- ÌR)’” ÌS” ÌSœ” ÌT”	 ÌT” ÌT” ÌT” ÌT” ÌT” ÌT”! ÌT”" ÌT ”& ÌT$”' ÌT%”) ÌT'Ü ” ÌU”	 ÌU” ÌU” ÌU	” ÌU
-” ÌU” ÌU” ÌU”  ÌU”! ÌU”, ÌU(”- ÌU)”0 ÌU,”1 ÌU-”3 ÌU/”6 ÌU2”7 ÌU3”9 ÌU5”= ÌU9”> ÌU:”ÌA ÌU=”ÌB ÌU>”ÌC ÌU?”ÌD ÌU?‘” ÌVœ” ÌW” ÌW” ÌW”	 ÌW”
- ÌW” ÌW” ÌW” ÌW” ÌW” ÌW” ÌW” ÌW—” ÌX” ÌX	” ÌX” ÌX”  ÌX”! ÌX”" ÌX’”  ÌY ” ÌY’”  Ì[ ”< Ì[<–”  Ì\ ” Ì\” Ì\”" Ì\"”# Ì\#”' Ì\/™” Ì]”
- Ì]” Ì]” Ì]”  Ì]”! Ì]”% Ì]#”& Ì]$”' Ì]$–” Ì^” Ì^” Ì^” Ì^” Ì^” Ì^—” Ì_”	 Ì_” Ì_” Ì_” Ì_” Ì_”  Ì_–” Ì`” Ì`” Ì`” Ì`” Ì`” Ì`–” Ìa” Ìa” Ìa”  Ìa”$ Ìa”% Ìa•” Ìb” Ìb” Ìb”  Ìb”( Ìb"—” Ìc” Ìc” Ìc” Ìc”  Ìc”% Ìc”& Ìc’” Ìd” Ìd•” Ìe” Ìe” Ìe”  Ìe”+ Ìe%œ” Ìf” Ìf” Ìf”- Ìf%”. Ìf&”3 Ìf+”4 Ìf,”8 Ìf0”: Ìf2”? Ìf7”Ì@ Ìf8”ÌA Ìf8’” Ìg” Ìg•” Ìh” Ìh” Ìh”  Ìh”* Ìh$Ü ” Ìi” Ìi” Ìi” Ìi”! Ìi”4 Ìi,”5 Ìi-”: Ìi2”; Ìi3”? Ìi7”ÌA Ìi9”ÌE Ìi=”ÌF Ìi>”ÌI ÌiÌA”ÌM ÌiÌE”ÌN ÌiÌE’” Ìj” Ìj‘”	 Ìk‘” Ìl”” Ìm” Ìm	” Ìm” Ìm’”  Ìn ” Ìn’”  Ìp ” Ìp“”  Ìr ” Ìr” Ìr‘” Ìr •” Ìs” Ìs” Ìs” Ìs” Ìs•” Ìt” Ìt	” Ìt” Ìt” Ìt’” Ìu ” Ìu‘” Ìu•”  Ìw ”	 Ìw	” Ìw” Ìw” Ìw›” Ìx” Ìx	” Ìx
-” Ìx” Ìx” Ìx”* Ìx(”, Ìx*”2 Ìx0”3 Ìx1”4 Ìx1’”  Ìy ” Ìy•”  Ì{ ”	 Ì{	” Ì{” Ì{” Ì{&›” Ì|”
- Ì|” Ì|” Ì|” Ì|” Ì|” Ì|” Ì|” Ì|” Ì|”  Ì|–” Ì}”
- Ì}” Ì}” Ì}” Ì}!” Ì}!—” Ì~”	 Ì~” Ì~” Ì~” Ì~” Ì~” Ì~˜” Ì” Ì” Ì” Ì” Ì” Ì” Ì” Ì™” Ì€” Ì€” Ì€” Ì€” Ì€” Ì€”! Ì€”" Ì€”$ Ì€ œ” Ì” Ì
-” Ì” Ì” Ì” Ì”  Ì”% Ì”' Ì!”* Ì$”+ Ì%”, Ì%‘”	 Ì‚˜” Ìƒ” Ìƒ” Ìƒ” Ìƒ” Ìƒ” Ìƒ” Ìƒ” ÌƒÜ ” Ì„” Ì„
-” Ì„” Ì„”! Ì„”$ Ì„”% Ì„”) Ì„#”3 Ì„-”4 Ì„.”> Ì„8”? Ì„9”ÌE Ì„?”ÌH Ì„ÌB”ÌI Ì„ÌC”ÌJ Ì„ÌD”ÌK Ì„ÌE”ÌQ Ì„ÌK”ÌT Ì„ÌN”ÌU Ì„ÌO”ÌW Ì„ÌQ˜” Ì…” Ì…” Ì…” Ì…”  Ì…”$ Ì…”% Ì…”& Ì…‘” Ì†‘”	 Ì‡‘” Ì‡˜” Ìˆ” Ìˆ” Ìˆ” Ìˆ” Ìˆ”  Ìˆ”! Ìˆ”" Ìˆ‘”	 Ì‰‘” ÌŠ™” Ì‹” Ì‹	” Ì‹” Ì‹” Ì‹” Ì‹” Ì‹”  Ì‹”! Ì‹’”  ÌŒ ” ÌŒ™”  Ì ”	 Ì	” Ì” Ì”" Ì”$ Ì”' Ì”) Ì”2 Ì=–” Ì‘” Ì‘” Ì‘” Ì‘” Ì‘” Ì‘–” Ì’” Ì’”	 Ì’” Ì’
-” Ì’” Ì’˜” Ì“” Ì“	” Ì“
-” Ì“” Ì“” Ì“” Ì“” Ì“” Ì”” Ì”” Ì”” Ì”” Ì”” Ì”” Ì”” Ì”” Ì””( Ì”$”) Ì”%”, Ì”(”- Ì”)”/ Ì”+š” Ì•” Ì•
-” Ì•” Ì•” Ì•” Ì•”  Ì•”! Ì•”' Ì•!”( Ì•!’” Ì–” Ì–Ü ” Ì—” Ì—” Ì—” Ì—”  Ì—”! Ì—”' Ì—!”+ Ì—%”, Ì—&”0 Ì—*”1 Ì—+”7 Ì—1”8 Ì—2”= Ì—7”Ì@ Ì—:”ÌD Ì—>”ÌH Ì—ÌB”ÌI Ì—ÌC”ÌO Ì—ÌI”ÌP Ì—ÌJ”ÌU Ì—ÌO”ÌY Ì—ÌS”ÌZ Ì—ÌT”Ì\ Ì—ÌV”” Ì˜” Ì˜” Ì˜” Ì˜‘” Ì™›” Ìš” Ìš” Ìš” Ìš”, Ìš&”- Ìš'”1 Ìš+”3 Ìš-”9 Ìš3”: Ìš4”; Ìš4”” Ì›” Ì›
-” Ì›” Ì›š” Ìœ” Ìœ” Ìœ”# Ìœ”$ Ìœ”) Ìœ!”* Ìœ"”/ Ìœ'”0 Ìœ(”1 Ìœ(—” Ì” Ì	” Ì” Ì” Ì”! Ì”" Ì’” Ì” Ì‘” ÌŸ‘”	 Ì ˜” Ì¡” Ì¡
-” Ì¡” Ì¡” Ì¡” Ì¡” Ì¡” Ì¡”” Ì¢”	 Ì¢” Ì¢” Ì¢‘” Ì£”” Ì¤” Ì¤	” Ì¤” Ì¤’”  Ì¥ ” Ì¥™”  Ì§ ”	 Ì§	”! Ì§!”" Ì¨”& Ì¨”( Ì¨”, Ì¨”. Ì¨ ”7 Ì¨ÌK–” Ìª” Ìª” Ìª” Ìª” Ìª” Ìª–” Ì«” Ì«”	 Ì«” Ì«
-” Ì«” Ì«˜” Ì¬” Ì¬	” Ì¬
-” Ì¬” Ì¬” Ì¬” Ì¬” Ì¬–” Ì­” Ì­” Ì­” Ì­” Ì­” Ì­—” Ì®” Ì®	” Ì®” Ì®” Ì®” Ì®”  Ì®” Ì¯” Ì¯
-” Ì¯” Ì¯” Ì¯” Ì¯”  Ì¯”! Ì¯”" Ì¯”, Ì¯&”- Ì¯'”0 Ì¯*”1 Ì¯+”3 Ì¯-•” Ì°” Ì°” Ì°”  Ì°”! Ì°’” Ì±” Ì±‘” Ì²‘”	 Ì³˜” Ì´” Ì´” Ì´” Ì´” Ì´”  Ì´”! Ì´”# Ì´š” Ìµ” Ìµ
-” Ìµ” Ìµ” Ìµ” Ìµ”' Ìµ!”( Ìµ"”. Ìµ(”/ Ìµ(Ü ” Ì¶” Ì¶” Ì¶” Ì¶”  Ì¶”! Ì¶”' Ì¶!”+ Ì¶%”, Ì¶&”0 Ì¶*”1 Ì¶+”7 Ì¶1”8 Ì¶2”= Ì¶7”Ì@ Ì¶:”ÌD Ì¶>”ÌH Ì¶ÌB”ÌI Ì¶ÌC”ÌO Ì¶ÌI”ÌP Ì¶ÌJ”ÌU Ì¶ÌO”ÌY Ì¶ÌS”ÌZ Ì¶ÌT”Ì\ Ì¶ÌV”” Ì·” Ì·” Ì·” Ì·‘” Ì¸›” Ì¹” Ì¹” Ì¹” Ì¹”) Ì¹#”* Ì¹$”. Ì¹(”0 Ì¹*”6 Ì¹0”7 Ì¹1”8 Ì¹1”” Ìº” Ìº
-” Ìº” Ìº—” Ì»” Ì»” Ì»” Ì»” Ì»”# Ì»”$ Ì»Ü ” Ì¼” Ì¼” Ì¼”  Ì¼”$ Ì¼”% Ì¼”+ Ì¼#”/ Ì¼'”0 Ì¼(”4 Ì¼,”5 Ì¼-”; Ì¼3”< Ì¼4”ÌA Ì¼9”ÌD Ì¼<”ÌH Ì¼Ì@”ÌL Ì¼ÌD”ÌM Ì¼ÌE”ÌS Ì¼ÌK”ÌT Ì¼ÌL”ÌY Ì¼ÌQ”Ì] Ì¼ÌU”Ì^ Ì¼ÌV”Ì` Ì¼ÌX”” Ì½
-” Ì½” Ì½” Ì½‘” Ì¾	›” Ì¿” Ì¿” Ì¿” Ì¿”- Ì¿%”. Ì¿&”2 Ì¿*”4 Ì¿,”: Ì¿2”; Ì¿3”< Ì¿3”” ÌÀ” ÌÀ” ÌÀ” ÌÀ” ÌÁ
-” ÌÁ” ÌÁ”' ÌÁ”( ÌÁ”* ÌÁ ”+ ÌÁ!”0 ÌÁ&”2 ÌÁ(”4 ÌÁ*”5 ÌÁ+”: ÌÁ0”; ÌÁ1”< ÌÁ1—” ÌÂ
-” ÌÂ” ÌÂ” ÌÂ” ÌÂ”" ÌÂ”# ÌÂ’” ÌÃ
-” ÌÃ‘” ÌÄ	‘” ÌÅ‘”	 ÌÆ˜” ÌÇ” ÌÇ
-” ÌÇ” ÌÇ” ÌÇ” ÌÇ” ÌÇ” ÌÇ”” ÌÈ”	 ÌÈ” ÌÈ” ÌÈ‘” ÌÉ”” ÌÊ” ÌÊ	” ÌÊ” ÌÊ’”  ÌË ” ÌË’”  ÌÍ ”ÌA ÌÍÌA•”  ÌÎ ”	 ÌÎ	” ÌÎ” ÌÎ” ÌÎ#”” ÌÏ”
- ÌÏ” ÌÏ” ÌÏ&Ü ” ÌĞ” ÌĞ” ÌĞ	” ÌĞ” ÌĞ” ÌĞ” ÌĞ” ÌĞ” ÌĞ” ÌĞ”! ÌĞ”$ ÌĞ ”& ÌĞ"”) ÌĞ%”+ ÌĞ'”. ÌĞ*”0 ÌĞ,”3 ÌĞ/”5 ÌĞ1”8 ÌĞ4Ü ” ÌÑ” ÌÑ” ÌÑ	” ÌÑ” ÌÑ” ÌÑ” ÌÑ” ÌÑ” ÌÑ” ÌÑ”! ÌÑ”$ ÌÑ ”& ÌÑ"”) ÌÑ%”+ ÌÑ'”. ÌÑ*”0 ÌÑ,”3 ÌÑ/”5 ÌÑ1”8 ÌÑ4Ü ” ÌÒ” ÌÒ” ÌÒ	” ÌÒ” ÌÒ” ÌÒ” ÌÒ” ÌÒ” ÌÒ” ÌÒ”! ÌÒ”$ ÌÒ ”& ÌÒ"”) ÌÒ%”+ ÌÒ'”. ÌÒ*”0 ÌÒ,”3 ÌÒ/”5 ÌÒ1”8 ÌÒ4˜” ÌÓ” ÌÓ” ÌÓ	” ÌÓ” ÌÓ” ÌÓ” ÌÓ” ÌÓ’” ÌÔ” ÌÔ–” ÌÕ” ÌÕ” ÌÕ” ÌÕ” ÌÕ” ÌÕÜ ” ÌÖ”	 ÌÖ” ÌÖ” ÌÖ” ÌÖ” ÌÖ” ÌÖ” ÌÖ” ÌÖ” ÌÖ” ÌÖ”  ÌÖ”" ÌÖ ”# ÌÖ!”% ÌÖ#”' ÌÖ%Ü ” Ì×” Ì×
-” Ì×” Ì×” Ì×” Ì×” Ì×” Ì×” Ì×” Ì×”  Ì×”) Ì×%”* Ì×&”+ Ì×'”, Ì×(”/ Ì×+”0 Ì×,”1 Ì×-”2 Ì×.”3 Ì×/”4 Ì×0”5 Ì×1”6 Ì×2”7 Ì×3”8 Ì×4”9 Ì×5”: Ì×6”; Ì×7”< Ì×8”= Ì×8‘” ÌØ”” ÌÙ” ÌÙ	” ÌÙ” ÌÙ’”  ÌÚ ” ÌÚ’”  ÌÜ ”? ÌÜ?•”  Ìİ ”	 Ìİ	” Ìİ” Ìİ” Ìİ!”” ÌŞ”
- ÌŞ” ÌŞ” ÌŞ&Ü ” Ìß” Ìß” Ìß	” Ìß” Ìß” Ìß” Ìß” Ìß” Ìß” Ìß”! Ìß”$ Ìß ”& Ìß"”) Ìß%”+ Ìß'”. Ìß*”0 Ìß,”3 Ìß/”5 Ìß1”8 Ìß4Ü ” Ìà” Ìà” Ìà	” Ìà” Ìà” Ìà” Ìà” Ìà” Ìà” Ìà”! Ìà”$ Ìà ”& Ìà"”) Ìà%”+ Ìà'”. Ìà*”0 Ìà,”3 Ìà/”5 Ìà1”8 Ìà4Ü ” Ìá” Ìá” Ìá	” Ìá” Ìá” Ìá” Ìá” Ìá” Ìá” Ìá”! Ìá”$ Ìá ”& Ìá"”) Ìá%”+ Ìá'”. Ìá*”0 Ìá,”3 Ìá/”5 Ìá1”8 Ìá4Ü ” Ìâ” Ìâ” Ìâ	” Ìâ” Ìâ” Ìâ” Ìâ” Ìâ” Ìâ” Ìâ”! Ìâ”$ Ìâ ”& Ìâ"”) Ìâ%”+ Ìâ'”. Ìâ*œ” Ìã” Ìã” Ìã	” Ìã” Ìã” Ìã” Ìã” Ìã” Ìã” Ìã”! Ìã”$ Ìã ’” Ìä” Ìä–” Ìå” Ìå” Ìå” Ìå” Ìå” ÌåÜ ” Ìæ”	 Ìæ” Ìæ” Ìæ” Ìæ” Ìæ” Ìæ” Ìæ” Ìæ” Ìæ” Ìæ”  Ìæ”" Ìæ ”# Ìæ!”% Ìæ#”' Ìæ%Ü ” Ìç” Ìç
-” Ìç” Ìç” Ìç” Ìç” Ìç” Ìç” Ìç” Ìç”  Ìç”) Ìç%”* Ìç&”+ Ìç'”, Ìç(”/ Ìç+”0 Ìç,”1 Ìç-”2 Ìç.”3 Ìç/”4 Ìç0”5 Ìç1”6 Ìç2”7 Ìç3”8 Ìç4”9 Ìç5”: Ìç6”; Ìç7”< Ìç8”= Ìç8‘” Ìè”” Ìé” Ìé	” Ìé” Ìé’”  Ìê ” Ìê’”  Ìì ”ÌE ÌìÌE™”  Ìí ”	 Ìí	” Ìí” Ìî”! Ìî”# Ìî”- Ìî"”/ Ìî$”8 ÌîÌD–” Ìğ” Ìğ” Ìğ” Ìğ” Ìğ” Ìğ–” Ìñ” Ìñ”	 Ìñ” Ìñ
-” Ìñ” Ìñ˜” Ìò” Ìò	” Ìò
-” Ìò” Ìò” Ìò” Ìò” ÌòÜ ” Ìó” Ìó” Ìó” Ìó” Ìó” Ìó” Ìó”" Ìó”& Ìó"”' Ìó#”* Ìó&”+ Ìó'”. Ìó*”2 Ìó.”3 Ìó/”9 Ìó5”; Ìó7›” Ìô” Ìô
-” Ìô” Ìô” Ìô” Ìô” Ìô” Ìô”  Ìô”# Ìô”% Ìô” Ìõ” Ìõ” Ìõ” Ìõ”0 Ìõ(”1 Ìõ)”5 Ìõ-”7 Ìõ/”8 Ìõ0”; Ìõ3”< Ìõ4”= Ìõ5”> Ìõ5”” Ìö” Ìö” Ìö” Ìöš” Ì÷
-” Ì÷” Ì÷”' Ì÷”( Ì÷”- Ì÷#”. Ì÷$”3 Ì÷)”4 Ì÷*”5 Ì÷*—” Ìø
-” Ìø” Ìø” Ìø” Ìø”% Ìø”& Ìø’” Ìù
-” Ìù‘” Ìú	‘” Ìû’” Ìü”- Ìü'š” Ìı” Ìı
-” Ìı” Ìı” Ìı” Ìı” Ìı” Ìı”# Ìı”% Ìı” Ìş” Ìş” Ìş”# Ìş”$ Ìş”( Ìş ”) Ìş!”* Ìş"”- Ìş%”. Ìş&”/ Ìş'”0 Ìş(”1 Ìş(•” Ìÿ” Ìÿ	” Ìÿ” Ìÿ” Ìÿ’” Í ” Í ‘” Í‘”	 Í˜” Í” Í
-” Í” Í” Í” Í” Í” Í”” Í”	 Í” Í” Í‘” Í”” Í” Í	” Í” Í’”  Í ” Í—”  Í	 ”	 Í		” Í	” Í	”  Í	(”" Í	*”' Í	7Ÿ” Í
-” Í
-” Í
-” Í
-” Í
-” Í
-” Í
-”  Í
-”$ Í
-"”% Í
-#”* Í
-(”+ Í
-)”0 Í
-.”3 Í
-1”5 Í
-3”” Í” Í” Í” Í‘” Í˜” Í” Í” Í” Í” Í” Í” Í” Í–” Í”
- Í” Í” Í” Í” Í–” Í” Í” Í” Í” Í” Í˜” Í” Í	” Í” Í” Í” Í” Í”! Í™” Í” Í” Í” Í” Í” Í” Í”  Í”" Í”” Í” Í” Í” Í‘”	 Í™” Í” Í” Í” Í” Í” Í”" Í ”% Í#”' Í%”” Í” Í” Í” Í–” Í” Í
-” Í” Í” Í” Í˜” Í” Í” Í” Í”# Í”. Í&”0 Í(”1 Í(” Í” Í” Í” Í” Í”# Í”$ Í”- Í%”. Í&”3 Í+”5 Í-”; Í3”< Í4”= Í4™” Í” Í” Í” Í”! Í”' Í”* Í"”+ Í#”, Í#”” Í” Í” Í” Í‘” Í‘”	 Í”” Í” Í
-” Í” Í‘” Í”” Í” Í	” Í” Í’”  Í ” ÍÔrG–§version¤file§sources®sourcesContent¥names¨mappingsÀ‘À‘ÀÜ‘”    ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”  	 ‘”  
- ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”    ‘”  ! ‘”  " ‘”  # ‘”  $ ‘”  % ‘”  & ‘”  ' ‘”  ( ‘”  ) ‘”  * ‘”  + ‘”  , ‘”  - ‘”  . ‘”  / ‘”  0 ‘”  1 ‘”  2 ‘”  3 ‘”  4 ‘”  5 ‘”  6 ‘”  7 ‘”  8 ‘”  9 ‘”  : ‘”  ; ‘”  < ‘”  = ‘”  > ‘”  ? ‘”  Ì@ ‘”  ÌA ‘”  ÌB ‘”  ÌC ‘”  ÌD ‘”  ÌE ‘”  ÌF ‘”  ÌG ‘”  ÌH ‘”  ÌI ‘”  ÌJ ‘”  ÌK ‘”  ÌL ‘”  ÌM ‘”  ÌN ‘”  ÌO ‘”  ÌP ‘”  ÌQ ‘”  ÌR ‘”  ÌS ‘”  ÌT ‘”  ÌU ‘”  ÌV ‘”  ÌW ‘”  ÌX ‘”  ÌY ‘”  ÌZ ‘”  Ì[ ‘”  Ì\ ‘”  Ì] ‘”  Ì^ ‘”  Ì_ ‘”  Ì` ‘”  Ìa ‘”  Ìb ‘”  Ìc ‘”  Ìd ‘”  Ìe ‘”  Ìf ‘”  Ìg ‘”  Ìh ‘”  Ìi ‘”  Ìj ‘”  Ìk ‘”  Ìl ‘”  Ìm ‘”  Ìn ‘”  Ìo ‘”  Ìp ‘”  Ìq ‘”  Ìr ‘”  Ìs ‘”  Ìt ‘”  Ìu ‘”  Ìv ‘”  Ìw ‘”  Ìx ‘”  Ìy ‘”  Ìz ‘”  Ì{ ‘”  Ì| ‘”  Ì} ‘”  Ì~ ‘”  Ì ‘”  Ì€ ‘”  Ì ‘”  Ì‚ ‘”  Ìƒ ‘”  Ì„ ‘”  Ì… ‘”  Ì† ‘”  Ì‡ ‘”  Ìˆ ‘”  Ì‰ ‘”  ÌŠ ‘”  Ì‹ ‘”  ÌŒ ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì‘ ‘”  Ì’ ‘”  Ì“ ‘”  Ì” ‘”  Ì• ‘”  Ì– ‘”  Ì— ‘”  Ì˜ ‘”  Ì™ ‘”  Ìš ‘”  Ì› ‘”  Ìœ ‘”  Ì ‘”  Ì ‘”  ÌŸ ‘”  Ì  ‘”  Ì¡ ‘”  Ì¢ ‘”  Ì£ ‘”  Ì¤ ‘”  Ì¥ ‘”  Ì¦ ‘”  Ì§ ‘”  Ì¨ ‘”  Ì© ‘”  Ìª ‘”  Ì« ‘”  Ì¬ ‘”  Ì­ ‘”  Ì® ‘”  Ì¯ ‘”  Ì° ‘”  Ì± ‘”  Ì² ‘”  Ì³ ‘”  Ì´ ‘”  Ìµ ‘”  Ì¶ ‘”  Ì· ‘”  Ì¸ ‘”  Ì¹ ‘”  Ìº ‘”  Ì» ‘”  Ì¼ ‘”  Ì½ ‘”  Ì¾ ‘”  Ì¿ ‘”  ÌÀ ‘”  ÌÁ ‘”  ÌÂ ‘”  ÌÃ ‘”  ÌÄ ‘”  ÌÅ ‘”  ÌÆ ‘”  ÌÇ ‘”  ÌÈ ‘”  ÌÉ ‘”  ÌÊ ‘”  ÌË ‘”  ÌÌ ‘”  ÌÍ ‘”  ÌÎ ‘”  ÌÏ ‘”  ÌĞ ‘”  ÌÑ ‘”  ÌÒ ‘”  ÌÓ ‘”  ÌÔ ‘”  ÌÕ ‘”  ÌÖ ‘”  Ì× ‘”  ÌØ ‘”  ÌÙ ‘”  ÌÚ ‘”  ÌÛ ‘”  ÌÜ ‘”  Ìİ ‘”  ÌŞ ‘”  Ìß ‘”  Ìà ‘”  Ìá ‘”  Ìâ ‘”  Ìã ‘”  Ìä ‘”  Ìå ‘”  Ìæ ‘”  Ìç ‘”  Ìè ‘”  Ìé ‘”  Ìê ‘”  Ìë ‘”  Ìì ‘”  Ìí ‘”  Ìî ‘”  Ìï ‘”  Ìğ ‘”  Ìñ ‘”  Ìò ‘”  Ìó ‘”  Ìô ‘”  Ìõ ‘”  Ìö ‘”  Ì÷ ‘”  Ìø ‘”  Ìù ‘”  Ìú ‘”  Ìû ‘”  Ìü ‘”  Ìı ‘”  Ìş ‘”  Ìÿ ‘”  Í  ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í	 ‘”  Í
- ‘”  Í ‘”  Í ‘”  Í ‘”  Í ÔrH’§missing¦pluginÃ¦genAbcÂÔ  ÔrI”²dynamicImportCache¹exportAllDeclarationCache»exportNamedDeclarationCache«importCache’ÔrJ–¤type¥start£end«declarationªspecifiers¦source¶ExportNamedDeclarationÍÍÎÔrK™¤type¥start£end¢idªexpression©generator¥async¦params¤body³FunctionDeclarationÍ%ÍÎÔrL”¤type¥start£end¤nameªIdentifierÍ.ÍA³renderMathToUnicodeÂÂÂ’LªIdentifierÍBÍG¥latexÔrM•¤type¥start£end¤left¥right±AssignmentPatternÍIÍXLªIdentifierÍIÍP§isBlockÔrN•¤type¥start£end¥value£raw§LiteralÍSÍXÂ¥falseÔrO”¤type¥start£end¤body®BlockStatementÍZÍÎÜ ÔrP•¤type¥start£end¬declarations¤kind³VariableDeclarationÍaÍv‘ÔrQ•¤type¥start£end¢id¤init²VariableDeclaratorÍeÍuLªIdentifierÍeÍf¡sÔrR–¤type¥start£end¦callee©arguments¨optional®CallExpressionÍiÍuÔrS—¤type¥start£end¦object¨property¨computed¨optional°MemberExpressionÍiÍsLªIdentifierÍiÍn¥latexLªIdentifierÍoÍs¤trimÂÂÂ£letÔrT–¤type¥start£end¤testªconsequent©alternate«IfStatementÍ¦ÍÔrU–¤type¥start£end¤left¨operator¥right±LogicalExpressionÍªÍáU±LogicalExpressionÍªÍĞR®CallExpressionÍªÍ¼S°MemberExpressionÍªÍ¶LªIdentifierÍªÍ«¡sLªIdentifierÍ¬Í¶ªstartsWithÂÂ‘N§LiteralÍ·Í»¢$$¤'$$'Â¢&&R®CallExpressionÍÀÍĞS°MemberExpressionÍÀÍÊLªIdentifierÍÀÍÁ¡sLªIdentifierÍÂÍÊ¨endsWithÂÂ‘N§LiteralÍËÍÏ¢$$¤'$$'Â¢&&U°BinaryExpressionÍÔÍáS°MemberExpressionÍÔÍÜLªIdentifierÍÔÍÕ¡sLªIdentifierÍÖÍÜ¦lengthÂÂ¢>=N§LiteralÍàÍá¡4O®BlockStatementÍãÍ‘ÔrV”¤type¥start£endªexpression³ExpressionStatementÍîÍÔrW–¤type¥start£end¨operator¤left¥right´AssignmentExpressionÍîÍ¡=LªIdentifierÍîÍï¡sR®CallExpressionÍòÍS°MemberExpressionÍòÍR®CallExpressionÍòÍS°MemberExpressionÍòÍıLªIdentifierÍòÍó¡sLªIdentifierÍôÍı©substringÂÂ’N§LiteralÍşÍÿ¡2U°BinaryExpressionÍÍS°MemberExpressionÍÍ	LªIdentifierÍÍ¡sLªIdentifierÍÍ	¦lengthÂÂ¡-N§LiteralÍÍ¡2ÂLªIdentifierÍÍ¤trimÂÂÂÀV³ExpressionStatementÍ5ÍwW´AssignmentExpressionÍ5Ív¡=LªIdentifierÍ5Í6¡sR®CallExpressionÍ9ÍvS°MemberExpressionÍ9Í`R®CallExpressionÍ9ÍXS°MemberExpressionÍ9ÍBLªIdentifierÍ9Í:¡sLªIdentifierÍ;ÍB§replaceÂÂ’ÔrX–¤type¥start£end¥value£raw¥regex§LiteralÍCÍM’§\\dfrac¡gª/\\dfrac/gÔrY’§pattern¥flags§\\dfrac¡gN§LiteralÍOÍW¥\frac¨'\\frac'ÂLªIdentifierÍYÍ`§replaceÂÂ’X§LiteralÍaÍk’§\\tfrac¡gª/\\tfrac/gY§\\tfrac¡gN§LiteralÍmÍu¥\frac¨'\\frac'ÂV³ExpressionStatementÍ}Í¬W´AssignmentExpressionÍ}Í«¡=LªIdentifierÍ}Í~¡sR®CallExpressionÍÍ«S°MemberExpressionÍÍŠLªIdentifierÍÍ‚¡sLªIdentifierÍƒÍŠ§replaceÂÂ’X§LiteralÍ‹Í£’µ\\operatorname\{sgn\}¡g¸/\\operatorname\{sgn\}/gYµ\\operatorname\{sgn\}¡gN§LiteralÍ¥Íª£sgn¥'sgn'ÂT«IfStatementÍ²ÍLªIdentifierÍ¶Í½§isBlockO®BlockStatementÍ¿Í‘V³ExpressionStatementÍÊÍW´AssignmentExpressionÍÊÍ¡=LªIdentifierÍÊÍË¡sR®CallExpressionÍÎÍLªIdentifierÍÎÍâ´replaceBracedCommand“LªIdentifierÍãÍä¡sN§LiteralÍæÍö­\operatorname°'\\operatorname'K·ArrowFunctionExpressionÍøÍÀÃÂÂ‘LªIdentifierÍùÍı¤nameLªIdentifierÍÍ¤nameÂÀV³ExpressionStatementÍÍ¢W´AssignmentExpressionÍÍ¡¡=LªIdentifierÍÍ¡sR®CallExpressionÍÍ¡LªIdentifierÍÍ1¸replaceBracedPairCommand“LªIdentifierÍ2Í3¡sÔrZ”¤type¥start£end¨elements¯ArrayExpressionÍ5ÍU“N§LiteralÍ6Í?¦\dfrac©'\\dfrac'N§LiteralÍAÍJ¦\tfrac©'\\tfrac'N§LiteralÍLÍT¥\frac¨'\\frac'K·ArrowFunctionExpressionÍWÍ ÀÃÂÂ’LªIdentifierÍXÍ[£numLªIdentifierÍ]Í`£denÔr[•¤type¥start£end«expressions¦quasis¯TemplateLiteralÍeÍ ’R®CallExpressionÍhÍ€LªIdentifierÍhÍ{³renderMathToUnicode‘LªIdentifierÍ|Í£numÂR®CallExpressionÍ†ÍLªIdentifierÍ†Í™³renderMathToUnicode‘LªIdentifierÍšÍ£denÂ“Ôr\•¤type¥start£end¥value¤tail¯TemplateElementÍfÍfÔr]’£raw¦cooked  Â\¯TemplateElementÍÍ„]£ / £ / Â\¯TemplateElementÍŸÍŸ]  ÃÂV³ExpressionStatementÍ¨ÍõW´AssignmentExpressionÍ¨Íô¡=LªIdentifierÍ¨Í©¡sR®CallExpressionÍ¬ÍôLªIdentifierÍ¬ÍÀ´replaceBracedCommand“LªIdentifierÍÁÍÂ¡sN§LiteralÍÄÍÌ¥\sqrt¨'\\sqrt'K·ArrowFunctionExpressionÍÎÍóÀÃÂÂ‘LªIdentifierÍÏÍĞ¡v[¯TemplateLiteralÍÕÍó‘R®CallExpressionÍÚÍğLªIdentifierÍÚÍí³renderMathToUnicode‘LªIdentifierÍîÍï¡vÂ’\¯TemplateElementÍÖÍØ]¤âˆš(¤âˆš(Â\¯TemplateElementÍñÍò]¡)¡)ÃÂV³ExpressionStatementÍûÍ3W´AssignmentExpressionÍûÍ2¡=LªIdentifierÍûÍü¡sR®CallExpressionÍÿÍ2LªIdentifierÍÿÍ´replaceBracedCommand“LªIdentifierÍÍ¡sN§LiteralÍÍ'­\operatorname°'\\operatorname'K·ArrowFunctionExpressionÍ)Í1ÀÃÂÂ‘LªIdentifierÍ*Í+¡vLªIdentifierÍ0Í1¡vÂV³ExpressionStatementÍ9ÍkW´AssignmentExpressionÍ9Íj¡=LªIdentifierÍ9Í:¡sR®CallExpressionÍ=ÍjLªIdentifierÍ=ÍQ´replaceBracedCommand“LªIdentifierÍRÍS¡sN§LiteralÍUÍ_§\mathrmª'\\mathrm'K·ArrowFunctionExpressionÍaÍiÀÃÂÂ‘LªIdentifierÍbÍc¡vLªIdentifierÍhÍi¡vÂV³ExpressionStatementÍqÍ£W´AssignmentExpressionÍqÍ¢¡=LªIdentifierÍqÍr¡sR®CallExpressionÍuÍ¢LªIdentifierÍuÍ‰´replaceBracedCommand“LªIdentifierÍŠÍ‹¡sN§LiteralÍÍ—§\mathbfª'\\mathbf'K·ArrowFunctionExpressionÍ™Í¡ÀÃÂÂ‘LªIdentifierÍšÍ›¡vLªIdentifierÍ Í¡¡vÂV³ExpressionStatementÍ©ÍÙW´AssignmentExpressionÍ©ÍØ¡=LªIdentifierÍ©Íª¡sR®CallExpressionÍ­ÍØLªIdentifierÍ­ÍÁ´replaceBracedCommand“LªIdentifierÍÂÍÃ¡sN§LiteralÍÅÍÍ¥\text¨'\\text'K·ArrowFunctionExpressionÍÏÍ×ÀÃÂÂ‘LªIdentifierÍĞÍÑ¡vLªIdentifierÍÖÍ×¡vÂV³ExpressionStatementÍßÍ)W´AssignmentExpressionÍßÍ(¡=LªIdentifierÍßÍà¡sR®CallExpressionÍãÍ(LªIdentifierÍãÍ÷´replaceBracedCommand“LªIdentifierÍøÍù¡sN§LiteralÍûÍ¤\bar§'\\bar'K·ArrowFunctionExpressionÍÍ'ÀÃÂÂ‘LªIdentifierÍÍ¡v[¯TemplateLiteralÍÍ'‘R®CallExpressionÍÍ$LªIdentifierÍÍ!³renderMathToUnicode‘LªIdentifierÍ"Í#¡vÂ’\¯TemplateElementÍÍ]  Â\¯TemplateElementÍ%Í&]¢Ì„¢Ì„ÃÂV³ExpressionStatementÍfÍ˜W´AssignmentExpressionÍfÍ—¡=LªIdentifierÍfÍg¡sR®CallExpressionÍjÍ—LªIdentifierÍjÍ}³replaceScriptBraces“LªIdentifierÍ~Í¡sN§LiteralÍÍ„¡^£'^'LªIdentifierÍ†Í–°superscriptDigitÂV³ExpressionStatementÍÍÎW´AssignmentExpressionÍÍÍ¡=LªIdentifierÍÍŸ¡sR®CallExpressionÍ¢ÍÍLªIdentifierÍ¢Íµ³replaceScriptBraces“LªIdentifierÍ¶Í·¡sN§LiteralÍ¹Í¼¡_£'_'LªIdentifierÍ¾ÍÌ®subscriptDigitÂP³VariableDeclarationÍóÍ‘Q²VariableDeclaratorÍùÍLªIdentifierÍùÍı¤symsÔr^”¤type¥start£endªproperties°ObjectExpressionÍ ÍÜ ‹Ôr_™¤type¥start£end¦method©shorthand¨computed£key¥value¤kind¨PropertyÍÍÂÂÂN§LiteralÍÍ­\begin{cases}°'\\begin{cases}'N§LiteralÍÍ ¢''¤init_¨PropertyÍ!Í3ÂÂÂN§LiteralÍ!Í/«\end{cases}®'\\end{cases}'N§LiteralÍ1Í3 ¢''¤init_¨PropertyÍ5ÍKÂÂÂN§LiteralÍ5ÍG¯\begin{aligned}²'\\begin{aligned}'N§LiteralÍIÍK ¢''¤init_¨PropertyÍMÍaÂÂÂN§LiteralÍMÍ]­\end{aligned}°'\\end{aligned}'N§LiteralÍ_Ía ¢''¤init_¨PropertyÍlÍÂÂÂN§LiteralÍlÍ}®\begin{matrix}±'\\begin{matrix}'N§LiteralÍÍ ¢''¤init_¨PropertyÍƒÍ–ÂÂÂN§LiteralÍƒÍ’¬\end{matrix}¯'\\end{matrix}'N§LiteralÍ”Í– ¢''¤init_¨PropertyÍ¡Í­ÂÂÂN§LiteralÍ¡Í§¢\\¦'\\\\'N§LiteralÍ©Í­¡
-¤'\n'¤init_¨PropertyÍ¯Í¸ÂÂÂN§LiteralÍ¯Í²¡&£'&'N§LiteralÍ´Í¸¢  ¤'  '¤init_¨PropertyÍºÍÉÂÂÂN§LiteralÍºÍÃ¦\qquad©'\\qquad'N§LiteralÍÅÍÉ¢  ¤'  '¤init_¨PropertyÍËÍØÂÂÂN§LiteralÍËÍÓ¥\quad¨'\\quad'N§LiteralÍÕÍØ¡ £' '¤init_¨PropertyÍÚÍäÂÂÂN§LiteralÍÚÍß¢\,¥'\\,'N§LiteralÍáÍä¡ £' '¤init_¨PropertyÍæÍğÂÂÂN§LiteralÍæÍë¢\;¥'\\;'N§LiteralÍíÍğ¡ £' '¤init_¨PropertyÍûÍÂÂÂN§LiteralÍûÍ ¢\:¥'\\:'N§LiteralÍÍ¡ £' '¤init_¨PropertyÍÍÂÂÂN§LiteralÍÍ¢\!¥'\\!'N§LiteralÍÍ ¢''¤init_¨PropertyÍÍÂÂÂN§LiteralÍÍ¥\left¨'\\left'N§LiteralÍÍ ¢''¤init_¨PropertyÍ Í-ÂÂÂN§LiteralÍ Í)¦\right©'\\right'N§LiteralÍ+Í- ¢''¤init_¨PropertyÍ8ÍDÂÂÂN§LiteralÍ8Í@¥\Bigg¨'\\Bigg'N§LiteralÍBÍD ¢''¤init_¨PropertyÍFÍRÂÂÂN§LiteralÍFÍN¥\bigg¨'\\bigg'N§LiteralÍPÍR ¢''¤init_¨PropertyÍTÍ_ÂÂÂN§LiteralÍTÍ[¤\Big§'\\Big'N§LiteralÍ]Í_ ¢''¤init_¨PropertyÍaÍlÂÂÂN§LiteralÍaÍh¤\big§'\\big'N§LiteralÍjÍl ¢''¤init_¨PropertyÍÍÂÂÂN§LiteralÍÍ–¦\iiint©'\\iiint'N§LiteralÍ˜Í©âˆ«âˆ«âˆ««'âˆ«âˆ«âˆ«'¤init_¨PropertyÍŸÍ­ÂÂÂN§LiteralÍŸÍ§¥\iint¨'\\iint'N§LiteralÍ©Í­¦âˆ«âˆ«¨'âˆ«âˆ«'¤init_¨PropertyÍ¯Í»ÂÂÂN§LiteralÍ¯Í¶¤\int§'\\int'N§LiteralÍ¸Í»£âˆ«¥'âˆ«'¤init_¨PropertyÍ½ÍÊÂÂÂN§LiteralÍ½ÍÅ¥\oint¨'\\oint'N§LiteralÍÇÍÊ£âˆ®¥'âˆ®'¤init_¨PropertyÍÍ*ÂÂÂN§LiteralÍÍ%¤\sum§'\\sum'N§LiteralÍ'Í*¢Î£¤'Î£'¤init_¨PropertyÍ,Í9ÂÂÂN§LiteralÍ,Í4¥\prod¨'\\prod'N§LiteralÍ6Í9¢Î ¤'Î '¤init_¨PropertyÍ;ÍJÂÂÂN§LiteralÍ;ÍE§\coprodª'\\coprod'N§LiteralÍGÍJ£âˆ¥'âˆ'¤init_¨PropertyÍqÍÂÂÂN§LiteralÍqÍz¦\alpha©'\\alpha'N§LiteralÍ|Í¢Î±¤'Î±'¤init_¨PropertyÍÍÂÂÂN§LiteralÍÍ‰¥\beta¨'\\beta'N§LiteralÍ‹Í¢Î²¤'Î²'¤init_¨PropertyÍÍÂÂÂN§LiteralÍÍ™¦\gamma©'\\gamma'N§LiteralÍ›Í¢Î³¤'Î³'¤init_¨PropertyÍ Í®ÂÂÂN§LiteralÍ Í©¦\delta©'\\delta'N§LiteralÍ«Í®¢Î´¤'Î´'¤init_¨PropertyÍ¹ÍÉÂÂÂN§LiteralÍ¹ÍÄ¨\epsilon«'\\epsilon'N§LiteralÍÆÍÉ¢Îµ¤'Îµ'¤init_¨PropertyÍËÍŞÂÂÂN§LiteralÍËÍÙ«\varepsilon®'\\varepsilon'N§LiteralÍÛÍŞ¢Îµ¤'Îµ'¤init_¨PropertyÍàÍíÂÂÂN§LiteralÍàÍè¥\zeta¨'\\zeta'N§LiteralÍêÍí¢Î¶¤'Î¶'¤init_¨PropertyÍïÍûÂÂÂN§LiteralÍïÍö¤\eta§'\\eta'N§LiteralÍøÍû¢Î·¤'Î·'¤init_¨PropertyÍ	Í	ÂÂÂN§LiteralÍ	Í	¦\theta©'\\theta'N§LiteralÍ	Í	¢Î¸¤'Î¸'¤init_¨PropertyÍ	Í	'ÂÂÂN§LiteralÍ	Í	"©\vartheta¬'\\vartheta'N§LiteralÍ	$Í	'¢Ï‘¤'Ï‘'¤init_¨PropertyÍ	)Í	6ÂÂÂN§LiteralÍ	)Í	1¥\iota¨'\\iota'N§LiteralÍ	3Í	6¢Î¹¤'Î¹'¤init_¨PropertyÍ	8Í	FÂÂÂN§LiteralÍ	8Í	A¦\kappa©'\\kappa'N§LiteralÍ	CÍ	F¢Îº¤'Îº'¤init_¨PropertyÍ	QÍ	`ÂÂÂN§LiteralÍ	QÍ	[§\lambdaª'\\lambda'N§LiteralÍ	]Í	`¢Î»¤'Î»'¤init_¨PropertyÍ	bÍ	mÂÂÂN§LiteralÍ	bÍ	h£\mu¦'\\mu'N§LiteralÍ	jÍ	m¢Î¼¤'Î¼'¤init_¨PropertyÍ	oÍ	zÂÂÂN§LiteralÍ	oÍ	u£\nu¦'\\nu'N§LiteralÍ	wÍ	z¢Î½¤'Î½'¤init_¨PropertyÍ	|Í	‡ÂÂÂN§LiteralÍ	|Í	‚£\xi¦'\\xi'N§LiteralÍ	„Í	‡¢Î¾¤'Î¾'¤init_¨PropertyÍ	’Í	ÂÂÂN§LiteralÍ	’Í	˜£\pi¦'\\pi'N§LiteralÍ	šÍ	¢Ï€¤'Ï€'¤init_¨PropertyÍ	ŸÍ	­ÂÂÂN§LiteralÍ	ŸÍ	¨¦\varpi©'\\varpi'N§LiteralÍ	ªÍ	­¢Ï–¤'Ï–'¤init_¨PropertyÍ	¯Í	»ÂÂÂN§LiteralÍ	¯Í	¶¤\rho§'\\rho'N§LiteralÍ	¸Í	»¢Ï¤'Ï'¤init_¨PropertyÍ	½Í	ÌÂÂÂN§LiteralÍ	½Í	Ç§\varrhoª'\\varrho'N§LiteralÍ	ÉÍ	Ì¢Ï±¤'Ï±'¤init_¨PropertyÍ	×Í	åÂÂÂN§LiteralÍ	×Í	à¦\sigma©'\\sigma'N§LiteralÍ	âÍ	å¢Ïƒ¤'Ïƒ'¤init_¨PropertyÍ	çÍ	øÂÂÂN§LiteralÍ	çÍ	ó©\varsigma¬'\\varsigma'N§LiteralÍ	õÍ	ø¢Ï‚¤'Ï‚'¤init_¨PropertyÍ	úÍ
-ÂÂÂN§LiteralÍ	úÍ
-¤\tau§'\\tau'N§LiteralÍ
-Í
-¢Ï„¤'Ï„'¤init_¨PropertyÍ
-Í
-ÂÂÂN§LiteralÍ
-Í
-¨\upsilon«'\\upsilon'N§LiteralÍ
-Í
-¢Ï…¤'Ï…'¤init_¨PropertyÍ
-#Í
-/ÂÂÂN§LiteralÍ
-#Í
-*¤\phi§'\\phi'N§LiteralÍ
-,Í
-/¢Ï†¤'Ï†'¤init_¨PropertyÍ
-1Í
-@ÂÂÂN§LiteralÍ
-1Í
-;§\varphiª'\\varphi'N§LiteralÍ
-=Í
-@¢Ï•¤'Ï•'¤init_¨PropertyÍ
-BÍ
-NÂÂÂN§LiteralÍ
-BÍ
-I¤\chi§'\\chi'N§LiteralÍ
-KÍ
-N¢Ï‡¤'Ï‡'¤init_¨PropertyÍ
-PÍ
-\ÂÂÂN§LiteralÍ
-PÍ
-W¤\psi§'\\psi'N§LiteralÍ
-YÍ
-\¢Ïˆ¤'Ïˆ'¤init_¨PropertyÍ
-^Í
-lÂÂÂN§LiteralÍ
-^Í
-g¦\omega©'\\omega'N§LiteralÍ
-iÍ
-l¢Ï‰¤'Ï‰'¤init_¨PropertyÍ
-“Í
-¡ÂÂÂN§LiteralÍ
-“Í
-œ¦\Gamma©'\\Gamma'N§LiteralÍ
-Í
-¡¢Î“¤'Î“'¤init_¨PropertyÍ
-£Í
-±ÂÂÂN§LiteralÍ
-£Í
-¬¦\Delta©'\\Delta'N§LiteralÍ
-®Í
-±¢Î”¤'Î”'¤init_¨PropertyÍ
-³Í
-ÁÂÂÂN§LiteralÍ
-³Í
-¼¦\Theta©'\\Theta'N§LiteralÍ
-¾Í
-Á¢Î˜¤'Î˜'¤init_¨PropertyÍ
-ÃÍ
-ÒÂÂÂN§LiteralÍ
-ÃÍ
-Í§\Lambdaª'\\Lambda'N§LiteralÍ
-ÏÍ
-Ò¢Î›¤'Î›'¤init_¨PropertyÍ
-İÍ
-èÂÂÂN§LiteralÍ
-İÍ
-ã£\Xi¦'\\Xi'N§LiteralÍ
-åÍ
-è¢Î¤'Î'¤init_¨PropertyÍ
-êÍ
-õÂÂÂN§LiteralÍ
-êÍ
-ğ£\Pi¦'\\Pi'N§LiteralÍ
-òÍ
-õ¢Î ¤'Î '¤init_¨PropertyÍ
-÷ÍÂÂÂN§LiteralÍ
-÷Í ¦\Sigma©'\\Sigma'N§LiteralÍÍ¢Î£¤'Î£'¤init_¨PropertyÍÍÂÂÂN§LiteralÍÍ¨\Upsilon«'\\Upsilon'N§LiteralÍÍ¢Î¥¤'Î¥'¤init_¨PropertyÍ"Í.ÂÂÂN§LiteralÍ"Í)¤\Phi§'\\Phi'N§LiteralÍ+Í.¢Î¦¤'Î¦'¤init_¨PropertyÍ0Í<ÂÂÂN§LiteralÍ0Í7¤\Psi§'\\Psi'N§LiteralÍ9Í<¢Î¨¤'Î¨'¤init_¨PropertyÍ>ÍLÂÂÂN§LiteralÍ>ÍG¦\Omega©'\\Omega'N§LiteralÍIÍL¢Î©¤'Î©'¤init_¨PropertyÍmÍ}ÂÂÂN§LiteralÍmÍx¨\partial«'\\partial'N§LiteralÍzÍ}£âˆ‚¥'âˆ‚'¤init_¨PropertyÍÍÂÂÂN§LiteralÍÍˆ¦\nabla©'\\nabla'N§LiteralÍŠÍ£âˆ‡¥'âˆ‡'¤init_¨PropertyÍÍÂÂÂN§LiteralÍÍ˜¦\infty©'\\infty'N§LiteralÍšÍ£âˆ¥'âˆ'¤init_¨PropertyÍŸÍ°ÂÂÂN§LiteralÍŸÍ«©\emptyset¬'\\emptyset'N§LiteralÍ­Í°£âˆ…¥'âˆ…'¤init_¨PropertyÍ»ÍÊÂÂÂN§LiteralÍ»ÍÅ§\forallª'\\forall'N§LiteralÍÇÍÊ£âˆ€¥'âˆ€'¤init_¨PropertyÍÌÍÛÂÂÂN§LiteralÍÌÍÖ§\existsª'\\exists'N§LiteralÍØÍÛ£âˆƒ¥'âˆƒ'¤init_¨PropertyÍİÍéÂÂÂN§LiteralÍİÍä¤\neg§'\\neg'N§LiteralÍæÍé¢Â¬¤'Â¬'¤init_¨PropertyÍëÍøÂÂÂN§LiteralÍëÍó¥\lnot¨'\\lnot'N§LiteralÍõÍø¢Â¬¤'Â¬'¤init_¨PropertyÍÍ%ÂÂÂN§LiteralÍÍ ¤\neq§'\\neq'N§LiteralÍ"Í%£â‰ ¥'â‰ '¤init_¨PropertyÍ'Í2ÂÂÂN§LiteralÍ'Í-£\ne¦'\\ne'N§LiteralÍ/Í2£â‰ ¥'â‰ '¤init_¨PropertyÍ4Í@ÂÂÂN§LiteralÍ4Í;¤\leq§'\\leq'N§LiteralÍ=Í@£â‰¤¥'â‰¤'¤init_¨PropertyÍBÍMÂÂÂN§LiteralÍBÍH£\le¦'\\le'N§LiteralÍJÍM£â‰¤¥'â‰¤'¤init_¨PropertyÍXÍdÂÂÂN§LiteralÍXÍ_¤\geq§'\\geq'N§LiteralÍaÍd£â‰¥¥'â‰¥'¤init_¨PropertyÍfÍqÂÂÂN§LiteralÍfÍl£\ge¦'\\ge'N§LiteralÍnÍq£â‰¥¥'â‰¥'¤init_¨PropertyÍsÍ~ÂÂÂN§LiteralÍsÍy£\to¦'\\to'N§LiteralÍ{Í~£â†’¥'â†’'¤init_¨PropertyÍ€Í“ÂÂÂN§LiteralÍ€Í«\rightarrow®'\\rightarrow'N§LiteralÍÍ“£â†’¥'â†’'¤init_¨PropertyÍÍ°ÂÂÂN§LiteralÍÍ«ª\leftarrow­'\\leftarrow'N§LiteralÍ­Í°£â†¥'â†'¤init_¨PropertyÍ²ÍÅÂÂÂN§LiteralÍ²ÍÀ«\Rightarrow®'\\Rightarrow'N§LiteralÍÂÍÅ£â‡’¥'â‡’'¤init_¨PropertyÍÇÍŞÂÂÂN§LiteralÍÇÍÙ¯\Leftrightarrow²'\\Leftrightarrow'N§LiteralÍÛÍŞ£â‡”¥'â‡”'¤init_¨PropertyÍéÍøÂÂÂN§LiteralÍéÍó§\approxª'\\approx'N§LiteralÍõÍø£â‰ˆ¥'â‰ˆ'¤init_¨PropertyÍúÍÂÂÂN§LiteralÍúÍ¦\equiv©'\\equiv'N§LiteralÍÍ£â‰¡¥'â‰¡'¤init_¨PropertyÍ
-ÍÂÂÂN§LiteralÍ
-Í¤\sim§'\\sim'N§LiteralÍÍ£âˆ¼¥'âˆ¼'¤init_¨PropertyÍÍ'ÂÂÂN§LiteralÍÍ"§\proptoª'\\propto'N§LiteralÍ$Í'£âˆ¥'âˆ'¤init_¨PropertyÍ2ÍAÂÂÂN§LiteralÍ2Í<§\subsetª'\\subset'N§LiteralÍ>ÍA£âŠ‚¥'âŠ‚'¤init_¨PropertyÍCÍTÂÂÂN§LiteralÍCÍO©\subseteq¬'\\subseteq'N§LiteralÍQÍT£âŠ†¥'âŠ†'¤init_¨PropertyÍVÍeÂÂÂN§LiteralÍVÍ`§\supsetª'\\supset'N§LiteralÍbÍe£âŠƒ¥'âŠƒ'¤init_¨PropertyÍgÍxÂÂÂN§LiteralÍgÍs©\supseteq¬'\\supseteq'N§LiteralÍuÍx£âŠ‡¥'âŠ‡'¤init_¨PropertyÍƒÍÂÂÂN§LiteralÍƒÍ‰£\in¦'\\in'N§LiteralÍ‹Í£âˆˆ¥'âˆˆ'¤init_¨PropertyÍÍÂÂÂN§LiteralÍÍ™¦\notin©'\\notin'N§LiteralÍ›Í£âˆ‰¥'âˆ‰'¤init_¨PropertyÍ Í«ÂÂÂN§LiteralÍ Í¦£\ni¦'\\ni'N§LiteralÍ¨Í«£âˆ‹¥'âˆ‹'¤init_¨PropertyÍ¶ÍÇÂÂÂN§LiteralÍ¶ÍÂ©\parallel¬'\\parallel'N§LiteralÍÄÍÇ£âˆ¥¥'âˆ¥'¤init_¨PropertyÍÉÍÖÂÂÂN§LiteralÍÉÍÑ¥\perp¨'\\perp'N§LiteralÍÓÍÖ£âŠ¥¥'âŠ¥'¤init_¨PropertyÍøÍÂÂÂN§LiteralÍøÍ¦\times©'\\times'N§LiteralÍÍ¢Ã—¤'Ã—'¤init_¨PropertyÍÍÂÂÂN§LiteralÍÍ¥\cdot¨'\\cdot'N§LiteralÍÍ¢Â·¤'Â·'¤init_¨PropertyÍÍ#ÂÂÂN§LiteralÍÍ¤\div§'\\div'N§LiteralÍ Í#¢Ã·¤'Ã·'¤init_¨PropertyÍ%Í0ÂÂÂN§LiteralÍ%Í+£\pm¦'\\pm'N§LiteralÍ-Í0¢Â±¤'Â±'¤init_¨PropertyÍ2Í=ÂÂÂN§LiteralÍ2Í8£\mp¦'\\mp'N§LiteralÍ:Í=£âˆ“¥'âˆ“'¤init_¨PropertyÍHÍVÂÂÂN§LiteralÍHÍQ¦\oplus©'\\oplus'N§LiteralÍSÍV£âŠ•¥'âŠ•'¤init_¨PropertyÍXÍgÂÂÂN§LiteralÍXÍb§\ominusª'\\ominus'N§LiteralÍdÍg£âŠ–¥'âŠ–'¤init_¨PropertyÍiÍxÂÂÂN§LiteralÍiÍs§\otimesª'\\otimes'N§LiteralÍuÍx£âŠ—¥'âŠ—'¤init_¨PropertyÍzÍ‰ÂÂÂN§LiteralÍzÍ„§\oslashª'\\oslash'N§LiteralÍ†Í‰£âŠ˜¥'âŠ˜'¤init_¨PropertyÍ”Í ÂÂÂN§LiteralÍ”Í›¤\cup§'\\cup'N§LiteralÍÍ £âˆª¥'âˆª'¤init_¨PropertyÍ¢Í®ÂÂÂN§LiteralÍ¢Í©¤\cap§'\\cap'N§LiteralÍ«Í®£âˆ©¥'âˆ©'¤init_¨PropertyÍ°ÍÂÂÂÂN§LiteralÍ°Í¼©\setminus¬'\\setminus'N§LiteralÍ¾ÍÂ¡\¤'\\'¤init_¨PropertyÍÍÍÚÂÂÂN§LiteralÍÍÍÕ¥\land¨'\\land'N§LiteralÍ×ÍÚ£âˆ§¥'âˆ§'¤init_¨PropertyÍÜÍèÂÂÂN§LiteralÍÜÍã¤\lor§'\\lor'N§LiteralÍåÍè£âˆ¨¥'âˆ¨'¤init_¨PropertyÍêÍøÂÂÂN§LiteralÍêÍó¦\wedge©'\\wedge'N§LiteralÍõÍø£âˆ§¥'âˆ§'¤init_¨PropertyÍúÍÂÂÂN§LiteralÍúÍ¤\vee§'\\vee'N§LiteralÍÍ£âˆ¨¥'âˆ¨'¤init_¨PropertyÍ$Í3ÂÂÂN§LiteralÍ$Í.§\mapstoª'\\mapsto'N§LiteralÍ0Í3£â†¦¥'â†¦'¤init_¨PropertyÍ5ÍHÂÂÂN§LiteralÍ5ÍC«\longmapsto®'\\longmapsto'N§LiteralÍEÍH£âŸ¼¥'âŸ¼'¤init_¨PropertyÍJÍVÂÂÂN§LiteralÍJÍQ¤\iff§'\\iff'N§LiteralÍSÍV£âŸº¥'âŸº'¤init_¨PropertyÍrÍ€ÂÂÂN§LiteralÍrÍ{¦\cdots©'\\cdots'N§LiteralÍ}Í€£â‹¯¥'â‹¯'¤init_¨PropertyÍ‚ÍÂÂÂN§LiteralÍ‚Í‹¦\ldots©'\\ldots'N§LiteralÍÍ£â€¦¥'â€¦'¤init_¨PropertyÍ’Í ÂÂÂN§LiteralÍ’Í›¦\vdots©'\\vdots'N§LiteralÍÍ £â‹®¥'â‹®'¤init_¨PropertyÍ¢Í°ÂÂÂN§LiteralÍ¢Í«¦\ddots©'\\ddots'N§LiteralÍ­Í°£â‹±¥'â‹±'¤init_¨PropertyÍÌÍÚÂÂÂN§LiteralÍÌÍÕ¦\angle©'\\angle'N§LiteralÍ×ÍÚ£âˆ ¥'âˆ '¤init_¨PropertyÍÜÍíÂÂÂN§LiteralÍÜÍè©\triangle¬'\\triangle'N§LiteralÍêÍí£â–³¥'â–³'¤init_¨PropertyÍïÍşÂÂÂN§LiteralÍïÍù§\squareª'\\square'N§LiteralÍûÍş£â–¡¥'â–¡'¤init_¨PropertyÍ ÍÂÂÂN§LiteralÍ Í¤\Box§'\\Box'N§LiteralÍ	Í£â–¡¥'â–¡'¤init_¨PropertyÍÍ"ÂÂÂN§LiteralÍÍ£\Re¦'\\Re'N§LiteralÍÍ"£â„œ¥'â„œ'¤init_¨PropertyÍ$Í/ÂÂÂN§LiteralÍ$Í*£\Im¦'\\Im'N§LiteralÍ,Í/£â„‘¥'â„‘'¤init_¨PropertyÍ1Í?ÂÂÂN§LiteralÍ1Í:¦\aleph©'\\aleph'N§LiteralÍ<Í?£â„µ¥'â„µ'¤init_¨PropertyÍJÍWÂÂÂN§LiteralÍJÍR¥\hbar¨'\\hbar'N§LiteralÍTÍW£â„¥'â„'¤init_¨PropertyÍYÍeÂÂÂN§LiteralÍYÍ`¤\ell§'\\ell'N§LiteralÍbÍe£â„“¥'â„“'¤init_¨PropertyÍgÍrÂÂÂN§LiteralÍgÍm£\wp¦'\\wp'N§LiteralÍoÍr£â„˜¥'â„˜'¤init_¨PropertyÍ‘ÍÂÂÂN§LiteralÍ‘Í˜¤\hat§'\\hat'N§LiteralÍšÍ¢Ì‚¤'Ì‚'¤init_¨PropertyÍŸÍ­ÂÂÂN§LiteralÍŸÍ¨¦\tilde©'\\tilde'N§LiteralÍªÍ­¢Ìƒ¤'Ìƒ'¤init_¨PropertyÍ¯Í»ÂÂÂN§LiteralÍ¯Í¶¤\bar§'\\bar'N§LiteralÍ¸Í»¢Ì„¤'Ì„'¤init_¨PropertyÍ½ÍÉÂÂÂN§LiteralÍ½ÍÄ¤\vec§'\\vec'N§LiteralÍÆÍÉ£âƒ—¥'âƒ—'¤init_¨PropertyÍËÍ×ÂÂÂN§LiteralÍËÍÒ¤\dot§'\\dot'N§LiteralÍÔÍ×¢Ì‡¤'Ì‡'¤init_¨PropertyÍâÍòÂÂÂN§LiteralÍâÍí¨\widehat«'\\widehat'N§LiteralÍïÍò¢Ì‚¤'Ì‚'¤init_¨PropertyÍôÍÂÂÂN§LiteralÍôÍª\widetilde­'\\widetilde'N§LiteralÍÍ£Ìƒ ¥'Ìƒ '¤init¥constÔr`—¤type¥start£end¥await¤left¥right¤body®ForOfStatementÍÍˆÂP³VariableDeclarationÍÍ#‘Q²VariableDeclaratorÍ Í#LªIdentifierÍ Í#£symÀ¥constR®CallExpressionÍ'Í8S°MemberExpressionÍ'Í2LªIdentifierÍ'Í-¦ObjectLªIdentifierÍ.Í2¤keysÂÂ‘LªIdentifierÍ3Í7¤symsÂO®BlockStatementÍ:Íˆ‘V³ExpressionStatementÍEÍW´AssignmentExpressionÍEÍ€¡=LªIdentifierÍEÍF¡sR®CallExpressionÍIÍ€S°MemberExpressionÍIÍRLªIdentifierÍIÍJ¡sLªIdentifierÍKÍR§replaceÂÂ’Ôra•¤type¥start£end¦callee©arguments­NewExpressionÍSÍtLªIdentifierÍWÍ]¦RegExp’R®CallExpressionÍ^ÍnLªIdentifierÍ^Íi«escapeRegex‘LªIdentifierÍjÍm£symÂN§LiteralÍpÍs¡g£'g'S°MemberExpressionÍvÍLªIdentifierÍvÍz¤symsLªIdentifierÍ{Í~£symÃÂÂV³ExpressionStatementÍÍ§W´AssignmentExpressionÍÍ¦¡=LªIdentifierÍÍ¡sR®CallExpressionÍ’Í¦S°MemberExpressionÍ’Í›LªIdentifierÍ’Í“¡sLªIdentifierÍ”Í›§replaceÂÂ’X§LiteralÍœÍ¡’¢\\¡g¥/\\/gY¢\\¡gN§LiteralÍ£Í¥ ¢''ÂÔrb”¤type¥start£end¨argument¯ReturnStatementÍ­ÍËR®CallExpressionÍ´ÍÊLªIdentifierÍ´ÍÇ³normalizeWhitespace‘LªIdentifierÍÈÍÉ¡sÂÀJ¶ExportNamedDeclarationÍÍ’K³FunctionDeclarationÍÍ’LªIdentifierÍÍ0²renderMathRichTextÂÂÂ‘LªIdentifierÍ1Í5¤textO®BlockStatementÍ7Í’”P³VariableDeclarationÍ>Ía‘Q²VariableDeclaratorÍDÍ`LªIdentifierÍDÍJ¦tokensR®CallExpressionÍMÍ`LªIdentifierÍMÍZ­tokenizeLatex‘LªIdentifierÍ[Í_¤textÂ¥constP³VariableDeclarationÍgÍw‘Q²VariableDeclaratorÍkÍvLªIdentifierÍkÍq¦resultN§LiteralÍtÍv ¢''£let`®ForOfStatementÍ}Í{ÂP³VariableDeclarationÍ‚Í‘Q²VariableDeclaratorÍˆÍLªIdentifierÍˆÍ¥tokenÀ¥constLªIdentifierÍ‘Í—¦tokensO®BlockStatementÍ™Í{‘Ôrc•¤type¥start£end¬discriminant¥cases¯SwitchStatementÍ¤ÍtS°MemberExpressionÍ¬Í¶LªIdentifierÍ¬Í±¥tokenLªIdentifierÍ²Í¶¤typeÂÂ”Ôrd•¤type¥start£endªconsequent¤testªSwitchCaseÍÇÍàS°MemberExpressionÍÌÍßLªIdentifierÍÌÍÚ®LatexTokenTypeLªIdentifierÍÛÍß¤TEXTÂÂdªSwitchCaseÍîÍK’V³ExpressionStatementÍÍ3W´AssignmentExpressionÍÍ2¢+=LªIdentifierÍÍ#¦resultS°MemberExpressionÍ'Í2LªIdentifierÍ'Í,¥tokenLªIdentifierÍ-Í2¥valueÂÂÔre”¤type¥start£end¥label®BreakStatementÍEÍKÀS°MemberExpressionÍóÍ
-LªIdentifierÍóÍ®LatexTokenTypeLªIdentifierÍÍ
-¨FALLBACKÂÂdªSwitchCaseÍYÍÔ’V³ExpressionStatementÍ‹Í¼W´AssignmentExpressionÍ‹Í»¢+=LªIdentifierÍ‹Í‘¦resultR®CallExpressionÍ•Í»LªIdentifierÍ•Í¨³renderMathToUnicode’S°MemberExpressionÍ©Í³LªIdentifierÍ©Í®¥tokenLªIdentifierÍ¯Í³¤bodyÂÂN§LiteralÍµÍºÂ¥falseÂe®BreakStatementÍÎÍÔÀS°MemberExpressionÍ^ÍxLªIdentifierÍ^Íl®LatexTokenTypeLªIdentifierÍmÍx«INLINE_MATHÂÂdªSwitchCaseÍâÍi’V³ExpressionStatementÍÍQW´AssignmentExpressionÍÍP¢+=LªIdentifierÍÍ¦resultU°BinaryExpressionÍÍPU°BinaryExpressionÍÍIN§LiteralÍÍ!¡
-¤'\n'¡+R®CallExpressionÍ$ÍILªIdentifierÍ$Í7³renderMathToUnicode’S°MemberExpressionÍ8ÍBLªIdentifierÍ8Í=¥tokenLªIdentifierÍ>ÍB¤bodyÂÂN§LiteralÍDÍHÃ¤trueÂ¡+N§LiteralÍLÍP¡
-¤'\n'e®BreakStatementÍcÍiÀS°MemberExpressionÍçÍ LªIdentifierÍçÍõ®LatexTokenTypeLªIdentifierÍöÍ ªBLOCK_MATHÂÂb¯ReturnStatementÍÍLªIdentifierÍˆÍ¦resultÀ‘Ôrf•¤type¥start£endªspecifiers¦source±ImportDeclarationÌ—ÌÜ’Ôrg•¤type¥start£end¨imported¥local¯ImportSpecifierÌ Ì®LªIdentifierÌ Ì®®LatexTokenTypeLªIdentifierÌ Ì®®LatexTokenTypeg¯ImportSpecifierÌ°Ì½LªIdentifierÌ°Ì½­tokenizeLatexLªIdentifierÌ°Ì½­tokenizeLatexN§LiteralÌÅÌÛ´./KikariaLatexParser¶'./KikariaLatexParser'

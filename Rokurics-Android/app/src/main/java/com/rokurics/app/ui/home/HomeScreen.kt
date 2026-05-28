@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -46,6 +48,9 @@ import com.rokurics.app.ui.settings.SettingsScreen
 import com.rokurics.app.ui.chat.AIChatScreen
 import com.rokurics.app.ui.library.PlaybackState
 import com.rokurics.app.ui.theme.RokuricsColors
+import com.rokurics.app.ui.theme.adaptiveColor
+import com.rokurics.app.ui.theme.adaptivePageGradientBrush
+import com.rokurics.app.ui.theme.rokuricsGlassCapsule
 import com.rokurics.app.ui.theme.rokuricsGlassCircle
 import com.rokurics.app.ui.theme.rokuricsScaleClickable
 
@@ -134,32 +139,53 @@ fun HomeScreen(
                     }
                 }
 
-                // Bottom NavigationBar — iPhone parity: glass-style surface
+                // Bottom floating capsule — Apple parity: iOS IMG_4653 3-tab pill bar
+                // Dark-mode glass: dark green fill with subtle stroke, not light/white
                 if (!isFullScreen) {
-                    Surface(
+                    val isDark = isSystemInDarkTheme()
+                    val navDividerAlpha = if (isDark) 0.08f else 0.14f
+                    val capsuleFill = if (isDark) Color(0xFF060D0D).copy(alpha = 0.90f)
+                        else Color.White.copy(alpha = 0.50f)
+                    val capsuleStroke = if (isDark) Color.White.copy(alpha = 0.06f)
+                        else Color.White.copy(alpha = 0.40f)
+                    val capsuleShadowColor = if (isDark) Color.Black.copy(alpha = 0.30f)
+                        else RokuricsColors.shadow.copy(alpha = 0.10f)
+                    Box(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth()
-                            .navigationBarsPadding(),
-                        color = Color.White.copy(alpha = 0.72f),
-                        shadowElevation = 4.dp
+                            .navigationBarsPadding()
+                            .padding(horizontal = 28.dp, vertical = 10.dp),
+                        contentAlignment = Alignment.BottomCenter
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(64.dp),
+                                .height(52.dp)
+                                .shadow(
+                                    elevation = 14.dp,
+                                    spotColor = capsuleShadowColor,
+                                    ambientColor = capsuleShadowColor.copy(alpha = 0.5f),
+                                    shape = RoundedCornerShape(50)
+                                )
+                                .clip(RoundedCornerShape(50))
+                                .background(capsuleFill)
+                                .background(
+                                    Brush.linearGradient(
+                                        colors = listOf(
+                                            capsuleStroke,
+                                            capsuleStroke.copy(alpha = 0.3f),
+                                            RokuricsColors.aqua.copy(alpha = if (isDark) 0.08f else 0.12f)
+                                        ),
+                                        start = Offset(0f, 0f),
+                                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                                    ),
+                                    RoundedCornerShape(50)
+                                ),
                             horizontalArrangement = Arrangement.SpaceEvenly,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            BottomNavTab("首页", Icons.Default.Home, currentDestination == "home") {
-                                if (currentDestination != "home") {
-                                    navController.navigate("home") {
-                                        popUpTo("home") { saveState = true }
-                                        launchSingleTop = true; restoreState = true
-                                    }
-                                }
-                            }
-                            BottomNavTab("学习库", Icons.Default.MenuBook, currentDestination == "library") {
+                            BottomNavTab("学习库", Icons.AutoMirrored.Filled.MenuBook, currentDestination == "library") {
                                 if (currentDestination != "library") {
                                     navController.navigate("library") {
                                         popUpTo("home") { saveState = true }
@@ -167,7 +193,13 @@ fun HomeScreen(
                                     }
                                 }
                             }
-                            BottomNavTab("AI 对话", Icons.Default.Chat, currentDestination == "chat") {
+                            VerticalDivider(
+                                modifier = Modifier.height(34.dp),
+                                thickness = 0.5.dp,
+                                color = (if (isDark) Color.White else RokuricsColors.softText)
+                                    .copy(alpha = navDividerAlpha)
+                            )
+                            BottomNavTab("AI 对话", Icons.Default.QuestionAnswer, currentDestination == "chat") {
                                 if (currentDestination != "chat") {
                                     navController.navigate("chat") {
                                         popUpTo("home") { saveState = true }
@@ -175,7 +207,13 @@ fun HomeScreen(
                                     }
                                 }
                             }
-                            BottomNavTab("Mac", Icons.Default.PhoneAndroid, currentDestination == "connection") {
+                            VerticalDivider(
+                                modifier = Modifier.height(34.dp),
+                                thickness = 0.5.dp,
+                                color = (if (isDark) Color.White else RokuricsColors.softText)
+                                    .copy(alpha = navDividerAlpha)
+                            )
+                            BottomNavTab("Mac 连接", Icons.Default.PhoneAndroid, currentDestination == "connection") {
                                 if (currentDestination != "connection") {
                                     navController.navigate("connection") {
                                         popUpTo("home") { saveState = true }
@@ -214,7 +252,7 @@ fun HomeScreen(
                                 }
                             }
                         }
-                        RailTab("学习库", Icons.Default.MenuBook, currentDestination == "library") {
+                        RailTab("学习库", Icons.AutoMirrored.Filled.MenuBook, currentDestination == "library") {
                             if (currentDestination != "library") {
                                 navController.navigate("library") {
                                     popUpTo("home") { saveState = true }
@@ -222,7 +260,7 @@ fun HomeScreen(
                                 }
                             }
                         }
-                        RailTab("AI 对话", Icons.Default.Chat, currentDestination == "chat") {
+                        RailTab("AI 对话", Icons.AutoMirrored.Filled.Chat, currentDestination == "chat") {
                             if (currentDestination != "chat") {
                                 navController.navigate("chat") {
                                     popUpTo("home") { saveState = true }
@@ -335,12 +373,22 @@ private fun PersistentMiniPlayer(
 ) {
     var localSeekFraction by remember { mutableFloatStateOf(0f) }
 
+    val isDark = isSystemInDarkTheme()
+    val miniPlayerFill = if (isDark) Color(0xFF0E2020).copy(alpha = 0.94f)
+    else Color.White.copy(alpha = 0.94f)
+    val miniPlayerText = adaptiveColor(RokuricsColors.deepText, RokuricsColors.deepTextDark)
+    val miniPlayerSubText = adaptiveColor(RokuricsColors.softText, RokuricsColors.softTextDark)
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .navigationBarsPadding(),
-        color = Color.White.copy(alpha = 0.94f),
-        shadowElevation = 12.dp
+            .navigationBarsPadding()
+            .shadow(
+                elevation = 12.dp,
+                spotColor = RokuricsColors.shadow.copy(alpha = 0.10f),
+                ambientColor = Color.Black.copy(alpha = 0.04f)
+            )
+            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+        color = miniPlayerFill
     ) {
         Column(
             modifier = Modifier
@@ -371,7 +419,7 @@ private fun PersistentMiniPlayer(
                         text = title,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = RokuricsColors.deepText,
+                        color = miniPlayerText,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -398,7 +446,7 @@ private fun PersistentMiniPlayer(
                 Text(
                     text = "${formatPositionMini(positionMs)} / ${formatPositionMini(durationMs)}",
                     fontSize = 10.sp,
-                    color = RokuricsColors.softText,
+                    color = miniPlayerSubText,
                     modifier = Modifier.padding(end = 4.dp)
                 )
                 IconButton(
@@ -408,7 +456,7 @@ private fun PersistentMiniPlayer(
                     Icon(
                         Icons.Default.Close,
                         contentDescription = "关闭",
-                        tint = RokuricsColors.softText,
+                        tint = miniPlayerSubText,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -438,27 +486,29 @@ private fun BottomNavTab(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
+    val activeColor = if (isDark) RokuricsColors.aquaDark else RokuricsColors.aqua
+    val inactiveColor = if (isDark) RokuricsColors.softTextDark else RokuricsColors.softText
     Column(
         modifier = Modifier
             .rokuricsScaleClickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(if (isSelected) RokuricsColors.aqua.copy(alpha = 0.12f) else Color.Transparent)
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+            .background(if (isSelected) activeColor.copy(alpha = 0.12f) else Color.Transparent)
+            .padding(horizontal = 8.dp, vertical = 5.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         Icon(
             icon,
             contentDescription = label,
-            tint = if (isSelected) RokuricsColors.aqua else RokuricsColors.softText,
-            modifier = Modifier.size(22.dp)
+            tint = if (isSelected) activeColor else inactiveColor,
+            modifier = Modifier.size(20.dp)
         )
         Text(
             text = label,
-            fontSize = 11.sp,
+            fontSize = 10.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = if (isSelected) RokuricsColors.aqua else RokuricsColors.softText
+            color = if (isSelected) activeColor else inactiveColor
         )
     }
 }
@@ -511,7 +561,7 @@ fun HomeContent(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(RokuricsColors.pageGradientBrush)
+            .background(adaptivePageGradientBrush())
     ) {
         val screenWidthDp = maxWidth
         val screenHeightDp = maxHeight
@@ -590,7 +640,7 @@ fun HomeContent(
                     fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
                     fontSize = (39 * headerScale).sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = RokuricsColors.deepText
+                    color = adaptiveColor(RokuricsColors.deepText, RokuricsColors.deepTextDark)
                 )
                 SettingsAvatarButton(
                     scale = headerScale,
@@ -606,18 +656,6 @@ fun HomeContent(
                 elapsedSeconds = elapsedSeconds,
                 scale = orbScale,
                 onClick = { navController.navigate("recording") }
-            )
-
-            Spacer(modifier = Modifier.height(if (isWide) 32.dp else 20.dp))
-
-            // Navigation card — iPhone parity: RokuricsHomeNavigationCard with 3 buttons
-            // Labels match iPhone: 学习库, AI 对话, Mac 连接
-            HomeNavigationCard(
-                isMacPaired = isMacPaired,
-                scale = dashboardScale,
-                onOpenLibrary = { navController.navigate("library") },
-                onOpenAIChat = { navController.navigate("chat") },
-                onOpenConnection = { navController.navigate("connection") }
             )
 
             // Bottom spacer (iPhone parity: homeBottomPadding)
@@ -637,7 +675,7 @@ private fun SettingsAvatarButton(
     Box(
         modifier = Modifier
             .size((46 * scale).dp)
-            .rokuricsGlassCircle(fillOpacity = 0.36f, strokeOpacity = 0.50f, shadowOpacity = 0.14f, shadowRadius = 12.dp)
+            .rokuricsGlassCircle(fillOpacity = 0.58f, strokeOpacity = 0.60f, shadowOpacity = 0.18f, shadowRadius = 14.dp)
             .rokuricsScaleClickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -732,7 +770,7 @@ fun DashboardStatsCard(
                     color = RokuricsColors.mint
                 )
                 DashboardStatusChip(
-                    icon = Icons.Default.TextSnippet,
+                    icon = Icons.AutoMirrored.Filled.TextSnippet,
                     label = "已转录",
                     count = transcriptionCount,
                     color = RokuricsColors.softTeal
@@ -1068,22 +1106,35 @@ fun RecordingOrb(
             }
         }
 
+        // Dark outer ring (Apple parity: thick dark ring for depth, ~18dp each side)
+        // Uses a visible mid-dark tone that contrasts against both background and bright orb
+        if (isIdle) {
+            Box(
+                modifier = Modifier
+                    .size((226 * effectiveScale).dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF152222).copy(alpha = 0.78f))
+                    .shadow(
+                        elevation = (14 * effectiveScale).dp,
+                        spotColor = Color.Black.copy(alpha = 0.30f),
+                        ambientColor = Color.Black.copy(alpha = 0.16f)
+                    )
+            )
+        }
+
         // Main orb circle with glass styling (Apple parity)
+        val orbGradient = if (isSystemInDarkTheme()) RokuricsColors.actionGradientDark
+            else RokuricsColors.actionGradientLight
         Box(
             modifier = Modifier
                 .size((190 * effectiveScale).dp)
                 .clip(CircleShape)
                 .background(
                     Brush.linearGradient(
-                        colors = RokuricsColors.actionGradient,
+                        colors = orbGradient,
                         start = Offset(0f, 0f),
                         end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
                     )
-                )
-                .shadow(
-                    elevation = (12 * effectiveScale).dp,
-                    spotColor = RokuricsColors.deepText.copy(alpha = 0.18f),
-                    ambientColor = RokuricsColors.deepText.copy(alpha = 0.10f)
                 )
                 .rokuricsScaleClickable(onClick = onClick),
             contentAlignment = Alignment.Center
@@ -1256,7 +1307,7 @@ fun HomeNavigationCard(
         HomeNavButton(
             modifier = Modifier.weight(1f),
             title = "学习库",
-            icon = Icons.Default.MenuBook,
+            icon = Icons.AutoMirrored.Filled.MenuBook,
             tint = RokuricsColors.aqua,
             scale = scale,
             onClick = onOpenLibrary
@@ -1268,7 +1319,7 @@ fun HomeNavigationCard(
         HomeNavButton(
             modifier = Modifier.weight(1f),
             title = "AI 对话",
-            icon = Icons.Default.Chat,
+            icon = Icons.AutoMirrored.Filled.Chat,
             tint = RokuricsColors.mint,
             scale = scale,
             onClick = onOpenAIChat

@@ -6,8 +6,8 @@ import { MockChatProvider, OpenAICompatibleChatProvider, createChatProvider } fr
 import { ChatStore } from '../services/ChatStore'
 import { SettingsStore } from '../services/SettingsStore'
 import { AIConfiguration } from '../services/OpenAICompatibleClient'
-import { RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
-import { SendIcon } from '../utils/CustomIcons'
+import { colorAlpha,  RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
+import { SendIcon, BulletListIcon, EditIcon } from '../utils/CustomIcons'
 
 @Entry
 @Component
@@ -124,9 +124,9 @@ struct AIChatPage {
         .width(44)
         .height(44)
         .borderRadius(22)
-        .backgroundColor(RokuricsColors.glassSurface + '66')
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'))
         .shadow({
-          color: RokuricsColors.shadowColor + '10',
+          color: colorAlpha(RokuricsColors.shadowColor, '10'),
           radius: 12,
           offsetY: 6
         })
@@ -134,9 +134,9 @@ struct AIChatPage {
           width: 1,
           color: {
             colors: [
-              [0xFFFFFF, 0.44],
-              [0xEFFAF8, 0.14],
-              [0x59C7C2, 0.12]
+              [0xFFFFFF, 0.22],
+              [RokuricsColors.glassStroke, 0.14],
+              [RokuricsColors.aqua, 0.12]
             ],
             direction: GradientDirection.RightBottom
           },
@@ -155,28 +155,45 @@ struct AIChatPage {
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .layoutWeight(1)
 
-        Button() {
-          Text('+新')
-            .fontSize(14)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(RokuricsColors.aqua)
-        }
-        .backgroundColor(Color.Transparent)
-        .margin({ right: 8 })
-        .onClick(() => this.startNewConversation())
+        // Pill-shaped button group (mirrors iOS capsule style)
+        Row({ space: 0 }) {
+          Button() {
+            BulletListIcon(15, RokuricsColors.deepText)
+          }
+          .width(36).height(36)
+          .backgroundColor(Color.Transparent)
+          .onClick(() => {
+            this.loadRecentConversations()
+            this.showConversationList = !this.showConversationList
+          })
 
-        Button() {
-          Text('☰')
-            .fontSize(18)
-            .fontColor(RokuricsColors.aqua)
+          // Divider
+          Rect()
+            .width(1).height(18)
+            .fill(colorAlpha(RokuricsColors.softText, '18'))
+
+          Button() {
+            EditIcon(15, RokuricsColors.deepText)
+          }
+          .width(36).height(36)
+          .backgroundColor(Color.Transparent)
+          .onClick(() => this.startNewConversation())
         }
-        .width(44)
-        .height(44)
-        .backgroundColor(Color.Transparent)
-        .onClick(() => {
-          this.loadRecentConversations()
-          this.showConversationList = !this.showConversationList
-        })
+        .padding({ left: 4, right: 4, top: 4, bottom: 4 })
+        .borderRadius(20)
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'))
+        .border({
+          width: 1,
+          color: {
+            colors: [
+              [0xFFFFFF, 0.18],
+              [RokuricsColors.glassStroke, 0.10],
+              [RokuricsColors.glassStrokeAccent, 0.12]
+            ],
+            direction: GradientDirection.RightBottom
+          },
+          radius: 20
+        } as BorderOptions)
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: 56, bottom: 12 })
@@ -241,7 +258,7 @@ struct AIChatPage {
                   .padding({ left: 14, right: 14, top: 10, bottom: 10 })
                   .borderRadius(12)
                   .backgroundColor(conv.id === this.activeConversation?.id ?
-                    RokuricsColors.aqua + '14' : RokuricsColors.glassSurface + '50')
+                    colorAlpha(RokuricsColors.aqua, '14') : colorAlpha(RokuricsColors.glassSurface, '50'))
                   .onClick(() => this.selectConversation(conv.id))
                 }
               })
@@ -252,10 +269,10 @@ struct AIChatPage {
           }
         }
         .width('100%')
-        .backgroundColor(RokuricsColors.glassSurface + 'F0')
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'F0'))
         .borderRadius({ bottomLeft: 16, bottomRight: 16 })
         .shadow({
-          color: RokuricsColors.shadowColor + '20',
+          color: colorAlpha(RokuricsColors.shadowColor, '20'),
           radius: 16,
           offsetY: 8
         })
@@ -266,14 +283,16 @@ struct AIChatPage {
       if (this.messages.length === 0) {
         // Greeting (mirrors Apple ChatGreeting)
         Column({ space: 16 }) {
-          Text('Rokurics AI')
-            .fontSize(28)
-            .fontWeight(FontWeight.SemiBold)
-            .fontColor(RokuricsColors.aqua)
+          Text('AI 对话')
+            .fontSize(30)
+            .fontWeight(FontWeight.Bold)
+            .fontFamily('serif')
+            .fontColor(RokuricsColors.deepText)
 
-          Text(`你好${this.displayName ? '，' + this.displayName : ''}`)
-            .fontSize(24)
-            .fontWeight(FontWeight.SemiBold)
+          Text(`${this.displayName || '用户'}，你好！`)
+            .fontSize(22)
+            .fontWeight(FontWeight.Medium)
+            .fontFamily('serif')
             .fontColor(RokuricsColors.deepText)
 
           Text('基于你的学习资料进行智能问答')
@@ -321,7 +340,7 @@ struct AIChatPage {
           .height(44)
           .borderRadius(22)
           .padding({ left: 16, right: 16 })
-          .backgroundColor(RokuricsColors.glassSurface + '80')
+          .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'))
           .onChange((value: string) => { this.inputText = value })
 
         Button() {
@@ -335,8 +354,8 @@ struct AIChatPage {
             RokuricsColors.aqua : RokuricsColors.tertiaryText
         )
         .shadow({
-          color: (this.inputText.trim().length > 0 && !this.isGenerating ?
-            RokuricsColors.aqua : RokuricsColors.tertiaryText) + '30',
+          color: colorAlpha((this.inputText.trim().length > 0 && !this.isGenerating ?
+            RokuricsColors.aqua : RokuricsColors.tertiaryText), '30'),
           radius: 10,
           offsetY: 4
         })
@@ -348,7 +367,14 @@ struct AIChatPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(RokuricsColors.pageBackground)
+    .linearGradient({
+      direction: GradientDirection.RightBottom,
+      colors: [
+        [RokuricsColors.pageGradientStart, 1.0],
+        [RokuricsColors.pageGradientMid, 1.0],
+        [RokuricsColors.pageGradientEnd, 1.0]
+      ]
+    })
   }
 
   @Builder
@@ -361,13 +387,13 @@ struct AIChatPage {
             .fontColor(RokuricsColors.deepText)
             .padding(14)
             .borderRadius({ topLeft: 4, topRight: 16, bottomLeft: 16, bottomRight: 16 })
-            .backgroundColor(RokuricsColors.glassSurface + 'B8')
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'B8'))
             .border({
               width: 1,
               color: {
                 colors: [
-                  [0xFFFFFF, 0.30],
-                  [0xEFFAF8, 0.10]
+                  [0xFFFFFF, 0.18],
+                  [RokuricsColors.glassStroke, 0.10]
                 ],
                 direction: GradientDirection.RightBottom
               },
@@ -387,7 +413,7 @@ struct AIChatPage {
             .borderRadius({ topLeft: 16, topRight: 4, bottomLeft: 16, bottomRight: 16 })
             .backgroundColor(RokuricsColors.aqua)
             .shadow({
-              color: RokuricsColors.aqua + '20',
+              color: colorAlpha(RokuricsColors.aqua, '20'),
               radius: 8,
               offsetY: 4
             })
@@ -407,8 +433,8 @@ struct AIChatPage {
       .fontColor(RokuricsColors.aqua)
       .padding({ left: 14, right: 14, top: 8, bottom: 8 })
       .borderRadius(16)
-      .backgroundColor(RokuricsColors.aqua + '10')
-      .border({ width: 1, color: RokuricsColors.aqua + '40', radius: 16 })
+      .backgroundColor(colorAlpha(RokuricsColors.aqua, '10'))
+      .border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 16 })
       .onClick(() => {
         this.inputText = text
         this.sendMessage()

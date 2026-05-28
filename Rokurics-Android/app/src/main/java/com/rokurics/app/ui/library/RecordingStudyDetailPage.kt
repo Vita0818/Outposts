@@ -2,7 +2,6 @@ package com.rokurics.app.ui.library
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,12 +10,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Article
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.TextSnippet
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -28,10 +31,12 @@ import com.rokurics.app.data.StudyLibraryStore
 import com.rokurics.app.domain.model.*
 import com.rokurics.app.service.RecordingManager
 import com.rokurics.app.ui.theme.RokuricsColors
+import com.rokurics.app.ui.theme.adaptivePageGradientBrush
+import com.rokurics.app.ui.theme.rokuricsGlassCard
+import com.rokurics.app.ui.theme.rokuricsScaleClickable
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecordingStudyDetailPage(
     recordingID: String,
@@ -49,7 +54,7 @@ fun RecordingStudyDetailPage(
     val studyItem = studyLibraryStore.allStudyItems().find { it.recordingID == recordingID }
 
     if (recording == null) {
-        Box(Modifier.fillMaxSize().background(Color(0xFFF0FAF8)), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().background(adaptivePageGradientBrush()), contentAlignment = Alignment.Center) {
             Text("未找到录音", color = RokuricsColors.softText)
         }
         return
@@ -65,11 +70,28 @@ fun RecordingStudyDetailPage(
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var activeFilingLevel by remember { mutableStateOf<StudyFolderLevel?>(null) }
     var showPlayer by remember { mutableStateOf(false) }
+    var showFileInfo by remember { mutableStateOf(false) }
     val audioFilePath = remember(recordingID) { recordingManager.getAudioFilePath(recordingID) }
-
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA) }
     val allItems = studyLibraryStore.allStudyItems()
     val allFolders = studyLibraryStore.allStudyFolders()
+
+    val saveFiling: () -> Unit = {
+        val filing = StudyFilingPath(
+            type = typeDraft.ifEmpty { null },
+            subject = subjectDraft.ifEmpty { null },
+            chapter = chapterDraft.ifEmpty { null },
+            topic = topicDraft.ifEmpty { null }
+        )
+        recordingManager.updateStudyFiling(recordingID, filing)
+        studyLibraryStore.updateFiling(recordingID, filing)
+        statusMessage = "归档已保存"
+    }
+
+    val isTranscribing = recording.transcriptionStatus == "queued" || recording.transcriptionStatus == "running"
+    val isGeneratingNote = recording.noteStatus == "queued" || recording.noteStatus == "running"
+    val hasTranscript = studyItem?.hasTranscript == true
+    val hasNote = studyItem?.hasNote == true
 
     fun filingCandidates(level: StudyFolderLevel): List<String> {
         val values = mutableSetOf<String>()
@@ -96,276 +118,351 @@ fun RecordingStudyDetailPage(
         return values.toList().sorted()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("录音详情", fontSize = 18.sp, fontWeight = FontWeight.SemiBold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { isRenaming = true; renameDraft = recording.title }) {
-                        Icon(Icons.Default.Edit, contentDescription = "重命名", tint = RokuricsColors.aqua)
-                    }
-                    IconButton(onClick = { showDeleteConfirm = true }) {
-                        Icon(Icons.Default.Delete, contentDescription = "删除", tint = RokuricsColors.coral)
-                    }
-                }
-            )
-        }
-    ) { padding ->
+    // Apple parity: page gradient + scrollable content (no Scaffold)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(adaptivePageGradientBrush())
+            .statusBarsPadding()
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .background(Color(0xFFF0FAF8))
                 .verticalScroll(rememberScrollState())
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Title card
+            // ── Header: back button + title + actions (Apple parity) ──
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top
+            ) {
+                // Glass circle back button
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.46f))
+                        .rokuricsScaleClickable(onClick = onBack),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "返回",
+                        tint = RokuricsColors.deepText,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(14.dp))
+
+                // Title + subtitle
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = recording.title,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = RokuricsColors.deepText,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${dateFormat.format(recording.createdAt)} · ${formatDuration(recording.duration)}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = RokuricsColors.tertiaryText
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Import to chat button
+                IconButton(
+                    onClick = { /* import to chat */ },
+                    modifier = Modifier.size(42.dp)
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Chat,
+                        contentDescription = "导入 AI 对话",
+                        tint = RokuricsColors.aqua,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                // Delete button
+                IconButton(
+                    onClick = { showDeleteConfirm = true },
+                    modifier = Modifier.size(42.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "删除",
+                        tint = RokuricsColors.coral,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            }
+
+            // ── Action grid: 2x2 (Apple parity: iPhone recording detail actions) ──
+            // iOS labels: 上传, 转写/未转写, 总结/无总结, 重命名
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Upload button (Apple parity: first action)
+                DetailGridButton(
+                    modifier = Modifier.weight(1f),
+                    title = "上传",
+                    icon = Icons.Default.CloudUpload,
+                    enabled = recording.uploadStatus != "uploaded" && recording.relativeAudioPath.isNotEmpty(),
+                    onClick = { onUpload(recordingID) }
+                )
+                // Transcribe button (Apple parity: second action, shows status)
+                DetailGridButton(
+                    modifier = Modifier.weight(1f),
+                    title = when {
+                        isTranscribing -> "转写中"
+                        hasTranscript -> "已转写"
+                        else -> "未转写"
+                    },
+                    icon = if (hasTranscript) Icons.Default.CheckCircle else Icons.AutoMirrored.Filled.TextSnippet,
+                    enabled = !isTranscribing && recording.relativeAudioPath.isNotEmpty(),
+                    onClick = { onRemoteTranscribe(recordingID) }
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Summarize button (Apple parity: third action, shows status)
+                DetailGridButton(
+                    modifier = Modifier.weight(1f),
+                    title = when {
+                        isGeneratingNote -> "总结中"
+                        hasNote -> "已总结"
+                        else -> "无总结"
+                    },
+                    icon = if (hasNote) Icons.Default.CheckCircle else Icons.Default.AutoAwesome,
+                    enabled = hasTranscript && !isGeneratingNote,
+                    onClick = { onGenerateNote(recordingID) }
+                )
+                // Rename button (Apple parity: fourth action)
+                DetailGridButton(
+                    modifier = Modifier.weight(1f),
+                    title = "重命名",
+                    icon = Icons.Default.Edit,
+                    enabled = true,
+                    onClick = { isRenaming = true }
+                )
+            }
+
+            // ── Filing card (Apple parity: glass card + level buttons) ──
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(22.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.52f)),
-                border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.22f))
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.30f)),
+                border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.24f))
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    modifier = Modifier.padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Mic,
-                            contentDescription = null,
-                            tint = RokuricsColors.aqua,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = recording.title,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = RokuricsColors.deepText,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
+                    // Level buttons row (Apple parity: MacStudyFilingLevelButton)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        val levels = listOf(StudyFolderLevel.TYPE, StudyFolderLevel.SUBJECT, StudyFolderLevel.CHAPTER, StudyFolderLevel.TOPIC)
+                        levels.forEach { level ->
+                            val currentValue = when (level) {
+                                StudyFolderLevel.TYPE -> typeDraft
+                                StudyFolderLevel.SUBJECT -> subjectDraft
+                                StudyFolderLevel.CHAPTER -> chapterDraft
+                                StudyFolderLevel.TOPIC -> topicDraft
+                                else -> ""
+                            }
+                            val canActivate = when (level) {
+                                StudyFolderLevel.TYPE -> true
+                                StudyFolderLevel.SUBJECT -> typeDraft.isNotEmpty()
+                                StudyFolderLevel.CHAPTER -> typeDraft.isNotEmpty() && subjectDraft.isNotEmpty()
+                                StudyFolderLevel.TOPIC -> typeDraft.isNotEmpty() && subjectDraft.isNotEmpty() && chapterDraft.isNotEmpty()
+                                else -> false
+                            }
+                            FilingLevelChip(
+                                level = level,
+                                value = currentValue,
+                                isActive = activeFilingLevel == level,
+                                isEnabled = canActivate,
+                                modifier = Modifier.weight(1f),
+                                onClick = {
+                                    if (canActivate) {
+                                        activeFilingLevel = if (activeFilingLevel == level) null else level
+                                    }
+                                }
+                            )
+                        }
                     }
 
-                    HorizontalDivider(color = RokuricsColors.softText.copy(alpha = 0.12f))
-
-                    // Metadata rows
-                    MetadataRow("日期", dateFormat.format(recording.createdAt))
-                    MetadataRow("时长", formatDuration(recording.duration))
-                    MetadataRow("文件大小", formatFileSize(recording.fileSize))
-                    MetadataRow("格式", "${recording.format} / ${recording.codec}")
-                    MetadataRow("采样率", "${recording.sampleRate.toInt()} Hz · ${if (recording.channels == 1) "单声道" else "立体声"}")
-                    MetadataRow("比特率", "${recording.bitrate / 1000} kbps")
-                }
-            }
-
-            // Status chips
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                UploadStatusChip(recording.uploadStatus)
-                val ts = recording.transcriptionStatus
-                if (ts != "notStarted" && ts != "not_started") {
-                    StatusChip("转录", ts, RokuricsColors.mint)
-                }
-                val ns = recording.noteStatus
-                if (ns != "notStarted" && ns != "not_started") {
-                    StatusChip("笔记", ns, RokuricsColors.softTeal)
-                }
-            }
-
-            // Filing card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(22.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.52f)),
-                border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.22f))
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text("学习归档", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = RokuricsColors.deepText)
-
-                    val levels = listOf(StudyFolderLevel.TYPE, StudyFolderLevel.SUBJECT, StudyFolderLevel.CHAPTER, StudyFolderLevel.TOPIC)
-                    levels.forEach { level ->
-                        val currentValue = when (level) {
-                            StudyFolderLevel.TYPE -> typeDraft
-                            StudyFolderLevel.SUBJECT -> subjectDraft
-                            StudyFolderLevel.CHAPTER -> chapterDraft
-                            StudyFolderLevel.TOPIC -> topicDraft
-                            else -> ""
-                        }
+                    // Expanded level: candidate chips + new value input
+                    if (activeFilingLevel != null) {
+                        val level = activeFilingLevel!!
                         val candidates = filingCandidates(level)
+                        var newValueDraft by remember { mutableStateOf("") }
 
-                        FilingEditRow(
-                            level = level,
-                            value = currentValue,
-                            candidates = candidates,
-                            isExpanded = activeFilingLevel == level,
-                            onToggle = { activeFilingLevel = if (activeFilingLevel == level) null else level },
-                            onSelect = { v ->
-                                when (level) {
-                                    StudyFolderLevel.TYPE -> typeDraft = v
-                                    StudyFolderLevel.SUBJECT -> subjectDraft = v
-                                    StudyFolderLevel.CHAPTER -> chapterDraft = v
-                                    StudyFolderLevel.TOPIC -> topicDraft = v
-                                    else -> {}
-                                }
-                                activeFilingLevel = null
-                            },
-                            onValueChange = { v ->
-                                when (level) {
-                                    StudyFolderLevel.TYPE -> typeDraft = v
-                                    StudyFolderLevel.SUBJECT -> subjectDraft = v
-                                    StudyFolderLevel.CHAPTER -> chapterDraft = v
-                                    StudyFolderLevel.TOPIC -> topicDraft = v
-                                    else -> {}
+                        if (candidates.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                candidates.take(8).forEach { candidate ->
+                                    val isSelected = when (level) {
+                                        StudyFolderLevel.TYPE -> typeDraft == candidate
+                                        StudyFolderLevel.SUBJECT -> subjectDraft == candidate
+                                        StudyFolderLevel.CHAPTER -> chapterDraft == candidate
+                                        StudyFolderLevel.TOPIC -> topicDraft == candidate
+                                        else -> false
+                                    }
+                                    Surface(
+                                        modifier = Modifier.clickable {
+                                            when (level) {
+                                                StudyFolderLevel.TYPE -> typeDraft = candidate
+                                                StudyFolderLevel.SUBJECT -> subjectDraft = candidate
+                                                StudyFolderLevel.CHAPTER -> chapterDraft = candidate
+                                                StudyFolderLevel.TOPIC -> topicDraft = candidate
+                                                else -> {}
+                                            }
+                                            saveFiling()
+                                            activeFilingLevel = null
+                                        },
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = if (isSelected) RokuricsColors.aqua
+                                        else RokuricsColors.aqua.copy(alpha = 0.12f)
+                                    ) {
+                                        Text(
+                                            text = candidate,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = if (isSelected) Color.White else RokuricsColors.deepText,
+                                            modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp)
+                                        )
+                                    }
                                 }
                             }
-                        )
-                    }
+                        }
 
-                    Button(
-                        onClick = {
-                            val filing = StudyFilingPath(
-                                type = typeDraft.ifEmpty { null },
-                                subject = subjectDraft.ifEmpty { null },
-                                chapter = chapterDraft.ifEmpty { null },
-                                topic = topicDraft.ifEmpty { null }
+                        // New value input row
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(RokuricsColors.aqua.copy(alpha = 0.06f))
+                                .padding(horizontal = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedTextField(
+                                value = newValueDraft,
+                                onValueChange = { newValueDraft = it },
+                                modifier = Modifier.weight(1f),
+                                placeholder = { Text("新建${level.title}", fontSize = 13.sp) },
+                                textStyle = LocalTextStyle.current.copy(fontSize = 13.sp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color.Transparent,
+                                    unfocusedBorderColor = Color.Transparent
+                                )
                             )
-                            recordingManager.updateStudyFiling(recordingID, filing)
-                            studyLibraryStore.updateFiling(recordingID, filing)
-                            statusMessage = "归档已保存"
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = RokuricsColors.aqua)
-                    ) {
-                        Text("保存归档", fontSize = 14.sp)
+                            IconButton(
+                                onClick = {
+                                    val trimmed = newValueDraft.trim()
+                                    if (trimmed.isNotEmpty()) {
+                                        when (level) {
+                                            StudyFolderLevel.TYPE -> typeDraft = trimmed
+                                            StudyFolderLevel.SUBJECT -> subjectDraft = trimmed
+                                            StudyFolderLevel.CHAPTER -> chapterDraft = trimmed
+                                            StudyFolderLevel.TOPIC -> topicDraft = trimmed
+                                            else -> {}
+                                        }
+                                        newValueDraft = ""
+                                        saveFiling()
+                                        activeFilingLevel = null
+                                    }
+                                },
+                                enabled = newValueDraft.trim().isNotEmpty()
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = "新建", tint = if (newValueDraft.trim().isNotEmpty()) RokuricsColors.aqua else RokuricsColors.tertiaryText)
+                            }
+                        }
                     }
 
                     if (statusMessage != null) {
-                        Text(statusMessage!!, fontSize = 13.sp, color = RokuricsColors.mint, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                        Text(statusMessage!!, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = RokuricsColors.mint)
                     }
                 }
             }
 
-            // Actions card
+            // ── File info card (collapsible, Apple parity) ──
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(22.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.52f)),
-                border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.22f))
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.24f)),
+                border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.20f))
             ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text("操作", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = RokuricsColors.deepText)
-
-                    val uploadStatus = recording.uploadStatus
-                    val canUpload = uploadStatus != "uploaded" && uploadStatus != "uploading"
-
-                    DetailActionButton(
-                        icon = Icons.Default.CloudUpload,
-                        label = when (uploadStatus) {
-                            "uploaded" -> "已上传"
-                            "uploading" -> "上传中..."
-                            "pending" -> "等待传输"
-                            "failed" -> "重新上传"
-                            else -> "上传到 Mac"
-                        },
-                        tint = if (canUpload) RokuricsColors.aqua else RokuricsColors.softText,
-                        enabled = canUpload,
-                        onClick = { onUpload(recordingID) }
-                    )
-
-                    val hasTranscript = studyItem?.hasTranscript == true
-                    val ts = recording.transcriptionStatus
-                    val isTranscribing = ts == "queued" || ts == "running"
-
-                    if (hasTranscript) {
-                        DetailActionButton(
-                            icon = Icons.Default.TextSnippet,
-                            label = "查看转写文本",
-                            tint = RokuricsColors.mint,
-                            enabled = true,
-                            onClick = { onOpenTranscript(recordingID) }
-                        )
-                    } else if (isTranscribing) {
-                        DetailActionButton(
-                            icon = Icons.Default.TextSnippet,
-                            label = "转写中...",
-                            tint = RokuricsColors.softText,
-                            enabled = false,
-                            onClick = {}
-                        )
-                    } else {
-                        DetailActionButton(
-                            icon = Icons.Default.TextSnippet,
-                            label = "开始转写",
-                            tint = RokuricsColors.mint,
-                            enabled = true,
-                            onClick = { onRemoteTranscribe(recordingID) }
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showFileInfo = !showFileInfo },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("文件信息", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = RokuricsColors.deepText)
+                        Spacer(Modifier.weight(1f))
+                        Icon(
+                            if (showFileInfo) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = null,
+                            tint = RokuricsColors.softText
                         )
                     }
 
-                    val hasNote = studyItem?.hasNote == true
-                    val ns = recording.noteStatus
-                    val isGeneratingNote = ns == "queued" || ns == "running"
-
-                    if (hasNote) {
-                        DetailActionButton(
-                            icon = Icons.Default.AutoAwesome,
-                            label = "查看 AI 笔记",
-                            tint = RokuricsColors.softTeal,
-                            enabled = true,
-                            onClick = { onOpenNote(recordingID) }
-                        )
-                    } else if (isGeneratingNote) {
-                        DetailActionButton(
-                            icon = Icons.Default.AutoAwesome,
-                            label = "生成笔记中...",
-                            tint = RokuricsColors.softText,
-                            enabled = false,
-                            onClick = {}
-                        )
-                    } else {
-                        DetailActionButton(
-                            icon = Icons.Default.AutoAwesome,
-                            label = "生成 AI 笔记",
-                            tint = RokuricsColors.softTeal,
-                            enabled = hasTranscript,
-                            onClick = { onGenerateNote(recordingID) }
-                        )
-                    }
-
-                    DetailActionButton(
-                        icon = Icons.Default.PlayArrow,
-                        label = if (showPlayer) "收起播放器" else "播放录音",
-                        tint = RokuricsColors.coral,
-                        enabled = audioFilePath != null,
-                        onClick = { showPlayer = !showPlayer }
-                    )
-
-                    if (showPlayer && audioFilePath != null) {
-                        AudioPlayerBar(
-                            audioFilePath = audioFilePath,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
+                    if (showFileInfo) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        DetailMetadataRow("日期", dateFormat.format(recording.createdAt))
+                        DetailMetadataRow("时长", formatDuration(recording.duration))
+                        DetailMetadataRow("大小", formatFileSize(recording.fileSize))
+                        DetailMetadataRow("格式", "${recording.format} / ${recording.codec}")
+                        DetailMetadataRow("采样率", "${recording.sampleRate.toInt()} Hz · ${if (recording.channels == 1) "单声道" else "立体声"}")
+                        DetailMetadataRow("比特率", "${recording.bitrate / 1000} kbps")
                     }
                 }
             }
 
-            Spacer(Modifier.navigationBarsPadding())
-            Spacer(Modifier.height(16.dp))
+            // ── Play button (Apple parity) ──
+            if (audioFilePath != null) {
+                Button(
+                    onClick = { showPlayer = !showPlayer },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = RokuricsColors.coral)
+                ) {
+                    Icon(
+                        if (showPlayer) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(if (showPlayer) "收起播放器" else "播放录音", fontSize = 14.sp)
+                }
+
+                if (showPlayer) {
+                    AudioPlayerBar(
+                        audioFilePath = audioFilePath,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.navigationBarsPadding())
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 
@@ -414,10 +511,98 @@ fun RecordingStudyDetailPage(
     }
 }
 
+// ── Detail Grid Button (Apple parity: MacStudyDetailActionButton) ──
+
 @Composable
-private fun MetadataRow(label: String, value: String) {
+private fun DetailGridButton(
+    modifier: Modifier = Modifier,
+    title: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .clickable(enabled = enabled, onClick = onClick)
+            .rokuricsGlassCard(
+                cornerRadius = 14.dp,
+                fillOpacity = if (enabled) 0.28f else 0.16f,
+                strokeOpacity = if (enabled) 0.24f else 0.12f,
+                shadowOpacity = if (enabled) 0.04f else 0.02f,
+                shadowRadius = 6.dp
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = if (enabled) RokuricsColors.deepText else RokuricsColors.tertiaryText,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = title,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (enabled) RokuricsColors.deepText else RokuricsColors.tertiaryText,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+// ── Filing Level Chip (Apple parity: MacStudyFilingLevelButton) ──
+
+@Composable
+private fun FilingLevelChip(
+    level: StudyFolderLevel,
+    value: String,
+    isActive: Boolean,
+    isEnabled: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier.clickable(enabled = isEnabled, onClick = onClick),
+        shape = RoundedCornerShape(13.dp),
+        color = if (isActive) RokuricsColors.aqua.copy(alpha = 0.24f) else RokuricsColors.aqua.copy(alpha = 0.10f),
+        border = BorderStroke(
+            0.5.dp,
+            if (isActive) RokuricsColors.aqua.copy(alpha = 0.42f) else Color.White.copy(alpha = 0.14f)
+        )
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+            Text(
+                text = level.title,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = RokuricsColors.tertiaryText
+            )
+            Text(
+                text = value.ifEmpty { "未选择" },
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isEnabled) RokuricsColors.deepText else RokuricsColors.tertiaryText,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+// ── Detail Metadata Row ──
+
+@Composable
+private fun DetailMetadataRow(label: String, value: String) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -426,121 +611,7 @@ private fun MetadataRow(label: String, value: String) {
     }
 }
 
-@Composable
-private fun FilingEditRow(
-    level: StudyFolderLevel,
-    value: String,
-    candidates: List<String>,
-    isExpanded: Boolean,
-    onToggle: () -> Unit,
-    onSelect: (String) -> Unit,
-    onValueChange: (String) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(RokuricsColors.aqua.copy(alpha = 0.06f))
-                .border(1.dp, RokuricsColors.aqua.copy(alpha = 0.18f), RoundedCornerShape(16.dp))
-                .clickable(onClick = onToggle)
-                .padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = level.title,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = RokuricsColors.softText,
-                modifier = Modifier.width(56.dp)
-            )
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("选择或输入${level.title}", fontSize = 13.sp) },
-                textStyle = LocalTextStyle.current.copy(fontSize = 13.sp),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent
-                )
-            )
-            Icon(
-                if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = null,
-                tint = RokuricsColors.softText,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-
-        if (isExpanded && candidates.isNotEmpty()) {
-            Surface(
-                shape = RoundedCornerShape(14.dp),
-                color = Color.White.copy(alpha = 0.9f),
-                shadowElevation = 4.dp
-            ) {
-                Column(modifier = Modifier.padding(8.dp)) {
-                    candidates.take(8).forEach { candidate ->
-                        val isSelected = value == candidate
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onSelect(candidate) }
-                                .padding(vertical = 2.dp),
-                            shape = RoundedCornerShape(10.dp),
-                            color = if (isSelected) RokuricsColors.aqua.copy(alpha = 0.12f) else Color.Transparent
-                        ) {
-                            Text(
-                                text = candidate,
-                                fontSize = 13.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isSelected) RokuricsColors.aqua else RokuricsColors.deepText,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DetailActionButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    tint: Color,
-    enabled: Boolean,
-    onClick: () -> Unit
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = enabled, onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        color = if (enabled) tint.copy(alpha = 0.08f) else Color.Transparent,
-        border = if (enabled) androidx.compose.foundation.BorderStroke(1.dp, tint.copy(alpha = 0.22f))
-        else androidx.compose.foundation.BorderStroke(1.dp, Color.Transparent)
-    ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(icon, contentDescription = null, tint = if (enabled) tint else RokuricsColors.softText, modifier = Modifier.size(22.dp))
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = label,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = if (enabled) RokuricsColors.deepText else RokuricsColors.softText
-            )
-            Spacer(Modifier.weight(1f))
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = RokuricsColors.softText, modifier = Modifier.size(20.dp))
-        }
-    }
-}
+// ── Format Helpers ──
 
 private fun formatDuration(seconds: Double): String {
     val totalSeconds = seconds.toInt().coerceAtLeast(0)

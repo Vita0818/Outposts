@@ -31,7 +31,7 @@ import { UserProfile } from "@bundle:com.vita0818.rokurics/entry/ets/models/User
 import { SettingsStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/SettingsStore";
 import { OpenAICompatibleClient } from "@bundle:com.vita0818.rokurics/entry/ets/services/OpenAICompatibleClient";
 import type { AIConfiguration, ProviderHealthResult } from "@bundle:com.vita0818.rokurics/entry/ets/services/OpenAICompatibleClient";
-import { RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { colorAlpha, RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 function formatTime(d: Date): string {
     const h = String(d.getHours()).padStart(2, '0');
     const m = String(d.getMinutes()).padStart(2, '0');
@@ -514,7 +514,7 @@ class SettingsPage extends ViewPU {
             Circle.create();
             Circle.width(80);
             Circle.height(80);
-            Circle.fill(RokuricsColors.aqua + '20');
+            Circle.fill(colorAlpha(RokuricsColors.aqua, '20'));
         }, Circle);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(this.profile.initial);
@@ -546,7 +546,7 @@ class SettingsPage extends ViewPU {
             // Profile form
             Column.borderRadius(20);
             // Profile form
-            Column.backgroundColor(RokuricsColors.glassSurface + '66');
+            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 6 });
@@ -562,7 +562,7 @@ class SettingsPage extends ViewPU {
             TextInput.create({ text: this.displayName, placeholder: '输入显示名称' });
             TextInput.fontSize(16);
             TextInput.fontColor(RokuricsColors.deepText);
-            TextInput.backgroundColor(RokuricsColors.glassSurface + '80');
+            TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'));
             TextInput.borderRadius(10);
             TextInput.padding({ left: 14, right: 14, top: 10, bottom: 10 });
             TextInput.onChange((value: string) => { this.displayName = value; });
@@ -582,7 +582,7 @@ class SettingsPage extends ViewPU {
             TextInput.create({ text: this.handle, placeholder: '输入账号' });
             TextInput.fontSize(16);
             TextInput.fontColor(RokuricsColors.deepText);
-            TextInput.backgroundColor(RokuricsColors.glassSurface + '80');
+            TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'));
             TextInput.borderRadius(10);
             TextInput.padding({ left: 14, right: 14, top: 10, bottom: 10 });
             TextInput.onChange((value: string) => { this.handle = value; });
@@ -633,7 +633,7 @@ class SettingsPage extends ViewPU {
             // AI Provider Configuration
             Column.borderRadius(20);
             // AI Provider Configuration
-            Column.backgroundColor(RokuricsColors.glassSurface + '66');
+            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('AI 提供商配置');
@@ -660,7 +660,7 @@ class SettingsPage extends ViewPU {
             Button.createWithChild();
             Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
             Button.borderRadius({ topLeft: 8, bottomLeft: 8 });
-            Button.backgroundColor(this.aiProviderKind === 'mock' ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50');
+            Button.backgroundColor(this.aiProviderKind === 'mock' ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
             Button.onClick(() => { this.aiProviderKind = 'mock'; });
         }, Button);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -674,7 +674,7 @@ class SettingsPage extends ViewPU {
             Button.createWithChild();
             Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
             Button.borderRadius({ topRight: 8, bottomRight: 8 });
-            Button.backgroundColor(this.aiProviderKind === 'openaiCompatible' ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50');
+            Button.backgroundColor(this.aiProviderKind === 'openaiCompatible' ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
             Button.onClick(() => { this.aiProviderKind = 'openaiCompatible'; });
         }, Button);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -707,7 +707,7 @@ class SettingsPage extends ViewPU {
                         TextInput.create({ text: this.aiBaseURL, placeholder: 'https://api.openai.com/v1' });
                         TextInput.fontSize(14);
                         TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                         TextInput.borderRadius(8);
                         TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
                         TextInput.onChange((value: string) => { this.aiBaseURL = value; });
@@ -726,7 +726,7 @@ class SettingsPage extends ViewPU {
                         TextInput.create({ text: this.aiModelName, placeholder: 'gpt-4o-mini' });
                         TextInput.fontSize(14);
                         TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                         TextInput.borderRadius(8);
                         TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
                         TextInput.onChange((value: string) => { this.aiModelName = value; });
@@ -746,7 +746,7 @@ class SettingsPage extends ViewPU {
                         TextInput.fontSize(14);
                         TextInput.fontColor(RokuricsColors.deepText);
                         TextInput.type(InputType.Password);
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                         TextInput.borderRadius(8);
                         TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
                         TextInput.onChange((value: string) => { this.aiAPIKey = value; });
@@ -771,7 +771,7 @@ class SettingsPage extends ViewPU {
                         TextInput.fontSize(14);
                         TextInput.fontColor(RokuricsColors.deepText);
                         TextInput.type(InputType.Number);
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                         TextInput.borderRadius(8);
                         TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
                         TextInput.onChange((value: string) => {
@@ -796,7 +796,7 @@ class SettingsPage extends ViewPU {
                         TextInput.fontSize(14);
                         TextInput.fontColor(RokuricsColors.deepText);
                         TextInput.type(InputType.Number);
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                         TextInput.borderRadius(8);
                         TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
                         TextInput.onChange((value: string) => {
@@ -845,7 +845,7 @@ class SettingsPage extends ViewPU {
             // Provider health summary
             Column.borderRadius(12);
             // Provider health summary
-            Column.backgroundColor(RokuricsColors.glassSurface + '30');
+            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '30'));
             // Provider health summary
             Column.margin({ top: 4 });
         }, Column);
@@ -998,7 +998,7 @@ class SettingsPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
                         Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
-                        Button.border({ width: 1, color: RokuricsColors.aqua + '40', radius: 8 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 8 });
                         Button.backgroundColor(Color.Transparent);
                         Button.enabled(!this.isTestingConnection);
                         Button.onClick(() => this.testConnection());
@@ -1067,7 +1067,7 @@ class SettingsPage extends ViewPU {
             // Upload server configuration
             Column.borderRadius(20);
             // Upload server configuration
-            Column.backgroundColor(RokuricsColors.glassSurface + '66');
+            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('上传服务器配置');
@@ -1089,7 +1089,7 @@ class SettingsPage extends ViewPU {
             TextInput.create({ text: this.uploadServerURL, placeholder: 'http://your-server.com' });
             TextInput.fontSize(14);
             TextInput.fontColor(RokuricsColors.deepText);
-            TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+            TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
             TextInput.borderRadius(8);
             TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
             TextInput.onChange((v: string) => { this.uploadServerURL = v; });
@@ -1109,7 +1109,7 @@ class SettingsPage extends ViewPU {
             TextInput.fontSize(14);
             TextInput.fontColor(RokuricsColors.deepText);
             TextInput.type(InputType.Password);
-            TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+            TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
             TextInput.borderRadius(8);
             TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
             TextInput.onChange((v: string) => { this.uploadAPIKey = v; });
@@ -1162,7 +1162,7 @@ class SettingsPage extends ViewPU {
             // About
             Column.borderRadius(20);
             // About
-            Column.backgroundColor(RokuricsColors.glassSurface + '40');
+            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
             // About
             Column.margin({ top: 12 });
         }, Column);

@@ -29,7 +29,7 @@ import type { RecordingManager } from "@bundle:com.vita0818.rokurics/entry/ets/s
 import { StudyFilingPath, filingLevelTitle } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import type { RecordingMetadata } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import { formatDuration, formatShortTime } from "@bundle:com.vita0818.rokurics/entry/ets/utils/FormatHelpers";
-import { RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity, glassStrokeMidOpacity, glassAccentOpacity } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { colorAlpha, RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity, glassStrokeMidOpacity, glassAccentOpacity } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 import { StudyFolderStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/StudyFolderStore";
 import { BackIcon, BulletListIcon, TrashIcon, EllipsisIcon, DocBadgeIcon, NoteBadgeIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
 const LEVELS: string[] = ['type', 'subject', 'chapter', 'topic'];
@@ -553,9 +553,9 @@ class RecordingLibraryPage extends ViewPU {
             Button.width(44);
             Button.height(44);
             Button.borderRadius(22);
-            Button.backgroundColor(RokuricsColors.glassSurface + glassFillOpacity);
+            Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
             Button.shadow({
-                color: RokuricsColors.shadowColor + '10',
+                color: colorAlpha(RokuricsColors.shadowColor, '10'),
                 radius: 12,
                 offsetY: 6
             });
@@ -654,7 +654,7 @@ class RecordingLibraryPage extends ViewPU {
                         Column.width('100%');
                         Column.height('100%');
                         Column.justifyContent(FlexAlign.Center);
-                        Column.backgroundColor('#00000050');
+                        Column.backgroundColor('#50000000');
                         Column.position({ x: 0, y: 0 });
                         Column.onClick(() => { this.showRenameDialog = false; });
                     }, Column);
@@ -664,7 +664,7 @@ class RecordingLibraryPage extends ViewPU {
                         Column.borderRadius(20);
                         Column.backgroundColor(Color.White);
                         Column.width('85%');
-                        Column.shadow({ radius: 30, color: '#00000020' });
+                        Column.shadow({ radius: 30, color: '#20000000' });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('重命名分类');
@@ -677,7 +677,7 @@ class RecordingLibraryPage extends ViewPU {
                         TextInput.create({ text: this.renameText, placeholder: '新名称' });
                         TextInput.fontSize(16);
                         TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + '80');
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'));
                         TextInput.borderRadius(10);
                         TextInput.padding(14);
                         TextInput.onChange((v: string) => { this.renameText = v; });
@@ -711,7 +711,7 @@ class RecordingLibraryPage extends ViewPU {
                                 Row.justifyContent(FlexAlign.Center);
                                 Row.border({
                                     width: this.selectedColor === color ? 2 : 1,
-                                    color: this.selectedColor === color ? Color.White : color + '40',
+                                    color: this.selectedColor === color ? Color.White : colorAlpha(color, '40'),
                                     radius: 14
                                 });
                                 Row.onClick(() => { this.selectedColor = color; });
@@ -796,7 +796,7 @@ class RecordingLibraryPage extends ViewPU {
                         Column.width('100%');
                         Column.height('100%');
                         Column.justifyContent(FlexAlign.Center);
-                        Column.backgroundColor('#00000050');
+                        Column.backgroundColor('#50000000');
                         Column.position({ x: 0, y: 0 });
                         Column.onClick(() => { this.showDeleteConfirm = false; });
                     }, Column);
@@ -806,7 +806,7 @@ class RecordingLibraryPage extends ViewPU {
                         Column.borderRadius(20);
                         Column.backgroundColor(Color.White);
                         Column.width('85%');
-                        Column.shadow({ radius: 30, color: '#00000020' });
+                        Column.shadow({ radius: 30, color: '#20000000' });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('删除分类');
@@ -929,7 +929,7 @@ class RecordingLibraryPage extends ViewPU {
                         TextInput.height(36);
                         TextInput.borderRadius(18);
                         TextInput.padding({ left: 14, right: 14 });
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + glassFillOpacity);
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
                         TextInput.onChange((v: string) => { this.searchQuery = v; });
                     }, TextInput);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -937,7 +937,7 @@ class RecordingLibraryPage extends ViewPU {
                         Button.height(32);
                         Button.padding({ left: 10, right: 10 });
                         Button.borderRadius(16);
-                        Button.backgroundColor(RokuricsColors.aqua + '14');
+                        Button.backgroundColor(colorAlpha(RokuricsColors.aqua, '14'));
                         Button.onClick(() => { this.sortOrder = this.sortOrder === 'newest' ? 'oldest' : 'newest'; });
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1019,11 +1019,11 @@ class RecordingLibraryPage extends ViewPU {
                     Column.padding(14);
                     Column.borderRadius(14);
                     Column.backgroundColor(this.folderColorMap[group.label] ?
-                        this.folderColorMap[group.label] + '22' : RokuricsColors.glassSurface + glassFillOpacity);
+                        colorAlpha(this.folderColorMap[group.label], '22') : colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
                     Column.border({
                         width: this.folderColorMap[group.label] ? 1 : 0,
                         color: this.folderColorMap[group.label] ?
-                            this.folderColorMap[group.label] + '44' : Color.Transparent,
+                            colorAlpha(this.folderColorMap[group.label], '44') : Color.Transparent,
                         radius: 14
                     });
                     Column.onClick(() => {
@@ -1221,7 +1221,7 @@ class RecordingLibraryPage extends ViewPU {
                                 Column.create({ space: 4 });
                                 Column.padding({ left: 12, right: 12, top: 8, bottom: 8 });
                                 Column.borderRadius(12);
-                                Column.backgroundColor(RokuricsColors.glassSurface + glassFillOpacity);
+                                Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
                                 Column.border({
                                     width: 1,
                                     color: {
@@ -1321,9 +1321,9 @@ class RecordingLibraryPage extends ViewPU {
                                         Row.width('100%');
                                         Row.padding(14);
                                         Row.borderRadius(16);
-                                        Row.backgroundColor(RokuricsColors.glassSurface + glassFillOpacity);
+                                        Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
                                         Row.shadow({
-                                            color: RokuricsColors.shadowColor + '08',
+                                            color: colorAlpha(RokuricsColors.shadowColor, '08'),
                                             radius: 10, offsetY: 5
                                         });
                                         Row.border({
@@ -1386,7 +1386,7 @@ class RecordingLibraryPage extends ViewPU {
                                                     Row.create({ space: 3 });
                                                     Row.padding({ left: 6, right: 6, top: 2, bottom: 2 });
                                                     Row.borderRadius(6);
-                                                    Row.backgroundColor(RokuricsColors.mint + '18');
+                                                    Row.backgroundColor(colorAlpha(RokuricsColors.mint, '18'));
                                                 }, Row);
                                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                                     Circle.create();
@@ -1468,8 +1468,8 @@ class RecordingLibraryPage extends ViewPU {
             Stack.width(50);
             Stack.height(50);
             Stack.borderRadius(25);
-            Stack.backgroundColor(RokuricsColors.glassSurface + '56');
-            Stack.shadow({ color: RokuricsColors.shadowColor + '08', radius: 9, offsetY: 4 });
+            Stack.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '56'));
+            Stack.shadow({ color: colorAlpha(RokuricsColors.shadowColor, '08'), radius: 9, offsetY: 4 });
             Stack.border({
                 width: 1,
                 color: {
@@ -1578,8 +1578,8 @@ class RecordingLibraryPage extends ViewPU {
                                         Row.width('100%');
                                         Row.padding(14);
                                         Row.borderRadius(16);
-                                        Row.backgroundColor(RokuricsColors.glassSurface + glassFillOpacity);
-                                        Row.shadow({ color: RokuricsColors.shadowColor + '08', radius: 8, offsetY: 4 });
+                                        Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
+                                        Row.shadow({ color: colorAlpha(RokuricsColors.shadowColor, '08'), radius: 8, offsetY: 4 });
                                         Row.border({
                                             width: 1,
                                             color: {
@@ -1671,8 +1671,8 @@ class RecordingLibraryPage extends ViewPU {
             Row.create({ space: 4 });
             Row.padding({ left: 10, right: 10, top: 5, bottom: 5 });
             Row.borderRadius(12);
-            Row.backgroundColor(active ? RokuricsColors.aqua : RokuricsColors.glassSurface + glassFillOpacity);
-            Row.border({ width: active ? 0 : 1, color: RokuricsColors.softText + '18', radius: 12 });
+            Row.backgroundColor(active ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
+            Row.border({ width: active ? 0 : 1, color: colorAlpha(RokuricsColors.softText, '18'), radius: 12 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             If.create();

@@ -51,7 +51,7 @@ import { ExportManager } from "@bundle:com.vita0818.rokurics/entry/ets/services/
 import type { ExportFormat } from "@bundle:com.vita0818.rokurics/entry/ets/services/ExportManager";
 import { RecordingUploadClient } from "@bundle:com.vita0818.rokurics/entry/ets/services/RecordingUploadClient";
 import { SettingsStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/SettingsStore";
-import { RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { colorAlpha, RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 const LEVELS: string[] = ['type', 'subject', 'chapter', 'topic'];
 const FILING_OPTIONS: Record<string, string[]> = {
     'type': ['课堂录音', '自学笔记', '会议记录', '访谈采访', '灵感记录', '其他'],
@@ -620,10 +620,10 @@ class RecordingDetailPage extends ViewPU {
             // Glass circle back button
             Button.borderRadius(22);
             // Glass circle back button
-            Button.backgroundColor(RokuricsColors.glassSurface + '66');
+            Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
             // Glass circle back button
             Button.shadow({
-                color: RokuricsColors.shadowColor + '10',
+                color: colorAlpha(RokuricsColors.shadowColor, '10'),
                 radius: 12,
                 offsetY: 6
             });
@@ -719,7 +719,7 @@ class RecordingDetailPage extends ViewPU {
                         Column.create({ space: 6 });
                         Column.padding(14);
                         Column.borderRadius(14);
-                        Column.backgroundColor(RokuricsColors.glassSurface + 'A8');
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'A8'));
                         Column.border({
                             width: 1,
                             color: {
@@ -733,7 +733,7 @@ class RecordingDetailPage extends ViewPU {
                             radius: 14
                         } as BorderOptions);
                         Column.shadow({
-                            color: RokuricsColors.shadowColor + '06',
+                            color: colorAlpha(RokuricsColors.shadowColor, '06'),
                             radius: 8,
                             offsetY: 4
                         });
@@ -786,7 +786,7 @@ class RecordingDetailPage extends ViewPU {
                                     Column.create({ space: 12 });
                                     Column.padding(16);
                                     Column.borderRadius(14);
-                                    Column.backgroundColor(RokuricsColors.glassSurface + '40');
+                                    Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                                 }, Column);
                                 this.FilingEditRow.bind(this)('门类', this.editType, FILING_OPTIONS['type'], (v: string) => { this.editType = (v === this.editType ? '' : v); });
                                 this.FilingEditRow.bind(this)('课程', this.editSubject, FILING_OPTIONS['subject'], (v: string) => { this.editSubject = (v === this.editSubject ? '' : v); });
@@ -803,7 +803,7 @@ class RecordingDetailPage extends ViewPU {
                                     TextInput.create({ text: this.editChapter, placeholder: '输入章节名' });
                                     TextInput.fontSize(14);
                                     TextInput.fontColor(RokuricsColors.deepText);
-                                    TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+                                    TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                                     TextInput.borderRadius(8);
                                     TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
                                     TextInput.onChange((value: string) => { this.editChapter = value; });
@@ -822,7 +822,7 @@ class RecordingDetailPage extends ViewPU {
                                     TextInput.create({ text: this.editTopic, placeholder: '输入主题名' });
                                     TextInput.fontSize(14);
                                     TextInput.fontColor(RokuricsColors.deepText);
-                                    TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+                                    TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                                     TextInput.borderRadius(8);
                                     TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
                                     TextInput.onChange((value: string) => { this.editTopic = value; });
@@ -859,7 +859,7 @@ class RecordingDetailPage extends ViewPU {
                                             Row.width('100%');
                                             Row.padding(10);
                                             Row.borderRadius(8);
-                                            Row.backgroundColor(RokuricsColors.glassSurface + 'A8');
+                                            Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'A8'));
                                             Row.border({
                                                 width: 1,
                                                 color: {
@@ -913,7 +913,7 @@ class RecordingDetailPage extends ViewPU {
                         Column.create({ space: 6 });
                         Column.padding(14);
                         Column.borderRadius(14);
-                        Column.backgroundColor(RokuricsColors.glassSurface + 'A8');
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'A8'));
                         Column.border({
                             width: 1,
                             color: {
@@ -927,7 +927,7 @@ class RecordingDetailPage extends ViewPU {
                             radius: 14
                         } as BorderOptions);
                         Column.shadow({
-                            color: RokuricsColors.shadowColor + '06',
+                            color: colorAlpha(RokuricsColors.shadowColor, '06'),
                             radius: 8,
                             offsetY: 4
                         });
@@ -946,7 +946,7 @@ class RecordingDetailPage extends ViewPU {
                         // AI Processing
                         Column.borderRadius(14);
                         // AI Processing
-                        Column.backgroundColor(RokuricsColors.glassSurface + 'A8');
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'A8'));
                         // AI Processing
                         Column.border({
                             width: 1,
@@ -962,7 +962,7 @@ class RecordingDetailPage extends ViewPU {
                         } as BorderOptions);
                         // AI Processing
                         Column.shadow({
-                            color: RokuricsColors.shadowColor + '06',
+                            color: colorAlpha(RokuricsColors.shadowColor, '06'),
                             radius: 8,
                             offsetY: 4
                         });
@@ -1019,7 +1019,7 @@ class RecordingDetailPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
                         Button.padding({ left: 14, right: 14, top: 7, bottom: 7 });
-                        Button.border({ width: 1, color: RokuricsColors.aqua + '40', radius: 8 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 8 });
                         Button.backgroundColor(Color.Transparent);
                         Button.enabled(!this.isProcessing);
                         Button.onClick(() => this.runTranscription());
@@ -1035,7 +1035,7 @@ class RecordingDetailPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
                         Button.padding({ left: 14, right: 14, top: 7, bottom: 7 });
-                        Button.border({ width: 1, color: RokuricsColors.aqua + '40', radius: 8 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 8 });
                         Button.backgroundColor(Color.Transparent);
                         Button.enabled(!this.isProcessing);
                         Button.onClick(() => this.runFullProcessing());
@@ -1104,7 +1104,7 @@ class RecordingDetailPage extends ViewPU {
                                     Scroll.create();
                                     Scroll.constraintSize({ maxHeight: 200 });
                                     Scroll.borderRadius(8);
-                                    Scroll.backgroundColor(RokuricsColors.glassSurface + '60');
+                                    Scroll.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '60'));
                                     Scroll.width('100%');
                                 }, Scroll);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1161,7 +1161,7 @@ class RecordingDetailPage extends ViewPU {
                                     Scroll.create();
                                     Scroll.constraintSize({ maxHeight: 200 });
                                     Scroll.borderRadius(8);
-                                    Scroll.backgroundColor(RokuricsColors.glassSurface + '60');
+                                    Scroll.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '60'));
                                     Scroll.width('100%');
                                 }, Scroll);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1192,7 +1192,7 @@ class RecordingDetailPage extends ViewPU {
                         // Export - glass card
                         Column.borderRadius(14);
                         // Export - glass card
-                        Column.backgroundColor(RokuricsColors.glassSurface + 'A8');
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'A8'));
                         // Export - glass card
                         Column.border({
                             width: 1,
@@ -1208,7 +1208,7 @@ class RecordingDetailPage extends ViewPU {
                         } as BorderOptions);
                         // Export - glass card
                         Column.shadow({
-                            color: RokuricsColors.shadowColor + '06',
+                            color: colorAlpha(RokuricsColors.shadowColor, '06'),
                             radius: 8,
                             offsetY: 4
                         });
@@ -1229,7 +1229,7 @@ class RecordingDetailPage extends ViewPU {
                         Button.createWithChild();
                         Button.padding({ left: 14, right: 14, top: 6, bottom: 6 });
                         Button.borderRadius(14);
-                        Button.backgroundColor(this.exportFormat === 'Markdown' ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50');
+                        Button.backgroundColor(this.exportFormat === 'Markdown' ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
                         Button.onClick(() => { this.exportFormat = 'Markdown'; });
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1244,7 +1244,7 @@ class RecordingDetailPage extends ViewPU {
                         Button.createWithChild();
                         Button.padding({ left: 14, right: 14, top: 6, bottom: 6 });
                         Button.borderRadius(14);
-                        Button.backgroundColor(this.exportFormat === 'JSON' ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50');
+                        Button.backgroundColor(this.exportFormat === 'JSON' ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
                         Button.onClick(() => { this.exportFormat = 'JSON'; });
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -1279,7 +1279,7 @@ class RecordingDetailPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
                         Button.padding({ left: 14, right: 14, top: 7, bottom: 7 });
-                        Button.border({ width: 1, color: RokuricsColors.mint + '40', radius: 8 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.mint, '40'), radius: 8 });
                         Button.backgroundColor(Color.Transparent);
                         Button.enabled(!this.isExporting);
                         Button.onClick(() => this.exportAll());
@@ -1295,7 +1295,7 @@ class RecordingDetailPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
                         Button.padding({ left: 14, right: 14, top: 7, bottom: 7 });
-                        Button.border({ width: 1, color: RokuricsColors.coral + '40', radius: 8 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.coral, '40'), radius: 8 });
                         Button.backgroundColor(Color.Transparent);
                         Button.onClick(() => this.loadExportList());
                     }, Button);
@@ -1335,7 +1335,7 @@ class RecordingDetailPage extends ViewPU {
                                     Column.width('100%');
                                     Column.padding(8);
                                     Column.borderRadius(8);
-                                    Column.backgroundColor(RokuricsColors.glassSurface + '30');
+                                    Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '30'));
                                 }, Column);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Row.create();
@@ -1386,7 +1386,7 @@ class RecordingDetailPage extends ViewPU {
                                                     Row.width('100%');
                                                     Row.padding({ left: 10, right: 10, top: 6, bottom: 6 });
                                                     Row.borderRadius(6);
-                                                    Row.backgroundColor(RokuricsColors.glassSurface + '40');
+                                                    Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                                                 }, Row);
                                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                                     Text.create(file);
@@ -1460,7 +1460,7 @@ class RecordingDetailPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
                         Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
-                        Button.border({ width: 1, color: RokuricsColors.aqua + '40', radius: 10 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 10 });
                         Button.backgroundColor(Color.Transparent);
                         Button.onClick(() => this.togglePlayback());
                     }, Button);
@@ -1493,7 +1493,7 @@ class RecordingDetailPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
                         Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
-                        Button.border({ width: 1, color: RokuricsColors.aqua + '40', radius: 10 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 10 });
                         Button.backgroundColor(Color.Transparent);
                         Button.enabled(!this.isUploading);
                         Button.onClick(() => this.uploadRecording());
@@ -1531,7 +1531,7 @@ class RecordingDetailPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
                         Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
-                        Button.border({ width: 1, color: RokuricsColors.aqua + '40', radius: 10 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 10 });
                         Button.backgroundColor(Color.Transparent);
                         Button.onClick(() => this.openRenameDialog());
                     }, Button);
@@ -1545,7 +1545,7 @@ class RecordingDetailPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
                         Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
-                        Button.border({ width: 1, color: RokuricsColors.coral + '40', radius: 10 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.coral, '40'), radius: 10 });
                         Button.backgroundColor(Color.Transparent);
                         Button.onClick(() => this.deleteAndBack());
                     }, Button);
@@ -1575,7 +1575,7 @@ class RecordingDetailPage extends ViewPU {
                         Column.width('100%');
                         Column.height('100%');
                         Column.justifyContent(FlexAlign.Center);
-                        Column.backgroundColor('#00000050');
+                        Column.backgroundColor('#50000000');
                         Column.position({ x: 0, y: 0 });
                         Column.onClick(() => { this.showRenameDialog = false; });
                     }, Column);
@@ -1585,7 +1585,7 @@ class RecordingDetailPage extends ViewPU {
                         Column.borderRadius(20);
                         Column.backgroundColor(Color.White);
                         Column.width('85%');
-                        Column.shadow({ radius: 30, color: '#00000020' });
+                        Column.shadow({ radius: 30, color: '#20000000' });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('重命名录音');
@@ -1598,7 +1598,7 @@ class RecordingDetailPage extends ViewPU {
                         TextInput.create({ text: this.renameText, placeholder: '输入新标题' });
                         TextInput.fontSize(16);
                         TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + '80');
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'));
                         TextInput.borderRadius(10);
                         TextInput.padding(14);
                         TextInput.onChange((value: string) => { this.renameText = value; });
@@ -1844,7 +1844,7 @@ class RecordingDetailPage extends ViewPU {
             Row.width('100%');
             Row.padding(14);
             Row.borderRadius(12);
-            Row.backgroundColor(RokuricsColors.glassSurface + '66');
+            Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(label);
@@ -1908,7 +1908,7 @@ class RecordingDetailPage extends ViewPU {
                     Text.fontColor(selectedValue === option ? Color.White : RokuricsColors.softText);
                     Text.padding({ left: 10, right: 10, top: 5, bottom: 5 });
                     Text.borderRadius(12);
-                    Text.backgroundColor(selectedValue === option ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50');
+                    Text.backgroundColor(selectedValue === option ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
                     Text.onClick(() => onSelect(option));
                 }, Text);
                 Text.pop();

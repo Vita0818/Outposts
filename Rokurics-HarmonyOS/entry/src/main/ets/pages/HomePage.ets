@@ -5,9 +5,9 @@ import { display } from '@kit.ArkUI'
 import { getSharedRecordingManager, RecordingManager } from '../services/RecordingManager'
 import { RecordingState } from '../models/RecordingModels'
 import { formatClock } from '../utils/FormatHelpers'
-import { RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity,
+import { colorAlpha, RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity,
   glassStrokeMidOpacity, glassAccentOpacity } from '../utils/RokuricsTheme'
-import { GearIcon, BooksIcon, ChatIcon, ConnectionIcon } from '../utils/CustomIcons'
+import { PersonIcon, BooksIcon, ChatIcon, ConnectionIcon } from '../utils/CustomIcons'
 import { hapticLight } from '../utils/HapticFeedback'
 import { DeviceConnectionCard } from '../components/DeviceConnectionCard'
 
@@ -86,14 +86,14 @@ struct HomePage {
 
           // Profile avatar button (glass circle)
           Button() {
-            GearIcon(18 * this.headerScale, RokuricsColors.aqua)
+            PersonIcon(20 * this.headerScale, RokuricsColors.aqua)
           }
           .width(46 * this.headerScale)
           .height(46 * this.headerScale)
           .borderRadius(23 * this.headerScale)
-          .backgroundColor(RokuricsColors.glassSurface + '5C')
+          .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '5C'))
           .shadow({
-            color: RokuricsColors.shadowColor + '14',
+            color: colorAlpha(RokuricsColors.shadowColor, '14'),
             radius: 12,
             offsetY: 6
           })
@@ -101,9 +101,9 @@ struct HomePage {
             width: 1,
             color: {
               colors: [
-                [0xFFFFFF, 0.50],
-                [0xEFFAF8, 0.16],
-                [0x59C7C2, 0.14]
+                [0xFFFFFF, 0.28],
+                [RokuricsColors.glassStroke, 0.12],
+                [RokuricsColors.aqua, 0.24]
               ],
               direction: GradientDirection.RightBottom
             },
@@ -127,41 +127,93 @@ struct HomePage {
           Stack() {
             // Orbiting ambient satellites (animated)
             Stack() {
-              // Satellite 1
+              // Satellite 1: mint → paleAqua, opacity 0.42
               Circle()
                 .width(88 * this.orbScale)
                 .height(88 * this.orbScale)
-                .fill(RokuricsColors.mint + '40')
+                .linearGradient({
+                  direction: GradientDirection.RightBottom,
+                  colors: [
+                    [RokuricsColors.mint, 0.42],
+                    [RokuricsColors.paleAqua, 0.42]
+                  ]
+                })
+                .stroke('#FFFFFF')
+                .strokeWidth(1)
+                .shadow({
+                  color: colorAlpha(RokuricsColors.shadowColor, '08'),
+                  radius: 14,
+                  offsetY: 8
+                })
                 .position({
                   x: (94 - this.breathePhase * 6) * this.orbScale + '%',
                   y: (28 + this.breathePhase * 4) * this.orbScale + '%'
                 })
 
-              // Satellite 2
+              // Satellite 2: skyCyan → mistGreen, opacity 0.32
               Circle()
                 .width(76 * this.orbScale)
                 .height(76 * this.orbScale)
-                .fill(RokuricsColors.skyCyan + '32')
+                .linearGradient({
+                  direction: GradientDirection.RightBottom,
+                  colors: [
+                    [RokuricsColors.skyCyan, 0.32],
+                    [RokuricsColors.mistGreen, 0.32]
+                  ]
+                })
+                .stroke('#FFFFFF')
+                .strokeWidth(1)
+                .shadow({
+                  color: colorAlpha(RokuricsColors.shadowColor, '08'),
+                  radius: 14,
+                  offsetY: 8
+                })
                 .position({
                   x: (60 + this.breathePhase * 5) * this.orbScale + '%',
                   y: (32 - this.breathePhase * 3) * this.orbScale + '%'
                 })
 
-              // Satellite 3
+              // Satellite 3: aqua → paleAqua, opacity 0.30
               Circle()
                 .width(74 * this.orbScale)
                 .height(74 * this.orbScale)
-                .fill(RokuricsColors.aqua + '28')
+                .linearGradient({
+                  direction: GradientDirection.RightBottom,
+                  colors: [
+                    [RokuricsColors.aqua, 0.30],
+                    [RokuricsColors.paleAqua, 0.30]
+                  ]
+                })
+                .stroke('#FFFFFF')
+                .strokeWidth(1)
+                .shadow({
+                  color: colorAlpha(RokuricsColors.shadowColor, '08'),
+                  radius: 14,
+                  offsetY: 8
+                })
                 .position({
                   x: (50 - this.breathePhase * 4) * this.orbScale + '%',
                   y: (68 + this.breathePhase * 3) * this.orbScale + '%'
                 })
 
-              // Satellite 4
+              // Satellite 4: mistGreen → mint, opacity 0.34
               Circle()
                 .width(68 * this.orbScale)
                 .height(68 * this.orbScale)
-                .fill(RokuricsColors.mistGreen + '34')
+                .linearGradient({
+                  direction: GradientDirection.RightBottom,
+                  colors: [
+                    [RokuricsColors.mistGreen, 0.34],
+                    [RokuricsColors.mint, 0.34]
+                  ]
+                })
+                .stroke('#FFFFFF')
+                .strokeWidth(1)
+                .shadow({
+                  color: colorAlpha(RokuricsColors.shadowColor, '08'),
+                  radius: 14,
+                  offsetY: 8
+                })
                 .position({
                   x: (28 + this.breathePhase * 5) * this.orbScale + '%',
                   y: (62 - this.breathePhase * 3) * this.orbScale + '%'
@@ -174,7 +226,7 @@ struct HomePage {
             Circle()
               .width(238 * this.orbScale)
               .height(238 * this.orbScale)
-              .stroke(RokuricsColors.aqua + '08')
+              .stroke(colorAlpha(RokuricsColors.aqua, '08'))
               .strokeWidth(1.4)
               .fill(Color.Transparent)
               .opacity(0.07 + this.breathePhase * 0.05)
@@ -182,7 +234,7 @@ struct HomePage {
             Circle()
               .width(202 * this.orbScale)
               .height(202 * this.orbScale)
-              .stroke(RokuricsColors.aqua + '10')
+              .stroke(colorAlpha(RokuricsColors.aqua, '10'))
               .strokeWidth(1.4)
               .fill(Color.Transparent)
               .opacity(0.10 + this.breathePhase * 0.05)
@@ -192,7 +244,7 @@ struct HomePage {
               Circle()
                 .width(222 * this.orbScale)
                 .height(222 * this.orbScale)
-                .stroke(RokuricsColors.coral + '20')
+                .stroke(colorAlpha(RokuricsColors.coral, '20'))
                 .strokeWidth(1.4)
                 .fill(Color.Transparent)
                 .opacity(0.16 + this.breathePhase * 0.08)
@@ -200,19 +252,25 @@ struct HomePage {
               Circle()
                 .width(222 * this.orbScale)
                 .height(222 * this.orbScale)
-                .stroke(RokuricsColors.softTeal + '15')
+                .stroke(colorAlpha(RokuricsColors.softTeal, '15'))
                 .strokeWidth(1.4)
                 .fill(Color.Transparent)
                 .opacity(0.11 + this.breathePhase * 0.06)
             }
 
-            // Main orb
+            // Main orb with gradient fill
             Circle()
               .width(190 * this.orbScale)
               .height(190 * this.orbScale)
-              .fill(RokuricsColors.actionStart)
+              .linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                  [RokuricsColors.actionGradientStart, 1.0],
+                  [RokuricsColors.actionGradientEnd, 1.0]
+                ]
+              })
               .shadow({
-                color: RokuricsColors.shadowColor + '24',
+                color: colorAlpha(RokuricsColors.shadowColor, '24'),
                 radius: 30 * this.orbScale,
                 offsetY: 18 * this.orbScale
               })
@@ -280,7 +338,7 @@ struct HomePage {
           Rect()
             .width(1)
             .height(54)
-            .fill(RokuricsColors.softText + '14')
+            .fill(colorAlpha(RokuricsColors.softText, '14'))
 
           // AI Chat
           Button() {
@@ -306,13 +364,13 @@ struct HomePage {
           Rect()
             .width(1)
             .height(54)
-            .fill(RokuricsColors.softText + '14')
+            .fill(colorAlpha(RokuricsColors.softText, '14'))
 
           // Mac Connection
           Button() {
             Column({ space: 8 }) {
               ConnectionIcon(27, RokuricsColors.softTeal, this.isMacPaired)
-              Text(this.isMacPaired ? '已连接' : '连接')
+              Text('Mac 连接')
                 .fontSize(13)
                 .fontWeight(FontWeight.SemiBold)
                 .fontColor(RokuricsColors.deepText)
@@ -331,21 +389,21 @@ struct HomePage {
         .width('88%')
         .height(104)
         .borderRadius(30)
-        .backgroundColor(RokuricsColors.glassSurface + '66')
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'))
         .border({
           width: 1,
           color: {
             colors: [
-              [0xFFFFFF, 0.44],
-              [0xEFFAF8, 0.18],
-              [0x91E8D6, 0.14]
+              [0xFFFFFF, 0.24],
+              [RokuricsColors.glassStroke, 0.14],
+              [RokuricsColors.glassStrokeAccent, 0.24]
             ],
             direction: GradientDirection.RightBottom
           },
           radius: 30
         } as BorderOptions)
         .shadow({
-          color: RokuricsColors.shadowColor + '12',
+          color: colorAlpha(RokuricsColors.shadowColor, '12'),
           radius: 20,
           offsetY: 11
         })
@@ -366,13 +424,13 @@ struct HomePage {
             }
             .padding({ left: 14, right: 14, top: 8, bottom: 8 })
             .borderRadius(14)
-            .backgroundColor(RokuricsColors.glassSurface + glassFillOpacity)
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
             .border({
               width: 1,
               color: {
                 colors: [
                   [0xFFFFFF, glassStrokeHighOpacity],
-                  [0xEFFAF8, glassStrokeMidOpacity]
+                  [RokuricsColors.glassStroke, glassStrokeMidOpacity]
                 ],
                 direction: GradientDirection.RightBottom
               },
@@ -386,32 +444,69 @@ struct HomePage {
       }
       .width('100%')
       .height('100%')
+      .backgroundColor(Color.Transparent)
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(RokuricsColors.pageBackground)
+    .linearGradient({
+      direction: GradientDirection.RightBottom,
+      colors: [
+        [RokuricsColors.pageGradientStart, 1.0],
+        [RokuricsColors.pageGradientMid, 1.0],
+        [RokuricsColors.pageGradientEnd, 1.0]
+      ]
+    })
   }
 
   @Builder
   AmbientBackground() {
     Stack() {
-      // Large ambient bubbles
+      // Bubble 1: paleAqua → mint, opacity 0.30
       Circle()
         .width(150)
         .height(150)
-        .fill(RokuricsColors.paleAqua + '30')
+        .linearGradient({
+          direction: GradientDirection.RightBottom,
+          colors: [
+            [RokuricsColors.paleAqua, 0.30],
+            [RokuricsColors.mint, 0.30]
+          ]
+        })
+        .stroke('#FFFFFF')
+        .strokeWidth(1)
+        .opacity(0.30)
         .position({ x: -30, y: '-10%' })
 
+      // Bubble 2: skyCyan → mistGreen, opacity 0.22
       Circle()
         .width(190)
         .height(190)
-        .fill(RokuricsColors.skyCyan + '22')
+        .linearGradient({
+          direction: GradientDirection.RightBottom,
+          colors: [
+            [RokuricsColors.skyCyan, 0.22],
+            [RokuricsColors.mistGreen, 0.22]
+          ]
+        })
+        .stroke('#FFFFFF')
+        .strokeWidth(1)
+        .opacity(0.22)
         .position({ x: '85%', y: '15%' })
 
+      // Bubble 3: mint → aqua, opacity 0.18
       Circle()
         .width(170)
         .height(170)
-        .fill(RokuricsColors.mint + '18')
+        .linearGradient({
+          direction: GradientDirection.RightBottom,
+          colors: [
+            [RokuricsColors.mint, 0.18],
+            [RokuricsColors.aqua, 0.18]
+          ]
+        })
+        .stroke('#FFFFFF')
+        .strokeWidth(1)
+        .opacity(0.18)
         .position({ x: '75%', y: '70%' })
     }
     .width('100%')

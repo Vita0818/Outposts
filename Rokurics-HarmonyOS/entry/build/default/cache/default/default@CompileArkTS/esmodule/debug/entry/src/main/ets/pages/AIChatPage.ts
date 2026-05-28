@@ -22,7 +22,7 @@ import { MockChatProvider, OpenAICompatibleChatProvider } from "@bundle:com.vita
 import { ChatStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/ChatStore";
 import { SettingsStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/SettingsStore";
 import type { AIConfiguration } from '../services/OpenAICompatibleClient';
-import { RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { colorAlpha, RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 import { SendIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
 class AIChatPage extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
@@ -291,10 +291,10 @@ class AIChatPage extends ViewPU {
             // Glass circle back button
             Button.borderRadius(22);
             // Glass circle back button
-            Button.backgroundColor(RokuricsColors.glassSurface + '66');
+            Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
             // Glass circle back button
             Button.shadow({
-                color: RokuricsColors.shadowColor + '10',
+                color: colorAlpha(RokuricsColors.shadowColor, '10'),
                 radius: 12,
                 offsetY: 6
             });
@@ -377,10 +377,10 @@ class AIChatPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create();
                         Column.width('100%');
-                        Column.backgroundColor(RokuricsColors.glassSurface + 'F0');
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'F0'));
                         Column.borderRadius({ bottomLeft: 16, bottomRight: 16 });
                         Column.shadow({
-                            color: RokuricsColors.shadowColor + '20',
+                            color: colorAlpha(RokuricsColors.shadowColor, '20'),
                             radius: 16,
                             offsetY: 8
                         });
@@ -461,7 +461,7 @@ class AIChatPage extends ViewPU {
                                                     Row.padding({ left: 14, right: 14, top: 10, bottom: 10 });
                                                     Row.borderRadius(12);
                                                     Row.backgroundColor(conv.id === this.activeConversation?.id ?
-                                                        RokuricsColors.aqua + '14' : RokuricsColors.glassSurface + '50');
+                                                        colorAlpha(RokuricsColors.aqua, '14') : colorAlpha(RokuricsColors.glassSurface, '50'));
                                                     Row.onClick(() => this.selectConversation(conv.id));
                                                 }, Row);
                                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -653,7 +653,7 @@ class AIChatPage extends ViewPU {
             TextInput.height(44);
             TextInput.borderRadius(22);
             TextInput.padding({ left: 16, right: 16 });
-            TextInput.backgroundColor(RokuricsColors.glassSurface + '80');
+            TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'));
             TextInput.onChange((value: string) => { this.inputText = value; });
         }, TextInput);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -664,8 +664,8 @@ class AIChatPage extends ViewPU {
             Button.backgroundColor(this.inputText.trim().length > 0 && !this.isGenerating ?
                 RokuricsColors.aqua : RokuricsColors.tertiaryText);
             Button.shadow({
-                color: (this.inputText.trim().length > 0 && !this.isGenerating ?
-                    RokuricsColors.aqua : RokuricsColors.tertiaryText) + '30',
+                color: colorAlpha((this.inputText.trim().length > 0 && !this.isGenerating ?
+                    RokuricsColors.aqua : RokuricsColors.tertiaryText), '30'),
                 radius: 10,
                 offsetY: 4
             });
@@ -698,7 +698,7 @@ class AIChatPage extends ViewPU {
                         Text.fontColor(RokuricsColors.deepText);
                         Text.padding(14);
                         Text.borderRadius({ topLeft: 4, topRight: 16, bottomLeft: 16, bottomRight: 16 });
-                        Text.backgroundColor(RokuricsColors.glassSurface + 'B8');
+                        Text.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'B8'));
                         Text.border({
                             width: 1,
                             color: {
@@ -738,7 +738,7 @@ class AIChatPage extends ViewPU {
                         Text.borderRadius({ topLeft: 16, topRight: 4, bottomLeft: 16, bottomRight: 16 });
                         Text.backgroundColor(RokuricsColors.aqua);
                         Text.shadow({
-                            color: RokuricsColors.aqua + '20',
+                            color: colorAlpha(RokuricsColors.aqua, '20'),
                             radius: 8,
                             offsetY: 4
                         });
@@ -759,8 +759,8 @@ class AIChatPage extends ViewPU {
             Text.fontColor(RokuricsColors.aqua);
             Text.padding({ left: 14, right: 14, top: 8, bottom: 8 });
             Text.borderRadius(16);
-            Text.backgroundColor(RokuricsColors.aqua + '10');
-            Text.border({ width: 1, color: RokuricsColors.aqua + '40', radius: 16 });
+            Text.backgroundColor(colorAlpha(RokuricsColors.aqua, '10'));
+            Text.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 16 });
             Text.onClick(() => {
                 this.inputText = text;
                 this.sendMessage();

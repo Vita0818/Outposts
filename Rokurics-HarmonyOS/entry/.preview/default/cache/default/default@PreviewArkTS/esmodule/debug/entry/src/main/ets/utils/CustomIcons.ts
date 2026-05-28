@@ -1,4 +1,4 @@
-import { RokuricsColors } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { colorAlpha, RokuricsColors } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 // ── Back arrow ──
 export function BackIcon(size: number, color: string, parent = null) {
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
@@ -91,7 +91,7 @@ export function BooksIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.18);
         Rect.height(size * 0.48);
         Rect.radius(size * 0.03);
-        Rect.fill(color + 'CC');
+        Rect.fill(colorAlpha(color, 'CC'));
         Rect.rotate({ angle: 8 });
         Rect.position({ x: size * 0.40, y: size * 0.05 });
     }, Rect);
@@ -202,7 +202,7 @@ export function TrashIcon(size: number, color: string, parent = null) {
         // Inner lines
         Rect.radius(size * 0.01);
         // Inner lines
-        Rect.fill('#FFFFFF33');
+        Rect.fill('#33FFFFFF');
         // Inner lines
         Rect.position({ x: size * 0.20, y: size * 0.26 });
     }, Rect);
@@ -212,7 +212,7 @@ export function TrashIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.03);
         Rect.height(size * 0.28);
         Rect.radius(size * 0.01);
-        Rect.fill('#FFFFFF33');
+        Rect.fill('#33FFFFFF');
         Rect.position({ x: size * 0.30, y: size * 0.22 });
     }, Rect);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
@@ -221,7 +221,7 @@ export function TrashIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.03);
         Rect.height(size * 0.18);
         Rect.radius(size * 0.01);
-        Rect.fill('#FFFFFF33');
+        Rect.fill('#33FFFFFF');
         Rect.position({ x: size * 0.40, y: size * 0.28 });
     }, Rect);
     Stack.pop();
@@ -257,7 +257,7 @@ export function DocBadgeIcon(size: number, color: string, parent = null) {
             number
         ][]);
         // Fold corner
-        Polygon.fill('#FFFFFF40');
+        Polygon.fill('#40FFFFFF');
         // Fold corner
         Polygon.position({ x: 0, y: 0 });
     }, Polygon);
@@ -272,7 +272,7 @@ export function DocBadgeIcon(size: number, color: string, parent = null) {
         // Lines
         Rect.radius(size * 0.02);
         // Lines
-        Rect.fill('#FFFFFF60');
+        Rect.fill('#60FFFFFF');
         // Lines
         Rect.position({ x: size * 0.08, y: size * 0.20 });
     }, Rect);
@@ -282,7 +282,7 @@ export function DocBadgeIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.20);
         Rect.height(size * 0.04);
         Rect.radius(size * 0.02);
-        Rect.fill('#FFFFFF40');
+        Rect.fill('#40FFFFFF');
         Rect.position({ x: size * 0.08, y: size * 0.32 });
     }, Rect);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
@@ -291,7 +291,7 @@ export function DocBadgeIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.24);
         Rect.height(size * 0.04);
         Rect.radius(size * 0.02);
-        Rect.fill('#FFFFFF40');
+        Rect.fill('#40FFFFFF');
         Rect.position({ x: size * 0.08, y: size * 0.44 });
     }, Rect);
     Stack.pop();
@@ -315,7 +315,7 @@ export function NoteBadgeIcon(size: number, color: string, parent = null) {
         // Clip
         Rect.radius(size * 0.03);
         // Clip
-        Rect.fill('#FFFFFF50');
+        Rect.fill('#50FFFFFF');
         // Clip
         Rect.position({ x: size * 0.16, y: 0 });
     }, Rect);
@@ -345,7 +345,7 @@ export function NoteBadgeIcon(size: number, color: string, parent = null) {
         // Lines
         Rect.radius(size * 0.02);
         // Lines
-        Rect.fill('#FFFFFF60');
+        Rect.fill('#60FFFFFF');
         // Lines
         Rect.position({ x: size * 0.12, y: size * 0.22 });
     }, Rect);
@@ -355,7 +355,7 @@ export function NoteBadgeIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.18);
         Rect.height(size * 0.04);
         Rect.radius(size * 0.02);
-        Rect.fill('#FFFFFF40');
+        Rect.fill('#40FFFFFF');
         Rect.position({ x: size * 0.12, y: size * 0.34 });
     }, Rect);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
@@ -364,7 +364,7 @@ export function NoteBadgeIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.22);
         Rect.height(size * 0.04);
         Rect.radius(size * 0.02);
-        Rect.fill('#FFFFFF40');
+        Rect.fill('#40FFFFFF');
         Rect.position({ x: size * 0.12, y: size * 0.46 });
     }, Rect);
     Stack.pop();
@@ -495,7 +495,7 @@ export function BulletListIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.56);
         Rect.height(size * 0.09);
         Rect.radius(size * 0.04);
-        Rect.fill(color + '40');
+        Rect.fill(colorAlpha(color, '40'));
     }, Rect);
     Row.pop();
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
@@ -516,7 +516,7 @@ export function BulletListIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.44);
         Rect.height(size * 0.09);
         Rect.radius(size * 0.04);
-        Rect.fill(color + '40');
+        Rect.fill(colorAlpha(color, '40'));
     }, Rect);
     Row.pop();
     Column.pop();
@@ -592,18 +592,99 @@ export function SendIcon(size: number, color: string, parent = null) {
         Polygon.height(size);
     }, Polygon);
 }
+// ── Person / avatar silhouette ──
+export function PersonIcon(size: number, color: string, parent = null) {
+    (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
+        Stack.create({ alignContent: Alignment.Top });
+        Stack.debugLine("entry/src/main/ets/utils/CustomIcons.ets(337:3)", "entry");
+        Stack.width(size);
+        Stack.height(size);
+    }, Stack);
+    (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
+        // Head
+        Circle.create();
+        Circle.debugLine("entry/src/main/ets/utils/CustomIcons.ets(339:5)", "entry");
+        // Head
+        Circle.width(size * 0.36);
+        // Head
+        Circle.height(size * 0.36);
+        // Head
+        Circle.fill(color);
+        // Head
+        Circle.position({ x: size * 0.32, y: 0 });
+    }, Circle);
+    (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
+        // Body (rounded trapezoid approximated with shapes)
+        Circle.create();
+        Circle.debugLine("entry/src/main/ets/utils/CustomIcons.ets(345:5)", "entry");
+        // Body (rounded trapezoid approximated with shapes)
+        Circle.width(size * 0.7);
+        // Body (rounded trapezoid approximated with shapes)
+        Circle.height(size * 0.7);
+        // Body (rounded trapezoid approximated with shapes)
+        Circle.fill(color);
+        // Body (rounded trapezoid approximated with shapes)
+        Circle.position({ x: size * 0.15, y: size * 0.34 });
+    }, Circle);
+    Stack.pop();
+}
+// ── Edit / pencil ──
+export function EditIcon(size: number, color: string, parent = null) {
+    (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
+        Stack.create();
+        Stack.debugLine("entry/src/main/ets/utils/CustomIcons.ets(358:3)", "entry");
+        Stack.width(size * 0.5);
+        Stack.height(size * 0.6);
+    }, Stack);
+    (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
+        // Pencil body (diagonal line)
+        Rect.create();
+        Rect.debugLine("entry/src/main/ets/utils/CustomIcons.ets(360:5)", "entry");
+        // Pencil body (diagonal line)
+        Rect.width(size * 0.08);
+        // Pencil body (diagonal line)
+        Rect.height(size * 0.7);
+        // Pencil body (diagonal line)
+        Rect.radius(size * 0.04);
+        // Pencil body (diagonal line)
+        Rect.fill(color);
+        // Pencil body (diagonal line)
+        Rect.rotate({ angle: -45 });
+    }, Rect);
+    (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
+        // Pencil tip triangle
+        Polygon.create();
+        Polygon.debugLine("entry/src/main/ets/utils/CustomIcons.ets(367:5)", "entry");
+        // Pencil tip triangle
+        Polygon.points([
+            [size * 0.05, size * 0.02],
+            [size * 0.26, size * 0.56],
+            [size * 0.06, size * 0.56]
+        ] as [
+            number,
+            number
+        ][]);
+        // Pencil tip triangle
+        Polygon.fill(color);
+        // Pencil tip triangle
+        Polygon.rotate({ angle: -45 });
+        // Pencil tip triangle
+        Polygon.position({ x: size * -0.04, y: size * -0.08 });
+    }, Polygon);
+    Stack.pop();
+}
 // ── Cloud upload ──
 export function CloudUploadIcon(size: number, color: string, parent = null) {
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         Stack.create();
-        Stack.debugLine("entry/src/main/ets/utils/CustomIcons.ets(337:3)", "entry");
+        Stack.debugLine("entry/src/main/ets/utils/CustomIcons.ets(384:3)", "entry");
         Stack.width(size * 0.7);
         Stack.height(size * 0.7);
     }, Stack);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         // Cloud body
         Row.create({ space: 0 });
-        Row.debugLine("entry/src/main/ets/utils/CustomIcons.ets(339:5)", "entry");
+        Row.debugLine("entry/src/main/ets/utils/CustomIcons.ets(386:5)", "entry");
         // Cloud body
         Row.width(size * 0.6);
         // Cloud body
@@ -611,7 +692,7 @@ export function CloudUploadIcon(size: number, color: string, parent = null) {
     }, Row);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         Circle.create();
-        Circle.debugLine("entry/src/main/ets/utils/CustomIcons.ets(340:7)", "entry");
+        Circle.debugLine("entry/src/main/ets/utils/CustomIcons.ets(387:7)", "entry");
         Circle.width(size * 0.2);
         Circle.height(size * 0.2);
         Circle.fill(color);
@@ -619,14 +700,14 @@ export function CloudUploadIcon(size: number, color: string, parent = null) {
     }, Circle);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         Rect.create();
-        Rect.debugLine("entry/src/main/ets/utils/CustomIcons.ets(342:7)", "entry");
+        Rect.debugLine("entry/src/main/ets/utils/CustomIcons.ets(389:7)", "entry");
         Rect.width(size * 0.24);
         Rect.height(size * 0.16);
         Rect.fill(color);
     }, Rect);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         Circle.create();
-        Circle.debugLine("entry/src/main/ets/utils/CustomIcons.ets(343:7)", "entry");
+        Circle.debugLine("entry/src/main/ets/utils/CustomIcons.ets(390:7)", "entry");
         Circle.width(size * 0.24);
         Circle.height(size * 0.24);
         Circle.fill(color);
@@ -637,7 +718,7 @@ export function CloudUploadIcon(size: number, color: string, parent = null) {
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         // Upload arrow
         Polygon.create();
-        Polygon.debugLine("entry/src/main/ets/utils/CustomIcons.ets(350:5)", "entry");
+        Polygon.debugLine("entry/src/main/ets/utils/CustomIcons.ets(397:5)", "entry");
         // Upload arrow
         Polygon.points([
             [size * 0.22, size * 0.32],
@@ -654,7 +735,7 @@ export function CloudUploadIcon(size: number, color: string, parent = null) {
     }, Polygon);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         Rect.create();
-        Rect.debugLine("entry/src/main/ets/utils/CustomIcons.ets(359:5)", "entry");
+        Rect.debugLine("entry/src/main/ets/utils/CustomIcons.ets(406:5)", "entry");
         Rect.width(size * 0.05);
         Rect.height(size * 0.28);
         Rect.radius(size * 0.02);

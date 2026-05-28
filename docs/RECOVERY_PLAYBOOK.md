@@ -182,8 +182,41 @@ HarmonyOS 编译失败时：
 
 1. 区分源码错误、Hvigor 错误、DevEco SDK 初始化错误、签名或设备配置错误。
 2. 只把 Claude Code 实际观察到的错误纳入报告。
-3. 不清理 `.hvigor`、build、cache，除非用户明确授权。
-4. 如果是环境缺失，标记 `TOOLCHAIN_MISSING`。
+3. 不清理项目 `.hvigor`、build、cache。
+4. 不删除、清理或修改 `~/.hvigor`。
+5. 不删除、清理或修改用户级 DevEco、HarmonyOS SDK、Hvigor、ohpm、npm、pnpm 缓存。
+6. 不全局安装 `pnpm`、npm 包、ohpm 包或任何全局工具链依赖。
+7. 不执行全局工具链修复。
+8. 如果是环境缺失，标记 `TOOLCHAIN_MISSING`、`HOST_ENV_BLOCKED` 或 `TOOLCHAIN_REPAIR_NEEDS_USER`。
+9. 只允许 Claude Code 在对应 Outposts 目标项目目录内修改源码和项目配置。
+
+如果 Claude Code 已经执行用户级清理或全局安装尝试：
+
+1. 立即停止该项目继续运行。
+2. 不自动回滚、不执行 Git restore、不清理更多文件。
+3. 要求 Claude Code 输出 incident report。
+4. 将项目标记为 `BLOCKED_NEEDS_USER` 或 `TOOLCHAIN_REPAIR_NEEDS_USER`。
+5. 在主管摘要中列出可能受影响的目录和后续人工处理建议。
+
+## 视觉证据被删除或无效
+
+如果发现 Claude Code 删除当前批次截图、qwen 输出、state、checkpoint、report、batch state 或 `.outposts-supervisor/visual-evidence`：
+
+1. 立即停止该项目继续运行。
+2. 不自动重建旧证据，不覆盖旧 `RUN_ID`。
+3. 记录被删除的路径摘要。
+4. 将项目标记为 `BLOCKED_NEEDS_USER`。
+5. 若用户要求继续视觉验收，必须创建新的 `RUN_ID` 证据目录。
+
+如果 `qwen-vision` 被调用但输入图片不是有效 App、Preview、设备或窗口截图：
+
+1. 报告 `QWEN_CALLED=YES`。
+2. 报告 `QWEN_VALID_VISUAL_EVIDENCE=NO`。
+3. 报告 `QWEN_COMPARE_SCREENSHOTS_COMPLETED=NO`，除非 reference 与 actual 均有效且已完成对比。
+4. 不把该轮称为有效视觉验收。
+5. 需要继续时，先获取有效 actual screenshot，再调用 qwen。
+
+全桌面截图只有在裁剪出明确 App、Preview 或窗口区域后，才能作为有效视觉证据。
 
 ## 状态未知
 

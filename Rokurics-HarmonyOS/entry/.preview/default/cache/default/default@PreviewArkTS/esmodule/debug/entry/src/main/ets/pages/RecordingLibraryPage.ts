@@ -29,11 +29,11 @@ import type { RecordingManager } from "@bundle:com.vita0818.rokurics/entry/ets/s
 import { StudyFilingPath, filingLevelTitle } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import type { RecordingMetadata } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import { formatDuration, formatShortTime } from "@bundle:com.vita0818.rokurics/entry/ets/utils/FormatHelpers";
-import { RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity, glassStrokeMidOpacity, glassAccentOpacity } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { colorAlpha, RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity, glassStrokeMidOpacity, glassAccentOpacity } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 import { StudyFolderStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/StudyFolderStore";
 import { BackIcon, BulletListIcon, TrashIcon, EllipsisIcon, DocBadgeIcon, NoteBadgeIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
 const LEVELS: string[] = ['type', 'subject', 'chapter', 'topic'];
-const FOLDER_COLORS: string[] = ['#59C7C2', '#9EE8C7', '#73C7F0', '#E06B6E', '#B8A6D6', '#6B9FD4'];
+const FOLDER_COLORS: string[] = [RokuricsColors.aqua, RokuricsColors.mint, RokuricsColors.skyCyan, RokuricsColors.coral, '#B8A6D6', '#6B9FD4'];
 interface FilingGroup {
     key: string;
     label: string;
@@ -66,7 +66,7 @@ class RecordingLibraryPage extends ViewPU {
         this.__deleteTarget = new ObservedPropertySimplePU('', this, "deleteTarget");
         this.__deleteTargetName = new ObservedPropertySimplePU('', this, "deleteTargetName");
         this.__showColorPicker = new ObservedPropertySimplePU(false, this, "showColorPicker");
-        this.__selectedColor = new ObservedPropertySimplePU('#59C7C2', this, "selectedColor");
+        this.__selectedColor = new ObservedPropertySimplePU(RokuricsColors.aqua, this, "selectedColor");
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
@@ -440,7 +440,7 @@ class RecordingLibraryPage extends ViewPU {
         this.renameTarget = key;
         this.renameText = key;
         this.renameLevel = level;
-        this.selectedColor = this.folderColorMap[key] ?? '#59C7C2';
+        this.selectedColor = this.folderColorMap[key] ?? RokuricsColors.aqua;
         this.showRenameDialog = true;
     }
     private async commitRename(): Promise<void> {
@@ -482,11 +482,11 @@ class RecordingLibraryPage extends ViewPU {
         const match = folders.find(f => f.name === this.renameTarget);
         if (match) {
             await this.folderStore.renameFolder(match.id, newName);
-            if (this.selectedColor !== (this.folderColorMap[this.renameTarget] ?? '#59C7C2')) {
+            if (this.selectedColor !== (this.folderColorMap[this.renameTarget] ?? RokuricsColors.aqua)) {
                 await this.folderStore.setColorToken(match.id, this.selectedColor);
             }
         }
-        else if (this.selectedColor !== '#59C7C2') {
+        else if (this.selectedColor !== RokuricsColors.aqua) {
             // Create folder to persist color
             const record = await this.folderStore.createFolder(newName, level, this.browsePath);
             await this.folderStore.setColorToken(record.id, this.selectedColor);
@@ -540,7 +540,14 @@ class RecordingLibraryPage extends ViewPU {
             Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(269:5)", "entry");
             Column.width('100%');
             Column.height('100%');
-            Column.backgroundColor(RokuricsColors.pageBackground);
+            Column.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.pageGradientStart, 1.0],
+                    [RokuricsColors.pageGradientMid, 1.0],
+                    [RokuricsColors.pageGradientEnd, 1.0]
+                ]
+            });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Header
@@ -557,9 +564,9 @@ class RecordingLibraryPage extends ViewPU {
             Button.width(44);
             Button.height(44);
             Button.borderRadius(22);
-            Button.backgroundColor(RokuricsColors.glassSurface + glassFillOpacity);
+            Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
             Button.shadow({
-                color: RokuricsColors.shadowColor + '10',
+                color: colorAlpha(RokuricsColors.shadowColor, '10'),
                 radius: 12,
                 offsetY: 6
             });
@@ -568,8 +575,8 @@ class RecordingLibraryPage extends ViewPU {
                 color: {
                     colors: [
                         [0xFFFFFF, glassStrokeHighOpacity],
-                        [0xEFFAF8, glassStrokeMidOpacity],
-                        [0x59C7C2, glassAccentOpacity]
+                        [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+                        [RokuricsColors.aqua, glassAccentOpacity]
                     ],
                     direction: GradientDirection.RightBottom
                 },
@@ -660,26 +667,26 @@ class RecordingLibraryPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create();
-                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(349:7)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(356:7)", "entry");
                         Column.width('100%');
                         Column.height('100%');
                         Column.justifyContent(FlexAlign.Center);
-                        Column.backgroundColor('#00000050');
+                        Column.backgroundColor('#50000000');
                         Column.position({ x: 0, y: 0 });
                         Column.onClick(() => { this.showRenameDialog = false; });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create({ space: 16 });
-                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(350:9)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(357:9)", "entry");
                         Column.padding(24);
                         Column.borderRadius(20);
-                        Column.backgroundColor(Color.White);
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6'));
                         Column.width('85%');
-                        Column.shadow({ radius: 30, color: '#00000020' });
+                        Column.shadow({ radius: 30, color: '#20000000' });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('重命名分类');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(351:11)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(358:11)", "entry");
                         Text.fontSize(18);
                         Text.fontWeight(FontWeight.SemiBold);
                         Text.fontColor(RokuricsColors.deepText);
@@ -687,10 +694,10 @@ class RecordingLibraryPage extends ViewPU {
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         TextInput.create({ text: this.renameText, placeholder: '新名称' });
-                        TextInput.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(355:11)", "entry");
+                        TextInput.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(362:11)", "entry");
                         TextInput.fontSize(16);
                         TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + '80');
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'));
                         TextInput.borderRadius(10);
                         TextInput.padding(14);
                         TextInput.onChange((v: string) => { this.renameText = v; });
@@ -698,20 +705,20 @@ class RecordingLibraryPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         // Inline color picker
                         Column.create({ space: 8 });
-                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(362:11)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(369:11)", "entry");
                         // Inline color picker
                         Column.width('100%');
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('分类颜色');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(363:13)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(370:13)", "entry");
                         Text.fontSize(13);
                         Text.fontColor(RokuricsColors.softText);
                     }, Text);
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Row.create({ space: 8 });
-                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(364:13)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(371:13)", "entry");
                         Row.width('100%');
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -720,7 +727,7 @@ class RecordingLibraryPage extends ViewPU {
                             const color = _item;
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
                                 Row.create();
-                                Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(366:17)", "entry");
+                                Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(373:17)", "entry");
                                 Row.width(28);
                                 Row.height(28);
                                 Row.borderRadius(14);
@@ -728,7 +735,7 @@ class RecordingLibraryPage extends ViewPU {
                                 Row.justifyContent(FlexAlign.Center);
                                 Row.border({
                                     width: this.selectedColor === color ? 2 : 1,
-                                    color: this.selectedColor === color ? Color.White : color + '40',
+                                    color: this.selectedColor === color ? Color.White : colorAlpha(color, '40'),
                                     radius: 14
                                 });
                                 Row.onClick(() => { this.selectedColor = color; });
@@ -739,7 +746,7 @@ class RecordingLibraryPage extends ViewPU {
                                     this.ifElseBranchUpdateFunction(0, () => {
                                         this.observeComponentCreation2((elmtId, isInitialRender) => {
                                             Text.create('✓');
-                                            Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(368:21)", "entry");
+                                            Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(375:21)", "entry");
                                             Text.fontSize(11);
                                             Text.fontWeight(FontWeight.Bold);
                                             Text.fontColor(Color.White);
@@ -763,19 +770,19 @@ class RecordingLibraryPage extends ViewPU {
                     Column.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Row.create({ space: 12 });
-                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(386:11)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(393:11)", "entry");
                         Row.width('100%');
                         Row.justifyContent(FlexAlign.End);
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(387:13)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(394:13)", "entry");
                         Button.backgroundColor(Color.Transparent);
                         Button.onClick(() => { this.showRenameDialog = false; });
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('取消');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(387:24)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(394:24)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(RokuricsColors.softText);
                     }, Text);
@@ -783,7 +790,7 @@ class RecordingLibraryPage extends ViewPU {
                     Button.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(389:13)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(396:13)", "entry");
                         Button.padding({ left: 24, right: 24, top: 10, bottom: 10 });
                         Button.borderRadius(10);
                         Button.backgroundColor(RokuricsColors.aqua);
@@ -791,7 +798,7 @@ class RecordingLibraryPage extends ViewPU {
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('保存');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(389:24)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(396:24)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(Color.White);
                     }, Text);
@@ -816,26 +823,26 @@ class RecordingLibraryPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create();
-                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(406:7)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(413:7)", "entry");
                         Column.width('100%');
                         Column.height('100%');
                         Column.justifyContent(FlexAlign.Center);
-                        Column.backgroundColor('#00000050');
+                        Column.backgroundColor('#50000000');
                         Column.position({ x: 0, y: 0 });
                         Column.onClick(() => { this.showDeleteConfirm = false; });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create({ space: 16 });
-                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(407:9)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(414:9)", "entry");
                         Column.padding(24);
                         Column.borderRadius(20);
-                        Column.backgroundColor(Color.White);
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6'));
                         Column.width('85%');
-                        Column.shadow({ radius: 30, color: '#00000020' });
+                        Column.shadow({ radius: 30, color: '#20000000' });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('删除分类');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(408:11)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(415:11)", "entry");
                         Text.fontSize(18);
                         Text.fontWeight(FontWeight.SemiBold);
                         Text.fontColor(RokuricsColors.deepText);
@@ -843,7 +850,7 @@ class RecordingLibraryPage extends ViewPU {
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create(`确定删除「${this.deleteTargetName}」？关联的录音不会被删除。`);
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(409:11)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(416:11)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(RokuricsColors.softText);
                         Text.textAlign(TextAlign.Center);
@@ -851,19 +858,19 @@ class RecordingLibraryPage extends ViewPU {
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Row.create({ space: 12 });
-                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(411:11)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(418:11)", "entry");
                         Row.width('100%');
                         Row.justifyContent(FlexAlign.End);
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(412:13)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(419:13)", "entry");
                         Button.backgroundColor(Color.Transparent);
                         Button.onClick(() => { this.showDeleteConfirm = false; });
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('取消');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(413:15)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(420:15)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(RokuricsColors.softText);
                     }, Text);
@@ -871,7 +878,7 @@ class RecordingLibraryPage extends ViewPU {
                     Button.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(417:13)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(424:13)", "entry");
                         Button.padding({ left: 24, right: 24, top: 10, bottom: 10 });
                         Button.borderRadius(10);
                         Button.backgroundColor(RokuricsColors.coral);
@@ -879,7 +886,7 @@ class RecordingLibraryPage extends ViewPU {
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('删除');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(418:15)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(425:15)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(Color.White);
                     }, Text);
@@ -902,7 +909,7 @@ class RecordingLibraryPage extends ViewPU {
     RootContent(parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Scroll.create();
-            Scroll.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(440:5)", "entry");
+            Scroll.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(447:5)", "entry");
             Scroll.width('100%');
             Scroll.layoutWeight(1);
             Scroll.scrollBar(BarState.Off);
@@ -910,7 +917,7 @@ class RecordingLibraryPage extends ViewPU {
         }, Scroll);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 16 });
-            Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(441:7)", "entry");
+            Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(448:7)", "entry");
             Column.width('100%');
             Column.padding({ left: 16, right: 16, bottom: 40 });
         }, Column);
@@ -921,21 +928,21 @@ class RecordingLibraryPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create({ space: 12 });
-                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(444:11)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(451:11)", "entry");
                         Column.width('100%');
                         Column.height(300);
                         Column.justifyContent(FlexAlign.Center);
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('暂无录音');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(445:13)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(452:13)", "entry");
                         Text.fontSize(16);
                         Text.fontColor(RokuricsColors.tertiaryText);
                     }, Text);
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('收到或保存的录音会在这里按门类、课程、章节和主题逐层显示。');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(447:13)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(454:13)", "entry");
                         Text.fontSize(13);
                         Text.fontColor(RokuricsColors.softText);
                         Text.textAlign(TextAlign.Center);
@@ -944,7 +951,7 @@ class RecordingLibraryPage extends ViewPU {
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('返回首页开始录音');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(450:13)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(457:13)", "entry");
                         Text.fontSize(13);
                         Text.fontColor(RokuricsColors.aqua);
                     }, Text);
@@ -957,33 +964,33 @@ class RecordingLibraryPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         // Search
                         Row.create({ space: 8 });
-                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(456:11)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(463:11)", "entry");
                         // Search
                         Row.width('100%');
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         TextInput.create({ text: this.searchQuery, placeholder: '搜索录音...' });
-                        TextInput.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(457:13)", "entry");
+                        TextInput.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(464:13)", "entry");
                         TextInput.fontSize(13);
                         TextInput.layoutWeight(1);
                         TextInput.height(36);
                         TextInput.borderRadius(18);
                         TextInput.padding({ left: 14, right: 14 });
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + glassFillOpacity);
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
                         TextInput.onChange((v: string) => { this.searchQuery = v; });
                     }, TextInput);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(462:13)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(469:13)", "entry");
                         Button.height(32);
                         Button.padding({ left: 10, right: 10 });
                         Button.borderRadius(16);
-                        Button.backgroundColor(RokuricsColors.aqua + '14');
+                        Button.backgroundColor(colorAlpha(RokuricsColors.aqua, '14'));
                         Button.onClick(() => { this.sortOrder = this.sortOrder === 'newest' ? 'oldest' : 'newest'; });
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create(this.sortOrder === 'newest' ? '↓最新' : '↑最早');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(463:15)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(470:15)", "entry");
                         Text.fontSize(11);
                         Text.fontWeight(FontWeight.Medium);
                         Text.fontColor(RokuricsColors.aqua);
@@ -1010,7 +1017,7 @@ class RecordingLibraryPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         // Filter chips
                         Row.create({ space: 6 });
-                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(478:11)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(485:11)", "entry");
                         // Filter chips
                         Row.width('100%');
                     }, Row);
@@ -1031,12 +1038,12 @@ class RecordingLibraryPage extends ViewPU {
     FolderTileGrid(parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 10 });
-            Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(501:5)", "entry");
+            Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(508:5)", "entry");
             Column.width('100%');
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('分类浏览');
-            Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(502:7)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(509:7)", "entry");
             Text.fontSize(15);
             Text.fontWeight(FontWeight.SemiBold);
             Text.fontColor(RokuricsColors.deepText);
@@ -1045,7 +1052,7 @@ class RecordingLibraryPage extends ViewPU {
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create({ space: 8 });
-            Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(506:7)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(513:7)", "entry");
             Row.width('100%');
             Row.justifyContent(FlexAlign.Start);
         }, Row);
@@ -1055,23 +1062,23 @@ class RecordingLibraryPage extends ViewPU {
                 const group = _item;
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Button.createWithChild();
-                    Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(508:11)", "entry");
+                    Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(515:11)", "entry");
                     Button.backgroundColor(Color.Transparent);
                     Button.width('48%');
                     Button.onClick(() => { });
                 }, Button);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Column.create({ space: 6 });
-                    Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(509:13)", "entry");
+                    Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(516:13)", "entry");
                     Column.width('100%');
                     Column.padding(14);
                     Column.borderRadius(14);
                     Column.backgroundColor(this.folderColorMap[group.label] ?
-                        this.folderColorMap[group.label] + '22' : RokuricsColors.glassSurface + glassFillOpacity);
+                        colorAlpha(this.folderColorMap[group.label], '22') : colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
                     Column.border({
                         width: this.folderColorMap[group.label] ? 1 : 0,
                         color: this.folderColorMap[group.label] ?
-                            this.folderColorMap[group.label] + '44' : Color.Transparent,
+                            colorAlpha(this.folderColorMap[group.label], '44') : Color.Transparent,
                         radius: 14
                     });
                     Column.onClick(() => {
@@ -1081,13 +1088,13 @@ class RecordingLibraryPage extends ViewPU {
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     // Color dot indicator
                     Row.create();
-                    Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(511:15)", "entry");
+                    Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(518:15)", "entry");
                     // Color dot indicator
                     Row.width('100%');
                 }, Row);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Circle.create();
-                    Circle.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(512:17)", "entry");
+                    Circle.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(519:17)", "entry");
                     Circle.width(10);
                     Circle.height(10);
                     Circle.fill(this.folderColorMap[group.label] ?? RokuricsColors.aqua);
@@ -1098,7 +1105,7 @@ class RecordingLibraryPage extends ViewPU {
                         this.ifElseBranchUpdateFunction(0, () => {
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
                                 Text.create(group.label);
-                                Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(516:19)", "entry");
+                                Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(523:19)", "entry");
                                 Text.fontSize(14);
                                 Text.fontWeight(FontWeight.SemiBold);
                                 Text.fontColor(this.folderColorMap[group.label] ?? RokuricsColors.aqua);
@@ -1121,7 +1128,7 @@ class RecordingLibraryPage extends ViewPU {
                         this.ifElseBranchUpdateFunction(0, () => {
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
                                 Text.create(group.label);
-                                Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(525:17)", "entry");
+                                Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(532:17)", "entry");
                                 Text.fontSize(14);
                                 Text.fontWeight(FontWeight.SemiBold);
                                 Text.fontColor(RokuricsColors.deepText);
@@ -1139,7 +1146,7 @@ class RecordingLibraryPage extends ViewPU {
                 If.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Text.create(`${filingLevelTitle(group.level)} · ${group.count} 条`);
-                    Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(532:15)", "entry");
+                    Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(539:15)", "entry");
                     Text.fontSize(11);
                     Text.fontColor(RokuricsColors.tertiaryText);
                     Text.width('100%');
@@ -1150,7 +1157,7 @@ class RecordingLibraryPage extends ViewPU {
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     // Context menu
                     Button.createWithChild();
-                    Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(556:11)", "entry");
+                    Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(563:11)", "entry");
                     // Context menu
                     Button.width(28);
                     // Context menu
@@ -1174,14 +1181,14 @@ class RecordingLibraryPage extends ViewPU {
     BrowseContent(parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create();
-            Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(573:5)", "entry");
+            Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(580:5)", "entry");
             Column.width('100%');
             Column.layoutWeight(1);
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Breadcrumb
             Row.create({ space: 4 });
-            Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(575:7)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(582:7)", "entry");
             // Breadcrumb
             Row.width('100%');
             // Breadcrumb
@@ -1189,7 +1196,7 @@ class RecordingLibraryPage extends ViewPU {
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Button.createWithChild();
-            Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(576:9)", "entry");
+            Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(583:9)", "entry");
             Button.backgroundColor(Color.Transparent);
             Button.onClick(() => {
                 this.browsePath = [];
@@ -1199,7 +1206,7 @@ class RecordingLibraryPage extends ViewPU {
         }, Button);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('全部');
-            Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(577:11)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(584:11)", "entry");
             Text.fontSize(13);
             Text.fontColor(RokuricsColors.softText);
         }, Text);
@@ -1211,7 +1218,7 @@ class RecordingLibraryPage extends ViewPU {
                 const crumb = _item;
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Row.create();
-                    Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(588:11)", "entry");
+                    Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(595:11)", "entry");
                     Row.onClick(() => {
                         if (index < this.browsePath.length - 1) {
                             const parentPath: string[] = [];
@@ -1223,7 +1230,7 @@ class RecordingLibraryPage extends ViewPU {
                 }, Row);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Text.create('›');
-                    Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(589:13)", "entry");
+                    Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(596:13)", "entry");
                     Text.fontSize(13);
                     Text.fontColor(RokuricsColors.tertiaryText);
                     Text.margin({ left: 2, right: 2 });
@@ -1231,7 +1238,7 @@ class RecordingLibraryPage extends ViewPU {
                 Text.pop();
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Text.create(crumb);
-                    Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(590:13)", "entry");
+                    Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(597:13)", "entry");
                     Text.fontSize(13);
                     Text.fontColor(index === this.browsePath.length - 1 ?
                         RokuricsColors.aqua : RokuricsColors.softText);
@@ -1246,7 +1253,7 @@ class RecordingLibraryPage extends ViewPU {
         ForEach.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(`(${this.currentRecordings.length})`);
-            Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(606:9)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(613:9)", "entry");
             Text.fontSize(11);
             Text.fontColor(RokuricsColors.tertiaryText);
         }, Text);
@@ -1260,7 +1267,7 @@ class RecordingLibraryPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Row.create({ space: 8 });
-                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(614:9)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(621:9)", "entry");
                         Row.width('100%');
                         Row.padding({ left: 16, right: 16, bottom: 12 });
                         Row.flexShrink(0);
@@ -1271,7 +1278,7 @@ class RecordingLibraryPage extends ViewPU {
                             const group = _item;
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
                                 Button.createWithChild();
-                                Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(616:13)", "entry");
+                                Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(623:13)", "entry");
                                 Button.backgroundColor(Color.Transparent);
                                 Button.onClick(() => {
                                     const newPath: string[] = [];
@@ -1283,16 +1290,16 @@ class RecordingLibraryPage extends ViewPU {
                             }, Button);
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
                                 Column.create({ space: 4 });
-                                Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(617:15)", "entry");
+                                Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(624:15)", "entry");
                                 Column.padding({ left: 12, right: 12, top: 8, bottom: 8 });
                                 Column.borderRadius(12);
-                                Column.backgroundColor(RokuricsColors.glassSurface + glassFillOpacity);
+                                Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
                                 Column.border({
                                     width: 1,
                                     color: {
                                         colors: [
                                             [0xFFFFFF, glassStrokeHighOpacity],
-                                            [0xEFFAF8, glassStrokeMidOpacity]
+                                            [RokuricsColors.glassStroke, glassStrokeMidOpacity]
                                         ],
                                         direction: GradientDirection.RightBottom
                                     },
@@ -1301,7 +1308,7 @@ class RecordingLibraryPage extends ViewPU {
                             }, Column);
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
                                 Text.create(group.label);
-                                Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(618:17)", "entry");
+                                Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(625:17)", "entry");
                                 Text.fontSize(13);
                                 Text.fontWeight(FontWeight.SemiBold);
                                 Text.fontColor(RokuricsColors.deepText);
@@ -1310,7 +1317,7 @@ class RecordingLibraryPage extends ViewPU {
                             Text.pop();
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
                                 Text.create(`${group.count} 条`);
-                                Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(622:17)", "entry");
+                                Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(629:17)", "entry");
                                 Text.fontSize(11);
                                 Text.fontColor(RokuricsColors.tertiaryText);
                             }, Text);
@@ -1343,14 +1350,14 @@ class RecordingLibraryPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create({ space: 8 });
-                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(666:7)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(673:7)", "entry");
                         Column.width('100%');
                         Column.height(200);
                         Column.justifyContent(FlexAlign.Center);
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('此分类下暂无录音');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(667:9)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(674:9)", "entry");
                         Text.fontSize(15);
                         Text.fontColor(RokuricsColors.tertiaryText);
                     }, Text);
@@ -1362,7 +1369,7 @@ class RecordingLibraryPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(1, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         List.create({ space: 10 });
-                        List.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(672:5)", "entry");
+                        List.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(679:5)", "entry");
                         List.width('100%');
                         List.layoutWeight(1);
                         List.padding({ left: 16, right: 16 });
@@ -1383,19 +1390,19 @@ class RecordingLibraryPage extends ViewPU {
                                 };
                                 const itemCreation2 = (elmtId, isInitialRender) => {
                                     ListItem.create(deepRenderFunction, true);
-                                    ListItem.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(674:7)", "entry");
+                                    ListItem.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(681:7)", "entry");
                                 };
                                 const deepRenderFunction = (elmtId, isInitialRender) => {
                                     itemCreation(elmtId, isInitialRender);
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Row.create();
-                                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(675:9)", "entry");
+                                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(682:9)", "entry");
                                         Row.width('100%');
                                         Row.padding(14);
                                         Row.borderRadius(16);
-                                        Row.backgroundColor(RokuricsColors.glassSurface + glassFillOpacity);
+                                        Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
                                         Row.shadow({
-                                            color: RokuricsColors.shadowColor + '08',
+                                            color: colorAlpha(RokuricsColors.shadowColor, '08'),
                                             radius: 10, offsetY: 5
                                         });
                                         Row.border({
@@ -1403,8 +1410,8 @@ class RecordingLibraryPage extends ViewPU {
                                             color: {
                                                 colors: [
                                                     [0xFFFFFF, glassStrokeHighOpacity],
-                                                    [0xEFFAF8, glassStrokeMidOpacity],
-                                                    [0x91E8D6, glassAccentOpacity]
+                                                    [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+                                                    [RokuricsColors.glassStrokeAccent, glassAccentOpacity]
                                                 ],
                                                 direction: GradientDirection.RightBottom
                                             },
@@ -1416,14 +1423,14 @@ class RecordingLibraryPage extends ViewPU {
                                     this.WaveformGlyph.bind(this)();
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Column.create({ space: 5 });
-                                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(679:11)", "entry");
+                                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(686:11)", "entry");
                                         Column.layoutWeight(1);
                                         Column.alignItems(HorizontalAlign.Start);
                                         Column.margin({ left: 12 });
                                     }, Column);
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Text.create(recording.title);
-                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(680:13)", "entry");
+                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(687:13)", "entry");
                                         Text.fontSize(16);
                                         Text.fontWeight(FontWeight.SemiBold);
                                         Text.fontColor(RokuricsColors.deepText);
@@ -1433,25 +1440,25 @@ class RecordingLibraryPage extends ViewPU {
                                     Text.pop();
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Row.create({ space: 8 });
-                                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(685:13)", "entry");
+                                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(692:13)", "entry");
                                     }, Row);
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Text.create(formatShortTime(recording.createdAt));
-                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(686:15)", "entry");
+                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(693:15)", "entry");
                                         Text.fontSize(12);
                                         Text.fontColor(RokuricsColors.softText);
                                     }, Text);
                                     Text.pop();
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Text.create('·');
-                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(688:15)", "entry");
+                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(695:15)", "entry");
                                         Text.fontSize(12);
                                         Text.fontColor(RokuricsColors.tertiaryText);
                                     }, Text);
                                     Text.pop();
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Text.create(formatDuration(recording.duration));
-                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(690:15)", "entry");
+                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(697:15)", "entry");
                                         Text.fontSize(12);
                                         Text.fontColor(RokuricsColors.tertiaryText);
                                     }, Text);
@@ -1462,21 +1469,21 @@ class RecordingLibraryPage extends ViewPU {
                                             this.ifElseBranchUpdateFunction(0, () => {
                                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                                     Row.create({ space: 3 });
-                                                    Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(694:17)", "entry");
+                                                    Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(701:17)", "entry");
                                                     Row.padding({ left: 6, right: 6, top: 2, bottom: 2 });
                                                     Row.borderRadius(6);
-                                                    Row.backgroundColor(RokuricsColors.mint + '18');
+                                                    Row.backgroundColor(colorAlpha(RokuricsColors.mint, '18'));
                                                 }, Row);
                                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                                     Circle.create();
-                                                    Circle.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(695:19)", "entry");
+                                                    Circle.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(702:19)", "entry");
                                                     Circle.width(6);
                                                     Circle.height(6);
                                                     Circle.fill(RokuricsColors.mint);
                                                 }, Circle);
                                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                                     Text.create('已上传');
-                                                    Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(696:19)", "entry");
+                                                    Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(703:19)", "entry");
                                                     Text.fontSize(10);
                                                     Text.fontColor(RokuricsColors.mint);
                                                 }, Text);
@@ -1520,7 +1527,7 @@ class RecordingLibraryPage extends ViewPU {
                                     Column.pop();
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Button.createWithChild();
-                                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(713:11)", "entry");
+                                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(720:11)", "entry");
                                         Button.width(36);
                                         Button.height(36);
                                         Button.backgroundColor(Color.Transparent);
@@ -1547,19 +1554,19 @@ class RecordingLibraryPage extends ViewPU {
     WaveformGlyph(parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Stack.create();
-            Stack.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(748:5)", "entry");
+            Stack.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(755:5)", "entry");
             Stack.width(50);
             Stack.height(50);
             Stack.borderRadius(25);
-            Stack.backgroundColor(RokuricsColors.glassSurface + '56');
-            Stack.shadow({ color: RokuricsColors.shadowColor + '08', radius: 9, offsetY: 4 });
+            Stack.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '56'));
+            Stack.shadow({ color: colorAlpha(RokuricsColors.shadowColor, '08'), radius: 9, offsetY: 4 });
             Stack.border({
                 width: 1,
                 color: {
                     colors: [
-                        [0xFFFFFF, 0.38],
-                        [0xEFFAF8, 0.12],
-                        [0x59C7C2, 0.10]
+                        [0xFFFFFF, 0.18],
+                        [RokuricsColors.glassStroke, 0.12],
+                        [RokuricsColors.aqua, 0.10]
                     ],
                     direction: GradientDirection.RightBottom
                 },
@@ -1568,13 +1575,13 @@ class RecordingLibraryPage extends ViewPU {
         }, Stack);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create({ space: 2.5 });
-            Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(749:7)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(756:7)", "entry");
             Row.justifyContent(FlexAlign.Center);
             Row.alignItems(VerticalAlign.Center);
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Rect.create();
-            Rect.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(750:9)", "entry");
+            Rect.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(757:9)", "entry");
             Rect.width(3);
             Rect.height(8);
             Rect.radius(1.5);
@@ -1582,7 +1589,7 @@ class RecordingLibraryPage extends ViewPU {
         }, Rect);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Rect.create();
-            Rect.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(751:9)", "entry");
+            Rect.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(758:9)", "entry");
             Rect.width(3);
             Rect.height(18);
             Rect.radius(1.5);
@@ -1590,7 +1597,7 @@ class RecordingLibraryPage extends ViewPU {
         }, Rect);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Rect.create();
-            Rect.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(752:9)", "entry");
+            Rect.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(759:9)", "entry");
             Rect.width(3);
             Rect.height(12);
             Rect.radius(1.5);
@@ -1598,7 +1605,7 @@ class RecordingLibraryPage extends ViewPU {
         }, Rect);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Rect.create();
-            Rect.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(753:9)", "entry");
+            Rect.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(760:9)", "entry");
             Rect.width(3);
             Rect.height(24);
             Rect.radius(1.5);
@@ -1606,7 +1613,7 @@ class RecordingLibraryPage extends ViewPU {
         }, Rect);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Rect.create();
-            Rect.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(754:9)", "entry");
+            Rect.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(761:9)", "entry");
             Rect.width(3);
             Rect.height(15);
             Rect.radius(1.5);
@@ -1622,14 +1629,14 @@ class RecordingLibraryPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create({ space: 12 });
-                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(779:7)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(786:7)", "entry");
                         Column.width('100%');
                         Column.height('60%');
                         Column.justifyContent(FlexAlign.Center);
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('废纸篓为空');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(780:9)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(787:9)", "entry");
                         Text.fontSize(16);
                         Text.fontColor(RokuricsColors.tertiaryText);
                     }, Text);
@@ -1641,7 +1648,7 @@ class RecordingLibraryPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(1, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         List.create({ space: 10 });
-                        List.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(784:7)", "entry");
+                        List.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(791:7)", "entry");
                         List.width('100%');
                         List.layoutWeight(1);
                         List.padding({ left: 16, right: 16 });
@@ -1662,25 +1669,25 @@ class RecordingLibraryPage extends ViewPU {
                                 };
                                 const itemCreation2 = (elmtId, isInitialRender) => {
                                     ListItem.create(deepRenderFunction, true);
-                                    ListItem.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(786:11)", "entry");
+                                    ListItem.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(793:11)", "entry");
                                 };
                                 const deepRenderFunction = (elmtId, isInitialRender) => {
                                     itemCreation(elmtId, isInitialRender);
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Row.create();
-                                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(787:13)", "entry");
+                                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(794:13)", "entry");
                                         Row.width('100%');
                                         Row.padding(14);
                                         Row.borderRadius(16);
-                                        Row.backgroundColor(RokuricsColors.glassSurface + glassFillOpacity);
-                                        Row.shadow({ color: RokuricsColors.shadowColor + '08', radius: 8, offsetY: 4 });
+                                        Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
+                                        Row.shadow({ color: colorAlpha(RokuricsColors.shadowColor, '08'), radius: 8, offsetY: 4 });
                                         Row.border({
                                             width: 1,
                                             color: {
                                                 colors: [
                                                     [0xFFFFFF, glassStrokeHighOpacity],
-                                                    [0xEFFAF8, glassStrokeMidOpacity],
-                                                    [0xE06B6E, 0.08]
+                                                    [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+                                                    [RokuricsColors.coral, 0.12]
                                                 ],
                                                 direction: GradientDirection.RightBottom
                                             },
@@ -1689,13 +1696,13 @@ class RecordingLibraryPage extends ViewPU {
                                     }, Row);
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Column.create({ space: 5 });
-                                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(788:15)", "entry");
+                                        Column.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(795:15)", "entry");
                                         Column.layoutWeight(1);
                                         Column.alignItems(HorizontalAlign.Start);
                                     }, Column);
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Text.create(recording.title);
-                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(789:17)", "entry");
+                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(796:17)", "entry");
                                         Text.fontSize(16);
                                         Text.fontWeight(FontWeight.SemiBold);
                                         Text.fontColor(RokuricsColors.deepText);
@@ -1704,18 +1711,18 @@ class RecordingLibraryPage extends ViewPU {
                                     Text.pop();
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Row.create({ space: 8 });
-                                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(792:17)", "entry");
+                                        Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(799:17)", "entry");
                                     }, Row);
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Text.create(formatShortTime(recording.createdAt));
-                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(793:19)", "entry");
+                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(800:19)", "entry");
                                         Text.fontSize(12);
                                         Text.fontColor(RokuricsColors.softText);
                                     }, Text);
                                     Text.pop();
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Text.create(formatDuration(recording.duration));
-                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(795:19)", "entry");
+                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(802:19)", "entry");
                                         Text.fontSize(12);
                                         Text.fontColor(RokuricsColors.tertiaryText);
                                     }, Text);
@@ -1724,14 +1731,14 @@ class RecordingLibraryPage extends ViewPU {
                                     Column.pop();
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Button.createWithChild();
-                                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(801:15)", "entry");
+                                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(808:15)", "entry");
                                         Button.backgroundColor(Color.Transparent);
                                         Button.margin({ right: 8 });
                                         Button.onClick(() => this.restoreAndReload(recording.id));
                                     }, Button);
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Text.create('恢复');
-                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(802:17)", "entry");
+                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(809:17)", "entry");
                                         Text.fontSize(13);
                                         Text.fontWeight(FontWeight.Medium);
                                         Text.fontColor(RokuricsColors.aqua);
@@ -1740,13 +1747,13 @@ class RecordingLibraryPage extends ViewPU {
                                     Button.pop();
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Button.createWithChild();
-                                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(808:15)", "entry");
+                                        Button.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(815:15)", "entry");
                                         Button.backgroundColor(Color.Transparent);
                                         Button.onClick(() => this.permDeleteAndReload(recording.id));
                                     }, Button);
                                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                                         Text.create('删除');
-                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(809:17)", "entry");
+                                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(816:17)", "entry");
                                         Text.fontSize(13);
                                         Text.fontWeight(FontWeight.Medium);
                                         Text.fontColor(RokuricsColors.coral);
@@ -1772,11 +1779,11 @@ class RecordingLibraryPage extends ViewPU {
     FilterChip(label: string, active: boolean, onToggle: (v: boolean) => void, parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create({ space: 4 });
-            Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(840:5)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(847:5)", "entry");
             Row.padding({ left: 10, right: 10, top: 5, bottom: 5 });
             Row.borderRadius(12);
-            Row.backgroundColor(active ? RokuricsColors.aqua : RokuricsColors.glassSurface + glassFillOpacity);
-            Row.border({ width: active ? 0 : 1, color: RokuricsColors.softText + '18', radius: 12 });
+            Row.backgroundColor(active ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
+            Row.border({ width: active ? 0 : 1, color: colorAlpha(RokuricsColors.softText, '18'), radius: 12 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             If.create();
@@ -1784,7 +1791,7 @@ class RecordingLibraryPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('✓');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(841:21)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(848:21)", "entry");
                         Text.fontSize(10);
                         Text.fontColor(Color.White);
                     }, Text);
@@ -1799,7 +1806,7 @@ class RecordingLibraryPage extends ViewPU {
         If.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(label);
-            Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(842:7)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/RecordingLibraryPage.ets(849:7)", "entry");
             Text.fontSize(11);
             Text.fontWeight(FontWeight.Medium);
             Text.fontColor(active ? Color.White : RokuricsColors.softText);

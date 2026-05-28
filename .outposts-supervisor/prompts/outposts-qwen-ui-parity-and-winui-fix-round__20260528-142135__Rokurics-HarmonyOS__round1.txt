@@ -1,0 +1,54 @@
+[Round 1] BATCH_NAME=outposts-qwen-ui-parity-and-winui-fix-round
+PROJECT_NAME=Rokurics-HarmonyOS
+
+MANDATORY PREFLIGHT
+1. MODEL_CHECK_RESULT: current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. Otherwise stop and report MODEL_MISMATCH.
+2. PATH_CHECK_RESULT: current working directory must be exactly /Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS. Otherwise stop and report WORKDIR_MISMATCH.
+3. SOURCE_READONLY_CHECK: Apple source /Users/vita/Vitemis/Vela/Rokurics is read-only. All target writes must stay under /Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS. Do not access unrelated directories. Do not read or transmit secrets, API keys, .env, tokens, certificates, p12, provisioning profiles, ssh keys, Keychain data, or private config.
+
+QWEN REQUIRED
+qwen-vision is required this round. You must call qwen-vision on an actual screenshot unless there is a hard screenshot/tool blocker, and if blocked you must report the exact blocker.
+Allowed qwen tools only:
+- inspect_screenshot(image_path, goal="")
+- compare_screenshots(reference_image_path, actual_image_path, goal="")
+- extract_text_and_controls(image_path)
+
+VISUAL EVIDENCE ROOT
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-qwen-ui-parity-and-winui-fix-round/20260528-142135/Rokurics-HarmonyOS
+Use reference/, actual/, qwen/ under that root. If your sandbox cannot write there, write screenshots under this project only, call qwen on the available image path, and report the evidence copy blocker.
+
+TASK
+Adjust Rokurics-HarmonyOS interface quality. Focus on color, layout, component hierarchy, and premium/minimal page feel.
+
+Required flow:
+1. Read Apple Rokurics source only as reference for UI direction.
+2. Obtain actual HarmonyOS screenshot(s), especially the page where yellow blocks were previously reported. Prefer DevEco/device/emulator screenshot. If hdc target exists, you may use snapshot_display + file recv. If only Preview and no hdc target, use DevEco screenshot or macOS screencapture; if Screen Recording blocks capture, report SCREENSHOT_BLOCKED_BY_SCREEN_RECORDING.
+3. Call qwen-vision inspect_screenshot on actual screenshot(s). This is mandatory if screenshot exists.
+4. qwen goal: detect abnormal large yellow blocks, color pollution, background contamination, component hierarchy issues, card/bottom bar/button/orb/background gradient consistency.
+5. If qwen identifies color anomalies, locate source and fix. Do not retain unexplained large yellow blocks.
+6. Keep HAP/CLI build as green as feasible and report exact commands/results.
+
+FINAL REPORT FIELDS
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX=1
+QWEN_REQUIRED=YES
+QWEN_VISION_AVAILABLE
+QWEN_VISION_USED
+REFERENCE_SCREENSHOTS
+ACTUAL_SCREENSHOTS
+VISION_TOOLS_CALLED
+VISION_COMPARISON_RESULT
+USER_ACCEPTANCE_FEEDBACK_ADDRESSED
+APPLE_UI_PARITY_CHECKLIST
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+VISUAL_VALIDATION_LIMITATIONS
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION

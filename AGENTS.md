@@ -24,13 +24,16 @@ git status --short
 
 1. `docs/OUTPOSTS_CODEX_SUPERVISOR.md`
 2. `docs/CLAUDE_CODE_TERMINAL_PROTOCOL.md`
-3. `docs/BATCH_SCHEDULING.md`
-4. `docs/SECURITY_AND_BOUNDARIES.md`
-5. `docs/RECOVERY_PLAYBOOK.md`
-6. `docs/REPORTING_FORMATS.md`
-7. `docs/DO_NOT_BREAK.md`
+3. `docs/CLAUDE_CODE_VISUAL_MCP_PROTOCOL.md`
+4. `docs/BATCH_SCHEDULING.md`
+5. `docs/SECURITY_AND_BOUNDARIES.md`
+6. `docs/RECOVERY_PLAYBOOK.md`
+7. `docs/REPORTING_FORMATS.md`
+8. `docs/DO_NOT_BREAK.md`
 
 这些文档给 Codex Agent 读，用于形成调度判断。Codex 可以根据这些文档生成给 Claude Code 的任务 prompt，但不得把整套调度文档粗暴粘给 Claude Code。Claude Code 只应收到当前项目、当前轮次、当前目标所需的精简任务 prompt。
+
+若当前任务涉及 UI 复刻、Apple UI parity、截图对比、视觉验收、设计稿或界面布局问题，Codex Agent 应按 `docs/CLAUDE_CODE_VISUAL_MCP_PROTOCOL.md` 在 Claude Code 正式任务 prompt 中加入 qwen-vision 使用提醒。Codex Agent 本体不直接调用 qwen-vision。
 
 ## Codex Agent 角色边界
 
@@ -57,6 +60,8 @@ Codex Agent 不负责：
 ## Claude Code 调度原则
 
 实际阅读、修改、构建、测试、报告由 Claude Code 在每个项目自己的交互式终端中完成。
+
+如需视觉识别，Claude Code 主 Agent 可以调用已连接的 `qwen-vision` MCP 工具看图、识别截图或比较图片。`qwen-vision` 不是主模型，不得修改文件，不得接收源码、密钥、token、`.env`、证书或私密配置。
 
 每个项目必须使用独立 Claude Code 会话。五项目并行时，不同项目的会话、状态、预算、报告、阻塞原因互相隔离。
 

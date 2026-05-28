@@ -1,4 +1,4 @@
-import { RokuricsColors } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { colorAlpha, RokuricsColors } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 // ── Back arrow ──
 export function BackIcon(size: number, color: string, parent = null) {
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
@@ -82,7 +82,7 @@ export function BooksIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.18);
         Rect.height(size * 0.48);
         Rect.radius(size * 0.03);
-        Rect.fill(color + 'CC');
+        Rect.fill(colorAlpha(color, 'CC'));
         Rect.rotate({ angle: 8 });
         Rect.position({ x: size * 0.40, y: size * 0.05 });
     }, Rect);
@@ -184,7 +184,7 @@ export function TrashIcon(size: number, color: string, parent = null) {
         // Inner lines
         Rect.radius(size * 0.01);
         // Inner lines
-        Rect.fill('#FFFFFF33');
+        Rect.fill('#33FFFFFF');
         // Inner lines
         Rect.position({ x: size * 0.20, y: size * 0.26 });
     }, Rect);
@@ -193,7 +193,7 @@ export function TrashIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.03);
         Rect.height(size * 0.28);
         Rect.radius(size * 0.01);
-        Rect.fill('#FFFFFF33');
+        Rect.fill('#33FFFFFF');
         Rect.position({ x: size * 0.30, y: size * 0.22 });
     }, Rect);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
@@ -201,7 +201,7 @@ export function TrashIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.03);
         Rect.height(size * 0.18);
         Rect.radius(size * 0.01);
-        Rect.fill('#FFFFFF33');
+        Rect.fill('#33FFFFFF');
         Rect.position({ x: size * 0.40, y: size * 0.28 });
     }, Rect);
     Stack.pop();
@@ -234,7 +234,7 @@ export function DocBadgeIcon(size: number, color: string, parent = null) {
             number
         ][]);
         // Fold corner
-        Polygon.fill('#FFFFFF40');
+        Polygon.fill('#40FFFFFF');
         // Fold corner
         Polygon.position({ x: 0, y: 0 });
     }, Polygon);
@@ -248,7 +248,7 @@ export function DocBadgeIcon(size: number, color: string, parent = null) {
         // Lines
         Rect.radius(size * 0.02);
         // Lines
-        Rect.fill('#FFFFFF60');
+        Rect.fill('#60FFFFFF');
         // Lines
         Rect.position({ x: size * 0.08, y: size * 0.20 });
     }, Rect);
@@ -257,7 +257,7 @@ export function DocBadgeIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.20);
         Rect.height(size * 0.04);
         Rect.radius(size * 0.02);
-        Rect.fill('#FFFFFF40');
+        Rect.fill('#40FFFFFF');
         Rect.position({ x: size * 0.08, y: size * 0.32 });
     }, Rect);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
@@ -265,7 +265,7 @@ export function DocBadgeIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.24);
         Rect.height(size * 0.04);
         Rect.radius(size * 0.02);
-        Rect.fill('#FFFFFF40');
+        Rect.fill('#40FFFFFF');
         Rect.position({ x: size * 0.08, y: size * 0.44 });
     }, Rect);
     Stack.pop();
@@ -287,7 +287,7 @@ export function NoteBadgeIcon(size: number, color: string, parent = null) {
         // Clip
         Rect.radius(size * 0.03);
         // Clip
-        Rect.fill('#FFFFFF50');
+        Rect.fill('#50FFFFFF');
         // Clip
         Rect.position({ x: size * 0.16, y: 0 });
     }, Rect);
@@ -315,7 +315,7 @@ export function NoteBadgeIcon(size: number, color: string, parent = null) {
         // Lines
         Rect.radius(size * 0.02);
         // Lines
-        Rect.fill('#FFFFFF60');
+        Rect.fill('#60FFFFFF');
         // Lines
         Rect.position({ x: size * 0.12, y: size * 0.22 });
     }, Rect);
@@ -324,7 +324,7 @@ export function NoteBadgeIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.18);
         Rect.height(size * 0.04);
         Rect.radius(size * 0.02);
-        Rect.fill('#FFFFFF40');
+        Rect.fill('#40FFFFFF');
         Rect.position({ x: size * 0.12, y: size * 0.34 });
     }, Rect);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
@@ -332,7 +332,7 @@ export function NoteBadgeIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.22);
         Rect.height(size * 0.04);
         Rect.radius(size * 0.02);
-        Rect.fill('#FFFFFF40');
+        Rect.fill('#40FFFFFF');
         Rect.position({ x: size * 0.12, y: size * 0.46 });
     }, Rect);
     Stack.pop();
@@ -448,7 +448,7 @@ export function BulletListIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.56);
         Rect.height(size * 0.09);
         Rect.radius(size * 0.04);
-        Rect.fill(color + '40');
+        Rect.fill(colorAlpha(color, '40'));
     }, Rect);
     Row.pop();
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
@@ -466,7 +466,7 @@ export function BulletListIcon(size: number, color: string, parent = null) {
         Rect.width(size * 0.44);
         Rect.height(size * 0.09);
         Rect.radius(size * 0.04);
-        Rect.fill(color + '40');
+        Rect.fill(colorAlpha(color, '40'));
     }, Rect);
     Row.pop();
     Column.pop();

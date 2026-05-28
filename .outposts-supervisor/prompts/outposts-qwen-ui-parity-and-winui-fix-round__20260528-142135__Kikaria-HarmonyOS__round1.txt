@@ -1,0 +1,53 @@
+[Round 1] BATCH_NAME=outposts-qwen-ui-parity-and-winui-fix-round
+PROJECT_NAME=Kikaria-HarmonyOS
+
+MANDATORY PREFLIGHT
+1. MODEL_CHECK_RESULT: current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. Otherwise stop and report MODEL_MISMATCH.
+2. PATH_CHECK_RESULT: current working directory must be exactly /Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS. Otherwise stop and report WORKDIR_MISMATCH.
+3. SOURCE_READONLY_CHECK: Apple source /Users/vita/Vitemis/Vela/Kikaria is read-only. All target writes must stay under /Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS. Do not access unrelated directories. Do not read or transmit secrets, API keys, .env, tokens, certificates, p12, provisioning profiles, ssh keys, Keychain data, or private config.
+
+QWEN REQUIRED AFTER BUILD RECOVERY
+This project requires qwen-vision only after compilation is recovered. First priority is build recovery. If build fails before any runnable/screenshot state, report BUILD_BLOCKED_BEFORE_QWEN and do not fake qwen usage.
+Allowed qwen tools only:
+- inspect_screenshot(image_path, goal="")
+- compare_screenshots(reference_image_path, actual_image_path, goal="")
+- extract_text_and_controls(image_path)
+
+VISUAL EVIDENCE ROOT
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-qwen-ui-parity-and-winui-fix-round/20260528-142135/Kikaria-HarmonyOS
+Use reference/, actual/, qwen/ under that root. If your sandbox cannot write there, write screenshots under this project only, call qwen on the available image path, and report the evidence copy blocker.
+
+TASK
+Restore Kikaria-HarmonyOS compilation first. Do not pile on UI features before build is recovered.
+
+Required flow:
+1. Run the appropriate CLI/HAP build command for this project.
+2. Identify compile errors precisely. Fix the smallest necessary scope.
+3. Re-run build until success or a concrete blocker remains.
+4. Only after build is recovered: get an actual page screenshot if feasible through DevEco Preview / emulator / device. If hdc target exists, device screenshot chain may use snapshot_display + file recv. If only Preview and no hdc target, use DevEco screenshot or macOS screencapture; if Screen Recording blocks capture, report SCREENSHOT_BLOCKED_BY_SCREEN_RECORDING.
+5. If actual screenshot exists, call qwen-vision inspect_screenshot at least once and use the result for visual notes. If reference + actual exists, compare_screenshots.
+
+FINAL REPORT FIELDS
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX=1
+QWEN_REQUIRED=YES_AFTER_BUILD
+QWEN_VISION_AVAILABLE
+QWEN_VISION_USED
+REFERENCE_SCREENSHOTS
+ACTUAL_SCREENSHOTS
+VISION_TOOLS_CALLED
+VISION_COMPARISON_RESULT
+USER_ACCEPTANCE_FEEDBACK_ADDRESSED
+APPLE_UI_PARITY_CHECKLIST
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+VISUAL_VALIDATION_LIMITATIONS
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION

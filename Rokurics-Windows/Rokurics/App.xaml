@@ -36,7 +36,7 @@
                 <GradientStop Color="#94E6C2" Offset="1" />
             </LinearGradientBrush>
 
-            <!-- Page background gradient (matching Mac pageGradient 3-stop) -->
+            <!-- Page background gradient (matching Mac pageGradient 3-stop light) -->
             <LinearGradientBrush x:Key="RokuricsPageGradientBrush"
                                  StartPoint="0,0" EndPoint="1,1">
                 <GradientStop Color="#F2FFF8" Offset="0" />
@@ -44,11 +44,20 @@
                 <GradientStop Color="#F5FCFA" Offset="1" />
             </LinearGradientBrush>
 
-            <!-- Sidebar selected accent gradient (aqua -> mint, horizontal) -->
+            <!-- Dark page background gradient — matches MacTheme.pageGradient(dark)
+                 Mac values: RGB(0.035,0.095,0.11) → #09181C, RGB(0.055,0.16,0.17) → #0E292B, RGB(0.075,0.12,0.16) → #131F29 -->
+            <LinearGradientBrush x:Key="RokuricsPageGradientDarkBrush"
+                                 StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#09181C" Offset="0" />
+                <GradientStop Color="#0E292B" Offset="0.5" />
+                <GradientStop Color="#131F29" Offset="1" />
+            </LinearGradientBrush>
+
+            <!-- Sidebar selected accent gradient (mint -> aqua, diagonal topLeading->bottomTrailing matching Mac) -->
             <LinearGradientBrush x:Key="RokuricsSidebarSelectedBrush"
-                                 StartPoint="0,0" EndPoint="1,0">
-                <GradientStop Color="#4FBEBA" Offset="0" />
-                <GradientStop Color="#94E6C2" Offset="1" />
+                                 StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#94E6C2" Offset="0" />
+                <GradientStop Color="#4FBEBA" Offset="1" />
             </LinearGradientBrush>
 
             <!-- Typography — matching MacTypography system -->
@@ -182,7 +191,7 @@
             </Style>
 
             <!-- Glass capsule style — mirrors rokuricsGlassCapsule (Mac: cornerRadius 16, padding 14,8) -->
-            <Style x:Key="RokuricsGlassCapsuleStyle" TargetType="Border">
+            <Style x:Key="RokuricsGlassCapsuleStyle" TargetType="Button">
                 <Setter Property="Background" Value="{ThemeResource AccentAcrylicBackgroundFillColorDefaultBrush}" />
                 <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
                 <Setter Property="BorderThickness" Value="0.5" />

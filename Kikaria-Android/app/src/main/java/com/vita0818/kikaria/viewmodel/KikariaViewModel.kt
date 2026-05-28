@@ -144,6 +144,10 @@ class KikariaViewModel(application: Application) : AndroidViewModel(application)
 
     private fun loadState() {
         val state = KikariaPersistence.load(getApplication())
+        if (state != null) {
+            hasCompletedOnboarding = state.hasCompletedOnboarding
+            hasCompletedProfileSetup = state.hasCompletedProfileSetup
+        }
         if (state != null && state.presets.isNotEmpty()) {
             presets.clear()
             presets.addAll(state.presets)
@@ -156,8 +160,6 @@ class KikariaViewModel(application: Application) : AndroidViewModel(application)
             dangerPercent = state.dangerPercent.coerceIn(1, 100)
             notificationsEnabled = state.notificationsEnabled
             notificationTimeText = state.notificationTimeText.ifEmpty { "21:00" }
-            hasCompletedOnboarding = state.hasCompletedOnboarding
-            hasCompletedProfileSetup = state.hasCompletedProfileSetup
             avatarUri = state.avatarUri
             selectedTags.clear()
             state.selectedTags.forEach { selectedTags.add(it) }

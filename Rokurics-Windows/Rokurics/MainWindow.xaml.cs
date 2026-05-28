@@ -1,6 +1,8 @@
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Rokurics.Views;
+using Windows.Graphics;
 
 namespace Rokurics;
 
@@ -16,7 +18,19 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        var appWindow = GetAppWindowForCurrentWindow();
+        if (appWindow is not null)
+            appWindow.Resize(new SizeInt32(1040, 690));
+
         NavigateTo("studyLibrary");
+    }
+
+    private AppWindow? GetAppWindowForCurrentWindow()
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+        return AppWindow.GetFromWindowId(windowId);
     }
 
     private void OnSidebarSelectionChanged(string selection)

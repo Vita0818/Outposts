@@ -6,12 +6,12 @@ import { router } from '@kit.ArkUI'
 import { getSharedRecordingManager, RecordingManager } from '../services/RecordingManager'
 import { RecordingMetadata, StudyFilingPath, filingLevelTitle } from '../models/RecordingModels'
 import { formatDuration, formatShortTime } from '../utils/FormatHelpers'
-import { RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
+import { colorAlpha,  RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
 import { StudyFolderStore } from '../services/StudyFolderStore'
 
 const HIERARCHY_LEVELS: string[] = ['type', 'subject', 'chapter', 'topic']
 
-const FOLDER_COLORS: string[] = ['#59C7C2', '#9EE8C7', '#73C7F0', '#E06B6E', '#B8A6D6', '#6B9FD4']
+const FOLDER_COLORS: string[] = [RokuricsColors.aqua, RokuricsColors.mint, RokuricsColors.skyCyan, RokuricsColors.coral, '#B8A6D6', '#6B9FD4']
 
 interface FilingGroup {
   path: string
@@ -34,7 +34,7 @@ struct StudyLibraryBrowserPage {
   @State showCreateFolder: boolean = false
   @State newFolderName: string = ''
   @State newFolderLevel: string = ''
-  @State newFolderColor: string = '#59C7C2'
+  @State newFolderColor: string = RokuricsColors.aqua
   @State showRenameFolder: boolean = false
   @State renameTargetId: string = ''
   @State renameText: string = ''
@@ -240,7 +240,7 @@ struct StudyLibraryBrowserPage {
                   .fontColor(this.newFolderLevel === level ? Color.White : RokuricsColors.softText)
                   .padding({ left: 10, right: 10, top: 5, bottom: 5 })
                   .borderRadius(12)
-                  .backgroundColor(this.newFolderLevel === level ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50')
+                  .backgroundColor(this.newFolderLevel === level ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'))
                   .onClick(() => { this.newFolderLevel = level })
               })
             }
@@ -267,7 +267,7 @@ struct StudyLibraryBrowserPage {
                 .fontSize(14).layoutWeight(1)
                 .borderRadius(8)
                 .padding({ left: 12, right: 12, top: 8, bottom: 8 })
-                .backgroundColor(RokuricsColors.glassSurface + '40')
+                .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'))
                 .onChange((v: string) => { this.newFolderName = v })
               Button() {
                 Text('创建').fontSize(13).fontColor(Color.White)
@@ -282,7 +282,7 @@ struct StudyLibraryBrowserPage {
           }
           .width('90%')
           .padding(14).borderRadius(14)
-          .backgroundColor(RokuricsColors.glassSurface + '66')
+          .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'))
           .margin({ left: 16, right: 16, bottom: 8 })
         }
 
@@ -328,10 +328,10 @@ struct StudyLibraryBrowserPage {
               }
               .width('100%').padding(16).borderRadius(14)
               .backgroundColor(this.folderColorMap[group.label] ?
-                this.folderColorMap[group.label] + '22' : RokuricsColors.glassSurface + '66')
+                colorAlpha(this.folderColorMap[group.label], '22') : colorAlpha(RokuricsColors.glassSurface, '66'))
               .border({ width: this.folderColorMap[group.label] ? 1 : 0,
                 color: this.folderColorMap[group.label] ?
-                this.folderColorMap[group.label] + '44' : Color.Transparent })
+                colorAlpha(this.folderColorMap[group.label], '44') : Color.Transparent })
               .onClick(() => {
                 const path = [group.label]
                 this.navigateTo(path)
@@ -382,7 +382,14 @@ struct StudyLibraryBrowserPage {
       }
     }
     .width('100%').height('100%')
-    .backgroundColor(RokuricsColors.pageBackground)
+    .linearGradient({
+      direction: GradientDirection.RightBottom,
+      colors: [
+        [RokuricsColors.pageGradientStart, 1.0],
+        [RokuricsColors.pageGradientMid, 1.0],
+        [RokuricsColors.pageGradientEnd, 1.0]
+      ]
+    })
 
     // Rename folder dialog
     if (this.showRenameFolder) {
@@ -393,7 +400,7 @@ struct StudyLibraryBrowserPage {
             .fontColor(RokuricsColors.deepText)
           TextInput({ text: this.renameText, placeholder: '新名称' })
             .fontSize(16).fontColor(RokuricsColors.deepText)
-            .backgroundColor(RokuricsColors.glassSurface + '80')
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'))
             .borderRadius(10).padding(14)
             .onChange((v: string) => { this.renameText = v })
           if (this.editMessage.length > 0) {
@@ -414,11 +421,11 @@ struct StudyLibraryBrowserPage {
           }
           .width('100%').justifyContent(FlexAlign.End)
         }
-        .padding(24).borderRadius(20).backgroundColor(Color.White).width('85%')
-        .shadow({ radius: 30, color: '#00000020' })
+        .padding(24).borderRadius(20).backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6')).width('85%')
+        .shadow({ radius: 30, color: '#20000000' })
       }
       .width('100%').height('100%').justifyContent(FlexAlign.Center)
-      .backgroundColor('#00000050').position({ x: 0, y: 0 })
+      .backgroundColor('#50000000').position({ x: 0, y: 0 })
       .onClick(() => { this.showRenameFolder = false; this.editMessage = '' })
     }
 
@@ -445,11 +452,11 @@ struct StudyLibraryBrowserPage {
           }
           .width('100%').justifyContent(FlexAlign.End)
         }
-        .padding(24).borderRadius(20).backgroundColor(Color.White).width('85%')
-        .shadow({ radius: 30, color: '#00000020' })
+        .padding(24).borderRadius(20).backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6')).width('85%')
+        .shadow({ radius: 30, color: '#20000000' })
       }
       .width('100%').height('100%').justifyContent(FlexAlign.Center)
-      .backgroundColor('#00000050').position({ x: 0, y: 0 })
+      .backgroundColor('#50000000').position({ x: 0, y: 0 })
       .onClick(() => { this.showDeleteConfirm = false })
     }
     }
@@ -491,7 +498,7 @@ struct StudyLibraryBrowserPage {
     }
     .width('100%').padding({ left: 14, right: 14, top: 12, bottom: 12 })
     .borderRadius(12)
-    .backgroundColor(RokuricsColors.glassSurface + '50')
+    .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '50'))
     .onClick(() => this.openDetail(recording.id))
   }
 
@@ -504,7 +511,7 @@ struct StudyLibraryBrowserPage {
     await store.setColorToken(record.id, this.newFolderColor)
     this.showCreateFolder = false
     this.newFolderName = ''
-    this.newFolderColor = '#59C7C2'
+    this.newFolderColor = RokuricsColors.aqua
     await this.loadData()
   }
 

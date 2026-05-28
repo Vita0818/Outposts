@@ -1,6 +1,10 @@
 /**
  * Theme system - mirrors RokuricsColors.swift + RokuricsTypography.swift + glass modifiers
  */
+// ── Color utility: converts #RRGGBB base + AA alpha suffix to HarmonyOS #AARRGGBB ──
+export function colorAlpha(baseHex: string, alphaHex: string): string {
+    return '#' + alphaHex + baseHex.substring(1);
+}
 // ── Colors ──
 export class RokuricsColors {
     static readonly aqua = '#59C7C2';
@@ -10,6 +14,7 @@ export class RokuricsColors {
     static readonly skyCyan = '#73C7F0';
     static readonly paleAqua = '#C4F5E8';
     static readonly coral = '#E06B6E';
+    static readonly amber = '#E0A852';
     static readonly deepText = '#1A424A';
     static readonly softText = '#638F94';
     static readonly tertiaryText = '#94B3B8';
@@ -22,6 +27,13 @@ export class RokuricsColors {
     static readonly actionEnd = '#99E6C2';
     static readonly recordingAccentStart = '#DB6B6B';
     static readonly recordingAccentEnd = '#F5AD94';
+    // ── Page gradient color stops (mirrors pageGradient in RokuricsColors.swift) ──
+    static readonly pageGradientStart = '#EFFAF7';
+    static readonly pageGradientMid = '#DBF7F4';
+    static readonly pageGradientEnd = '#F2FAFF';
+    // ── Action/orb gradient stops (mirrors actionGradient in RokuricsColors.swift) ──
+    static readonly actionGradientStart = '#4FC2BF';
+    static readonly actionGradientEnd = '#99E6C2';
 }
 // ── Typography ──
 export interface Font {
@@ -84,9 +96,9 @@ export function GlassCardContent(child: WrappedBuilder<[
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender, child = __child__) => {
         Column.create();
         Column.borderRadius(20);
-        Column.backgroundColor(RokuricsColors.glassSurface + 'A8');
+        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'A8'));
         Column.shadow({
-            color: RokuricsColors.shadowColor + '18',
+            color: colorAlpha(RokuricsColors.shadowColor, '18'),
             radius: 18,
             offsetY: 10
         });
@@ -114,9 +126,9 @@ export function GlassCircle(size: number, child: WrappedBuilder<[
         Stack.width(size);
         Stack.height(size);
         Stack.borderRadius(size / 2);
-        Stack.backgroundColor(RokuricsColors.glassSurface + '66');
+        Stack.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
         Stack.shadow({
-            color: RokuricsColors.shadowColor + '12',
+            color: colorAlpha(RokuricsColors.shadowColor, '12'),
             radius: 14,
             offsetY: 7
         });
@@ -142,8 +154,8 @@ export function StatusPill(text: string, color: string, parent = null): void {
         Row.create({ space: 6 });
         Row.padding({ left: 10, right: 10, top: 5, bottom: 5 });
         Row.borderRadius(12);
-        Row.backgroundColor(color + '18');
-        Row.border({ width: 1, color: color + '30', radius: 12 });
+        Row.backgroundColor(colorAlpha(color, '18'));
+        Row.border({ width: 1, color: colorAlpha(color, '30'), radius: 12 });
     }, Row);
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         Circle.create();
@@ -168,9 +180,9 @@ export function IconCircleButton(symbol: string, size: number, tint: string, onC
         Button.width(size);
         Button.height(size);
         Button.borderRadius(size / 2);
-        Button.backgroundColor(RokuricsColors.glassSurface + '66');
+        Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
         Button.shadow({
-            color: RokuricsColors.shadowColor + '10',
+            color: colorAlpha(RokuricsColors.shadowColor, '10'),
             radius: 12,
             offsetY: 6
         });
@@ -205,7 +217,7 @@ export function WaveformIcon(size: number, parent = null): void {
         Stack.width(size);
         Stack.height(size);
         Stack.borderRadius(size / 2);
-        Stack.backgroundColor(RokuricsColors.glassSurface + '56');
+        Stack.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '56'));
         Stack.border({
             width: 1,
             color: {
@@ -219,7 +231,7 @@ export function WaveformIcon(size: number, parent = null): void {
             radius: size / 2
         } as BorderOptions);
         Stack.shadow({
-            color: RokuricsColors.shadowColor + '08',
+            color: colorAlpha(RokuricsColors.shadowColor, '08'),
             radius: 9,
             offsetY: 4
         });
@@ -279,7 +291,7 @@ export function SegmentedButton(labels: string[], selectedIndex: number, onSelec
             (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
                 Button.createWithChild();
                 Button.padding({ left: 14, right: 14, top: 7, bottom: 7 });
-                Button.backgroundColor(index === selectedIndex ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50');
+                Button.backgroundColor(index === selectedIndex ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
                 Button.borderRadius(index === 0 ?
                     { topLeft: 8, bottomLeft: 8 } :
                     index === labels.length - 1 ?

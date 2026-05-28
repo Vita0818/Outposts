@@ -4,7 +4,7 @@
 import { getSharedRecordingManager, RecordingManager } from '../services/RecordingManager'
 import { RecordingState, StudyFilingPath, filingLevelTitle } from '../models/RecordingModels'
 import { formatClock, formatDuration } from '../utils/FormatHelpers'
-import { RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
+import { colorAlpha,  RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
 import { PlayIcon, PauseIcon, StopIcon } from '../utils/CustomIcons'
 
 const FILING_OPTIONS: Record<string, string[]> = {
@@ -91,9 +91,9 @@ struct RecordingSessionPage {
           .width(44)
           .height(44)
           .borderRadius(22)
-          .backgroundColor(RokuricsColors.glassSurface + '66')
+          .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'))
           .shadow({
-            color: RokuricsColors.shadowColor + '10',
+            color: colorAlpha(RokuricsColors.shadowColor, '10'),
             radius: 12,
             offsetY: 6
           })
@@ -101,9 +101,9 @@ struct RecordingSessionPage {
             width: 1,
             color: {
               colors: [
-                [0xFFFFFF, 0.44],
-                [0xEFFAF8, 0.14],
-                [0x59C7C2, 0.12]
+                [0xFFFFFF, 0.22],
+                [RokuricsColors.glassStroke, 0.14],
+                [RokuricsColors.aqua, 0.12]
               ],
               direction: GradientDirection.RightBottom
             },
@@ -125,7 +125,7 @@ struct RecordingSessionPage {
             .borderRadius(20)
             .backgroundColor(RokuricsColors.coral)
             .shadow({
-              color: RokuricsColors.coral + '30',
+              color: colorAlpha(RokuricsColors.coral, '30'),
               radius: 12,
               offsetY: 4
             })
@@ -143,7 +143,7 @@ struct RecordingSessionPage {
             .borderRadius(20)
             .backgroundColor(RokuricsColors.aqua)
             .shadow({
-              color: RokuricsColors.aqua + '30',
+              color: colorAlpha(RokuricsColors.aqua, '30'),
               radius: 12,
               offsetY: 4
             })
@@ -203,9 +203,9 @@ struct RecordingSessionPage {
         .width('85%')
         .padding({ top: 36, bottom: 36, left: 18, right: 18 })
         .borderRadius(34)
-        .backgroundColor(RokuricsColors.glassSurface + '5C')
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '5C'))
         .shadow({
-          color: RokuricsColors.shadowColor + '12',
+          color: colorAlpha(RokuricsColors.shadowColor, '12'),
           radius: 24,
           offsetY: 14
         })
@@ -213,9 +213,9 @@ struct RecordingSessionPage {
           width: 1,
           color: {
             colors: [
-              [0xFFFFFF, 0.42],
-              [0xEFFAF8, 0.18],
-              [0x91E8D6, 0.14]
+              [0xFFFFFF, 0.22],
+              [RokuricsColors.glassStroke, 0.18],
+              [RokuricsColors.glassStrokeAccent, 0.14]
             ],
             direction: GradientDirection.RightBottom
           },
@@ -247,9 +247,9 @@ struct RecordingSessionPage {
             .layoutWeight(1)
             .height(76)
             .borderRadius(24)
-            .backgroundColor(RokuricsColors.glassSurface + '61')
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '61'))
             .shadow({
-              color: RokuricsColors.shadowColor + '08',
+              color: colorAlpha(RokuricsColors.shadowColor, '08'),
               radius: 12,
               offsetY: 6
             })
@@ -257,9 +257,9 @@ struct RecordingSessionPage {
               width: 1,
               color: {
                 colors: [
-                  [0xFFFFFF, 0.34],
-                  [0xEFFAF8, 0.14],
-                  [0x91E8D6, 0.10]
+                  [0xFFFFFF, 0.18],
+                  [RokuricsColors.glassStroke, 0.14],
+                  [RokuricsColors.glassStrokeAccent, 0.10]
                 ],
                 direction: GradientDirection.RightBottom
               },
@@ -285,7 +285,7 @@ struct RecordingSessionPage {
           .borderRadius(36)
           .backgroundColor(this.state === RecordingState.RECORDING ? RokuricsColors.coral : RokuricsColors.aqua)
           .shadow({
-            color: (this.state === RecordingState.RECORDING ? RokuricsColors.coral : RokuricsColors.aqua) + '40',
+            color: colorAlpha((this.state === RecordingState.RECORDING ? RokuricsColors.coral : RokuricsColors.aqua), '40'),
             radius: 18,
             offsetY: 6
           })
@@ -343,7 +343,14 @@ struct RecordingSessionPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(RokuricsColors.pageBackground)
+    .linearGradient({
+      direction: GradientDirection.RightBottom,
+      colors: [
+        [RokuricsColors.pageGradientStart, 1.0],
+        [RokuricsColors.pageGradientMid, 1.0],
+        [RokuricsColors.pageGradientEnd, 1.0]
+      ]
+    })
   }
 
   @Builder
@@ -382,7 +389,7 @@ struct RecordingSessionPage {
               .fontSize(20)
               .fontWeight(FontWeight.SemiBold)
               .fontColor(RokuricsColors.deepText)
-              .backgroundColor(RokuricsColors.glassSurface + '80')
+              .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'))
               .borderRadius(12)
               .padding(16)
               .width('100%')
@@ -408,7 +415,7 @@ struct RecordingSessionPage {
             TextInput({ text: this.filingTopic, placeholder: '输入主题名' })
               .fontSize(14)
               .fontColor(RokuricsColors.deepText)
-              .backgroundColor(RokuricsColors.glassSurface + '40')
+              .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'))
               .borderRadius(8)
               .padding({ left: 12, right: 12, top: 8, bottom: 8 })
               .onChange((value: string) => { this.filingTopic = value })
@@ -419,7 +426,7 @@ struct RecordingSessionPage {
             TextInput({ text: this.filingChapter, placeholder: '输入章节名' })
               .fontSize(14)
               .fontColor(RokuricsColors.deepText)
-              .backgroundColor(RokuricsColors.glassSurface + '40')
+              .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'))
               .borderRadius(8)
               .padding({ left: 12, right: 12, top: 8, bottom: 8 })
               .onChange((value: string) => { this.filingChapter = value })
@@ -433,7 +440,7 @@ struct RecordingSessionPage {
                   .fontColor(this.filingSubject === option ? Color.White : RokuricsColors.softText)
                   .padding({ left: 10, right: 10, top: 6, bottom: 6 })
                   .borderRadius(12)
-                  .backgroundColor(this.filingSubject === option ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50')
+                  .backgroundColor(this.filingSubject === option ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'))
                   .onClick(() => {
                     if (this.filingSubject === option) {
                       this.filingSubject = ''
@@ -454,7 +461,7 @@ struct RecordingSessionPage {
                   .fontColor(this.filingType === option ? Color.White : RokuricsColors.softText)
                   .padding({ left: 10, right: 10, top: 6, bottom: 6 })
                   .borderRadius(12)
-                  .backgroundColor(this.filingType === option ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50')
+                  .backgroundColor(this.filingType === option ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'))
                   .onClick(() => {
                     if (this.filingType === option) {
                       this.filingType = ''
@@ -486,8 +493,8 @@ struct RecordingSessionPage {
             .layoutWeight(1)
             .height(48)
             .borderRadius(24)
-            .backgroundColor(RokuricsColors.glassSurface + '4D')
-            .border({ width: 1, color: RokuricsColors.softText + '20', radius: 24 })
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '4D'))
+            .border({ width: 1, color: colorAlpha(RokuricsColors.softText, '20'), radius: 24 })
             .onClick(() => {
               this.recordingManager.finalizeRecordingDirectSave()
               this.getUIContext().getRouter().back()
@@ -508,7 +515,7 @@ struct RecordingSessionPage {
             )
             .enabled(!!(this.filingType || this.filingSubject || this.filingChapter || this.filingTopic))
             .shadow({
-              color: RokuricsColors.shadowColor + '16',
+              color: colorAlpha(RokuricsColors.shadowColor, '16'),
               radius: 14,
               offsetY: 8
             })
@@ -526,9 +533,9 @@ struct RecordingSessionPage {
         .width('100%')
         .padding(22)
         .borderRadius(30)
-        .backgroundColor(RokuricsColors.glassSurface + 'F5')
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'F5'))
         .shadow({
-          color: RokuricsColors.shadowColor + '1C',
+          color: colorAlpha(RokuricsColors.shadowColor, '1C'),
           radius: 26,
           offsetY: 14
         })
@@ -536,9 +543,9 @@ struct RecordingSessionPage {
           width: 1,
           color: {
             colors: [
-              [0xFFFFFF, 0.50],
-              [0xEFFAF8, 0.20],
-              [0x91E8D6, 0.16]
+              [0xFFFFFF, 0.24],
+              [RokuricsColors.glassStroke, 0.20],
+              [RokuricsColors.glassStrokeAccent, 0.16]
             ],
             direction: GradientDirection.RightBottom
           },
@@ -575,10 +582,10 @@ struct RecordingSessionPage {
     .padding({ left: 8, right: 8, top: 6, bottom: 6 })
     .constraintSize({ minWidth: 64 })
     .borderRadius(13)
-    .backgroundColor(RokuricsColors.glassSurface + '56')
+    .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '56'))
     .border({
       width: 1,
-      color: enabled ? RokuricsColors.aqua + '46' : RokuricsColors.softText + '18',
+      color: enabled ? colorAlpha(RokuricsColors.aqua, '46') : colorAlpha(RokuricsColors.softText, '18'),
       radius: 13
     })
     .opacity(enabled ? 1 : 0.46)
@@ -590,13 +597,13 @@ struct RecordingSessionPage {
       Circle()
         .width(220)
         .height(220)
-        .fill(RokuricsColors.mint + '20')
+        .fill(colorAlpha(RokuricsColors.mint, '20'))
         .position({ x: -50, y: -150 })
 
       Circle()
         .width(260)
         .height(260)
-        .fill(RokuricsColors.skyCyan + '16')
+        .fill(colorAlpha(RokuricsColors.skyCyan, '16'))
         .position({ x: '85%', y: '75%' })
     }
     .width('100%')

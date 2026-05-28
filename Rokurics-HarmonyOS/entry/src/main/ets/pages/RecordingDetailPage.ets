@@ -13,7 +13,9 @@ import { ExportManager, ExportFormat } from '../services/ExportManager'
 import { RecordingUploadClient, UploadConfig, UploadStage } from '../services/RecordingUploadClient'
 import { SettingsStore } from '../services/SettingsStore'
 import { TranscriptionResult, NoteGenerationResult } from '../models/ProcessingModels'
-import { RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
+import { colorAlpha,  RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity,
+  glassStrokeMidOpacity, glassAccentOpacity } from '../utils/RokuricsTheme'
+import { TrashIcon, CloudUploadIcon, EditIcon } from '../utils/CustomIcons'
 
 const LEVELS: string[] = ['type', 'subject', 'chapter', 'topic']
 const FILING_OPTIONS: Record<string, string[]> = {
@@ -191,9 +193,9 @@ struct RecordingDetailPage {
         .width(44)
         .height(44)
         .borderRadius(22)
-        .backgroundColor(RokuricsColors.glassSurface + '66')
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'))
         .shadow({
-          color: RokuricsColors.shadowColor + '10',
+          color: colorAlpha(RokuricsColors.shadowColor, '10'),
           radius: 12,
           offsetY: 6
         })
@@ -201,9 +203,9 @@ struct RecordingDetailPage {
           width: 1,
           color: {
             colors: [
-              [0xFFFFFF, 0.44],
-              [0xEFFAF8, 0.14],
-              [0x59C7C2, 0.12]
+              [0xFFFFFF, 0.22],
+              [RokuricsColors.glassStroke, 0.12],
+              [RokuricsColors.aqua, 0.24]
             ],
             direction: GradientDirection.RightBottom
           },
@@ -219,6 +221,30 @@ struct RecordingDetailPage {
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .layoutWeight(1)
           .margin({ left: 8 })
+
+        // Right-side action buttons (mirrors iOS: share/upload, edit, delete)
+        Row({ space: 8 }) {
+          Button() {
+            CloudUploadIcon(16, RokuricsColors.deepText)
+          }
+          .width(36).height(36).borderRadius(18)
+          .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '4A'))
+          .onClick(() => this.uploadRecording())
+
+          Button() {
+            EditIcon(16, RokuricsColors.deepText)
+          }
+          .width(36).height(36).borderRadius(18)
+          .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '4A'))
+          .onClick(() => this.openRenameDialog())
+
+          Button() {
+            TrashIcon(16, RokuricsColors.coral)
+          }
+          .width(36).height(36).borderRadius(18)
+          .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '4A'))
+          .onClick(() => this.deleteAndBack())
+        }
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: 56, bottom: 16 })
@@ -233,11 +259,54 @@ struct RecordingDetailPage {
       } else {
         Scroll() {
           Column({ space: 16 }) {
-            // Info fields
-            this.InfoRow('标题', this.recording!.title)
-            this.InfoRow('时间', formatShortTime(this.recording!.createdAt))
-            this.InfoRow('时长', formatDuration(this.recording!.duration))
-            this.InfoRow('日期', this.formatDateStr(this.recording!.createdAt))
+            // Metadata subtitle
+            Text(`${this.formatDateStr(this.recording!.createdAt)} · ${formatDuration(this.recording!.duration)}`)
+              .fontSize(14)
+              .fontWeight(FontWeight.Medium)
+              .fontColor(RokuricsColors.softText)
+              .width('100%')
+              .margin({ top: -4 })
+
+            // 2×2 Action Button Grid
+            Column({ space: 10 }) {
+              Row({ space: 10 }) {
+                this.DetailActionButton(
+                  this.recording!.uploadStatus === 'uploaded' ? '已上传' : '上传',
+                  this.recording!.uploadStatus === 'uploaded' ? RokuricsColors.mint : RokuricsColors.deepText,
+                  this.recording!.uploadStatus !== 'uploading',
+                  () => this.uploadRecording()
+                )
+                this.DetailActionButton(
+                  this.hasTranscript ? '查看转写' : '未转写',
+                  this.hasTranscript ? RokuricsColors.deepText : RokuricsColors.tertiaryText,
+                  true,
+                  async () => {
+                    this.showTranscriptView = !this.showTranscriptView
+                    if (this.showTranscriptView && this.transcriptText.length === 0) {
+                      await this.loadTranscript()
+                    }
+                  }
+                )
+              }
+              .width('100%')
+              Row({ space: 10 }) {
+                this.DetailActionButton(
+                  this.hasNote ? '查看总结' : '无总结',
+                  this.hasNote ? RokuricsColors.deepText : RokuricsColors.tertiaryText,
+                  true,
+                  async () => {
+                    this.showNoteView = !this.showNoteView
+                    if (this.showNoteView && this.noteMarkdown.length === 0) {
+                      await this.loadNote()
+                    }
+                  }
+                )
+                this.DetailActionButton('重命名', RokuricsColors.deepText, true,
+                  () => this.openRenameDialog())
+              }
+              .width('100%')
+            }
+            .width('100%')
 
             // Technical info - glass card
             Text('技术信息')
@@ -256,45 +325,123 @@ struct RecordingDetailPage {
             }
             .padding(14)
             .borderRadius(14)
-            .backgroundColor(RokuricsColors.glassSurface + 'A8')
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'A8'))
             .border({
               width: 1,
               color: {
                 colors: [
-                  [0xFFFFFF, 0.34],
-                  [0xEFFAF8, 0.12],
-                  [0x91E8D6, 0.08]
+                  [0xFFFFFF, 0.18],
+                  [RokuricsColors.glassStroke, 0.10],
+                  [RokuricsColors.glassStrokeAccent, 0.18]
                 ],
                 direction: GradientDirection.RightBottom
               },
               radius: 14
             } as BorderOptions)
             .shadow({
-              color: RokuricsColors.shadowColor + '06',
+              color: colorAlpha(RokuricsColors.shadowColor, '06'),
               radius: 8,
               offsetY: 4
             })
 
-            // Study filing
-            Row() {
-              Text('学习归档')
-                .fontSize(15)
-                .fontWeight(FontWeight.SemiBold)
-                .fontColor(RokuricsColors.deepText)
-              Blank()
-              Button() {
-                Text('编辑')
-                  .fontSize(13)
-                  .fontColor(RokuricsColors.aqua)
+            // Classification tags glass card
+            Column({ space: 10 }) {
+              Row({ space: 8 }) {
+                ForEach(LEVELS, (level: string) => {
+                  Column({ space: 2 }) {
+                    Text(filingLevelTitle(level))
+                      .fontSize(10)
+                      .fontWeight(FontWeight.Medium)
+                      .fontColor(RokuricsColors.tertiaryText)
+                    Text(this.getFilingValue(level))
+                      .fontSize(14)
+                      .fontWeight(FontWeight.SemiBold)
+                      .fontColor(RokuricsColors.deepText)
+                  }
+                  .padding({ left: 12, right: 12, top: 8, bottom: 8 })
+                  .borderRadius(14)
+                  .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '5C'))
+                  .border({
+                    width: 1,
+                    color: {
+                      colors: [
+                        [0xFFFFFF, 0.14],
+                        [RokuricsColors.glassStroke, 0.08]
+                      ],
+                      direction: GradientDirection.RightBottom
+                    },
+                    radius: 14
+                  } as BorderOptions)
+                })
               }
-              .backgroundColor(Color.Transparent)
-              .onClick(() => { this.showFilingEditor = !this.showFilingEditor })
+              .width('100%')
+              .flexShrink(0)
+
+              Row({ space: 6 }) {
+                Button() {
+                  Row({ space: 4 }) {
+                    Text('新建')
+                      .fontSize(13)
+                      .fontWeight(FontWeight.Medium)
+                      .fontColor(RokuricsColors.aqua)
+                    Text('+')
+                      .fontSize(15)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor(RokuricsColors.aqua)
+                  }
+                }
+                .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+                .borderRadius(14)
+                .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '47'))
+                .border({
+                  width: 1,
+                  color: {
+                    colors: [
+                      [0xFFFFFF, 0.18],
+                      [RokuricsColors.glassStrokeAccent, 0.22]
+                    ],
+                    direction: GradientDirection.RightBottom
+                  },
+                  radius: 14
+                } as BorderOptions)
+                .onClick(() => { this.showFilingEditor = !this.showFilingEditor })
+
+                if (this.showFilingEditor) {
+                  Button() {
+                    Text('保存').fontSize(13).fontWeight(FontWeight.Medium).fontColor(Color.White)
+                  }
+                  .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+                  .borderRadius(14)
+                  .backgroundColor(RokuricsColors.aqua)
+                  .onClick(() => this.saveFiling())
+                }
+              }
             }
             .width('100%')
-            .margin({ top: 8 })
+            .padding(16)
+            .borderRadius(24)
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
+            .border({
+              width: 1,
+              color: {
+                colors: [
+                  [0xFFFFFF, glassStrokeHighOpacity],
+                  [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+                  [RokuricsColors.glassStrokeAccent, glassAccentOpacity]
+                ],
+                direction: GradientDirection.RightBottom
+              },
+              radius: 24
+            } as BorderOptions)
+            .shadow({
+              color: colorAlpha(RokuricsColors.shadowColor, '08'),
+              radius: 12,
+              offsetY: 6
+            })
 
+            // Filing editor (expandable)
             if (this.showFilingEditor) {
-              Column({ space: 12 }) {
+              Column({ space: 10 }) {
                 this.FilingEditRow('门类', this.editType, FILING_OPTIONS['type'],
                   (v: string) => { this.editType = (v === this.editType ? '' : v) })
                 this.FilingEditRow('课程', this.editSubject, FILING_OPTIONS['subject'],
@@ -303,7 +450,7 @@ struct RecordingDetailPage {
                   Text('章节').fontSize(12).fontColor(RokuricsColors.softText)
                   TextInput({ text: this.editChapter, placeholder: '输入章节名' })
                     .fontSize(14).fontColor(RokuricsColors.deepText)
-                    .backgroundColor(RokuricsColors.glassSurface + '40')
+                    .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'))
                     .borderRadius(8)
                     .padding({ left: 12, right: 12, top: 8, bottom: 8 })
                     .onChange((value: string) => { this.editChapter = value })
@@ -312,85 +459,53 @@ struct RecordingDetailPage {
                   Text('主题').fontSize(12).fontColor(RokuricsColors.softText)
                   TextInput({ text: this.editTopic, placeholder: '输入主题名' })
                     .fontSize(14).fontColor(RokuricsColors.deepText)
-                    .backgroundColor(RokuricsColors.glassSurface + '40')
+                    .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'))
                     .borderRadius(8)
                     .padding({ left: 12, right: 12, top: 8, bottom: 8 })
                     .onChange((value: string) => { this.editTopic = value })
                 }
-                Button() {
-                  Text('保存归档').fontSize(14).fontColor(Color.White)
-                }
-                .padding({ left: 20, right: 20, top: 8, bottom: 8 })
-                .borderRadius(10)
-                .backgroundColor(RokuricsColors.aqua)
-                .onClick(() => this.saveFiling())
               }
+              .width('100%')
               .padding(16)
-              .borderRadius(14)
-              .backgroundColor(RokuricsColors.glassSurface + '40')
-            } else {
-              Column({ space: 8 }) {
-                ForEach(LEVELS, (level: string) => {
-                  Row() {
-                    Text(filingLevelTitle(level))
-                      .fontSize(13)
-                      .fontColor(RokuricsColors.softText)
-                      .width(60)
-
-                    Text(this.getFilingValue(level))
-                      .fontSize(15)
-                      .fontColor(RokuricsColors.deepText)
-                  }
-                  .width('100%')
-                  .padding(10)
-                  .borderRadius(8)
-                  .backgroundColor(RokuricsColors.glassSurface + 'A8')
-                  .border({
-                    width: 1,
-                    color: {
-                      colors: [
-                        [0xFFFFFF, 0.20],
-                        [0xEFFAF8, 0.08]
-                      ],
-                      direction: GradientDirection.RightBottom
-                    },
-                    radius: 8
-                  } as BorderOptions)
-                })
-              }
+              .borderRadius(16)
+              .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '60'))
             }
 
-            // Status - glass card
-            Text('处理状态')
-              .fontSize(15)
-              .fontWeight(FontWeight.SemiBold)
-              .fontColor(RokuricsColors.deepText)
-              .margin({ top: 8 })
+            // File status list glass card
+            Column({ space: 8 }) {
+              Text('文件状态')
+                .fontSize(13)
+                .fontWeight(FontWeight.SemiBold)
+                .fontColor(RokuricsColors.tertiaryText)
+                .width('100%')
 
-            Column({ space: 6 }) {
-              this.TechRow('上传', this.uploadLabel(this.recording!.uploadStatus))
-              this.TechRow('转写', this.transcriptLabel(this.recording!.transcriptionStatus))
-              this.TechRow('笔记', this.noteLabel(this.recording!.noteStatus))
+              this.FileStatusRow('上传', this.uploadLabel(this.recording!.uploadStatus))
+              this.FileStatusRow('转写', this.transcriptLabel(this.recording!.transcriptionStatus))
+              this.FileStatusRow('笔记', this.noteLabel(this.recording!.noteStatus))
+              this.FileStatusRow('格式', this.recording!.format.toUpperCase())
+              this.FileStatusRow('大小', this.actualFileSize > 0 ?
+                fileSizeText(this.actualFileSize) : fileSizeText(this.recording!.fileSize))
             }
-            .padding(14)
-            .borderRadius(14)
-            .backgroundColor(RokuricsColors.glassSurface + 'A8')
+            .width('100%')
+            .padding(16)
+            .borderRadius(24)
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity))
             .border({
               width: 1,
               color: {
                 colors: [
-                  [0xFFFFFF, 0.34],
-                  [0xEFFAF8, 0.12],
-                  [0x91E8D6, 0.08]
+                  [0xFFFFFF, glassStrokeHighOpacity],
+                  [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+                  [RokuricsColors.glassStrokeAccent, glassAccentOpacity]
                 ],
                 direction: GradientDirection.RightBottom
               },
-              radius: 14
+              radius: 24
             } as BorderOptions)
             .shadow({
-              color: RokuricsColors.shadowColor + '06',
-              radius: 8,
-              offsetY: 4
+              color: colorAlpha(RokuricsColors.shadowColor, '08'),
+              radius: 12,
+              offsetY: 6
             })
 
             // AI Processing
@@ -416,7 +531,7 @@ struct RecordingDetailPage {
                     .fontColor(this.hasTranscript ? RokuricsColors.mint : RokuricsColors.aqua)
                 }
                 .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-                .border({ width: 1, color: RokuricsColors.aqua + '40', radius: 8 })
+                .border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 8 })
                 .backgroundColor(Color.Transparent)
                 .enabled(!this.isProcessing)
                 .onClick(() => this.runTranscription())
@@ -426,7 +541,7 @@ struct RecordingDetailPage {
                     .fontColor(this.hasNote ? RokuricsColors.mint : RokuricsColors.aqua)
                 }
                 .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-                .border({ width: 1, color: RokuricsColors.aqua + '40', radius: 8 })
+                .border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 8 })
                 .backgroundColor(Color.Transparent)
                 .enabled(!this.isProcessing)
                 .onClick(() => this.runFullProcessing())
@@ -469,7 +584,7 @@ struct RecordingDetailPage {
                 }
                 .constraintSize({ maxHeight: 200 })
                 .borderRadius(8)
-                .backgroundColor(RokuricsColors.glassSurface + '60')
+                .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '60'))
                 .width('100%')
               }
 
@@ -496,27 +611,27 @@ struct RecordingDetailPage {
                 }
                 .constraintSize({ maxHeight: 200 })
                 .borderRadius(8)
-                .backgroundColor(RokuricsColors.glassSurface + '60')
+                .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '60'))
                 .width('100%')
               }
             }
             .width('100%')
             .padding(14).borderRadius(14)
-            .backgroundColor(RokuricsColors.glassSurface + 'A8')
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'A8'))
             .border({
               width: 1,
               color: {
                 colors: [
-                  [0xFFFFFF, 0.34],
-                  [0xEFFAF8, 0.12],
-                  [0x91E8D6, 0.08]
+                  [0xFFFFFF, 0.18],
+                  [RokuricsColors.glassStroke, 0.10],
+                  [RokuricsColors.glassStrokeAccent, 0.18]
                 ],
                 direction: GradientDirection.RightBottom
               },
               radius: 14
             } as BorderOptions)
             .shadow({
-              color: RokuricsColors.shadowColor + '06',
+              color: colorAlpha(RokuricsColors.shadowColor, '06'),
               radius: 8,
               offsetY: 4
             })
@@ -535,7 +650,7 @@ struct RecordingDetailPage {
                 }
                 .padding({ left: 14, right: 14, top: 6, bottom: 6 })
                 .borderRadius(14)
-                .backgroundColor(this.exportFormat === 'Markdown' ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50')
+                .backgroundColor(this.exportFormat === 'Markdown' ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'))
                 .onClick(() => { this.exportFormat = 'Markdown' })
 
                 Button() {
@@ -544,7 +659,7 @@ struct RecordingDetailPage {
                 }
                 .padding({ left: 14, right: 14, top: 6, bottom: 6 })
                 .borderRadius(14)
-                .backgroundColor(this.exportFormat === 'JSON' ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50')
+                .backgroundColor(this.exportFormat === 'JSON' ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'))
                 .onClick(() => { this.exportFormat = 'JSON' })
               }
               .width('100%')
@@ -567,7 +682,7 @@ struct RecordingDetailPage {
                     .fontColor(RokuricsColors.mint)
                 }
                 .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-                .border({ width: 1, color: RokuricsColors.mint + '40', radius: 8 })
+                .border({ width: 1, color: colorAlpha(RokuricsColors.mint, '40'), radius: 8 })
                 .backgroundColor(Color.Transparent)
                 .enabled(!this.isExporting)
                 .onClick(() => this.exportAll())
@@ -578,7 +693,7 @@ struct RecordingDetailPage {
                     .fontColor(RokuricsColors.coral)
                 }
                 .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-                .border({ width: 1, color: RokuricsColors.coral + '40', radius: 8 })
+                .border({ width: 1, color: colorAlpha(RokuricsColors.coral, '40'), radius: 8 })
                 .backgroundColor(Color.Transparent)
                 .onClick(() => this.loadExportList())
               }
@@ -621,7 +736,7 @@ struct RecordingDetailPage {
                         }
                         .width('100%').padding({ left: 10, right: 10, top: 6, bottom: 6 })
                         .borderRadius(6)
-                        .backgroundColor(RokuricsColors.glassSurface + '40')
+                        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'))
                       }
                     })
                   }
@@ -630,26 +745,26 @@ struct RecordingDetailPage {
                 }
                 .width('100%')
                 .padding(8).borderRadius(8)
-                .backgroundColor(RokuricsColors.glassSurface + '30')
+                .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '30'))
               }
             }
             .width('100%')
             .padding(14).borderRadius(14)
-            .backgroundColor(RokuricsColors.glassSurface + 'A8')
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'A8'))
             .border({
               width: 1,
               color: {
                 colors: [
-                  [0xFFFFFF, 0.34],
-                  [0xEFFAF8, 0.12],
-                  [0x91E8D6, 0.08]
+                  [0xFFFFFF, 0.18],
+                  [RokuricsColors.glassStroke, 0.10],
+                  [RokuricsColors.glassStrokeAccent, 0.18]
                 ],
                 direction: GradientDirection.RightBottom
               },
               radius: 14
             } as BorderOptions)
             .shadow({
-              color: RokuricsColors.shadowColor + '06',
+              color: colorAlpha(RokuricsColors.shadowColor, '06'),
               radius: 8,
               offsetY: 4
             })
@@ -662,7 +777,7 @@ struct RecordingDetailPage {
                   .fontColor(RokuricsColors.aqua)
               }
               .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-              .border({ width: 1, color: RokuricsColors.aqua + '40', radius: 10 })
+              .border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 10 })
               .backgroundColor(Color.Transparent)
               .onClick(() => this.togglePlayback())
 
@@ -679,7 +794,7 @@ struct RecordingDetailPage {
                   .fontColor(this.recording?.uploadStatus === 'uploaded' ? RokuricsColors.mint : RokuricsColors.aqua)
               }
               .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-              .border({ width: 1, color: RokuricsColors.aqua + '40', radius: 10 })
+              .border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 10 })
               .backgroundColor(Color.Transparent)
               .enabled(!this.isUploading)
               .onClick(() => this.uploadRecording())
@@ -697,7 +812,7 @@ struct RecordingDetailPage {
                 Text('重命名').fontSize(14).fontColor(RokuricsColors.aqua)
               }
               .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-              .border({ width: 1, color: RokuricsColors.aqua + '40', radius: 10 })
+              .border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 10 })
               .backgroundColor(Color.Transparent)
               .onClick(() => this.openRenameDialog())
 
@@ -705,7 +820,7 @@ struct RecordingDetailPage {
                 Text('删除').fontSize(14).fontColor(RokuricsColors.coral)
               }
               .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-              .border({ width: 1, color: RokuricsColors.coral + '40', radius: 10 })
+              .border({ width: 1, color: colorAlpha(RokuricsColors.coral, '40'), radius: 10 })
               .backgroundColor(Color.Transparent)
               .onClick(() => this.deleteAndBack())
             }
@@ -723,7 +838,14 @@ struct RecordingDetailPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(RokuricsColors.pageBackground)
+    .linearGradient({
+      direction: GradientDirection.RightBottom,
+      colors: [
+        [RokuricsColors.pageGradientStart, 1.0],
+        [RokuricsColors.pageGradientMid, 1.0],
+        [RokuricsColors.pageGradientEnd, 1.0]
+      ]
+    })
 
     // Rename dialog
     if (this.showRenameDialog) {
@@ -737,7 +859,7 @@ struct RecordingDetailPage {
           TextInput({ text: this.renameText, placeholder: '输入新标题' })
             .fontSize(16)
             .fontColor(RokuricsColors.deepText)
-            .backgroundColor(RokuricsColors.glassSurface + '80')
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'))
             .borderRadius(10)
             .padding(14)
             .onChange((value: string) => { this.renameText = value })
@@ -762,14 +884,14 @@ struct RecordingDetailPage {
         }
         .padding(24)
         .borderRadius(20)
-        .backgroundColor(Color.White)
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6'))
         .width('85%')
-        .shadow({ radius: 30, color: '#00000020' })
+        .shadow({ radius: 30, color: '#20000000' })
       }
       .width('100%')
       .height('100%')
       .justifyContent(FlexAlign.Center)
-      .backgroundColor('#00000050')
+      .backgroundColor('#50000000')
       .position({ x: 0, y: 0 })
       .onClick(() => { this.showRenameDialog = false })
     }
@@ -972,7 +1094,7 @@ struct RecordingDetailPage {
     .width('100%')
     .padding(14)
     .borderRadius(12)
-    .backgroundColor(RokuricsColors.glassSurface + '66')
+    .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'))
   }
 
   @Builder
@@ -989,6 +1111,28 @@ struct RecordingDetailPage {
   }
 
   @Builder
+  FileStatusRow(label: string, value: string) {
+    Row() {
+      Text(label)
+        .fontSize(14)
+        .fontWeight(FontWeight.Medium)
+        .fontColor(RokuricsColors.softText)
+      Blank()
+      Row({ space: 4 }) {
+        Text(value)
+          .fontSize(14)
+          .fontWeight(FontWeight.SemiBold)
+          .fontColor(RokuricsColors.deepText)
+        Text('›')
+          .fontSize(16)
+          .fontColor(RokuricsColors.tertiaryText)
+      }
+    }
+    .width('100%')
+    .padding({ left: 4, right: 4, top: 6, bottom: 6 })
+  }
+
+  @Builder
   FilingEditRow(label: string, selectedValue: string, options: string[], onSelect: (v: string) => void) {
     Column({ space: 4 }) {
       Text(label).fontSize(12).fontColor(RokuricsColors.softText)
@@ -1000,13 +1144,45 @@ struct RecordingDetailPage {
             .fontColor(selectedValue === option ? Color.White : RokuricsColors.softText)
             .padding({ left: 10, right: 10, top: 5, bottom: 5 })
             .borderRadius(12)
-            .backgroundColor(selectedValue === option ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50')
+            .backgroundColor(selectedValue === option ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'))
             .onClick(() => onSelect(option))
         })
       }
       .width('100%')
       .flexShrink(0)
     }
+  }
+
+  @Builder
+  DetailActionButton(title: string, tint: string, isEnabled: boolean, action: () => void) {
+    Button() {
+      Text(title)
+        .fontSize(12)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(isEnabled ? tint : RokuricsColors.tertiaryText)
+        .width('100%')
+        .textAlign(TextAlign.Center)
+    }
+    .layoutWeight(1)
+    .padding({ left: 12, right: 12, top: 10, bottom: 10 })
+    .borderRadius(20)
+    .backgroundColor(isEnabled ?
+      colorAlpha(RokuricsColors.glassSurface, '47') :
+      colorAlpha(RokuricsColors.glassSurface, '28'))
+    .border({
+      width: 1,
+      color: {
+        colors: [
+          [0xFFFFFF, isEnabled ? 0.22 : 0.12],
+          [RokuricsColors.glassStroke, isEnabled ? 0.14 : 0.08],
+          [RokuricsColors.glassStrokeAccent, isEnabled ? 0.24 : 0.10]
+        ],
+        direction: GradientDirection.RightBottom
+      },
+      radius: 20
+    } as BorderOptions)
+    .enabled(isEnabled)
+    .onClick(action)
   }
 
   private uploadLabel(s: string): string {

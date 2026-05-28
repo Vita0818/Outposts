@@ -26,10 +26,10 @@ import type { RecordingManager } from "@bundle:com.vita0818.rokurics/entry/ets/s
 import { StudyFilingPath, filingLevelTitle } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import type { RecordingMetadata } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import { formatDuration, formatShortTime } from "@bundle:com.vita0818.rokurics/entry/ets/utils/FormatHelpers";
-import { RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { colorAlpha, RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 import { StudyFolderStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/StudyFolderStore";
 const HIERARCHY_LEVELS: string[] = ['type', 'subject', 'chapter', 'topic'];
-const FOLDER_COLORS: string[] = ['#59C7C2', '#9EE8C7', '#73C7F0', '#E06B6E', '#B8A6D6', '#6B9FD4'];
+const FOLDER_COLORS: string[] = [RokuricsColors.aqua, RokuricsColors.mint, RokuricsColors.skyCyan, RokuricsColors.coral, '#B8A6D6', '#6B9FD4'];
 interface FilingGroup {
     path: string;
     level: string;
@@ -53,7 +53,7 @@ class StudyLibraryBrowserPage extends ViewPU {
         this.__showCreateFolder = new ObservedPropertySimplePU(false, this, "showCreateFolder");
         this.__newFolderName = new ObservedPropertySimplePU('', this, "newFolderName");
         this.__newFolderLevel = new ObservedPropertySimplePU('', this, "newFolderLevel");
-        this.__newFolderColor = new ObservedPropertySimplePU('#59C7C2', this, "newFolderColor");
+        this.__newFolderColor = new ObservedPropertySimplePU(RokuricsColors.aqua, this, "newFolderColor");
         this.__showRenameFolder = new ObservedPropertySimplePU(false, this, "showRenameFolder");
         this.__renameTargetId = new ObservedPropertySimplePU('', this, "renameTargetId");
         this.__renameText = new ObservedPropertySimplePU('', this, "renameText");
@@ -394,7 +394,14 @@ class StudyLibraryBrowserPage extends ViewPU {
             Column.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(158:5)", "entry");
             Column.width('100%');
             Column.height('100%');
-            Column.backgroundColor(RokuricsColors.pageBackground);
+            Column.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.pageGradientStart, 1.0],
+                    [RokuricsColors.pageGradientMid, 1.0],
+                    [RokuricsColors.pageGradientEnd, 1.0]
+                ]
+            });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Header
@@ -567,7 +574,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                                     Column.width('90%');
                                     Column.padding(14);
                                     Column.borderRadius(14);
-                                    Column.backgroundColor(RokuricsColors.glassSurface + '66');
+                                    Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
                                     Column.margin({ left: 16, right: 16, bottom: 8 });
                                 }, Column);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -620,7 +627,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                                             Text.fontColor(this.newFolderLevel === level ? Color.White : RokuricsColors.softText);
                                             Text.padding({ left: 10, right: 10, top: 5, bottom: 5 });
                                             Text.borderRadius(12);
-                                            Text.backgroundColor(this.newFolderLevel === level ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50');
+                                            Text.backgroundColor(this.newFolderLevel === level ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
                                             Text.onClick(() => { this.newFolderLevel = level; });
                                         }, Text);
                                         Text.pop();
@@ -695,7 +702,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                                     TextInput.layoutWeight(1);
                                     TextInput.borderRadius(8);
                                     TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
-                                    TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+                                    TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                                     TextInput.onChange((v: string) => { this.newFolderName = v; });
                                 }, TextInput);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -765,10 +772,10 @@ class StudyLibraryBrowserPage extends ViewPU {
                                         Row.padding(16);
                                         Row.borderRadius(14);
                                         Row.backgroundColor(this.folderColorMap[group.label] ?
-                                            this.folderColorMap[group.label] + '22' : RokuricsColors.glassSurface + '66');
+                                            colorAlpha(this.folderColorMap[group.label], '22') : colorAlpha(RokuricsColors.glassSurface, '66'));
                                         Row.border({ width: this.folderColorMap[group.label] ? 1 : 0,
                                             color: this.folderColorMap[group.label] ?
-                                                this.folderColorMap[group.label] + '44' : Color.Transparent });
+                                                colorAlpha(this.folderColorMap[group.label], '44') : Color.Transparent });
                                         Row.onClick(() => {
                                             const path = [group.label];
                                             this.navigateTo(path);
@@ -1016,26 +1023,26 @@ class StudyLibraryBrowserPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create();
-                        Column.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(389:7)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(396:7)", "entry");
                         Column.width('100%');
                         Column.height('100%');
                         Column.justifyContent(FlexAlign.Center);
-                        Column.backgroundColor('#00000050');
+                        Column.backgroundColor('#50000000');
                         Column.position({ x: 0, y: 0 });
                         Column.onClick(() => { this.showRenameFolder = false; this.editMessage = ''; });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create({ space: 16 });
-                        Column.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(390:9)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(397:9)", "entry");
                         Column.padding(24);
                         Column.borderRadius(20);
-                        Column.backgroundColor(Color.White);
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6'));
                         Column.width('85%');
-                        Column.shadow({ radius: 30, color: '#00000020' });
+                        Column.shadow({ radius: 30, color: '#20000000' });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('重命名分类');
-                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(391:11)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(398:11)", "entry");
                         Text.fontSize(18);
                         Text.fontWeight(FontWeight.SemiBold);
                         Text.fontColor(RokuricsColors.deepText);
@@ -1043,10 +1050,10 @@ class StudyLibraryBrowserPage extends ViewPU {
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         TextInput.create({ text: this.renameText, placeholder: '新名称' });
-                        TextInput.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(394:11)", "entry");
+                        TextInput.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(401:11)", "entry");
                         TextInput.fontSize(16);
                         TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + '80');
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'));
                         TextInput.borderRadius(10);
                         TextInput.padding(14);
                         TextInput.onChange((v: string) => { this.renameText = v; });
@@ -1057,7 +1064,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                             this.ifElseBranchUpdateFunction(0, () => {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Text.create(this.editMessage);
-                                    Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(400:13)", "entry");
+                                    Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(407:13)", "entry");
                                     Text.fontSize(12);
                                     Text.fontColor(RokuricsColors.coral);
                                 }, Text);
@@ -1072,19 +1079,19 @@ class StudyLibraryBrowserPage extends ViewPU {
                     If.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Row.create({ space: 12 });
-                        Row.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(402:11)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(409:11)", "entry");
                         Row.width('100%');
                         Row.justifyContent(FlexAlign.End);
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(403:13)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(410:13)", "entry");
                         Button.backgroundColor(Color.Transparent);
                         Button.onClick(() => { this.showRenameFolder = false; this.editMessage = ''; });
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('取消');
-                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(404:15)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(411:15)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(RokuricsColors.softText);
                     }, Text);
@@ -1092,7 +1099,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                     Button.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(408:13)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(415:13)", "entry");
                         Button.padding({ left: 24, right: 24, top: 10, bottom: 10 });
                         Button.borderRadius(10);
                         Button.backgroundColor(RokuricsColors.aqua);
@@ -1100,7 +1107,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('保存');
-                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(409:15)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(416:15)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(Color.White);
                     }, Text);
@@ -1125,26 +1132,26 @@ class StudyLibraryBrowserPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create();
-                        Column.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(427:7)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(434:7)", "entry");
                         Column.width('100%');
                         Column.height('100%');
                         Column.justifyContent(FlexAlign.Center);
-                        Column.backgroundColor('#00000050');
+                        Column.backgroundColor('#50000000');
                         Column.position({ x: 0, y: 0 });
                         Column.onClick(() => { this.showDeleteConfirm = false; });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create({ space: 16 });
-                        Column.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(428:9)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(435:9)", "entry");
                         Column.padding(24);
                         Column.borderRadius(20);
-                        Column.backgroundColor(Color.White);
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6'));
                         Column.width('85%');
-                        Column.shadow({ radius: 30, color: '#00000020' });
+                        Column.shadow({ radius: 30, color: '#20000000' });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('删除分类');
-                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(429:11)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(436:11)", "entry");
                         Text.fontSize(18);
                         Text.fontWeight(FontWeight.SemiBold);
                         Text.fontColor(RokuricsColors.deepText);
@@ -1152,7 +1159,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create(`确定删除「${this.deleteTargetName}」？关联的录音不会被删除。`);
-                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(431:11)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(438:11)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(RokuricsColors.softText);
                         Text.textAlign(TextAlign.Center);
@@ -1160,19 +1167,19 @@ class StudyLibraryBrowserPage extends ViewPU {
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Row.create({ space: 12 });
-                        Row.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(433:11)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(440:11)", "entry");
                         Row.width('100%');
                         Row.justifyContent(FlexAlign.End);
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(434:13)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(441:13)", "entry");
                         Button.backgroundColor(Color.Transparent);
                         Button.onClick(() => { this.showDeleteConfirm = false; });
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('取消');
-                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(435:15)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(442:15)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(RokuricsColors.softText);
                     }, Text);
@@ -1180,7 +1187,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                     Button.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(439:13)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(446:13)", "entry");
                         Button.padding({ left: 24, right: 24, top: 10, bottom: 10 });
                         Button.borderRadius(10);
                         Button.backgroundColor(RokuricsColors.coral);
@@ -1188,7 +1195,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('删除');
-                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(440:15)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(447:15)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(Color.White);
                     }, Text);
@@ -1210,22 +1217,22 @@ class StudyLibraryBrowserPage extends ViewPU {
     RecordingRow(recording: RecordingMetadata, parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
-            Row.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(460:5)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(467:5)", "entry");
             Row.width('100%');
             Row.padding({ left: 14, right: 14, top: 12, bottom: 12 });
             Row.borderRadius(12);
-            Row.backgroundColor(RokuricsColors.glassSurface + '50');
+            Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '50'));
             Row.onClick(() => this.openDetail(recording.id));
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 3 });
-            Column.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(461:7)", "entry");
+            Column.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(468:7)", "entry");
             Column.layoutWeight(1);
             Column.alignItems(HorizontalAlign.Start);
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(recording.title);
-            Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(462:9)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(469:9)", "entry");
             Text.fontSize(15);
             Text.fontWeight(FontWeight.Medium);
             Text.fontColor(RokuricsColors.deepText);
@@ -1235,18 +1242,18 @@ class StudyLibraryBrowserPage extends ViewPU {
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create({ space: 8 });
-            Row.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(467:9)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(474:9)", "entry");
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(formatShortTime(recording.createdAt));
-            Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(468:11)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(475:11)", "entry");
             Text.fontSize(11);
             Text.fontColor(RokuricsColors.softText);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(formatDuration(recording.duration));
-            Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(470:11)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(477:11)", "entry");
             Text.fontSize(11);
             Text.fontColor(RokuricsColors.tertiaryText);
         }, Text);
@@ -1257,7 +1264,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('📝');
-                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(473:13)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(480:13)", "entry");
                         Text.fontSize(9);
                     }, Text);
                     Text.pop();
@@ -1275,7 +1282,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('📋');
-                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(477:13)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(484:13)", "entry");
                         Text.fontSize(9);
                     }, Text);
                     Text.pop();
@@ -1293,7 +1300,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('☁');
-                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(481:13)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(488:13)", "entry");
                         Text.fontSize(9);
                     }, Text);
                     Text.pop();
@@ -1309,7 +1316,7 @@ class StudyLibraryBrowserPage extends ViewPU {
         Column.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Image.create({ "id": 125832664, "type": 40000, params: [], "bundleName": "com.vita0818.rokurics", "moduleName": "entry" });
-            Image.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(488:7)", "entry");
+            Image.debugLine("entry/src/main/ets/pages/StudyLibraryBrowserPage.ets(495:7)", "entry");
             Image.width(16);
             Image.height(16);
             Image.fillColor(RokuricsColors.softText);
@@ -1325,7 +1332,7 @@ class StudyLibraryBrowserPage extends ViewPU {
         await store.setColorToken(record.id, this.newFolderColor);
         this.showCreateFolder = false;
         this.newFolderName = '';
-        this.newFolderColor = '#59C7C2';
+        this.newFolderColor = RokuricsColors.aqua;
         await this.loadData();
     }
     private async commitRenameFolder(): Promise<void> {

@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <Grid Background="{StaticResource RokuricsPageGradientBrush}">
+    <Grid Background="{StaticResource RokuricsPageGradientDarkBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -78,25 +78,28 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Conversation buttons: recent + new -->
+                <!-- Conversation buttons: recent + new — Mac: ChatConversationButtonGroup -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="2">
-                    <Button Content="☰"
-                            Style="{StaticResource RokuricsIconButtonStyle}"
+                    <Button Style="{StaticResource RokuricsIconButtonStyle}"
                             Click="ToggleRecent_Click"
-                            ToolTipService.ToolTip="最近对话" />
-                    <Button Content="✚"
-                            Style="{StaticResource RokuricsIconButtonStyle}"
+                            ToolTipService.ToolTip="最近对话">
+                        <FontIcon Glyph="&#xE81C;" FontSize="13" />
+                    </Button>
+                    <Button Style="{StaticResource RokuricsIconButtonStyle}"
                             Click="NewConversation_Click"
-                            ToolTipService.ToolTip="新建对话" />
+                            ToolTipService.ToolTip="新建对话">
+                        <FontIcon Glyph="&#xE710;" FontSize="13" />
+                    </Button>
                 </StackPanel>
 
-                <!-- Attachment button -->
+                <!-- Attachment button — Mac: import context paperclip -->
                 <Button x:Name="AttachButton"
                         Grid.Column="1"
-                        Content="📎"
                         Style="{StaticResource RokuricsIconButtonStyle}"
                         Click="Attach_Click"
-                        ToolTipService.ToolTip="导入学习库内容" />
+                        ToolTipService.ToolTip="导入学习库内容">
+                    <FontIcon Glyph="&#xE8FB;" FontSize="13" />
+                </Button>
 
                 <!-- Text input -->
                 <TextBox Grid.Column="2"
@@ -106,12 +109,13 @@
                          AcceptsReturn="True"
                          MaxHeight="120" />
 
-                <!-- Send button -->
+                <!-- Send button — Mac: arrow.up.circle.fill -->
                 <Button Grid.Column="3"
-                        Content="↑"
                         Style="{StaticResource RokuricsAccentButtonStyle}"
-                        Width="40" Height="40" FontSize="18"
-                        Click="Send_Click" />
+                        Width="40" Height="40"
+                        Click="Send_Click">
+                    <FontIcon Glyph="&#xE725;" FontSize="14" />
+                </Button>
             </Grid>
         </Border>
     </Grid>

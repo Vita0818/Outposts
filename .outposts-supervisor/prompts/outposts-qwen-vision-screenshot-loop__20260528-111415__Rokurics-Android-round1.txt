@@ -1,0 +1,103 @@
+[Round 1] outposts-qwen-vision-screenshot-loop / Rokurics-Android
+
+MANDATORY PREFLIGHT
+1. MODEL_CHECK_RESULT
+   Current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop immediately and report MODEL_MISMATCH.
+2. PATH_CHECK_RESULT
+   Current working directory must be exactly:
+   /Users/vita/Vitemis/Outposts/Rokurics-Android
+   If not, stop immediately and report WORKDIR_MISMATCH.
+3. SOURCE_READONLY_CHECK
+   Apple source is read-only:
+   /Users/vita/Vitemis/Vela/Rokurics
+   Target project is writable only under:
+   /Users/vita/Vitemis/Outposts/Rokurics-Android
+   Visual evidence may be written only under:
+   /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-qwen-vision-screenshot-loop/20260528-111415/Rokurics-Android
+   Do not access unrelated directories. Do not read or transmit secrets, API keys, .env, tokens, certificates, p12, provisioning profiles, ssh keys, Keychain data, or private config.
+
+CURRENT ENVIRONMENT FACTS FROM USER
+- Android Studio is already running.
+- A Pixel 8 emulator is already started.
+- The Rokurics-Android page is already visible in the emulator.
+- Do not report "no emulator" unless adb actually fails and you include the concrete failure.
+
+ROLE AND TOOL BOUNDARIES
+- You are the main Claude Code agent. You may read Apple source, read/modify this target project, run commands, build, test, capture screenshots, call qwen-vision, and summarize.
+- qwen-vision is connected in Claude Code as an MCP tool. It is not the main model.
+- qwen-vision only sees images and reports visual structure/differences. It must not modify files.
+- Do not send full source code, secrets, config files, or credentials to qwen-vision.
+- Do not fake visual validation. No screenshot means no visual validation claim.
+
+VISUAL EVIDENCE DIRECTORIES
+Create/use these directories:
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-qwen-vision-screenshot-loop/20260528-111415/Rokurics-Android/reference
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-qwen-vision-screenshot-loop/20260528-111415/Rokurics-Android/actual
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-qwen-vision-screenshot-loop/20260528-111415/Rokurics-Android/qwen
+
+TASK
+Build the actual screenshot -> qwen inspect loop for Rokurics-Android, then make one focused UI/layout/interaction correction pass against the Apple source.
+
+Required steps:
+1. Confirm preflight fields above.
+2. Run adb devices and identify the Pixel 8 emulator serial. If multiple devices exist, always use -s <DEVICE_SERIAL>.
+3. Capture the current device screenshot to:
+   /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-qwen-vision-screenshot-loop/20260528-111415/Rokurics-Android/actual/home.png
+   Recommended command shape:
+   adb -s <DEVICE_SERIAL> exec-out screencap -p > /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-qwen-vision-screenshot-loop/20260528-111415/Rokurics-Android/actual/home.png
+4. Call qwen-vision inspect_screenshot on actual/home.png.
+   Goal: identify page structure, colors, background, buttons, bottom navigation, Rokurics home visual hierarchy, layout mistakes, component proportion issues, and obvious interaction affordance issues.
+5. Read Apple source only under /Users/vita/Vitemis/Vela/Rokurics to establish the real UI/layout/interaction reference. Do not modify Apple source.
+6. If you can find or generate an Apple reference screenshot safely, save/copy it under:
+   /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-qwen-vision-screenshot-loop/20260528-111415/Rokurics-Android/reference
+   Then call qwen-vision inspect_screenshot on the reference image and compare_screenshots with actual/home.png.
+   If no reference image is available, do not fake compare_screenshots; use actual screenshot inspection plus Apple source parity checklist.
+7. Based on qwen findings and Apple source, make one focused correction pass in the target project. Priority: Dashboard, Study Library, RecordingDetail, recording/upload/transcription/AI entry points, and connection status structure.
+8. Build/test if feasible in this project. If a command cannot run, report the concrete blocker.
+9. Do not continue to a second round. End with a structured report.
+
+FINAL REPORT MUST INCLUDE
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+VISUAL_ENVIRONMENT:
+- ANDROID_STUDIO_RUNNING:
+- ANDROID_EMULATOR_STATUS:
+- ANDROID_DEVICE_SERIALS:
+- DEVECO_RUNNING:
+- HARMONYOS_PREVIEW_OR_DEVICE_STATUS:
+- WINDOWS_UI_ENV_STATUS:
+SCREENSHOT_EVIDENCE:
+- REFERENCE_SCREENSHOT_DIR:
+- ACTUAL_SCREENSHOT_DIR:
+- QWEN_OUTPUT_DIR:
+- SCREENSHOTS_GENERATED:
+- SCREENSHOTS_MISSING_REASON:
+QWEN_VISION_RESULT:
+- QWEN_VISION_AVAILABLE:
+- QWEN_VISION_USED:
+- INSPECT_SCREENSHOT_CALLED:
+- COMPARE_SCREENSHOTS_CALLED:
+- MAJOR_VISUAL_DIFFERENCES:
+- REMAINING_VISUAL_BLOCKERS:
+ANDROID_EMULATOR_STATUS
+ANDROID_DEVICE_SERIAL
+ACTUAL_SCREENSHOT_PATH
+QWEN_INSPECT_RESULT
+REFERENCE_SCREENSHOT_PATH
+COMPARE_SCREENSHOTS_RESULT
+APPLE_UI_PARITY_CHECKLIST
+USER_ACCEPTANCE_FEEDBACK_ADDRESSED
+UI_LAYOUT_ALIGNMENT_PROGRESS
+FUNCTIONAL_PARITY_PROGRESS
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+VISUAL_VALIDATION_LIMITATIONS
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION

@@ -30,19 +30,37 @@ fun Modifier.rokuricsGlassCard(
     shadowOpacity: Float = 0.12f,
     shadowRadius: Dp = 20.dp
 ): Modifier = this
-    .shadow(elevation = shadowRadius, ambientColor = Color.Black.copy(alpha = shadowOpacity))
+    .shadow(
+        elevation = shadowRadius,
+        spotColor = RokuricsColors.shadow.copy(alpha = shadowOpacity),
+        ambientColor = Color.Black.copy(alpha = shadowOpacity * 0.3f),
+        shape = RoundedCornerShape(cornerRadius)
+    )
     .clip(RoundedCornerShape(cornerRadius))
-    .background(Color.White.copy(alpha = fillOpacity))
+    .background(RokuricsColors.glassSurface.copy(alpha = fillOpacity))
     .background(
         Brush.linearGradient(
             colors = listOf(
                 Color.White.copy(alpha = strokeOpacity),
-                Color.White.copy(alpha = 0.08f),
-                RokuricsColors.aqua.copy(alpha = 0.12f)
+                RokuricsColors.glassStroke.copy(alpha = strokeOpacity * 0.44f),
+                RokuricsColors.aqua.copy(alpha = 0.16f)
             ),
             start = Offset(0f, 0f),
             end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
         )
+    )
+    // Inner highlight (Apple parity: subtle white stroke)
+    .clip(RoundedCornerShape(cornerRadius))
+    .background(
+        Brush.linearGradient(
+            colors = listOf(
+                Color.White.copy(alpha = 0.22f),
+                Color.Transparent
+            ),
+            start = Offset(0f, 0f),
+            end = Offset(0f, Float.POSITIVE_INFINITY)
+        ),
+        RoundedCornerShape(cornerRadius)
     )
 
 fun Modifier.rokuricsScaleClickable(
@@ -77,7 +95,11 @@ fun Modifier.rokuricsGlassCircle(
     shadowOpacity: Float = 0.14f,
     shadowRadius: Dp = 12.dp
 ): Modifier = this
-    .shadow(elevation = shadowRadius, ambientColor = Color.Black.copy(alpha = shadowOpacity))
+    .shadow(
+        elevation = shadowRadius,
+        spotColor = RokuricsColors.shadow.copy(alpha = shadowOpacity),
+        ambientColor = Color.Black.copy(alpha = shadowOpacity * 0.25f)
+    )
     .clip(CircleShape)
     .background(Color.White.copy(alpha = fillOpacity))
     .background(
@@ -85,6 +107,31 @@ fun Modifier.rokuricsGlassCircle(
             colors = listOf(
                 Color.White.copy(alpha = strokeOpacity),
                 Color.White.copy(alpha = 0.12f),
+                RokuricsColors.aqua.copy(alpha = 0.16f)
+            ),
+            start = Offset(0f, 0f),
+            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+        )
+    )
+
+fun Modifier.rokuricsGlassCapsule(
+    fillOpacity: Float = 0.46f,
+    strokeOpacity: Float = 0.40f,
+    shadowOpacity: Float = 0.08f,
+    shadowRadius: Dp = 12.dp
+): Modifier = this
+    .shadow(
+        elevation = shadowRadius,
+        spotColor = RokuricsColors.shadow.copy(alpha = shadowOpacity),
+        ambientColor = Color.Black.copy(alpha = shadowOpacity * 0.25f)
+    )
+    .clip(RoundedCornerShape(50))
+    .background(Color.White.copy(alpha = fillOpacity))
+    .background(
+        Brush.linearGradient(
+            colors = listOf(
+                Color.White.copy(alpha = strokeOpacity),
+                Color.White.copy(alpha = strokeOpacity * 0.35f),
                 RokuricsColors.aqua.copy(alpha = 0.16f)
             ),
             start = Offset(0f, 0f),

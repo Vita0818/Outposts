@@ -2,6 +2,7 @@ package com.rokurics.app.ui.chat
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,6 +11,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,6 +30,7 @@ import com.rokurics.app.data.PersistedConversation
 import com.rokurics.app.data.PersistedMessage
 import com.rokurics.app.data.StudyLibraryStore
 import com.rokurics.app.data.UserPreferencesStore
+import com.rokurics.app.ui.theme.adaptivePageGradientBrush
 import com.rokurics.app.ui.theme.RokuricsColors
 import com.rokurics.app.ui.theme.rokuricsScaleClickable
 import com.rokurics.app.domain.model.StudyItemMetadata
@@ -80,62 +85,97 @@ fun AIChatScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text("AI 对话", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                        if (activeContext != null) {
-                            Text(
-                                text = activeContext!!.pathDisplay,
-                                fontSize = 11.sp,
-                                color = RokuricsColors.softText,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {
-                        saveSnapshot(
-                            messages, activeContext, activeConversationId, recentConversations,
-                            chatStore
-                        ) { recentConversations = it }
-                        showConversations = true
-                    }) {
-                        Icon(Icons.Default.History, contentDescription = "最近对话")
-                    }
-                    IconButton(onClick = {
-                        startNewConversation(
-                            messages, activeContext, activeConversationId, recentConversations,
-                            chatStore
-                        ) { newId, clearedMessages, clearedContext, savedConversations ->
-                            activeConversationId = newId
-                            messages = clearedMessages
-                            activeContext = clearedContext
-                            recentConversations = savedConversations
-                            errorText = null
-                        }
-                    }) {
-                        Icon(Icons.Default.Add, contentDescription = "新对话")
-                    }
-                }
-            )
-        }
-    ) { padding ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(adaptivePageGradientBrush())
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .background(Color(0xFFF0FAF8))
         ) {
+            // ── Glass-style header (Apple parity: RokuricsMobilePageHeader) ──
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Glass circle back button
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.46f))
+                        .rokuricsScaleClickable(onClick = onBack),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "返回",
+                        tint = RokuricsColors.deepText,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Right action group (Apple parity: history + new chat)
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.46f))
+                            .rokuricsScaleClickable(onClick = {
+                                saveSnapshot(messages, activeContext, activeConversationId, recentConversations, chatStore) { recentConversations = it }
+                                showConversations = true
+                            }),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.History, contentDescription = "最近对话", tint = RokuricsColors.deepText, modifier = Modifier.size(20.dp))
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.46f))
+                            .rokuricsScaleClickable(onClick = {
+                                startNewConversation(messages, activeContext, activeConversationId, recentConversations, chatStore) { newId, clearedMessages, clearedContext, savedConversations ->
+                                    activeConversationId = newId; messages = clearedMessages; activeContext = clearedContext; recentConversations = savedConversations; errorText = null
+                                }
+                            }),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "新对话", tint = RokuricsColors.deepText, modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+
+            // Page title (Apple parity: serif "AI 对话")
+            Text(
+                text = "AI 对话",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
+                color = RokuricsColors.deepText,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+
+            if (activeContext != null) {
+                Text(
+                    text = activeContext!!.pathDisplay,
+                    fontSize = 12.sp,
+                    color = RokuricsColors.softText,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             // Context attachment chip
             if (activeContext != null) {
                 ContextChip(
@@ -297,43 +337,41 @@ fun AIChatScreen(
 
 @Composable
 fun GreetingCard(displayName: String) {
-    Card(
+    // Apple parity: time-of-day greeting like "用户，晚上好！"
+    val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+    val timeGreeting = when (hour) {
+        in 5..11 -> "早上好"
+        in 12..13 -> "中午好"
+        in 14..17 -> "下午好"
+        else -> "晚上好"
+    }
+    val displayLabel = if (displayName.isNotEmpty()) displayName else "用户"
+    val greetingText = "$displayLabel，$timeGreeting！"
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.52f)),
-        shape = RoundedCornerShape(20.dp),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = 0.22f))
+            .padding(vertical = 32.dp),
+        contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Surface(
-                modifier = Modifier.size(56.dp),
-                shape = CircleShape,
-                color = RokuricsColors.aqua.copy(alpha = 0.12f)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Chat,
-                    contentDescription = null,
-                    tint = RokuricsColors.aqua,
-                    modifier = Modifier.padding(12.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(14.dp))
+            // iOS parity: centered greeting, no card wrapper
             Text(
-                text = if (displayName.isNotEmpty()) "你好，$displayName" else "你好",
-                fontSize = 20.sp,
+                text = greetingText,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = RokuricsColors.deepText
             )
-            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "我是 Rokurics 的学习助手。在开始提问前，你可以先导入学习库中的内容作为对话上下文。",
                 fontSize = 14.sp,
                 color = RokuricsColors.softText,
-                lineHeight = 20.sp
+                lineHeight = 20.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
         }
     }

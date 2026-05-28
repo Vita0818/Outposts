@@ -45,13 +45,14 @@ import { getSharedRecordingManager } from "@bundle:com.vita0818.rokurics/entry/e
 import type { RecordingManager } from "@bundle:com.vita0818.rokurics/entry/ets/services/RecordingManager";
 import { StudyFilingPath, filingLevelTitle } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import type { RecordingMetadata } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
-import { formatDuration, formatShortTime, fileSizeText } from "@bundle:com.vita0818.rokurics/entry/ets/utils/FormatHelpers";
+import { formatDuration, fileSizeText } from "@bundle:com.vita0818.rokurics/entry/ets/utils/FormatHelpers";
 import { TranscriptionPipeline } from "@bundle:com.vita0818.rokurics/entry/ets/services/TranscriptionPipeline";
 import { ExportManager } from "@bundle:com.vita0818.rokurics/entry/ets/services/ExportManager";
 import type { ExportFormat } from "@bundle:com.vita0818.rokurics/entry/ets/services/ExportManager";
 import { RecordingUploadClient } from "@bundle:com.vita0818.rokurics/entry/ets/services/RecordingUploadClient";
 import { SettingsStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/SettingsStore";
-import { RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { colorAlpha, RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity, glassStrokeMidOpacity, glassAccentOpacity } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
+import { TrashIcon, CloudUploadIcon, EditIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
 const LEVELS: string[] = ['type', 'subject', 'chapter', 'topic'];
 const FILING_OPTIONS: Record<string, string[]> = {
     'type': ['课堂录音', '自学笔记', '会议记录', '访谈采访', '灵感记录', '其他'],
@@ -595,19 +596,26 @@ class RecordingDetailPage extends ViewPU {
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Stack.create();
-            Stack.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(180:5)", "entry");
+            Stack.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(182:5)", "entry");
         }, Stack);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create();
-            Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(181:5)", "entry");
+            Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(183:5)", "entry");
             Column.width('100%');
             Column.height('100%');
-            Column.backgroundColor(RokuricsColors.pageBackground);
+            Column.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.pageGradientStart, 1.0],
+                    [RokuricsColors.pageGradientMid, 1.0],
+                    [RokuricsColors.pageGradientEnd, 1.0]
+                ]
+            });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Header
             Row.create();
-            Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(183:7)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(185:7)", "entry");
             // Header
             Row.width('100%');
             // Header
@@ -616,7 +624,7 @@ class RecordingDetailPage extends ViewPU {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Glass circle back button
             Button.createWithChild();
-            Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(185:9)", "entry");
+            Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(187:9)", "entry");
             // Glass circle back button
             Button.width(44);
             // Glass circle back button
@@ -624,10 +632,10 @@ class RecordingDetailPage extends ViewPU {
             // Glass circle back button
             Button.borderRadius(22);
             // Glass circle back button
-            Button.backgroundColor(RokuricsColors.glassSurface + '66');
+            Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
             // Glass circle back button
             Button.shadow({
-                color: RokuricsColors.shadowColor + '10',
+                color: colorAlpha(RokuricsColors.shadowColor, '10'),
                 radius: 12,
                 offsetY: 6
             });
@@ -636,9 +644,9 @@ class RecordingDetailPage extends ViewPU {
                 width: 1,
                 color: {
                     colors: [
-                        [0xFFFFFF, 0.44],
-                        [0xEFFAF8, 0.14],
-                        [0x59C7C2, 0.12]
+                        [0xFFFFFF, 0.22],
+                        [RokuricsColors.glassStroke, 0.12],
+                        [RokuricsColors.aqua, 0.24]
                     ],
                     direction: GradientDirection.RightBottom
                 },
@@ -649,7 +657,7 @@ class RecordingDetailPage extends ViewPU {
         }, Button);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('←');
-            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(186:11)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(188:11)", "entry");
             Text.fontSize(18);
             Text.fontWeight(FontWeight.SemiBold);
             Text.fontColor(RokuricsColors.deepText);
@@ -659,7 +667,7 @@ class RecordingDetailPage extends ViewPU {
         Button.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(this.recording?.title ?? '录音详情');
-            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(214:9)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(216:9)", "entry");
             Text.fontSize(20);
             Text.fontWeight(FontWeight.Bold);
             Text.fontColor(RokuricsColors.deepText);
@@ -669,6 +677,46 @@ class RecordingDetailPage extends ViewPU {
             Text.margin({ left: 8 });
         }, Text);
         Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // Right-side action buttons (mirrors iOS: share/upload, edit, delete)
+            Row.create({ space: 8 });
+            Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(226:9)", "entry");
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Button.createWithChild();
+            Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(227:11)", "entry");
+            Button.width(36);
+            Button.height(36);
+            Button.borderRadius(18);
+            Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '4A'));
+            Button.onClick(() => this.uploadRecording());
+        }, Button);
+        CloudUploadIcon.bind(this)(16, RokuricsColors.deepText);
+        Button.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Button.createWithChild();
+            Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(234:11)", "entry");
+            Button.width(36);
+            Button.height(36);
+            Button.borderRadius(18);
+            Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '4A'));
+            Button.onClick(() => this.openRenameDialog());
+        }, Button);
+        EditIcon.bind(this)(16, RokuricsColors.deepText);
+        Button.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Button.createWithChild();
+            Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(241:11)", "entry");
+            Button.width(36);
+            Button.height(36);
+            Button.borderRadius(18);
+            Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '4A'));
+            Button.onClick(() => this.deleteAndBack());
+        }, Button);
+        TrashIcon.bind(this)(16, RokuricsColors.coral);
+        Button.pop();
+        // Right-side action buttons (mirrors iOS: share/upload, edit, delete)
+        Row.pop();
         // Header
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
@@ -677,14 +725,14 @@ class RecordingDetailPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create();
-                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(227:9)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(253:9)", "entry");
                         Column.width('100%');
                         Column.layoutWeight(1);
                         Column.justifyContent(FlexAlign.Center);
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('加载中...');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(228:11)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(254:11)", "entry");
                         Text.fontColor(RokuricsColors.softText);
                     }, Text);
                     Text.pop();
@@ -695,26 +743,73 @@ class RecordingDetailPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(1, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Scroll.create();
-                        Scroll.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(234:9)", "entry");
+                        Scroll.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(260:9)", "entry");
                         Scroll.width('100%');
                         Scroll.layoutWeight(1);
                         Scroll.scrollBar(BarState.Off);
                     }, Scroll);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create({ space: 16 });
-                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(235:11)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(261:11)", "entry");
                         Column.width('100%');
                         Column.padding({ left: 16, right: 16 });
                     }, Column);
-                    // Info fields
-                    this.InfoRow.bind(this)('标题', this.recording!.title);
-                    this.InfoRow.bind(this)('时间', formatShortTime(this.recording!.createdAt));
-                    this.InfoRow.bind(this)('时长', formatDuration(this.recording!.duration));
-                    this.InfoRow.bind(this)('日期', this.formatDateStr(this.recording!.createdAt));
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        // Metadata subtitle
+                        Text.create(`${this.formatDateStr(this.recording!.createdAt)} · ${formatDuration(this.recording!.duration)}`);
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(263:13)", "entry");
+                        // Metadata subtitle
+                        Text.fontSize(14);
+                        // Metadata subtitle
+                        Text.fontWeight(FontWeight.Medium);
+                        // Metadata subtitle
+                        Text.fontColor(RokuricsColors.softText);
+                        // Metadata subtitle
+                        Text.width('100%');
+                        // Metadata subtitle
+                        Text.margin({ top: -4 });
+                    }, Text);
+                    // Metadata subtitle
+                    Text.pop();
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        // 2×2 Action Button Grid
+                        Column.create({ space: 10 });
+                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(271:13)", "entry");
+                        // 2×2 Action Button Grid
+                        Column.width('100%');
+                    }, Column);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Row.create({ space: 10 });
+                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(272:15)", "entry");
+                        Row.width('100%');
+                    }, Row);
+                    this.DetailActionButton.bind(this)(this.recording!.uploadStatus === 'uploaded' ? '已上传' : '上传', this.recording!.uploadStatus === 'uploaded' ? RokuricsColors.mint : RokuricsColors.deepText, this.recording!.uploadStatus !== 'uploading', () => this.uploadRecording());
+                    this.DetailActionButton.bind(this)(this.hasTranscript ? '查看转写' : '未转写', this.hasTranscript ? RokuricsColors.deepText : RokuricsColors.tertiaryText, true, async () => {
+                        this.showTranscriptView = !this.showTranscriptView;
+                        if (this.showTranscriptView && this.transcriptText.length === 0) {
+                            await this.loadTranscript();
+                        }
+                    });
+                    Row.pop();
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Row.create({ space: 10 });
+                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(292:15)", "entry");
+                        Row.width('100%');
+                    }, Row);
+                    this.DetailActionButton.bind(this)(this.hasNote ? '查看总结' : '无总结', this.hasNote ? RokuricsColors.deepText : RokuricsColors.tertiaryText, true, async () => {
+                        this.showNoteView = !this.showNoteView;
+                        if (this.showNoteView && this.noteMarkdown.length === 0) {
+                            await this.loadNote();
+                        }
+                    });
+                    this.DetailActionButton.bind(this)('重命名', RokuricsColors.deepText, true, () => this.openRenameDialog());
+                    Row.pop();
+                    // 2×2 Action Button Grid
+                    Column.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         // Technical info - glass card
                         Text.create('技术信息');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(243:13)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(312:13)", "entry");
                         // Technical info - glass card
                         Text.fontSize(15);
                         // Technical info - glass card
@@ -728,24 +823,24 @@ class RecordingDetailPage extends ViewPU {
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create({ space: 6 });
-                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(249:13)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(318:13)", "entry");
                         Column.padding(14);
                         Column.borderRadius(14);
-                        Column.backgroundColor(RokuricsColors.glassSurface + 'A8');
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'A8'));
                         Column.border({
                             width: 1,
                             color: {
                                 colors: [
-                                    [0xFFFFFF, 0.34],
-                                    [0xEFFAF8, 0.12],
-                                    [0x91E8D6, 0.08]
+                                    [0xFFFFFF, 0.18],
+                                    [RokuricsColors.glassStroke, 0.10],
+                                    [RokuricsColors.glassStrokeAccent, 0.18]
                                 ],
                                 direction: GradientDirection.RightBottom
                             },
                             radius: 14
                         } as BorderOptions);
                         Column.shadow({
-                            color: RokuricsColors.shadowColor + '06',
+                            color: colorAlpha(RokuricsColors.shadowColor, '06'),
                             radius: 8,
                             offsetY: 4
                         });
@@ -758,73 +853,196 @@ class RecordingDetailPage extends ViewPU {
                         fileSizeText(this.actualFileSize) : fileSizeText(this.recording!.fileSize));
                     Column.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        // Study filing
-                        Row.create();
-                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(279:13)", "entry");
-                        // Study filing
+                        // Classification tags glass card
+                        Column.create({ space: 10 });
+                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(348:13)", "entry");
+                        // Classification tags glass card
+                        Column.width('100%');
+                        // Classification tags glass card
+                        Column.padding(16);
+                        // Classification tags glass card
+                        Column.borderRadius(24);
+                        // Classification tags glass card
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
+                        // Classification tags glass card
+                        Column.border({
+                            width: 1,
+                            color: {
+                                colors: [
+                                    [0xFFFFFF, glassStrokeHighOpacity],
+                                    [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+                                    [RokuricsColors.glassStrokeAccent, glassAccentOpacity]
+                                ],
+                                direction: GradientDirection.RightBottom
+                            },
+                            radius: 24
+                        } as BorderOptions);
+                        // Classification tags glass card
+                        Column.shadow({
+                            color: colorAlpha(RokuricsColors.shadowColor, '08'),
+                            radius: 12,
+                            offsetY: 6
+                        });
+                    }, Column);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Row.create({ space: 8 });
+                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(349:15)", "entry");
                         Row.width('100%');
-                        // Study filing
-                        Row.margin({ top: 8 });
+                        Row.flexShrink(0);
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('学习归档');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(280:15)", "entry");
-                        Text.fontSize(15);
-                        Text.fontWeight(FontWeight.SemiBold);
-                        Text.fontColor(RokuricsColors.deepText);
-                    }, Text);
-                    Text.pop();
+                        ForEach.create();
+                        const forEachItemGenFunction = _item => {
+                            const level = _item;
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Column.create({ space: 2 });
+                                Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(351:19)", "entry");
+                                Column.padding({ left: 12, right: 12, top: 8, bottom: 8 });
+                                Column.borderRadius(14);
+                                Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '5C'));
+                                Column.border({
+                                    width: 1,
+                                    color: {
+                                        colors: [
+                                            [0xFFFFFF, 0.14],
+                                            [RokuricsColors.glassStroke, 0.08]
+                                        ],
+                                        direction: GradientDirection.RightBottom
+                                    },
+                                    radius: 14
+                                } as BorderOptions);
+                            }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create(filingLevelTitle(level));
+                                Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(352:21)", "entry");
+                                Text.fontSize(10);
+                                Text.fontWeight(FontWeight.Medium);
+                                Text.fontColor(RokuricsColors.tertiaryText);
+                            }, Text);
+                            Text.pop();
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Text.create(this.getFilingValue(level));
+                                Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(356:21)", "entry");
+                                Text.fontSize(14);
+                                Text.fontWeight(FontWeight.SemiBold);
+                                Text.fontColor(RokuricsColors.deepText);
+                            }, Text);
+                            Text.pop();
+                            Column.pop();
+                        };
+                        this.forEachUpdateFunction(elmtId, LEVELS, forEachItemGenFunction);
+                    }, ForEach);
+                    ForEach.pop();
+                    Row.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Blank.create();
-                        Blank.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(284:15)", "entry");
-                    }, Blank);
-                    Blank.pop();
+                        Row.create({ space: 6 });
+                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(380:15)", "entry");
+                    }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(285:15)", "entry");
-                        Button.backgroundColor(Color.Transparent);
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(381:17)", "entry");
+                        Button.padding({ left: 12, right: 12, top: 6, bottom: 6 });
+                        Button.borderRadius(14);
+                        Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '47'));
+                        Button.border({
+                            width: 1,
+                            color: {
+                                colors: [
+                                    [0xFFFFFF, 0.18],
+                                    [RokuricsColors.glassStrokeAccent, 0.22]
+                                ],
+                                direction: GradientDirection.RightBottom
+                            },
+                            radius: 14
+                        } as BorderOptions);
                         Button.onClick(() => { this.showFilingEditor = !this.showFilingEditor; });
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('编辑');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(286:17)", "entry");
+                        Row.create({ space: 4 });
+                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(382:19)", "entry");
+                    }, Row);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('新建');
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(383:21)", "entry");
                         Text.fontSize(13);
+                        Text.fontWeight(FontWeight.Medium);
                         Text.fontColor(RokuricsColors.aqua);
                     }, Text);
                     Text.pop();
-                    Button.pop();
-                    // Study filing
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('+');
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(387:21)", "entry");
+                        Text.fontSize(15);
+                        Text.fontWeight(FontWeight.Bold);
+                        Text.fontColor(RokuricsColors.aqua);
+                    }, Text);
+                    Text.pop();
                     Row.pop();
+                    Button.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         If.create();
                         if (this.showFilingEditor) {
                             this.ifElseBranchUpdateFunction(0, () => {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                    Column.create({ space: 12 });
-                                    Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(297:15)", "entry");
+                                    Button.createWithChild();
+                                    Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(410:19)", "entry");
+                                    Button.padding({ left: 12, right: 12, top: 6, bottom: 6 });
+                                    Button.borderRadius(14);
+                                    Button.backgroundColor(RokuricsColors.aqua);
+                                    Button.onClick(() => this.saveFiling());
+                                }, Button);
+                                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                    Text.create('保存');
+                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(411:21)", "entry");
+                                    Text.fontSize(13);
+                                    Text.fontWeight(FontWeight.Medium);
+                                    Text.fontColor(Color.White);
+                                }, Text);
+                                Text.pop();
+                                Button.pop();
+                            });
+                        }
+                        else {
+                            this.ifElseBranchUpdateFunction(1, () => {
+                            });
+                        }
+                    }, If);
+                    If.pop();
+                    Row.pop();
+                    // Classification tags glass card
+                    Column.pop();
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        If.create();
+                        // Filing editor (expandable)
+                        if (this.showFilingEditor) {
+                            this.ifElseBranchUpdateFunction(0, () => {
+                                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                    Column.create({ space: 10 });
+                                    Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(444:15)", "entry");
+                                    Column.width('100%');
                                     Column.padding(16);
-                                    Column.borderRadius(14);
-                                    Column.backgroundColor(RokuricsColors.glassSurface + '40');
+                                    Column.borderRadius(16);
+                                    Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '60'));
                                 }, Column);
                                 this.FilingEditRow.bind(this)('门类', this.editType, FILING_OPTIONS['type'], (v: string) => { this.editType = (v === this.editType ? '' : v); });
                                 this.FilingEditRow.bind(this)('课程', this.editSubject, FILING_OPTIONS['subject'], (v: string) => { this.editSubject = (v === this.editSubject ? '' : v); });
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Column.create({ space: 4 });
-                                    Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(302:17)", "entry");
+                                    Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(449:17)", "entry");
                                 }, Column);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Text.create('章节');
-                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(303:19)", "entry");
+                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(450:19)", "entry");
                                     Text.fontSize(12);
                                     Text.fontColor(RokuricsColors.softText);
                                 }, Text);
                                 Text.pop();
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     TextInput.create({ text: this.editChapter, placeholder: '输入章节名' });
-                                    TextInput.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(304:19)", "entry");
+                                    TextInput.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(451:19)", "entry");
                                     TextInput.fontSize(14);
                                     TextInput.fontColor(RokuricsColors.deepText);
-                                    TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+                                    TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                                     TextInput.borderRadius(8);
                                     TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
                                     TextInput.onChange((value: string) => { this.editChapter = value; });
@@ -832,146 +1050,89 @@ class RecordingDetailPage extends ViewPU {
                                 Column.pop();
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Column.create({ space: 4 });
-                                    Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(311:17)", "entry");
+                                    Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(458:17)", "entry");
                                 }, Column);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Text.create('主题');
-                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(312:19)", "entry");
+                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(459:19)", "entry");
                                     Text.fontSize(12);
                                     Text.fontColor(RokuricsColors.softText);
                                 }, Text);
                                 Text.pop();
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     TextInput.create({ text: this.editTopic, placeholder: '输入主题名' });
-                                    TextInput.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(313:19)", "entry");
+                                    TextInput.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(460:19)", "entry");
                                     TextInput.fontSize(14);
                                     TextInput.fontColor(RokuricsColors.deepText);
-                                    TextInput.backgroundColor(RokuricsColors.glassSurface + '40');
+                                    TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                                     TextInput.borderRadius(8);
                                     TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
                                     TextInput.onChange((value: string) => { this.editTopic = value; });
                                 }, TextInput);
                                 Column.pop();
-                                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                    Button.createWithChild();
-                                    Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(320:17)", "entry");
-                                    Button.padding({ left: 20, right: 20, top: 8, bottom: 8 });
-                                    Button.borderRadius(10);
-                                    Button.backgroundColor(RokuricsColors.aqua);
-                                    Button.onClick(() => this.saveFiling());
-                                }, Button);
-                                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                    Text.create('保存归档');
-                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(321:19)", "entry");
-                                    Text.fontSize(14);
-                                    Text.fontColor(Color.White);
-                                }, Text);
-                                Text.pop();
-                                Button.pop();
                                 Column.pop();
                             });
                         }
+                        // File status list glass card
                         else {
                             this.ifElseBranchUpdateFunction(1, () => {
-                                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                    Column.create({ space: 8 });
-                                    Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(332:15)", "entry");
-                                }, Column);
-                                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                    ForEach.create();
-                                    const forEachItemGenFunction = _item => {
-                                        const level = _item;
-                                        this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                            Row.create();
-                                            Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(334:19)", "entry");
-                                            Row.width('100%');
-                                            Row.padding(10);
-                                            Row.borderRadius(8);
-                                            Row.backgroundColor(RokuricsColors.glassSurface + 'A8');
-                                            Row.border({
-                                                width: 1,
-                                                color: {
-                                                    colors: [
-                                                        [0xFFFFFF, 0.20],
-                                                        [0xEFFAF8, 0.08]
-                                                    ],
-                                                    direction: GradientDirection.RightBottom
-                                                },
-                                                radius: 8
-                                            } as BorderOptions);
-                                        }, Row);
-                                        this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                            Text.create(filingLevelTitle(level));
-                                            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(335:21)", "entry");
-                                            Text.fontSize(13);
-                                            Text.fontColor(RokuricsColors.softText);
-                                            Text.width(60);
-                                        }, Text);
-                                        Text.pop();
-                                        this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                            Text.create(this.getFilingValue(level));
-                                            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(340:21)", "entry");
-                                            Text.fontSize(15);
-                                            Text.fontColor(RokuricsColors.deepText);
-                                        }, Text);
-                                        Text.pop();
-                                        Row.pop();
-                                    };
-                                    this.forEachUpdateFunction(elmtId, LEVELS, forEachItemGenFunction);
-                                }, ForEach);
-                                ForEach.pop();
-                                Column.pop();
                             });
                         }
                     }, If);
                     If.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        // Status - glass card
-                        Text.create('处理状态');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(364:13)", "entry");
-                        // Status - glass card
-                        Text.fontSize(15);
-                        // Status - glass card
-                        Text.fontWeight(FontWeight.SemiBold);
-                        // Status - glass card
-                        Text.fontColor(RokuricsColors.deepText);
-                        // Status - glass card
-                        Text.margin({ top: 8 });
-                    }, Text);
-                    // Status - glass card
-                    Text.pop();
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Column.create({ space: 6 });
-                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(370:13)", "entry");
-                        Column.padding(14);
-                        Column.borderRadius(14);
-                        Column.backgroundColor(RokuricsColors.glassSurface + 'A8');
+                        // File status list glass card
+                        Column.create({ space: 8 });
+                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(475:13)", "entry");
+                        // File status list glass card
+                        Column.width('100%');
+                        // File status list glass card
+                        Column.padding(16);
+                        // File status list glass card
+                        Column.borderRadius(24);
+                        // File status list glass card
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
+                        // File status list glass card
                         Column.border({
                             width: 1,
                             color: {
                                 colors: [
-                                    [0xFFFFFF, 0.34],
-                                    [0xEFFAF8, 0.12],
-                                    [0x91E8D6, 0.08]
+                                    [0xFFFFFF, glassStrokeHighOpacity],
+                                    [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+                                    [RokuricsColors.glassStrokeAccent, glassAccentOpacity]
                                 ],
                                 direction: GradientDirection.RightBottom
                             },
-                            radius: 14
+                            radius: 24
                         } as BorderOptions);
+                        // File status list glass card
                         Column.shadow({
-                            color: RokuricsColors.shadowColor + '06',
-                            radius: 8,
-                            offsetY: 4
+                            color: colorAlpha(RokuricsColors.shadowColor, '08'),
+                            radius: 12,
+                            offsetY: 6
                         });
                     }, Column);
-                    this.TechRow.bind(this)('上传', this.uploadLabel(this.recording!.uploadStatus));
-                    this.TechRow.bind(this)('转写', this.transcriptLabel(this.recording!.transcriptionStatus));
-                    this.TechRow.bind(this)('笔记', this.noteLabel(this.recording!.noteStatus));
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('文件状态');
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(476:15)", "entry");
+                        Text.fontSize(13);
+                        Text.fontWeight(FontWeight.SemiBold);
+                        Text.fontColor(RokuricsColors.tertiaryText);
+                        Text.width('100%');
+                    }, Text);
+                    Text.pop();
+                    this.FileStatusRow.bind(this)('上传', this.uploadLabel(this.recording!.uploadStatus));
+                    this.FileStatusRow.bind(this)('转写', this.transcriptLabel(this.recording!.transcriptionStatus));
+                    this.FileStatusRow.bind(this)('笔记', this.noteLabel(this.recording!.noteStatus));
+                    this.FileStatusRow.bind(this)('格式', this.recording!.format.toUpperCase());
+                    this.FileStatusRow.bind(this)('大小', this.actualFileSize > 0 ?
+                        fileSizeText(this.actualFileSize) : fileSizeText(this.recording!.fileSize));
+                    // File status list glass card
                     Column.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         // AI Processing
                         Column.create({ space: 8 });
-                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(397:13)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(512:13)", "entry");
                         // AI Processing
                         Column.width('100%');
                         // AI Processing
@@ -979,15 +1140,15 @@ class RecordingDetailPage extends ViewPU {
                         // AI Processing
                         Column.borderRadius(14);
                         // AI Processing
-                        Column.backgroundColor(RokuricsColors.glassSurface + 'A8');
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'A8'));
                         // AI Processing
                         Column.border({
                             width: 1,
                             color: {
                                 colors: [
-                                    [0xFFFFFF, 0.34],
-                                    [0xEFFAF8, 0.12],
-                                    [0x91E8D6, 0.08]
+                                    [0xFFFFFF, 0.18],
+                                    [RokuricsColors.glassStroke, 0.10],
+                                    [RokuricsColors.glassStrokeAccent, 0.18]
                                 ],
                                 direction: GradientDirection.RightBottom
                             },
@@ -995,14 +1156,14 @@ class RecordingDetailPage extends ViewPU {
                         } as BorderOptions);
                         // AI Processing
                         Column.shadow({
-                            color: RokuricsColors.shadowColor + '06',
+                            color: colorAlpha(RokuricsColors.shadowColor, '06'),
                             radius: 8,
                             offsetY: 4
                         });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('AI 处理');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(398:15)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(513:15)", "entry");
                         Text.fontSize(15);
                         Text.fontWeight(FontWeight.SemiBold);
                         Text.fontColor(RokuricsColors.deepText);
@@ -1015,7 +1176,7 @@ class RecordingDetailPage extends ViewPU {
                             this.ifElseBranchUpdateFunction(0, () => {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Text.create(this.processingStage);
-                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(404:17)", "entry");
+                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(519:17)", "entry");
                                     Text.fontSize(13);
                                     Text.fontColor(RokuricsColors.aqua);
                                 }, Text);
@@ -1034,7 +1195,7 @@ class RecordingDetailPage extends ViewPU {
                             this.ifElseBranchUpdateFunction(0, () => {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Text.create(this.processingError);
-                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(409:17)", "entry");
+                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(524:17)", "entry");
                                     Text.fontSize(12);
                                     Text.fontColor(RokuricsColors.coral);
                                 }, Text);
@@ -1049,22 +1210,22 @@ class RecordingDetailPage extends ViewPU {
                     If.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Row.create({ space: 8 });
-                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(413:15)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(528:15)", "entry");
                         Row.width('100%');
                         Row.justifyContent(FlexAlign.Start);
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(414:17)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(529:17)", "entry");
                         Button.padding({ left: 14, right: 14, top: 7, bottom: 7 });
-                        Button.border({ width: 1, color: RokuricsColors.aqua + '40', radius: 8 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 8 });
                         Button.backgroundColor(Color.Transparent);
                         Button.enabled(!this.isProcessing);
                         Button.onClick(() => this.runTranscription());
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('转写');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(415:19)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(530:19)", "entry");
                         Text.fontSize(13);
                         Text.fontWeight(FontWeight.Medium);
                         Text.fontColor(this.hasTranscript ? RokuricsColors.mint : RokuricsColors.aqua);
@@ -1073,16 +1234,16 @@ class RecordingDetailPage extends ViewPU {
                     Button.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(424:17)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(539:17)", "entry");
                         Button.padding({ left: 14, right: 14, top: 7, bottom: 7 });
-                        Button.border({ width: 1, color: RokuricsColors.aqua + '40', radius: 8 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 8 });
                         Button.backgroundColor(Color.Transparent);
                         Button.enabled(!this.isProcessing);
                         Button.onClick(() => this.runFullProcessing());
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('生成笔记');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(425:19)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(540:19)", "entry");
                         Text.fontSize(13);
                         Text.fontWeight(FontWeight.Medium);
                         Text.fontColor(this.hasNote ? RokuricsColors.mint : RokuricsColors.aqua);
@@ -1091,7 +1252,7 @@ class RecordingDetailPage extends ViewPU {
                     Button.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(434:17)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(549:17)", "entry");
                         Button.padding({ left: 14, right: 14, top: 7, bottom: 7 });
                         Button.borderRadius(8);
                         Button.backgroundColor(RokuricsColors.aqua);
@@ -1100,7 +1261,7 @@ class RecordingDetailPage extends ViewPU {
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('全部处理');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(435:19)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(550:19)", "entry");
                         Text.fontSize(13);
                         Text.fontWeight(FontWeight.Medium);
                         Text.fontColor(Color.White);
@@ -1115,7 +1276,7 @@ class RecordingDetailPage extends ViewPU {
                             this.ifElseBranchUpdateFunction(0, () => {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Button.createWithChild();
-                                    Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(450:17)", "entry");
+                                    Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(565:17)", "entry");
                                     Button.backgroundColor(Color.Transparent);
                                     Button.margin({ top: 2 });
                                     Button.onClick(async () => {
@@ -1127,7 +1288,7 @@ class RecordingDetailPage extends ViewPU {
                                 }, Button);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Text.create(this.showTranscriptView ? '收起转写 ▲' : '查看转写 ▼');
-                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(451:19)", "entry");
+                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(566:19)", "entry");
                                     Text.fontSize(12);
                                     Text.fontColor(RokuricsColors.aqua);
                                 }, Text);
@@ -1147,15 +1308,15 @@ class RecordingDetailPage extends ViewPU {
                             this.ifElseBranchUpdateFunction(0, () => {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Scroll.create();
-                                    Scroll.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(465:17)", "entry");
+                                    Scroll.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(580:17)", "entry");
                                     Scroll.constraintSize({ maxHeight: 200 });
                                     Scroll.borderRadius(8);
-                                    Scroll.backgroundColor(RokuricsColors.glassSurface + '60');
+                                    Scroll.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '60'));
                                     Scroll.width('100%');
                                 }, Scroll);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Text.create(this.transcriptText);
-                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(466:19)", "entry");
+                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(581:19)", "entry");
                                     Text.fontSize(13);
                                     Text.fontColor(RokuricsColors.deepText);
                                     Text.padding(12);
@@ -1176,7 +1337,7 @@ class RecordingDetailPage extends ViewPU {
                             this.ifElseBranchUpdateFunction(0, () => {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Button.createWithChild();
-                                    Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(477:17)", "entry");
+                                    Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(592:17)", "entry");
                                     Button.backgroundColor(Color.Transparent);
                                     Button.margin({ top: 2 });
                                     Button.onClick(async () => {
@@ -1188,7 +1349,7 @@ class RecordingDetailPage extends ViewPU {
                                 }, Button);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Text.create(this.showNoteView ? '收起笔记 ▲' : '查看笔记 ▼');
-                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(478:19)", "entry");
+                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(593:19)", "entry");
                                     Text.fontSize(12);
                                     Text.fontColor(RokuricsColors.aqua);
                                 }, Text);
@@ -1208,15 +1369,15 @@ class RecordingDetailPage extends ViewPU {
                             this.ifElseBranchUpdateFunction(0, () => {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Scroll.create();
-                                    Scroll.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(492:17)", "entry");
+                                    Scroll.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(607:17)", "entry");
                                     Scroll.constraintSize({ maxHeight: 200 });
                                     Scroll.borderRadius(8);
-                                    Scroll.backgroundColor(RokuricsColors.glassSurface + '60');
+                                    Scroll.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '60'));
                                     Scroll.width('100%');
                                 }, Scroll);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Text.create(this.noteMarkdown);
-                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(493:19)", "entry");
+                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(608:19)", "entry");
                                     Text.fontSize(13);
                                     Text.fontColor(RokuricsColors.deepText);
                                     Text.padding(12);
@@ -1236,7 +1397,7 @@ class RecordingDetailPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         // Export - glass card
                         Column.create({ space: 8 });
-                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(525:13)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(640:13)", "entry");
                         // Export - glass card
                         Column.width('100%');
                         // Export - glass card
@@ -1244,15 +1405,15 @@ class RecordingDetailPage extends ViewPU {
                         // Export - glass card
                         Column.borderRadius(14);
                         // Export - glass card
-                        Column.backgroundColor(RokuricsColors.glassSurface + 'A8');
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'A8'));
                         // Export - glass card
                         Column.border({
                             width: 1,
                             color: {
                                 colors: [
-                                    [0xFFFFFF, 0.34],
-                                    [0xEFFAF8, 0.12],
-                                    [0x91E8D6, 0.08]
+                                    [0xFFFFFF, 0.18],
+                                    [RokuricsColors.glassStroke, 0.10],
+                                    [RokuricsColors.glassStrokeAccent, 0.18]
                                 ],
                                 direction: GradientDirection.RightBottom
                             },
@@ -1260,14 +1421,14 @@ class RecordingDetailPage extends ViewPU {
                         } as BorderOptions);
                         // Export - glass card
                         Column.shadow({
-                            color: RokuricsColors.shadowColor + '06',
+                            color: colorAlpha(RokuricsColors.shadowColor, '06'),
                             radius: 8,
                             offsetY: 4
                         });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('导出');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(526:15)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(641:15)", "entry");
                         Text.fontSize(15);
                         Text.fontWeight(FontWeight.SemiBold);
                         Text.fontColor(RokuricsColors.deepText);
@@ -1276,20 +1437,20 @@ class RecordingDetailPage extends ViewPU {
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Row.create({ space: 8 });
-                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(531:15)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(646:15)", "entry");
                         Row.width('100%');
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(532:17)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(647:17)", "entry");
                         Button.padding({ left: 14, right: 14, top: 6, bottom: 6 });
                         Button.borderRadius(14);
-                        Button.backgroundColor(this.exportFormat === 'Markdown' ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50');
+                        Button.backgroundColor(this.exportFormat === 'Markdown' ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
                         Button.onClick(() => { this.exportFormat = 'Markdown'; });
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('Markdown');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(533:19)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(648:19)", "entry");
                         Text.fontSize(13);
                         Text.fontWeight(FontWeight.Medium);
                         Text.fontColor(this.exportFormat === 'Markdown' ? Color.White : RokuricsColors.softText);
@@ -1298,15 +1459,15 @@ class RecordingDetailPage extends ViewPU {
                     Button.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(541:17)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(656:17)", "entry");
                         Button.padding({ left: 14, right: 14, top: 6, bottom: 6 });
                         Button.borderRadius(14);
-                        Button.backgroundColor(this.exportFormat === 'JSON' ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50');
+                        Button.backgroundColor(this.exportFormat === 'JSON' ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
                         Button.onClick(() => { this.exportFormat = 'JSON'; });
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('JSON');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(542:19)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(657:19)", "entry");
                         Text.fontSize(13);
                         Text.fontWeight(FontWeight.Medium);
                         Text.fontColor(this.exportFormat === 'JSON' ? Color.White : RokuricsColors.softText);
@@ -1316,12 +1477,12 @@ class RecordingDetailPage extends ViewPU {
                     Row.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Row.create({ space: 8 });
-                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(552:15)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(667:15)", "entry");
                         Row.width('100%');
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(553:17)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(668:17)", "entry");
                         Button.padding({ left: 14, right: 14, top: 7, bottom: 7 });
                         Button.borderRadius(8);
                         Button.backgroundColor(RokuricsColors.aqua);
@@ -1330,7 +1491,7 @@ class RecordingDetailPage extends ViewPU {
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create(this.isExporting ? '导出中...' : '导出录音信息');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(554:19)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(669:19)", "entry");
                         Text.fontSize(13);
                         Text.fontWeight(FontWeight.Medium);
                         Text.fontColor(Color.White);
@@ -1339,16 +1500,16 @@ class RecordingDetailPage extends ViewPU {
                     Button.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(564:17)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(679:17)", "entry");
                         Button.padding({ left: 14, right: 14, top: 7, bottom: 7 });
-                        Button.border({ width: 1, color: RokuricsColors.mint + '40', radius: 8 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.mint, '40'), radius: 8 });
                         Button.backgroundColor(Color.Transparent);
                         Button.enabled(!this.isExporting);
                         Button.onClick(() => this.exportAll());
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('导出全部');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(565:19)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(680:19)", "entry");
                         Text.fontSize(13);
                         Text.fontWeight(FontWeight.Medium);
                         Text.fontColor(RokuricsColors.mint);
@@ -1357,15 +1518,15 @@ class RecordingDetailPage extends ViewPU {
                     Button.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(575:17)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(690:17)", "entry");
                         Button.padding({ left: 14, right: 14, top: 7, bottom: 7 });
-                        Button.border({ width: 1, color: RokuricsColors.coral + '40', radius: 8 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.coral, '40'), radius: 8 });
                         Button.backgroundColor(Color.Transparent);
                         Button.onClick(() => this.loadExportList());
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('查看导出');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(576:19)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(691:19)", "entry");
                         Text.fontSize(13);
                         Text.fontWeight(FontWeight.Medium);
                         Text.fontColor(RokuricsColors.coral);
@@ -1379,7 +1540,7 @@ class RecordingDetailPage extends ViewPU {
                             this.ifElseBranchUpdateFunction(0, () => {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Text.create(this.exportMessage);
-                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(588:17)", "entry");
+                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(703:17)", "entry");
                                     Text.fontSize(12);
                                     Text.fontColor(this.exportMessage.startsWith('已导出') ? RokuricsColors.mint : RokuricsColors.coral);
                                 }, Text);
@@ -1398,32 +1559,32 @@ class RecordingDetailPage extends ViewPU {
                             this.ifElseBranchUpdateFunction(0, () => {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Column.create({ space: 4 });
-                                    Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(594:17)", "entry");
+                                    Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(709:17)", "entry");
                                     Column.width('100%');
                                     Column.padding(8);
                                     Column.borderRadius(8);
-                                    Column.backgroundColor(RokuricsColors.glassSurface + '30');
+                                    Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '30'));
                                 }, Column);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Row.create();
-                                    Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(595:19)", "entry");
+                                    Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(710:19)", "entry");
                                     Row.width('100%');
                                 }, Row);
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Text.create('已导出文件');
-                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(596:21)", "entry");
+                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(711:21)", "entry");
                                     Text.fontSize(12);
                                     Text.fontColor(RokuricsColors.softText);
                                 }, Text);
                                 Text.pop();
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Blank.create();
-                                    Blank.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(597:21)", "entry");
+                                    Blank.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(712:21)", "entry");
                                 }, Blank);
                                 Blank.pop();
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Text.create(`${this.exportList.length} 个`);
-                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(598:21)", "entry");
+                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(713:21)", "entry");
                                     Text.fontSize(11);
                                     Text.fontColor(RokuricsColors.tertiaryText);
                                 }, Text);
@@ -1431,7 +1592,7 @@ class RecordingDetailPage extends ViewPU {
                                 Row.pop();
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     List.create({ space: 2 });
-                                    List.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(603:19)", "entry");
+                                    List.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(718:19)", "entry");
                                     List.constraintSize({ maxHeight: 120 });
                                     List.scrollBar(BarState.Off);
                                 }, List);
@@ -1450,21 +1611,21 @@ class RecordingDetailPage extends ViewPU {
                                             };
                                             const itemCreation2 = (elmtId, isInitialRender) => {
                                                 ListItem.create(deepRenderFunction, true);
-                                                ListItem.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(605:23)", "entry");
+                                                ListItem.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(720:23)", "entry");
                                             };
                                             const deepRenderFunction = (elmtId, isInitialRender) => {
                                                 itemCreation(elmtId, isInitialRender);
                                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                                     Row.create();
-                                                    Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(606:25)", "entry");
+                                                    Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(721:25)", "entry");
                                                     Row.width('100%');
                                                     Row.padding({ left: 10, right: 10, top: 6, bottom: 6 });
                                                     Row.borderRadius(6);
-                                                    Row.backgroundColor(RokuricsColors.glassSurface + '40');
+                                                    Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
                                                 }, Row);
                                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                                     Text.create(file);
-                                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(607:27)", "entry");
+                                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(722:27)", "entry");
                                                     Text.fontSize(12);
                                                     Text.fontColor(RokuricsColors.deepText);
                                                     Text.maxLines(1);
@@ -1474,7 +1635,7 @@ class RecordingDetailPage extends ViewPU {
                                                 Text.pop();
                                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                                     Button.createWithChild();
-                                                    Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(611:27)", "entry");
+                                                    Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(726:27)", "entry");
                                                     Button.width(28);
                                                     Button.height(28);
                                                     Button.backgroundColor(Color.Transparent);
@@ -1482,7 +1643,7 @@ class RecordingDetailPage extends ViewPU {
                                                 }, Button);
                                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                                     Text.create('↗');
-                                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(612:29)", "entry");
+                                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(727:29)", "entry");
                                                     Text.fontSize(12);
                                                     Text.fontColor(RokuricsColors.aqua);
                                                 }, Text);
@@ -1490,7 +1651,7 @@ class RecordingDetailPage extends ViewPU {
                                                 Button.pop();
                                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                                     Button.createWithChild();
-                                                    Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(616:27)", "entry");
+                                                    Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(731:27)", "entry");
                                                     Button.width(28);
                                                     Button.height(28);
                                                     Button.backgroundColor(Color.Transparent);
@@ -1498,7 +1659,7 @@ class RecordingDetailPage extends ViewPU {
                                                 }, Button);
                                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                                     Text.create('✕');
-                                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(617:29)", "entry");
+                                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(732:29)", "entry");
                                                     Text.fontSize(12);
                                                     Text.fontColor(RokuricsColors.coral);
                                                 }, Text);
@@ -1529,7 +1690,7 @@ class RecordingDetailPage extends ViewPU {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         // Actions - glass card
                         Row.create({ space: 12 });
-                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(658:13)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(773:13)", "entry");
                         // Actions - glass card
                         Row.width('100%');
                         // Actions - glass card
@@ -1539,15 +1700,15 @@ class RecordingDetailPage extends ViewPU {
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(659:15)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(774:15)", "entry");
                         Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
-                        Button.border({ width: 1, color: RokuricsColors.aqua + '40', radius: 10 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 10 });
                         Button.backgroundColor(Color.Transparent);
                         Button.onClick(() => this.togglePlayback());
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create(this.isPlaying ? '⏸ 暂停' : '▶ 播放');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(660:17)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(775:17)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(RokuricsColors.aqua);
                     }, Text);
@@ -1559,7 +1720,7 @@ class RecordingDetailPage extends ViewPU {
                             this.ifElseBranchUpdateFunction(0, () => {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Text.create(this.playbackError);
-                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(670:17)", "entry");
+                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(785:17)", "entry");
                                     Text.fontSize(11);
                                     Text.fontColor(RokuricsColors.coral);
                                     Text.maxLines(1);
@@ -1575,16 +1736,16 @@ class RecordingDetailPage extends ViewPU {
                     If.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(676:15)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(791:15)", "entry");
                         Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
-                        Button.border({ width: 1, color: RokuricsColors.aqua + '40', radius: 10 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 10 });
                         Button.backgroundColor(Color.Transparent);
                         Button.enabled(!this.isUploading);
                         Button.onClick(() => this.uploadRecording());
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create(this.isUploading ? (this.uploadProgressText || '上传中...') : '☁ 上传');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(677:17)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(792:17)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(this.recording?.uploadStatus === 'uploaded' ? RokuricsColors.mint : RokuricsColors.aqua);
                     }, Text);
@@ -1596,7 +1757,7 @@ class RecordingDetailPage extends ViewPU {
                             this.ifElseBranchUpdateFunction(0, () => {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                                     Text.create(this.uploadError);
-                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(688:17)", "entry");
+                                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(803:17)", "entry");
                                     Text.fontSize(11);
                                     Text.fontColor(RokuricsColors.coral);
                                     Text.maxLines(1);
@@ -1612,20 +1773,20 @@ class RecordingDetailPage extends ViewPU {
                     If.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Blank.create();
-                        Blank.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(694:15)", "entry");
+                        Blank.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(809:15)", "entry");
                     }, Blank);
                     Blank.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(696:15)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(811:15)", "entry");
                         Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
-                        Button.border({ width: 1, color: RokuricsColors.aqua + '40', radius: 10 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 10 });
                         Button.backgroundColor(Color.Transparent);
                         Button.onClick(() => this.openRenameDialog());
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('重命名');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(697:17)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(812:17)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(RokuricsColors.aqua);
                     }, Text);
@@ -1633,15 +1794,15 @@ class RecordingDetailPage extends ViewPU {
                     Button.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(704:15)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(819:15)", "entry");
                         Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
-                        Button.border({ width: 1, color: RokuricsColors.coral + '40', radius: 10 });
+                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.coral, '40'), radius: 10 });
                         Button.backgroundColor(Color.Transparent);
                         Button.onClick(() => this.deleteAndBack());
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('删除');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(705:17)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(820:17)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(RokuricsColors.coral);
                     }, Text);
@@ -1663,26 +1824,26 @@ class RecordingDetailPage extends ViewPU {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create();
-                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(730:7)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(852:7)", "entry");
                         Column.width('100%');
                         Column.height('100%');
                         Column.justifyContent(FlexAlign.Center);
-                        Column.backgroundColor('#00000050');
+                        Column.backgroundColor('#50000000');
                         Column.position({ x: 0, y: 0 });
                         Column.onClick(() => { this.showRenameDialog = false; });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create({ space: 16 });
-                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(731:9)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(853:9)", "entry");
                         Column.padding(24);
                         Column.borderRadius(20);
-                        Column.backgroundColor(Color.White);
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6'));
                         Column.width('85%');
-                        Column.shadow({ radius: 30, color: '#00000020' });
+                        Column.shadow({ radius: 30, color: '#20000000' });
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('重命名录音');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(732:11)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(854:11)", "entry");
                         Text.fontSize(18);
                         Text.fontWeight(FontWeight.SemiBold);
                         Text.fontColor(RokuricsColors.deepText);
@@ -1690,29 +1851,29 @@ class RecordingDetailPage extends ViewPU {
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         TextInput.create({ text: this.renameText, placeholder: '输入新标题' });
-                        TextInput.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(737:11)", "entry");
+                        TextInput.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(859:11)", "entry");
                         TextInput.fontSize(16);
                         TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.backgroundColor(RokuricsColors.glassSurface + '80');
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'));
                         TextInput.borderRadius(10);
                         TextInput.padding(14);
                         TextInput.onChange((value: string) => { this.renameText = value; });
                     }, TextInput);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Row.create({ space: 12 });
-                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(745:11)", "entry");
+                        Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(867:11)", "entry");
                         Row.width('100%');
                         Row.justifyContent(FlexAlign.End);
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(746:13)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(868:13)", "entry");
                         Button.backgroundColor(Color.Transparent);
                         Button.onClick(() => { this.showRenameDialog = false; });
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('取消');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(747:15)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(869:15)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(RokuricsColors.softText);
                     }, Text);
@@ -1720,7 +1881,7 @@ class RecordingDetailPage extends ViewPU {
                     Button.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(752:13)", "entry");
+                        Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(874:13)", "entry");
                         Button.padding({ left: 24, right: 24, top: 10, bottom: 10 });
                         Button.borderRadius(10);
                         Button.backgroundColor(RokuricsColors.aqua);
@@ -1728,7 +1889,7 @@ class RecordingDetailPage extends ViewPU {
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Text.create('保存');
-                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(753:15)", "entry");
+                        Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(875:15)", "entry");
                         Text.fontSize(14);
                         Text.fontColor(Color.White);
                     }, Text);
@@ -1941,15 +2102,15 @@ class RecordingDetailPage extends ViewPU {
     InfoRow(label: string, value: string, parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
-            Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(961:5)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1083:5)", "entry");
             Row.width('100%');
             Row.padding(14);
             Row.borderRadius(12);
-            Row.backgroundColor(RokuricsColors.glassSurface + '66');
+            Row.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(label);
-            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(962:7)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1084:7)", "entry");
             Text.fontSize(13);
             Text.fontColor(RokuricsColors.softText);
             Text.width(70);
@@ -1957,7 +2118,7 @@ class RecordingDetailPage extends ViewPU {
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(value);
-            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(966:7)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1088:7)", "entry");
             Text.fontSize(16);
             Text.fontWeight(FontWeight.SemiBold);
             Text.fontColor(RokuricsColors.deepText);
@@ -1969,11 +2130,11 @@ class RecordingDetailPage extends ViewPU {
     TechRow(label: string, value: string, parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
-            Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(980:5)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1102:5)", "entry");
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(label);
-            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(981:7)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1103:7)", "entry");
             Text.fontSize(12);
             Text.fontColor(RokuricsColors.tertiaryText);
             Text.width(60);
@@ -1981,28 +2142,70 @@ class RecordingDetailPage extends ViewPU {
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(value);
-            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(985:7)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1107:7)", "entry");
             Text.fontSize(12);
             Text.fontColor(RokuricsColors.softText);
         }, Text);
         Text.pop();
         Row.pop();
     }
+    FileStatusRow(label: string, value: string, parent = null) {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1115:5)", "entry");
+            Row.width('100%');
+            Row.padding({ left: 4, right: 4, top: 6, bottom: 6 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(label);
+            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1116:7)", "entry");
+            Text.fontSize(14);
+            Text.fontWeight(FontWeight.Medium);
+            Text.fontColor(RokuricsColors.softText);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Blank.create();
+            Blank.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1120:7)", "entry");
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create({ space: 4 });
+            Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1121:7)", "entry");
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(value);
+            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1122:9)", "entry");
+            Text.fontSize(14);
+            Text.fontWeight(FontWeight.SemiBold);
+            Text.fontColor(RokuricsColors.deepText);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('›');
+            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1126:9)", "entry");
+            Text.fontSize(16);
+            Text.fontColor(RokuricsColors.tertiaryText);
+        }, Text);
+        Text.pop();
+        Row.pop();
+        Row.pop();
+    }
     FilingEditRow(label: string, selectedValue: string, options: string[], onSelect: (v: string) => void, parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create({ space: 4 });
-            Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(993:5)", "entry");
+            Column.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1137:5)", "entry");
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(label);
-            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(994:7)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1138:7)", "entry");
             Text.fontSize(12);
             Text.fontColor(RokuricsColors.softText);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create({ space: 6 });
-            Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(995:7)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1139:7)", "entry");
             Row.width('100%');
             Row.flexShrink(0);
         }, Row);
@@ -2012,13 +2215,13 @@ class RecordingDetailPage extends ViewPU {
                 const option = _item;
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Text.create(option);
-                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(997:11)", "entry");
+                    Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1141:11)", "entry");
                     Text.fontSize(12);
                     Text.fontWeight(FontWeight.Medium);
                     Text.fontColor(selectedValue === option ? Color.White : RokuricsColors.softText);
                     Text.padding({ left: 10, right: 10, top: 5, bottom: 5 });
                     Text.borderRadius(12);
-                    Text.backgroundColor(selectedValue === option ? RokuricsColors.aqua : RokuricsColors.glassSurface + '50');
+                    Text.backgroundColor(selectedValue === option ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
                     Text.onClick(() => onSelect(option));
                 }, Text);
                 Text.pop();
@@ -2028,6 +2231,43 @@ class RecordingDetailPage extends ViewPU {
         ForEach.pop();
         Row.pop();
         Column.pop();
+    }
+    DetailActionButton(title: string, tint: string, isEnabled: boolean, action: () => void, parent = null) {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Button.createWithChild();
+            Button.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1158:5)", "entry");
+            Button.layoutWeight(1);
+            Button.padding({ left: 12, right: 12, top: 10, bottom: 10 });
+            Button.borderRadius(20);
+            Button.backgroundColor(isEnabled ?
+                colorAlpha(RokuricsColors.glassSurface, '47') :
+                colorAlpha(RokuricsColors.glassSurface, '28'));
+            Button.border({
+                width: 1,
+                color: {
+                    colors: [
+                        [0xFFFFFF, isEnabled ? 0.22 : 0.12],
+                        [RokuricsColors.glassStroke, isEnabled ? 0.14 : 0.08],
+                        [RokuricsColors.glassStrokeAccent, isEnabled ? 0.24 : 0.10]
+                    ],
+                    direction: GradientDirection.RightBottom
+                },
+                radius: 20
+            } as BorderOptions);
+            Button.enabled(isEnabled);
+            Button.onClick(action);
+        }, Button);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(title);
+            Text.debugLine("entry/src/main/ets/pages/RecordingDetailPage.ets(1159:7)", "entry");
+            Text.fontSize(12);
+            Text.fontWeight(FontWeight.Bold);
+            Text.fontColor(isEnabled ? tint : RokuricsColors.tertiaryText);
+            Text.width('100%');
+            Text.textAlign(TextAlign.Center);
+        }, Text);
+        Text.pop();
+        Button.pop();
     }
     private uploadLabel(s: string): string {
         if (s === 'localOnly')

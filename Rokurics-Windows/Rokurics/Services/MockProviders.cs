@@ -10,7 +10,7 @@ namespace Rokurics.Services;
 public class MockTranscriptionProvider : ITranscriptionProvider
 {
     public string Id => "mockTranscriptionProvider";
-    public string DisplayName => "Mock";
+    public string DisplayName => "Mock Transcription";
 
     public Task ValidateConfigurationAsync() => Task.CompletedTask;
 
