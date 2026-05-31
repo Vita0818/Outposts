@@ -14,9 +14,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -50,6 +56,7 @@ import com.rokurics.app.ui.library.PlaybackState
 import com.rokurics.app.ui.theme.RokuricsColors
 import com.rokurics.app.ui.theme.adaptiveColor
 import com.rokurics.app.ui.theme.adaptivePageGradientBrush
+import com.rokurics.app.ui.theme.RokuricsAdaptiveMetrics
 import com.rokurics.app.ui.theme.rokuricsGlassCapsule
 import com.rokurics.app.ui.theme.rokuricsGlassCircle
 import com.rokurics.app.ui.theme.rokuricsScaleClickable
@@ -67,8 +74,8 @@ fun HomeScreen(
     val currentRoute by navController.currentBackStackEntryAsState()
     val currentDestination = currentRoute?.destination?.route ?: "home"
 
-    // Full-screen routes (no nav bar/rail)
-    val isFullScreen = currentDestination == "recording"
+    // Home is the hub; subpages use independent back-stack without global BottomNav
+    val isOnHome = currentDestination == "home"
 
     val playbackState = PlaybackState.shared
     val pbRecordingId by playbackState.recordingId.collectAsState()
@@ -92,140 +99,7 @@ fun HomeScreen(
         val metrics = com.rokurics.app.ui.theme.RokuricsAdaptiveMetrics(maxWidth.value, maxHeight.value)
         val isCompact = metrics.widthCategory == com.rokurics.app.ui.theme.RokuricsWidthCategory.COMPACT
 
-        if (isFullScreen || isCompact) {
-            // Compact: manual bottom nav bar (or full-screen for recording)
-            Box(modifier = Modifier.fillMaxSize()) {
-                NavHost(
-                    navController = navController,
-                    startDestination = "home",
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    composable("home") {
-                        HomeContent(
-                            recordingManager = recordingManager,
-                            connectionStore = connectionStore,
-                            navController = navController
-                        )
-                    }
-                    composable("recording") {
-                        RecordingSessionScreen(
-                            recordingManager = recordingManager,
-                            studyLibraryStore = studyLibraryStore,
-                            onBack = { navController.popBackStack() }
-                        )
-                    }
-                    composable("library") {
-                        RecordingLibraryScreen(
-                            recordingManager = recordingManager,
-                            onBack = { navController.popBackStack() }
-                        )
-                    }
-                    composable("connection") {
-                        MacConnectionScreen(
-                            onBack = { navController.popBackStack() }
-                        )
-                    }
-                    composable("settings") {
-                        SettingsScreen(
-                            onBack = { navController.popBackStack() }
-                        )
-                    }
-                    composable("chat") {
-                        AIChatScreen(
-                            studyLibraryStore = studyLibraryStore,
-                            userPreferencesStore = userPreferencesStore,
-                            onBack = { navController.popBackStack() }
-                        )
-                    }
-                }
-
-                // Bottom floating capsule — Apple parity: iOS IMG_4653 3-tab pill bar
-                // Dark-mode glass: dark green fill with subtle stroke, not light/white
-                if (!isFullScreen) {
-                    val isDark = isSystemInDarkTheme()
-                    val navDividerAlpha = if (isDark) 0.08f else 0.14f
-                    val capsuleFill = if (isDark) Color(0xFF060D0D).copy(alpha = 0.90f)
-                        else Color.White.copy(alpha = 0.50f)
-                    val capsuleStroke = if (isDark) Color.White.copy(alpha = 0.06f)
-                        else Color.White.copy(alpha = 0.40f)
-                    val capsuleShadowColor = if (isDark) Color.Black.copy(alpha = 0.30f)
-                        else RokuricsColors.shadow.copy(alpha = 0.10f)
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(horizontal = 28.dp, vertical = 10.dp),
-                        contentAlignment = Alignment.BottomCenter
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp)
-                                .shadow(
-                                    elevation = 14.dp,
-                                    spotColor = capsuleShadowColor,
-                                    ambientColor = capsuleShadowColor.copy(alpha = 0.5f),
-                                    shape = RoundedCornerShape(50)
-                                )
-                                .clip(RoundedCornerShape(50))
-                                .background(capsuleFill)
-                                .background(
-                                    Brush.linearGradient(
-                                        colors = listOf(
-                                            capsuleStroke,
-                                            capsuleStroke.copy(alpha = 0.3f),
-                                            RokuricsColors.aqua.copy(alpha = if (isDark) 0.08f else 0.12f)
-                                        ),
-                                        start = Offset(0f, 0f),
-                                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-                                    ),
-                                    RoundedCornerShape(50)
-                                ),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            BottomNavTab("学习库", Icons.AutoMirrored.Filled.MenuBook, currentDestination == "library") {
-                                if (currentDestination != "library") {
-                                    navController.navigate("library") {
-                                        popUpTo("home") { saveState = true }
-                                        launchSingleTop = true; restoreState = true
-                                    }
-                                }
-                            }
-                            VerticalDivider(
-                                modifier = Modifier.height(34.dp),
-                                thickness = 0.5.dp,
-                                color = (if (isDark) Color.White else RokuricsColors.softText)
-                                    .copy(alpha = navDividerAlpha)
-                            )
-                            BottomNavTab("AI 对话", Icons.Default.QuestionAnswer, currentDestination == "chat") {
-                                if (currentDestination != "chat") {
-                                    navController.navigate("chat") {
-                                        popUpTo("home") { saveState = true }
-                                        launchSingleTop = true; restoreState = true
-                                    }
-                                }
-                            }
-                            VerticalDivider(
-                                modifier = Modifier.height(34.dp),
-                                thickness = 0.5.dp,
-                                color = (if (isDark) Color.White else RokuricsColors.softText)
-                                    .copy(alpha = navDividerAlpha)
-                            )
-                            BottomNavTab("Mac 连接", Icons.Default.PhoneAndroid, currentDestination == "connection") {
-                                if (currentDestination != "connection") {
-                                    navController.navigate("connection") {
-                                        popUpTo("home") { saveState = true }
-                                        launchSingleTop = true; restoreState = true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
+        if (!isCompact && isOnHome) {
             // Medium/Expanded: NavigationRail on the left
             Row(modifier = Modifier.fillMaxSize()) {
                 Surface(
@@ -234,7 +108,8 @@ fun HomeScreen(
                         .navigationBarsPadding()
                         .width(80.dp)
                         .fillMaxHeight(),
-                    color = Color.White.copy(alpha = 0.55f)
+                    color = if (isSystemInDarkTheme()) RokuricsColors.glassSurfaceDark.copy(alpha = 0.55f)
+                    else Color.White.copy(alpha = 0.55f)
                 ) {
                     Column(
                         modifier = Modifier
@@ -332,10 +207,55 @@ fun HomeScreen(
                     }
                 }
             }
+        } else {
+            // Compact or subpage: standalone NavHost without bottom dock
+            NavHost(
+                navController = navController,
+                startDestination = "home",
+                modifier = Modifier.fillMaxSize()
+            ) {
+                composable("home") {
+                    HomeContent(
+                        recordingManager = recordingManager,
+                        connectionStore = connectionStore,
+                        navController = navController
+                    )
+                }
+                composable("recording") {
+                    RecordingSessionScreen(
+                        recordingManager = recordingManager,
+                        studyLibraryStore = studyLibraryStore,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+                composable("library") {
+                    RecordingLibraryScreen(
+                        recordingManager = recordingManager,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+                composable("connection") {
+                    MacConnectionScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+                composable("settings") {
+                    SettingsScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+                composable("chat") {
+                    AIChatScreen(
+                        studyLibraryStore = studyLibraryStore,
+                        userPreferencesStore = userPreferencesStore,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+            }
         }
 
-        // Persistent mini-player overlay
-        if (pbIsActive && !isFullScreen) {
+        // Persistent mini-player overlay (Home only; subpages have their own playback bars)
+        if (pbIsActive && isOnHome) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -372,28 +292,35 @@ private fun PersistentMiniPlayer(
     onClose: () -> Unit
 ) {
     var localSeekFraction by remember { mutableFloatStateOf(0f) }
+    var isSliderDragging by remember { mutableStateOf(false) }
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                return if (isSliderDragging) available else Offset.Zero
+            }
+        }
+    }
 
     val isDark = isSystemInDarkTheme()
-    val miniPlayerFill = if (isDark) Color(0xFF0E2020).copy(alpha = 0.94f)
-    else Color.White.copy(alpha = 0.94f)
+    val miniPlayerFill = if (isDark) Color(0xFF0A1B1B).copy(alpha = 0.96f)
+    else Color.White.copy(alpha = 0.96f)
     val miniPlayerText = adaptiveColor(RokuricsColors.deepText, RokuricsColors.deepTextDark)
     val miniPlayerSubText = adaptiveColor(RokuricsColors.softText, RokuricsColors.softTextDark)
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .shadow(
-                elevation = 12.dp,
-                spotColor = RokuricsColors.shadow.copy(alpha = 0.10f),
-                ambientColor = Color.Black.copy(alpha = 0.04f)
-            )
-            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-        color = miniPlayerFill
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = miniPlayerFill,
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = 0.12f))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 5.dp)
+                .padding(horizontal = 10.dp, vertical = 4.dp)
+                .nestedScroll(nestedScrollConnection)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -428,10 +355,12 @@ private fun PersistentMiniPlayer(
                         value = if (isSeeking) localSeekFraction
                         else if (durationMs > 0) positionMs.toFloat() / durationMs else 0f,
                         onValueChange = { fraction ->
+                            if (!isSliderDragging) isSliderDragging = true
                             localSeekFraction = fraction
                             if (!isSeeking) onSeekStart()
                         },
                         onValueChangeFinished = {
+                            isSliderDragging = false
                             onSeekEnd(localSeekFraction)
                         },
                         modifier = Modifier.fillMaxWidth().height(16.dp),
@@ -472,12 +401,6 @@ private fun formatPositionMini(ms: Int): String {
     return "%02d:%02d".format(minutes, seconds)
 }
 
-private fun formatPosition(ms: Int): String {
-    val totalSecs = (ms / 1000).coerceAtLeast(0)
-    val minutes = totalSecs / 60
-    val seconds = totalSecs % 60
-    return "%02d:%02d".format(minutes, seconds)
-}
 
 @Composable
 private fun BottomNavTab(
@@ -487,8 +410,8 @@ private fun BottomNavTab(
     onClick: () -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
-    val activeColor = if (isDark) RokuricsColors.aquaDark else RokuricsColors.aqua
-    val inactiveColor = if (isDark) RokuricsColors.softTextDark else RokuricsColors.softText
+    val activeColor = if (isDark) Color.White else RokuricsColors.aqua
+    val inactiveColor = if (isDark) RokuricsColors.deepTextDark.copy(alpha = 0.72f) else RokuricsColors.softText
     Column(
         modifier = Modifier
             .rokuricsScaleClickable(onClick = onClick)
@@ -563,58 +486,41 @@ fun HomeContent(
             .fillMaxSize()
             .background(adaptivePageGradientBrush())
     ) {
-        val screenWidthDp = maxWidth
-        val screenHeightDp = maxHeight
-        val isWide = screenWidthDp >= 600.dp
-        val isShort = screenHeightDp < 760.dp
-
-        val headerScale = if (isWide) 1.12f else 1f
-        val orbScale = when {
-            screenWidthDp < 360.dp && isShort -> 0.78f
-            screenWidthDp < 360.dp -> 0.84f
-            isShort -> 0.84f
-            screenHeightDp < 820.dp -> 0.92f
-            isWide -> 1.16f
-            else -> 1f
-        }
-        val dashboardScale = when {
-            screenWidthDp < 360.dp -> 0.90f
-            isWide -> 1.08f
-            else -> 1f
-        }
-        val contentMaxWidth = when {
-            isWide && screenWidthDp >= 900.dp -> 760.dp
-            isWide -> 680.dp
-            else -> screenWidthDp
-        }
+        val metrics = RokuricsAdaptiveMetrics.from(maxWidth, maxHeight)
+        val isWide = metrics.isWide
+        val isShort = metrics.isShort
+        val headerScale = metrics.headerScale
+        val orbScale = metrics.orbScale
+        val dashboardScale = metrics.dashboardScale
+        val contentMaxWidth = metrics.contentMaxWidth
 
         // Ambient background bubbles (iPhone parity: RokuricsAmbientBubble × 3)
         AmbientBubble(
             sizeDp = if (isWide) 210f else 150f,
             colors = listOf(RokuricsColors.paleAqua, RokuricsColors.mint),
             alpha = 0.30f,
-            offsetXFraction = -0.34f,
-            offsetYFraction = -0.31f,
-            screenWidthDp = screenWidthDp.value,
-            screenHeightDp = screenHeightDp.value
+            offsetXFraction = -0.22f,
+            offsetYFraction = -0.26f,
+            screenWidthDp = metrics.widthDp,
+            screenHeightDp = metrics.heightDp
         )
         AmbientBubble(
             sizeDp = if (isWide) 260f else 190f,
             colors = listOf(RokuricsColors.skyCyan, RokuricsColors.mistGreen),
             alpha = 0.22f,
-            offsetXFraction = 0.36f,
-            offsetYFraction = -0.10f,
-            screenWidthDp = screenWidthDp.value,
-            screenHeightDp = screenHeightDp.value
+            offsetXFraction = 0.30f,
+            offsetYFraction = -0.12f,
+            screenWidthDp = metrics.widthDp,
+            screenHeightDp = metrics.heightDp
         )
         AmbientBubble(
             sizeDp = if (isWide) 230f else 170f,
             colors = listOf(RokuricsColors.mint, RokuricsColors.aqua),
             alpha = 0.18f,
-            offsetXFraction = 0.28f,
-            offsetYFraction = 0.35f,
-            screenWidthDp = screenWidthDp.value,
-            screenHeightDp = screenHeightDp.value
+            offsetXFraction = 0.24f,
+            offsetYFraction = 0.32f,
+            screenWidthDp = metrics.widthDp,
+            screenHeightDp = metrics.heightDp
         )
 
         // Centered content column (iPhone parity: VStack with .frame(maxWidth: homeMaxWidth))
@@ -622,7 +528,7 @@ fun HomeContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(verticalScroll)
-                .padding(horizontal = if (isWide) 32.dp else if (screenWidthDp < 360.dp) 20.dp else 24.dp)
+                .padding(horizontal = metrics.horizontalPadding)
                 .statusBarsPadding()
                 .then(if (isWide) Modifier.widthIn(max = contentMaxWidth) else Modifier),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -658,8 +564,19 @@ fun HomeContent(
                 onClick = { navController.navigate("recording") }
             )
 
+            Spacer(modifier = Modifier.height(if (metrics.isPadWidth) 32.dp else 20.dp))
+
+            // Navigation card — iPhone parity: RokuricsHomeNavigationCard
+            HomeNavigationCard(
+                isMacPaired = isMacPaired,
+                scale = dashboardScale,
+                onOpenLibrary = { navController.navigate("library") },
+                onOpenAIChat = { navController.navigate("chat") },
+                onOpenConnection = { navController.navigate("connection") }
+            )
+
             // Bottom spacer (iPhone parity: homeBottomPadding)
-            Spacer(modifier = Modifier.height(if (isWide) 34.dp else if (isShort) 18.dp else 26.dp))
+            Spacer(modifier = Modifier.height(metrics.homeBottomPadding))
 
             Spacer(modifier = Modifier.navigationBarsPadding())
             Spacer(modifier = Modifier.height(16.dp))
@@ -675,7 +592,7 @@ private fun SettingsAvatarButton(
     Box(
         modifier = Modifier
             .size((46 * scale).dp)
-            .rokuricsGlassCircle(fillOpacity = 0.58f, strokeOpacity = 0.60f, shadowOpacity = 0.18f, shadowRadius = 14.dp)
+            .rokuricsGlassCircle(fillOpacity = 0.58f, strokeOpacity = 0.78f, shadowOpacity = 0.18f, shadowRadius = 14.dp, fillColor = if (isSystemInDarkTheme()) RokuricsColors.glassSurfaceDark else Color.White)
             .rokuricsScaleClickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -700,11 +617,16 @@ fun DashboardStatsCard(
     typeCategoryCount: Int,
     modifier: Modifier = Modifier
 ) {
+    val isDark = isSystemInDarkTheme()
+    val cardBg = if (isDark) RokuricsColors.glassSurfaceDark.copy(alpha = 0.55f)
+    else Color.White.copy(alpha = 0.52f)
+    val cardBorderColor = Color.White.copy(alpha = if (isDark) 0.08f else 0.22f)
+    val cardTextColor = if (isDark) RokuricsColors.deepTextDark else RokuricsColors.deepText
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.52f)),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         shape = RoundedCornerShape(22.dp),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = 0.22f))
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, cardBorderColor)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -725,7 +647,7 @@ fun DashboardStatsCard(
                     text = "学习概览",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = RokuricsColors.deepText
+                    color = cardTextColor
                 )
             }
 
@@ -794,11 +716,15 @@ fun DashboardConnectionCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isDark = isSystemInDarkTheme()
+    val cardBg = if (isDark) RokuricsColors.glassSurfaceDark.copy(alpha = 0.55f)
+    else Color.White.copy(alpha = 0.52f)
+    val cardBorderColor = Color.White.copy(alpha = if (isDark) 0.08f else 0.22f)
     Card(
         modifier = modifier.clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.52f)),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         shape = RoundedCornerShape(22.dp),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = 0.22f))
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, cardBorderColor)
     ) {
         Row(
             modifier = Modifier
@@ -921,11 +847,15 @@ private fun formatDurationShort(seconds: Double): String {
 
 @Composable
 fun TransferQueueCard(pendingUploadCount: Int) {
+    val isDark = isSystemInDarkTheme()
+    val cardBg = if (isDark) RokuricsColors.glassSurfaceDark.copy(alpha = 0.55f)
+    else Color.White.copy(alpha = 0.52f)
+    val cardBorderColor = Color.White.copy(alpha = if (isDark) 0.08f else 0.22f)
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.52f)),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
         shape = RoundedCornerShape(20.dp),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = 0.22f))
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, cardBorderColor)
     ) {
         Row(
             modifier = Modifier
@@ -997,7 +927,7 @@ fun RecordingOrb(
     }
 
     val isIdle = !isActiveSession && state != RokuricsRecordingState.FILING
-    val isBreathing = isActiveSession || true
+    val isBreathing = isActiveSession
 
     // Orbiting bubble rotation (Apple parity: orbitDegrees from TimelineView, 160s period)
     val orbitTransition = rememberInfiniteTransition(label = "orbit")
@@ -1025,41 +955,46 @@ fun RecordingOrb(
                 .graphicsLayer { rotationZ = orbitAngle },
             contentAlignment = Alignment.Center
         ) {
+            val bubbleBreathScale = if (isBreathing) 1.035f else 0.985f
             // Bubble 1 — top-left
             OrbitingBubble(
                 size = 88 * effectiveScale,
                 colors = listOf(RokuricsColors.mint, RokuricsColors.paleAqua),
-                alpha = 0.30f,
+                alpha = 0.42f,
                 offsetX = -94 * effectiveScale,
                 offsetY = -66 * effectiveScale,
-                counterRotation = -orbitAngle
+                counterRotation = -orbitAngle,
+                breathingScale = bubbleBreathScale
             )
             // Bubble 2 — top-right
             OrbitingBubble(
                 size = 76 * effectiveScale,
                 colors = listOf(RokuricsColors.skyCyan, RokuricsColors.mistGreen),
-                alpha = 0.24f,
+                alpha = 0.32f,
                 offsetX = 100 * effectiveScale,
                 offsetY = -54 * effectiveScale,
-                counterRotation = -orbitAngle
+                counterRotation = -orbitAngle,
+                breathingScale = bubbleBreathScale
             )
             // Bubble 3 — bottom-right
             OrbitingBubble(
                 size = 74 * effectiveScale,
                 colors = listOf(RokuricsColors.aqua, RokuricsColors.paleAqua),
-                alpha = 0.22f,
+                alpha = 0.30f,
                 offsetX = 90 * effectiveScale,
                 offsetY = 76 * effectiveScale,
-                counterRotation = -orbitAngle
+                counterRotation = -orbitAngle,
+                breathingScale = bubbleBreathScale
             )
             // Bubble 4 — bottom-left
             OrbitingBubble(
                 size = 68 * effectiveScale,
                 colors = listOf(RokuricsColors.mistGreen, RokuricsColors.mint),
-                alpha = 0.26f,
+                alpha = 0.34f,
                 offsetX = -104 * effectiveScale,
                 offsetY = 74 * effectiveScale,
-                counterRotation = -orbitAngle
+                counterRotation = -orbitAngle,
+                breathingScale = bubbleBreathScale
             )
         }
 
@@ -1106,18 +1041,17 @@ fun RecordingOrb(
             }
         }
 
-        // Dark outer ring (Apple parity: thick dark ring for depth, ~18dp each side)
-        // Uses a visible mid-dark tone that contrasts against both background and bright orb
+        // Dark outer ring (Apple parity: thick dark ring for depth, ~24dp each side)
         if (isIdle) {
             Box(
                 modifier = Modifier
-                    .size((226 * effectiveScale).dp)
+                    .size((238 * effectiveScale).dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF152222).copy(alpha = 0.78f))
+                    .background(adaptiveColor(RokuricsColors.glassSurface.copy(alpha = 0.82f), Color(0xFF152222).copy(alpha = 0.82f)))
                     .shadow(
-                        elevation = (14 * effectiveScale).dp,
-                        spotColor = Color.Black.copy(alpha = 0.30f),
-                        ambientColor = Color.Black.copy(alpha = 0.16f)
+                        elevation = (8 * effectiveScale).dp,
+                        spotColor = Color.Black.copy(alpha = 0.20f),
+                        ambientColor = Color.Black.copy(alpha = 0.10f)
                     )
             )
         }
@@ -1210,12 +1144,14 @@ private fun OrbitingBubble(
     alpha: Float,
     offsetX: Float,
     offsetY: Float,
-    counterRotation: Float
+    counterRotation: Float,
+    breathingScale: Float = 1f
 ) {
     Box(
         modifier = Modifier
             .offset(x = offsetX.dp, y = offsetY.dp)
             .size(size.dp)
+            .scale(breathingScale)
             .graphicsLayer { rotationZ = counterRotation }
             .clip(CircleShape)
             .background(
@@ -1270,6 +1206,9 @@ fun HomeNavigationCard(
     onOpenConnection: () -> Unit
 ) {
     // iPhone parity: RokuricsHomeNavigationCard with rokuricsLiquidGlassCard styling
+    val isDark = isSystemInDarkTheme()
+    val navCardFill = if (isDark) RokuricsColors.glassSurfaceDark.copy(alpha = 0.45f)
+        else Color.White.copy(alpha = 0.40f)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -1279,23 +1218,14 @@ fun HomeNavigationCard(
                 spotColor = RokuricsColors.shadow.copy(alpha = 0.12f)
             )
             .clip(RoundedCornerShape((30 * scale).dp))
+            .background(navCardFill)
+            .background(Color.White.copy(alpha = if (isDark) 0.04f else 0.12f), RoundedCornerShape((30 * scale).dp))
             .background(
                 Brush.linearGradient(
                     colors = listOf(
-                        Color.White.copy(alpha = 0.40f),
-                        RokuricsColors.glassSurface.copy(alpha = 0.40f)
-                    ),
-                    start = Offset(0f, 0f),
-                    end = Offset(0f, Float.POSITIVE_INFINITY)
-                )
-            )
-            .background(Color.White.copy(alpha = 0.12f), RoundedCornerShape((30 * scale).dp))
-            .background(
-                Brush.linearGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.44f),
-                        Color.White.copy(alpha = 0.06f),
-                        RokuricsColors.aqua.copy(alpha = 0.12f)
+                        Color.White.copy(alpha = if (isDark) 0.08f else 0.44f),
+                        Color.White.copy(alpha = if (isDark) 0.02f else 0.06f),
+                        RokuricsColors.aqua.copy(alpha = if (isDark) 0.06f else 0.12f)
                     ),
                     start = Offset(0f, 0f),
                     end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
@@ -1384,12 +1314,16 @@ private fun AmbientBubble(
     val offsetXDp = (screenWidthDp * offsetXFraction).dp
     val offsetYDp = (screenHeightDp * offsetYFraction).dp
 
-    // iPhone parity: RokuricsAmbientBubble with glass circle styling
+    // iPhone parity: RokuricsAmbientBubble with glass circle styling + blur
     Box(
         modifier = Modifier
             .offset(x = offsetXDp, y = offsetYDp)
             .size(sizeDp.dp)
-            .graphicsLayer { this.shadowElevation = (sizeDp * 0.08f).coerceIn(4f, 18f) }
+            .blur(radius = 0.5.dp)
+            .shadow(
+                elevation = ((sizeDp * 0.08f).coerceIn(4f, 18f)).dp,
+                shape = CircleShape
+            )
             .clip(CircleShape)
             .background(
                 Brush.linearGradient(

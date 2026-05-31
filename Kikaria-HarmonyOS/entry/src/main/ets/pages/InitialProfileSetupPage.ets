@@ -30,8 +30,8 @@ export struct InitialProfileSetupPageContent {
     this.contentPadH = pageHorizontalPadding()
     // Pre-fill with existing profile values if they're not defaults
     const p = appState.userProfile
-    this.displayName = p.displayName === 'Vita' ? '' : p.displayName
-    this.userHandle = p.userHandle === 'vita_0818' ? '' : p.userHandle
+    this.displayName = p.displayName
+    this.userHandle = p.userHandle
   }
 
   get trimmedDisplayName(): string {

@@ -345,6 +345,14 @@ data class KikariaPhoneMetrics(
             return minOf(maxOf(maxW * 0.39f, 400f), 430f).dp
         }
 
+    /** Landscape home right-column card scale — clamps to 1.0–1.05 */
+    val homeLandscapeCardScale: Float
+        get() {
+            if (!isTwoColumnCapable) return 1.05f
+            val rightW = homeLandscapeRightWidth.value
+            return minOf(maxOf(rightW / 420f, 1.0f), 1.05f)
+        }
+
     companion object {
         fun compute(
             widthPx: Float,

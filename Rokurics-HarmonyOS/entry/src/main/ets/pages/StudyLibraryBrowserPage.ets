@@ -3,10 +3,11 @@
  * Browse recordings organized by: type → subject → chapter → topic
  */
 import { router } from '@kit.ArkUI'
+import { ConfigurationConstant } from '@kit.AbilityKit'
 import { getSharedRecordingManager, RecordingManager } from '../services/RecordingManager'
 import { RecordingMetadata, StudyFilingPath, filingLevelTitle } from '../models/RecordingModels'
 import { formatDuration, formatShortTime } from '../utils/FormatHelpers'
-import { colorAlpha,  RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
+import { colorAlpha,  RokuricsColors, FontWeight, applyColorMode } from '../utils/RokuricsTheme'
 import { StudyFolderStore } from '../services/StudyFolderStore'
 
 const HIERARCHY_LEVELS: string[] = ['type', 'subject', 'chapter', 'topic']
@@ -26,6 +27,7 @@ interface FilingGroup {
 @Component
 struct StudyLibraryBrowserPage {
   private recordingManager: RecordingManager = getSharedRecordingManager()
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET
   @State allRecordings: RecordingMetadata[] = []
   @State groups: FilingGroup[] = []
   @State currentPath: string[] = []
@@ -154,6 +156,7 @@ struct StudyLibraryBrowserPage {
   }
 
   build() {
+    applyColorMode(this.colorMode)
     Stack() {
     Column() {
       // Header

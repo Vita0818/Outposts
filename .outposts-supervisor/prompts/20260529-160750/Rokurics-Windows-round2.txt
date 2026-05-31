@@ -1,0 +1,65 @@
+BEGIN_PROMPT: Do not execute until you receive END_PROMPT.
+
+[ROUND 2 / BATCH outposts-ui-structure-build-recovery-winui-native-round]
+
+Mandatory preflight:
+1. MODEL_CHECK_RESULT: current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop.
+2. PATH_CHECK_RESULT: current working directory must be /Users/vita/Vitemis/Outposts/Rokurics-Windows. If not, stop.
+3. SOURCE_READONLY_CHECK: Apple source is read-only at /Users/vita/Vitemis/Vela/Rokurics. Rokurics-macOS-Ref is read-only. Writes stay inside /Users/vita/Vitemis/Outposts/Rokurics-Windows or .outposts-supervisor evidence/report paths.
+
+Context from Round 1:
+- qwen-vision inspected 4 macOS reference screenshots.
+- Project remains WinUI 3 / Windows App SDK / C#.
+- Fixed one WMC0011-style issue: SymbolIcon.FontSize -> FontIcon.
+- Windows host validation remains pending because this is macOS.
+- Remaining executable static work: native Win11 NavigationView/sidebar direction, Mica/AppWindow/backdrop direction, CommandBar/InfoBar/TeachingTip suitability, and broader XAML compatibility audit.
+
+Round 2 task:
+- Continue minimal static WinUI 3 / Win11-native improvements without changing framework or architecture.
+- Do not convert to WPF/Avalonia/MAUI/Electron/WebView/Flutter.
+- Prefer small, safe XAML/code-behind changes that improve native Win11 feel and remove non-WinUI or demo-like patterns.
+- Continue scanning for invalid XAML members or WPF/Avalonia hallucinated properties.
+- If adopting NavigationView or Mica is too large/risky in one round, make a narrow preparatory change and report exact remaining work.
+- Do not claim Debug/ARM64 build or window launch succeeded on macOS. Report WINDOWS_HOST_VALIDATION_PENDING if still unverified.
+
+Forbidden:
+- Do not modify Apple source or reference image directories.
+- Do not read/send secrets, .env, API keys, tokens, certificates, p12, ssh keys, Keychain contents.
+- Do not git clean/reset/restore/checkout. Do not commit/push/PR. Do not delete visual evidence.
+- qwen-vision only inspects images; it must not modify files or receive source/secrets.
+
+Final report fields:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+QWEN_REQUIRED
+QWEN_CALLED
+QWEN_VALID_VISUAL_EVIDENCE
+QWEN_COMPARE_SCREENSHOTS_COMPLETED
+REFERENCE_SCREENSHOTS_USED
+ACTUAL_SCREENSHOTS
+VISION_TOOLS_CALLED
+VISION_RESULT_SUMMARY
+USER_FEEDBACK_ADDRESSED
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+ACTUAL_SCREENSHOT_BLOCKER
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION
+WINUI3_CONFIRMED
+WINDOWS_APP_SDK_CONFIRMED
+NON_WINUI_FRAMEWORK_AVOIDED
+WIN11_NATIVE_STYLE_PROGRESS
+INVALID_XAML_MEMBERS_FIXED
+WMC0011_REMAINING
+DEBUG_ARM64_BUILD_RESULT
+WINDOW_LAUNCH_RESULT
+WINDOWS_HOST_VALIDATION_PENDING
+
+END_PROMPT. Now execute Round 2 and return a structured report when complete.

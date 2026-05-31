@@ -28,6 +28,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vita0818.kikaria.data.KnowledgePreset
+import com.vita0818.kikaria.ui.components.KikariaEditorTextField
 import com.vita0818.kikaria.ui.components.KikariaFormPageShell
 import com.vita0818.kikaria.ui.components.KikariaGlassCard
 import com.vita0818.kikaria.ui.components.KikariaIcons
@@ -76,9 +77,9 @@ fun EditPresetScreen(
         onAction = doSave
     ) {
         Spacer(modifier = Modifier.height(8.dp))
-        EditorTextField("预设名称", name, { name = it }, isDark, true)
+        KikariaEditorTextField("预设名称", name, { name = it }, isDark, true)
         Spacer(modifier = Modifier.height(10.dp))
-        EditorTextField("分类", category, { category = it }, isDark, true)
+        KikariaEditorTextField("分类", category, { category = it }, isDark, true)
         Spacer(modifier = Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text(KikariaTypography.mixedText("Markdown 文本", size = 14, weight = FontWeight.SemiBold), color = softText, modifier = Modifier.padding(start = 4.dp))
@@ -120,25 +121,5 @@ fun EditPresetScreen(
             }
         }
         Spacer(modifier = Modifier.height(32.dp))
-    }
-}
-
-@Composable
-private fun EditorTextField(title: String, value: String, onValueChange: (String) -> Unit, isDark: Boolean, singleLine: Boolean = false) {
-    val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
-    val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
-    val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
-    Column {
-        Text(KikariaTypography.mixedText(title, size = 14, weight = FontWeight.SemiBold), color = softText, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp))
-        KikariaGlassCard(Modifier.fillMaxWidth(), cornerRadius = 20.dp, fillOpacity = 0.50f, shadowElevation = 12.dp, shadowOpacity = 0.08f) {
-            TextField(
-                value = value, onValueChange = onValueChange,
-                textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal, color = deepText),
-                colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = sky),
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
-                modifier = Modifier.fillMaxWidth().padding(16.dp), singleLine = singleLine,
-                placeholder = { Text(title, fontSize = 16.sp, fontWeight = FontWeight.Normal, color = softText.copy(alpha = 0.5f)) }
-            )
-        }
     }
 }

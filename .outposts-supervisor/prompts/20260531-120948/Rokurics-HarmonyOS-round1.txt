@@ -1,0 +1,109 @@
+本轮是源码对源码迁移，不是文字规格重写。
+
+MANDATORY PREFLIGHT:
+
+MODEL_CHECK_RESULT:
+当前模型必须是 DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]。否则立即停止并报告 MODEL_MISMATCH。
+
+PATH_CHECK_RESULT:
+当前工作目录必须严格等于：
+/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS
+否则立即停止并报告 WORKDIR_MISMATCH。
+
+SOURCE_READONLY_CHECK:
+Apple 源项目只读：
+/Users/vita/Vitemis/Vela/Rokurics
+所有写入只允许发生在：
+/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS
+不得访问无关目录。
+不得读取或发送密钥、token、私钥、证书、.env、p12、ssh key、API key、Keychain 内容。
+不得 git clean / reset / restore / checkout。
+不得清理工作区。
+不得删除 visual-evidence、state、checkpoint、report。
+不得清理 ~/.hvigor。
+不得修改用户级 DevEco / HarmonyOS SDK。
+不得全局安装 pnpm/npm/ohpm。
+
+SOURCE_TO_TARGET_MODE:
+YES
+
+本轮最高目标：
+直接对照 iOS 源码，把 Rokurics-HarmonyOS 的 StudyLibraryStore / StudyFilingModels / 学习库核心逻辑补到接近 iOS 原始行为。
+
+禁止：
+1. 不得把 iOS 源码总结成文字规格后再重写。
+2. 不得输出路线图替代实现。
+3. 不得只写“我理解了 iOS 逻辑”。
+4. 不得凭平台习惯替代 iOS 原始业务逻辑。
+5. 不得把 stub / TODO / 假实现报告为已迁移。
+6. 不得因为目标代码看起来合理就跳过 iOS 对照。
+
+执行顺序：
+1. 在 /Users/vita/Vitemis/Vela/Rokurics 中直接查找并读取真实 iOS 源码文件：
+   - StudyLibraryStore
+   - StudyFilingModels
+   - 相关学习库 / filing / manifest / migration / record 文件
+2. 读取目标项目中对应实现文件；如无对应文件，创建最小对应实现。
+3. 每次只迁移一个明确模块或一组强相关函数。
+4. 按 iOS 真实代码结构迁移，不走文字规格中转。
+
+优先迁移内容：
+1. manifest 生成。
+2. checksum。
+3. tombstone。
+4. conflict merge。
+5. updatedAt last-write-wins。
+6. equal timestamp conflict 处理。
+7. folder rename cascade。
+8. filing path cascade。
+9. RecordingReceiveRecord。
+10. legacy migration。
+11. atomic write。
+12. sandbox path safety。
+
+实现要求：
+- 每个新增字段、状态、函数、错误路径、持久化格式、路径约定、时间戳策略、merge/conflict 策略都必须能追溯到 iOS 源码。
+- 如果 HarmonyOS 暂时不能完整实现某项 iOS 行为，只能实现可验证的最小等价逻辑，并在 REMAINING_GAPS 中明确列出。
+- 构建失败时只允许项目内修复。如果是用户级工具链问题，停止并报告 TOOLCHAIN_REPAIR_NEEDS_USER。
+
+验证：
+- 修改后运行当前项目可用构建命令。
+- 如有可用测试，运行测试。
+- 如果构建失败，优先修项目内源码/配置错误；不得清理用户级缓存或全局安装。
+
+最终报告必须包含：
+
+MODEL_CHECK_RESULT:
+PATH_CHECK_RESULT:
+SOURCE_READONLY_CHECK:
+PROJECT_NAME:
+ROUND_INDEX:
+
+SOURCE_TO_TARGET_MODE:
+- YES
+
+IOS_FILES_READ:
+- 列出实际读取的 iOS 文件路径
+
+TARGET_FILES_READ:
+- 列出实际读取的目标平台文件路径
+
+CODE_MAPPING_SUMMARY:
+- iOS 类型 / 函数 / 字段 -> HarmonyOS 类型 / 函数 / 字段
+
+IMPLEMENTED_THIS_ROUND:
+- 具体实现了什么
+
+IOS_BEHAVIOR_PORTED:
+- 直接从 iOS 迁移了哪些行为
+
+STUBS_REPLACED:
+- 替换了哪些 stub / 简化实现
+
+REMAINING_GAPS:
+- 仍缺什么
+
+BUILD_RESULT:
+TEST_RESULT:
+REGRESSION_RISKS:
+NEXT_RECOMMENDATION:

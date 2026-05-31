@@ -5,10 +5,6 @@ using Rokurics.ViewModels;
 
 namespace Rokurics.Views;
 
-/// <summary>
-/// Settings page matching MacSettingsView from source.
-/// Drill-down detail sheets for each provider/section via ContentDialog.
-/// </summary>
 public sealed partial class MacSettingsPage : Page
 {
     private readonly SettingsViewModel _viewModel;
@@ -19,7 +15,6 @@ public sealed partial class MacSettingsPage : Page
     public string UserHandle =>
         $"@{_viewModel.UserDisplayName?.ToLowerInvariant() ?? "user"}";
 
-    // Bound values from ViewModel
     public string TranscriptionProvider => _viewModel.SelectedTranscriptionProvider;
     public string NoteProvider => _viewModel.SelectedNoteProvider;
     public string ChatProvider => _viewModel.SelectedChatProvider;
@@ -34,6 +29,60 @@ public sealed partial class MacSettingsPage : Page
         _viewModel = App.Current.Services.GetService<SettingsViewModel>()
             ?? new SettingsViewModel();
         InitializeComponent();
+        RefreshSettingsRows();
+    }
+
+    /// <summary>
+    /// Rebuilds all settings row collections from current ViewModel state.
+    /// Called on page load and after any dialog that modifies settings.
+    /// </summary>
+    private void RefreshSettingsRows()
+    {
+        TranscriptionRows.ItemsSource = new[]
+        {
+            new SettingsRowItem("Provider", _viewModel.SelectedTranscriptionProvider, "transcriptionProvider"),
+            new SettingsRowItem("模型", _viewModel.WhisperModelName, "transcriptionModel"),
+            new SettingsRowItem("授权与测试",
+                _viewModel.WhisperCliStatus == WhisperResourceStatus.Valid ? "已配置" : "未配置",
+                "transcriptionAuthTest", false),
+        };
+
+        AIRows.ItemsSource = new[]
+        {
+            new SettingsRowItem("Provider", _viewModel.SelectedNoteProvider, "aiProvider"),
+            new SettingsRowItem("模型", AIModelName, "aiModel"),
+            new SettingsRowItem("API 设置", "查看", "aiApiSettings"),
+            new SettingsRowItem("测试", "查看", "aiTest", false),
+        };
+
+        AboutRows.ItemsSource = new[]
+        {
+            new SettingsRowItem("存储", "打开", "openStorage"),
+            new SettingsRowItem("隐私政策", "查看", "showPrivacyPolicy"),
+            new SettingsRowItem("版权", "1.0 (1)", "showCopyright", false),
+        };
+    }
+
+    /// <summary>
+    /// Dispatches DataTemplate button clicks to the appropriate handler based on ActionTag.
+    /// </summary>
+    private void SettingsRow_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button btn || btn.Tag is not string tag) return;
+
+        switch (tag)
+        {
+            case "transcriptionProvider": TranscriptionProvider_Click(sender, e); break;
+            case "transcriptionModel": TranscriptionModel_Click(sender, e); break;
+            case "transcriptionAuthTest": TranscriptionAuthTest_Click(sender, e); break;
+            case "aiProvider": AIProvider_Click(sender, e); break;
+            case "aiModel": AIModel_Click(sender, e); break;
+            case "aiApiSettings": AIApiSettings_Click(sender, e); break;
+            case "aiTest": AITest_Click(sender, e); break;
+            case "openStorage": OpenStorage_Click(sender, e); break;
+            case "showPrivacyPolicy": ShowPrivacyPolicy_Click(sender, e); break;
+            case "showCopyright": ShowCopyright_Click(sender, e); break;
+        }
     }
 
     // ── Profile ─────────────────────────────────────────────────────
@@ -96,6 +145,7 @@ public sealed partial class MacSettingsPage : Page
         if (await dialog.ShowAsync() == ContentDialogResult.Primary && listView.SelectedItem is string selected)
         {
             _viewModel.SelectedTranscriptionProvider = selected;
+            RefreshSettingsRows();
             Bindings.Update();
         }
     }
@@ -122,6 +172,7 @@ public sealed partial class MacSettingsPage : Page
         if (await dialog.ShowAsync() == ContentDialogResult.Primary && listView.SelectedItem is string selected)
         {
             _viewModel.WhisperModelName = selected;
+            RefreshSettingsRows();
             Bindings.Update();
         }
     }
@@ -315,6 +366,8 @@ public sealed partial class MacSettingsPage : Page
             CloseButtonText = "关闭",
             XamlRoot = XamlRoot
         }.ShowAsync();
+
+        RefreshSettingsRows();
     }
 
     private static string StatusDisplayText(WhisperResourceStatus s) => s switch
@@ -369,7 +422,6 @@ public sealed partial class MacSettingsPage : Page
 
     private async void AIProvider_Click(object sender, RoutedEventArgs e)
     {
-        // Show provider detail card in a dialog for rich inline configuration
         var card = new ProviderDetailCard();
         card.ConfigureFor(ProviderDetailCard.ProviderCardKind.NoteGeneration);
         card.Width = 600;
@@ -416,6 +468,7 @@ public sealed partial class MacSettingsPage : Page
             XamlRoot = XamlRoot
         }.ShowAsync();
 
+        RefreshSettingsRows();
         Bindings.Update();
     }
 
@@ -434,7 +487,6 @@ public sealed partial class MacSettingsPage : Page
         var isAnthropic = _viewModel.SelectedNoteProvider == "Claude / Anthropic";
         var panel = new StackPanel { Spacing = 12, Width = 480 };
 
-        // Provider header with status
         var headerRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
         headerRow.Children.Add(new TextBlock
         {
@@ -443,7 +495,6 @@ public sealed partial class MacSettingsPage : Page
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
         });
 
-        // Status indicator dot
         var hasApiKey = isAnthropic
             ? !string.IsNullOrWhiteSpace(_viewModel.AnthropicApiKey)
             : !string.IsNullOrWhiteSpace(_viewModel.OpenAiApiKey);
@@ -464,7 +515,6 @@ public sealed partial class MacSettingsPage : Page
         });
         panel.Children.Add(headerRow);
 
-        // Current model display
         var currentModelName = isAnthropic ? _viewModel.AnthropicModelName : _viewModel.OpenAiModelName;
         panel.Children.Add(new TextBlock
         {
@@ -473,7 +523,6 @@ public sealed partial class MacSettingsPage : Page
             Opacity = 0.5
         });
 
-        // Loading/error/status display
         var statusBlock = new TextBlock
         {
             FontSize = 12,
@@ -482,15 +531,12 @@ public sealed partial class MacSettingsPage : Page
         };
         panel.Children.Add(statusBlock);
 
-        // Model list with metadata
         var listView = new ListView { MaxHeight = 240 };
         panel.Children.Add(listView);
 
-        // Build display items with metadata from fetched candidates
         var fetchedModels = _viewModel.NoteModelCandidates;
         if (fetchedModels.Count > 0)
         {
-            // Show model metadata: displayName (modelId) | ownedBy | created
             var displayItems = fetchedModels.Select(m =>
             {
                 var createdStr = m.CreatedAt.HasValue
@@ -503,7 +549,6 @@ public sealed partial class MacSettingsPage : Page
             statusBlock.Text = $"已加载 {fetchedModels.Count} 个模型 (从服务器获取)";
             statusBlock.Foreground = new SolidColorBrush(Microsoft.UI.Colors.LimeGreen);
 
-            // Pre-select current model
             for (int i = 0; i < fetchedModels.Count; i++)
             {
                 if (fetchedModels[i].ModelId == currentModelName ||
@@ -523,14 +568,12 @@ public sealed partial class MacSettingsPage : Page
             statusBlock.Text = "使用内置模型列表（点击刷新获取最新模型）";
         }
 
-        // Error display
         if (!string.IsNullOrEmpty(_viewModel.ModelRefreshError))
         {
             statusBlock.Text = _viewModel.ModelRefreshError;
             statusBlock.Foreground = new SolidColorBrush(Microsoft.UI.Colors.OrangeRed);
         }
 
-        // Refresh button
         var refreshBtn = new Button
         {
             Content = _viewModel.IsRefreshingModels ? "刷新中..." : "刷新模型列表",
@@ -570,7 +613,6 @@ public sealed partial class MacSettingsPage : Page
         };
         panel.Children.Add(refreshBtn);
 
-        // Custom model name
         panel.Children.Add(new TextBlock
         {
             Text = "或输入自定义模型名称",
@@ -586,7 +628,6 @@ public sealed partial class MacSettingsPage : Page
         };
         panel.Children.Add(customModelBox);
 
-        // Model metadata info (if available for selected)
         var metadataBlock = new TextBlock
         {
             FontSize = 11,
@@ -626,7 +667,6 @@ public sealed partial class MacSettingsPage : Page
                 ?? customModelBox.Text.Trim();
             if (!string.IsNullOrWhiteSpace(selected))
             {
-                // Extract model name from display string (strip metadata)
                 var modelName = selected.Contains(" | ")
                     ? selected.Split(" | ")[0].Trim()
                     : selected.Split("  ")[0].Trim();
@@ -636,6 +676,7 @@ public sealed partial class MacSettingsPage : Page
                 else
                     _viewModel.OpenAiModelName = modelName;
                 _viewModel.SaveCommand.Execute(null);
+                RefreshSettingsRows();
                 Bindings.Update();
             }
         }
@@ -648,7 +689,6 @@ public sealed partial class MacSettingsPage : Page
         var isAnthropic = _viewModel.SelectedNoteProvider == "Claude / Anthropic";
         var panel = new StackPanel { Spacing = 14, Width = 460 };
 
-        // Provider header
         panel.Children.Add(new TextBlock
         {
             Text = $"Provider: {_viewModel.SelectedNoteProvider}",
@@ -656,7 +696,6 @@ public sealed partial class MacSettingsPage : Page
             FontWeight = Microsoft.UI.Text.FontWeights.Bold
         });
 
-        // Preset picker (only for OpenAI-compatible)
         if (!isAnthropic)
         {
             panel.Children.Add(new TextBlock
@@ -676,7 +715,6 @@ public sealed partial class MacSettingsPage : Page
                 if (presetCombo.SelectedItem is AIProviderPreset preset)
                 {
                     _viewModel.SelectedProviderPreset = preset;
-                    // Apply preset defaults
                     switch (preset)
                     {
                         case AIProviderPreset.LmStudioLocal:
@@ -697,7 +735,6 @@ public sealed partial class MacSettingsPage : Page
             panel.Children.Add(presetCombo);
         }
 
-        // Base URL
         panel.Children.Add(new TextBlock
         {
             Text = isAnthropic ? "Anthropic Base URL" : "Base URL",
@@ -711,7 +748,6 @@ public sealed partial class MacSettingsPage : Page
         };
         panel.Children.Add(baseUrlBox);
 
-        // API Key
         panel.Children.Add(new TextBlock
         {
             Text = isAnthropic ? "Anthropic API Key" : "API Key",
@@ -725,7 +761,6 @@ public sealed partial class MacSettingsPage : Page
         };
         panel.Children.Add(apiKeyBox);
 
-        // Anthropic version (only for Anthropic)
         TextBox? versionBox = null;
         if (isAnthropic)
         {
@@ -770,6 +805,7 @@ public sealed partial class MacSettingsPage : Page
                     _viewModel.OpenAiApiKey = apiKeyBox.Password;
             }
             _viewModel.SaveCommand.Execute(null);
+            RefreshSettingsRows();
             Bindings.Update();
         }
     }
@@ -780,7 +816,6 @@ public sealed partial class MacSettingsPage : Page
     {
         var panel = new StackPanel { Spacing = 14, Width = 440 };
 
-        // Provider info
         panel.Children.Add(new TextBlock
         {
             Text = $"Provider: {_viewModel.SelectedNoteProvider}",
@@ -794,7 +829,6 @@ public sealed partial class MacSettingsPage : Page
             Opacity = 0.7
         });
 
-        // Status display
         var statusBlock = new TextBlock
         {
             Text = "点击测试按钮验证 AI Provider...",
@@ -804,7 +838,6 @@ public sealed partial class MacSettingsPage : Page
         };
         panel.Children.Add(statusBlock);
 
-        // Results section
         var resultsPanel = new StackPanel { Spacing = 8 };
         var connectionResult = new TextBlock
         {
@@ -829,7 +862,6 @@ public sealed partial class MacSettingsPage : Page
         resultsPanel.Children.Add(generationResult);
         panel.Children.Add(resultsPanel);
 
-        // Test buttons
         var actionRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
 
         var testConnectionBtn = new Button { Content = "测试连接", FontSize = 12 };
@@ -848,7 +880,7 @@ public sealed partial class MacSettingsPage : Page
         {
             testModelBtn.IsEnabled = false;
             modelResult.Text = "模型: 测试中...";
-            await Task.Delay(500); // Placeholder: would call real model test
+            await Task.Delay(500);
             _viewModel.LastModelTestResult = "模型测试通过 (mock)";
             modelResult.Text = $"模型: {_viewModel.LastModelTestResult}";
             testModelBtn.IsEnabled = true;
@@ -860,7 +892,7 @@ public sealed partial class MacSettingsPage : Page
         {
             testGenBtn.IsEnabled = false;
             generationResult.Text = "生成: 测试中...";
-            await Task.Delay(500); // Placeholder: would call real generation test
+            await Task.Delay(500);
             _viewModel.LastGenerationTestResult = "生成测试通过 (mock)";
             generationResult.Text = $"生成: {_viewModel.LastGenerationTestResult}";
             testGenBtn.IsEnabled = true;

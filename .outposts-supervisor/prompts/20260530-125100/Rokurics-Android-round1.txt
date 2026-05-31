@@ -1,0 +1,68 @@
+MANDATORY PREFLIGHT
+MODEL_CHECK_RESULT: 当前模型必须是 DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]。否则立即停止并报告 MODEL_MISMATCH。
+PATH_CHECK_RESULT: 当前工作目录必须严格等于 /Users/vita/Vitemis/Outposts/Rokurics-Android。否则立即停止并报告 WORKDIR_MISMATCH。
+SOURCE_READONLY_CHECK: Apple 源项目 /Users/vita/Vitemis/Vela/Rokurics 只读；参考图目录 /Users/vita/Vitemis/Outposts/Rokurics-iOS-Ref 只读；所有写入只允许在当前目标项目目录和本批 visual-evidence 目录内。不得读取/发送密钥、token、.env、证书或私密配置。
+
+PROJECT: Rokurics-Android
+ROUND_INDEX: 1
+BATCH_NAME: outposts-force-screenshot-chain-and-kikaria-h-build-fix
+RUN_ID: 20260530-125100
+EVIDENCE_DIR: /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-force-screenshot-chain-and-kikaria-h-build-fix/20260530-125100/Rokurics-Android
+
+本轮最高原则：必须把 Android actual screenshot 链跑通。上一批已经证明 adb 和 emulator 可用；如果 visual-evidence 写入仍失败，不得直接停止，必须按修复顺序继续尝试。
+
+先确认 settings 已生效：
+1. 读取当前项目 `.claude/settings.local.json`，确认 permissions.allow 包含：
+   - Read(/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/**)
+   - Write(/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/**)
+   - qwen-vision 三个 allow
+   - Read(/Users/vita/Vitemis/Outposts/Rokurics-iOS-Ref/**)
+2. 确认 sandbox.filesystem.allowWrite 包含 /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence。
+3. qwen-vision 不得在 disabledMcpjsonServers 中。
+
+截图链强制流程：
+1. 确认目录存在：
+   /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-force-screenshot-chain-and-kikaria-h-build-fix/20260530-125100/Rokurics-Android/{reference,actual,qwen}
+2. 使用 adb 绝对路径：
+   ANDROID_ADB="/Users/vita/Library/Android/sdk/platform-tools/adb"
+   "$ANDROID_ADB" devices -l
+3. 必须找到 emulator serial，例如 emulator-5554。
+4. 直接截图到：
+   /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-force-screenshot-chain-and-kikaria-h-build-fix/20260530-125100/Rokurics-Android/actual/home.png
+5. 如果直接写入失败，不得停止。按顺序修：
+   A. 确认目录存在。
+   B. 再次确认 settings.local.json visual-evidence Read/Write 和 sandbox allowWrite。
+   C. 先写到项目内临时文件 /Users/vita/Vitemis/Outposts/Rokurics-Android/actual-home.png。
+   D. 再复制或移动到本批 visual-evidence actual/home.png。
+   E. 只有复制/移动仍被权限拒绝，才报告 VISUAL_EVIDENCE_WRITE_PERMISSION_STILL_BLOCKED。
+6. 项目内临时截图不算最终成功；最终有效截图必须在 visual-evidence actual/home.png。
+
+截图成功后：
+1. 读取 /Users/vita/Vitemis/Outposts/Rokurics-iOS-Ref 中 Dashboard、Study Library、RecordingDetail、bottom nav、mini-player、dark glass style 相关 reference screenshot。
+2. 调用 qwen-vision.inspect_screenshot 分析 reference。
+3. 调用 qwen-vision.inspect_screenshot 分析 actual/home.png。
+4. 调用 qwen-vision.compare_screenshots 做 reference vs actual 对比。
+5. compare 完成后才允许修改 UI。
+6. 只根据 qwen 差异和 Apple Rokurics iOS 源码修：整体 iOS 风格、Dashboard、Study Library、RecordingDetail、bottom nav、mini-player、dark glass style。
+7. 修后尽量运行 build/tests。
+
+禁止：
+- 不得修改 Apple 源项目或参考图目录。
+- 不得 git clean/reset/restore/checkout。
+- 不得删除 visual-evidence、checkpoint、report。
+- 不得清理工作区。
+- 不得把源码、密钥、token、.env、证书传给 qwen-vision。
+
+最终报告必须包含：
+VISUAL_EVIDENCE_PERMISSION_STATUS
+ADB_STATUS
+EMULATOR_SERIAL
+ACTUAL_SCREENSHOT_FINAL_PATH
+QWEN_REFERENCE_INSPECT
+QWEN_ACTUAL_INSPECT
+QWEN_COMPARE_RESULT
+UI_CHANGES_FROM_COMPARE
+BUILD_RESULT
+TEST_RESULT
+BLOCKERS
+NEXT_RECOMMENDATION

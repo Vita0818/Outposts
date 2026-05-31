@@ -3,6 +3,7 @@ package com.rokurics.app.ui.library
 import android.media.MediaPlayer
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -44,6 +45,7 @@ import com.rokurics.app.ui.theme.RokuricsColors
 import com.rokurics.app.ui.theme.adaptivePageGradientBrush
 import com.rokurics.app.ui.theme.rokuricsGlassCard
 import com.rokurics.app.ui.theme.rokuricsGlassCapsule
+import com.rokurics.app.ui.theme.rokuricsGlassCircle
 import com.rokurics.app.ui.theme.rokuricsScaleClickable
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
@@ -135,7 +137,11 @@ fun RecordingLibraryScreen(
     }
 
     fun stopPlayback() {
-        mediaPlayer.value?.apply { if (isPlaying) stop(); release() }
+        mediaPlayer.value?.let { mp ->
+            try { if (isPlaying) mp.stop() } catch (_: Exception) {}
+            try { mp.reset() } catch (_: Exception) {}
+            try { mp.release() } catch (_: Exception) {}
+        }
         mediaPlayer.value = null
         playingRecordingId = null
         isPlaying = false
@@ -149,14 +155,14 @@ fun RecordingLibraryScreen(
     }
 
     // Compute browser content — refresh study library store from recordings
-    val allItems = remember(recordings) { studyLibraryStore.allStudyItems() }
-    val allFolders = remember { studyLibraryStore.allStudyFolders() }
+    val allItems = remember(recordings) { studyLibraryStore.allStudyItems }
+    val allFolders = remember { studyLibraryStore.allStudyFolders }
     val content = remember(browsePath, recordings) {
         studyLibraryStore.refresh()
         studyLibraryStore.syncFromRecordings(recordings)
         StudyLibraryBrowser.content(
-            studyLibraryStore.allStudyItems(),
-            studyLibraryStore.allStudyFolders(),
+            studyLibraryStore.allStudyItems,
+            studyLibraryStore.allStudyFolders,
             browsePath
         )
     }
@@ -220,8 +226,13 @@ fun RecordingLibraryScreen(
                 Box(
                     modifier = Modifier
                         .size(44.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.46f))
+                        .rokuricsGlassCircle(
+                            fillOpacity = 0.36f,
+                            strokeOpacity = 0.50f,
+                            shadowOpacity = 0.14f,
+                            shadowRadius = 12.dp,
+                            fillColor = if (isSystemInDarkTheme()) RokuricsColors.glassSurfaceDark else Color.White
+                        )
                         .rokuricsScaleClickable(onClick = onBack),
                     contentAlignment = Alignment.Center
                 ) {
@@ -235,16 +246,29 @@ fun RecordingLibraryScreen(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Trash toggle (Apple parity: trailing action)
-                FilterChip(
-                    selected = selectedTab == 1,
-                    onClick = {
-                        selectedTab = if (selectedTab == 1) 0 else 1
-                        browsePath = StudyBrowsePath()
-                    },
-                    label = { Text("已删除", fontSize = 12.sp) },
-                    modifier = Modifier.height(36.dp)
-                )
+                // Trash button (Apple parity: glass circle icon)
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (selectedTab == 1) RokuricsColors.coral.copy(alpha = 0.22f)
+                            else if (isSystemInDarkTheme()) Color(0xFF0D2424).copy(alpha = 0.55f)
+                            else Color.White.copy(alpha = 0.46f)
+                        )
+                        .rokuricsScaleClickable(onClick = {
+                            selectedTab = if (selectedTab == 1) 0 else 1
+                            browsePath = StudyBrowsePath()
+                        }),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "废纸篓",
+                        tint = if (selectedTab == 1) RokuricsColors.coral else RokuricsColors.deepText,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
 
             // Page title (Apple parity: serif "学习库" with size 32)
@@ -436,10 +460,12 @@ fun RecordingLibraryScreen(
 
         // Playback bar with seek and time
         if (playingRecordingId != null) {
+            val isDark = isSystemInDarkTheme()
+            val playbackBarColor = if (isDark) Color(0xFF0A1B1B).copy(alpha = 0.96f) else Color.White.copy(alpha = 0.92f)
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = Color.White.copy(alpha = 0.92f),
-                shadowElevation = 8.dp
+                color = playbackBarColor,
+                border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = if (isDark) 0.06f else 0.10f))
             ) {
                 Column(
                     modifier = Modifier
@@ -534,7 +560,7 @@ fun RecordingLibraryScreen(
 
     // Folder color picker dialog
     if (folderColorTargetId != null) {
-        val allFolders = remember { studyLibraryStore.allStudyFolders() }
+        val allFolders = remember { studyLibraryStore.allStudyFolders }
         val targetFolder = allFolders.find { it.folderID == folderColorTargetId }
         val currentColor = targetFolder?.colorToken ?: StudyFolderColorToken.DEFAULT
 
@@ -564,7 +590,7 @@ fun RecordingLibraryScreen(
                                         .size(40.dp)
                                         .combinedClickable(
                                             onClick = {
-                                                studyLibraryStore.updateFolderColor(folderColorTargetId!!, token)
+                                                studyLibraryStore.setFolderColor(folderColorTargetId!!, token)
                                                 studyLibraryStore.refresh()
                                                 folderColorTargetId = null
                                             }
@@ -767,7 +793,8 @@ fun LibraryToolbar(
                             fillOpacity = 0.30f,
                             strokeOpacity = 0.28f,
                             shadowOpacity = 0.03f,
-                            shadowRadius = 5.dp
+                            shadowRadius = 5.dp,
+                            fillColor = if (isSystemInDarkTheme()) RokuricsColors.glassSurfaceDark else Color.White
                         )
                         .padding(horizontal = 10.dp, vertical = 5.dp),
                     maxLines = 1,
@@ -851,15 +878,17 @@ fun StudyFolderTile(
     val tileColor = Color(colorHex)
     val tileAlpha = if (folder.isFallback) 0.4f else 0.18f
 
+    val isDark = isSystemInDarkTheme()
     Box(
         modifier = modifier
-            .height(130.dp)
+            .height(140.dp)
             .rokuricsGlassCard(
-                cornerRadius = 18.dp,
-                fillOpacity = 0.42f,
+                cornerRadius = 22.dp,
+                fillOpacity = 0.38f,
                 strokeOpacity = 0.30f,
                 shadowOpacity = 0.06f,
-                shadowRadius = 10.dp
+                shadowRadius = 10.dp,
+                fillColor = if (isDark) RokuricsColors.glassSurfaceDark else RokuricsColors.glassSurface
             )
             .combinedClickable(
                 onClick = onClick,
@@ -870,39 +899,33 @@ fun StudyFolderTile(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(14.dp),
+                .padding(16.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Folder icon with color badge
+            // Glass circle icon container (Apple parity: centered icon in glass circle)
             Box(
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(CircleShape)
+                    .background(tileColor.copy(alpha = if (folder.isFallback) 0.10f else 0.18f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Folder,
                     contentDescription = null,
-                    tint = tileColor.copy(alpha = if (folder.isFallback) 0.35f else 1f),
-                    modifier = Modifier.size(44.dp)
+                    tint = tileColor.copy(alpha = if (folder.isFallback) 0.45f else 0.9f),
+                    modifier = Modifier.size(30.dp)
                 )
-                // Color dot badge
-                Surface(
-                    modifier = Modifier
-                        .size(14.dp)
-                        .align(Alignment.BottomEnd)
-                        .offset(x = 2.dp, y = 2.dp),
-                    shape = CircleShape,
-                    color = tileColor.copy(alpha = if (folder.isFallback) 0.4f else 0.9f)
-                ) {}
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Title
             Text(
                 text = folder.title,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = if (folder.isFallback) RokuricsColors.softText else RokuricsColors.deepText,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -915,9 +938,9 @@ fun StudyFolderTile(
             if (folder.itemCount > 0) {
                 Text(
                     text = "${folder.itemCount} 项",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = RokuricsColors.softText
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = RokuricsColors.tertiaryText
                 )
             }
         }
@@ -983,6 +1006,7 @@ fun RecordingRow(
     val isGeneratingNote = recording.noteStatus == "queued" || recording.noteStatus == "running"
     val hasAudio = recording.relativeAudioPath.isNotEmpty()
     val hasTranscript = recording.transcriptionStatus == "transcribed"
+    val isDark = isSystemInDarkTheme()
 
     Box(
         modifier = Modifier
@@ -992,7 +1016,8 @@ fun RecordingRow(
                 fillOpacity = 0.34f,
                 strokeOpacity = 0.30f,
                 shadowOpacity = 0.07f,
-                shadowRadius = 10.dp
+                shadowRadius = 10.dp,
+                fillColor = if (isDark) RokuricsColors.glassSurfaceDark else RokuricsColors.glassSurface
             )
             .then(
                 if (!isTrashed) Modifier.rokuricsScaleClickable(onClick = onClick)
@@ -1177,13 +1202,15 @@ fun UploadStatusChip(status: String?) {
 
 @Composable
 fun StatusChip(label: String, value: String, color: Color) {
+    val isDark = isSystemInDarkTheme()
     Box(
         modifier = Modifier
             .rokuricsGlassCapsule(
                 fillOpacity = 0.36f,
                 strokeOpacity = 0.30f,
                 shadowOpacity = 0.04f,
-                shadowRadius = 6.dp
+                shadowRadius = 6.dp,
+                fillColor = if (isDark) RokuricsColors.glassSurfaceDark else Color.White
             ),
         contentAlignment = Alignment.Center
     ) {

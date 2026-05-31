@@ -1,0 +1,59 @@
+[ROUND 1 / BATCH outposts-ui-structure-build-recovery-winui-native-round]
+
+Mandatory preflight:
+1. MODEL_CHECK_RESULT: current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop.
+2. PATH_CHECK_RESULT: current working directory must be /Users/vita/Vitemis/Outposts/Rokurics-Windows. If not, stop.
+3. SOURCE_READONLY_CHECK: Apple source is read-only at /Users/vita/Vitemis/Vela/Rokurics. Reference screenshots are read-only at /Users/vita/Vitemis/Outposts/Rokurics-macOS-Ref. All writes must stay inside /Users/vita/Vitemis/Outposts/Rokurics-Windows or .outposts-supervisor evidence/report paths.
+
+User feedback, highest priority: Rokurics-Windows must remain WinUI 3 / Windows App SDK / C#, with native Win11 style. Do not convert it to WPF, Avalonia, WebView, Flutter, Electron, MAUI, or a generic demo.
+
+Task:
+- First read high-value macOS reference screenshots in /Users/vita/Vitemis/Outposts/Rokurics-macOS-Ref and call qwen-vision.inspect_screenshot to understand structure and visual intent.
+- Translate the macOS reference into native Windows 11 / WinUI 3 style; do not mechanically clone macOS chrome.
+- Confirm the project remains WinUI 3 / Windows App SDK / C#.
+- Continue minimal static fixes for WinUI 3 XAML compatibility and native UI. Prioritize WMC0011 Unknown member and properties from WPF/Avalonia/AI hallucinated XAML.
+- Known patterns to check: invalid Window properties, Border ToolTip, TextBlock FontVariant, SymbolIcon FontSize, and similar non-WinUI members.
+- Prefer native WinUI 3 controls and patterns: NavigationView, Grid, CommandBar, InfoBar, TeachingTip, MenuFlyout, AppWindow, Fluent Design, Mica/Acrylic when appropriate, rounded corners, native spacing.
+- If this macOS host cannot verify Windows build/launch, report WINDOWS_HOST_VALIDATION_PENDING. Do not claim Debug/ARM64 build or window launch passed without Win11 ARM + VS2022 evidence.
+
+Forbidden:
+- Do not change frameworks or architecture.
+- Do not modify Apple source or reference image directories.
+- Do not read/send secrets, .env, API keys, tokens, certificates, p12, ssh keys, Keychain contents.
+- Do not git clean/reset/restore/checkout. Do not commit/push/PR. Do not delete visual evidence.
+- qwen-vision only inspects/compares images; it must not modify files or receive source/secrets.
+
+Final report fields:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+QWEN_REQUIRED
+QWEN_CALLED
+QWEN_VALID_VISUAL_EVIDENCE
+QWEN_COMPARE_SCREENSHOTS_COMPLETED
+REFERENCE_SCREENSHOTS_USED
+ACTUAL_SCREENSHOTS
+VISION_TOOLS_CALLED
+VISION_RESULT_SUMMARY
+USER_FEEDBACK_ADDRESSED
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+ACTUAL_SCREENSHOT_BLOCKER
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION
+WINUI3_CONFIRMED
+WINDOWS_APP_SDK_CONFIRMED
+NON_WINUI_FRAMEWORK_AVOIDED
+WIN11_NATIVE_STYLE_PROGRESS
+INVALID_XAML_MEMBERS_FIXED
+WMC0011_REMAINING
+DEBUG_ARM64_BUILD_RESULT
+WINDOW_LAUNCH_RESULT
+WINDOWS_HOST_VALIDATION_PENDING
+

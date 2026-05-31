@@ -17,7 +17,7 @@ import type { RecordingManager } from "@bundle:com.vita0818.rokurics/entry/ets/s
 import { RecordingState } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import { formatClock } from "@bundle:com.vita0818.rokurics/entry/ets/utils/FormatHelpers";
 import { colorAlpha, RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity, glassStrokeMidOpacity } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
-import { GearIcon, BooksIcon, ChatIcon, ConnectionIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
+import { PersonIcon, BooksIcon, ChatIcon, ConnectionIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
 import { hapticLight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/HapticFeedback";
 class HomePage extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
@@ -197,6 +197,7 @@ class HomePage extends ViewPU {
             Column.create();
             Column.width('100%');
             Column.height('100%');
+            Column.backgroundColor(Color.Transparent);
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Header
@@ -244,9 +245,9 @@ class HomePage extends ViewPU {
                 width: 1,
                 color: {
                     colors: [
-                        [0xFFFFFF, 0.50],
-                        [0xEFFAF8, 0.16],
-                        [0x59C7C2, 0.14]
+                        [0xFFFFFF, 0.28],
+                        [RokuricsColors.glassStroke, 0.12],
+                        [RokuricsColors.aqua, 0.24]
                     ],
                     direction: GradientDirection.RightBottom
                 },
@@ -257,7 +258,7 @@ class HomePage extends ViewPU {
                 this.getUIContext().getRouter().pushUrl({ url: 'pages/SettingsPage' });
             });
         }, Button);
-        GearIcon.bind(this)(18 * this.headerScale, RokuricsColors.aqua);
+        PersonIcon.bind(this)(20 * this.headerScale, RokuricsColors.aqua);
         // Profile avatar button (glass circle)
         Button.pop();
         // Header
@@ -567,9 +568,9 @@ class HomePage extends ViewPU {
                 width: 1,
                 color: {
                     colors: [
-                        [0xFFFFFF, 0.44],
-                        [0xEFFAF8, 0.18],
-                        [0x91E8D6, 0.14]
+                        [0xFFFFFF, 0.24],
+                        [RokuricsColors.glassStroke, 0.14],
+                        [RokuricsColors.glassStrokeAccent, 0.24]
                     ],
                     direction: GradientDirection.RightBottom
                 },
@@ -718,7 +719,7 @@ class HomePage extends ViewPU {
                             color: {
                                 colors: [
                                     [0xFFFFFF, glassStrokeHighOpacity],
-                                    [0xEFFAF8, glassStrokeMidOpacity]
+                                    [RokuricsColors.glassStroke, glassStrokeMidOpacity]
                                 ],
                                 direction: GradientDirection.RightBottom
                             },

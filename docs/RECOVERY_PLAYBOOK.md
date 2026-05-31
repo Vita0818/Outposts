@@ -218,6 +218,34 @@ HarmonyOS 编译失败时：
 
 全桌面截图只有在裁剪出明确 App、Preview 或窗口区域后，才能作为有效视觉证据。
 
+## Android 共享 Emulator 截图链恢复
+
+共享 Android Emulator 出现截图问题时，不得把常规流程切换为用户手动操作。共享 Emulator 只表示同一时间只能有一个 Android 项目操作设备；Claude Code 仍应自动完成目标 App 的安装、启动、前台校验和截图。
+
+若发现 actual screenshot 是另一个项目的 App、launcher、桌面、权限弹窗或无关界面：
+
+1. 标记原图为 `INVALID_WRONG_APP_SCREENSHOT` 或 `QWEN_VALID_VISUAL_EVIDENCE=NO`。
+2. 保留旧图和旧 qwen 输出，不删除、不覆盖。
+3. 重新获取 `ANDROID_EMULATOR_LOCK`。
+4. 确认 `/Users/vita/Library/Android/sdk/platform-tools/adb` 与 `adb devices -l`。
+5. 从当前项目 Gradle 配置读取 `applicationId`，不得猜包名。
+6. 检查目标 App 是否已安装；如未安装，可在当前项目内执行最小 `installDebug` 或等价安装命令。
+7. 用 adb 自动启动目标 App，并校验前台包名。
+8. 前台包名正确后，用唯一文件名重新截图到 visual-evidence。
+9. 再调用 qwen actual inspect 或 compare。
+
+不得要求用户在 Android Studio 里手动选择项目、点击 Build/Run 或回复 `READY`。`ANDROID_WAITING_FOR_USER_APP_SWITCH` 不作为常规恢复状态使用。
+
+只有以下情况才报告 `USER_DEVICE_INTERVENTION_REQUIRED`：
+
+- `adb devices` 完全看不到 emulator。
+- emulator 为 `offline` 或 `unauthorized`。
+- 设备出现 Claude Code 无法处理的系统授权或权限弹窗。
+- `installDebug` 因签名、SDK 或 Gradle 环境失败，且无法在项目内修复。
+- App 启动后出现必须人工处理的系统弹窗。
+
+若 `installDebug` 失败，报告 `INSTALL_FOR_SCREENSHOT_FAILED`，停止该项目截图链，不得继续 UI 修改。若前台包名重试 2 次后仍不匹配，报告 `ANDROID_FOREGROUND_PACKAGE_MISMATCH`，并保留所有证据。
+
 ## 状态未知
 
 状态未知时：
@@ -229,3 +257,73 @@ HarmonyOS 编译失败时：
 5. 等待用户决策。
 
 不得为了“继续推进”而猜测上一轮结果。
+
+## qwen permission gated
+
+如果 Claude Code 报告 `qwen-vision` 权限受限：
+
+1. 不切换到 bypass permissions。
+2. 不扩大授权到其他 MCP server。
+3. 检查当前项目 `.claude/settings.local.json` 中是否允许三个 qwen 工具。
+4. 检查 `disabledMcpjsonServers` 是否包含 `qwen-vision`。
+5. 只允许追加或恢复 qwen 三个视觉工具的最小 allow 规则。
+6. 若仍不可用，报告 `QWEN_PERMISSION_GATED` 或 `QWEN_UNAVAILABLE_IN_SESSION`。
+
+## actual screenshot unavailable
+
+actual screenshot 不可用不是自动终止条件。处理方式：
+
+1. 先使用 reference screenshot 做 qwen inspect。
+2. 报告 `QWEN_VALID_VISUAL_EVIDENCE=REFERENCE_ONLY`。
+3. 报告 `ACTUAL_SCREENSHOT_BLOCKER`。
+4. 继续基于 reference screenshot、Apple 源项目只读信息和目标项目当前实现修正 UI，除非批次目标明确要求必须 actual compare。
+5. 后续获取 actual screenshot 后再补做 inspect/compare。
+
+## DevEco / hdc / screencapture 失败
+
+HarmonyOS 截图失败时：
+
+1. 区分 DevEco Preview 不可用、hdc 无 target、设备截图失败、macOS Screen Recording 权限缺失、截图不是有效 Preview 区域。
+2. 不把无效桌面截图当作有效视觉证据。
+3. 不清理 `~/.hvigor` 或用户级 SDK 缓存。
+4. 不全局安装工具。
+5. 如需用户级环境处理，报告 `TOOLCHAIN_REPAIR_NEEDS_USER` 或 `BLOCKED_BY_DEVECO_OR_DEVICE`。
+
+## HarmonyOS 边界违规恢复
+
+若 Claude Code 误触 `git checkout`、`git restore`、`git reset`、`git clean`、清理项目/用户级工具链缓存、全局安装包或删除证据：
+
+1. 立即停止该项目继续迁移。
+2. 不自动回滚，不执行更多 Git 修改命令。
+3. 不清理更多文件。
+4. 只做只读恢复报告。
+5. 报告是否执行过相关命令、当前工作区是否可能被回退、项目内工具链镜像是否可能被删除/重建、是否安全继续、需要用户人工检查哪些文件。
+6. 只有恢复报告显示 `SAFE_TO_CONTINUE=YES` 或用户明确确认后，才可重新纳入调度。
+
+Kikaria-HarmonyOS 若恢复报告显示 `SAFE_TO_CONTINUE=YES`，可从 0 轮继续正式迁移；若显示 `UNKNOWN` 或 `NO`，必须等待用户人工检查。
+
+## git checkout / restore / clean 误触后的只读报告字段
+
+```text
+RECOVERY_REPORT
+PROJECT_NAME
+TASK_CLASS=RECOVERY_REPORT_NOT_MIGRATION_ROUND
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+READONLY_SCOPE_CONFIRMATION
+READONLY_COMMANDS_RUN
+FORBIDDEN_COMMANDS_NOT_RUN_THIS_RECOVERY
+GIT_CHECKOUT_BUILD_PROFILE_JSON5_DETECTED
+CURRENT_WORKTREE_POSSIBLY_REVERTED
+BUILD_PROFILE_JSON5_STATUS
+PROJECT_LOCAL_TOOLCHAIN_MIRROR_STATUS
+USER_LEVEL_TOOLCHAIN_STATUS_THIS_RECOVERY
+SAFE_TO_CONTINUE
+IF_NOT_SAFE_USER_MANUAL_CHECK_REQUIRED
+FILES_MODIFIED_THIS_RECOVERY
+BUILD_RUN
+TEST_RUN
+MIGRATION_ROUND_COUNTED
+BLOCKERS
+NEXT_RECOMMENDATION
+```

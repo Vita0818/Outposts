@@ -43,7 +43,7 @@ export struct LiquidGlassCard {
     }
     .width('100%')
     .borderRadius(this.cornerRadius)
-    .backgroundColor(KikariaColors.GLASS_SURFACE + (isDarkModeEnabled() ? '33' : '7A'))
+    .backgroundColor(KikariaColors.GLASS_SURFACE + (isDarkModeEnabled() ? '5C' : '7A'))
     .backdropBlur(24)
     .shadow({
       radius: 17,
@@ -66,7 +66,7 @@ export struct LiquidGlassCapsule {
       this.content()
     }
     .borderRadius(999)
-    .backgroundColor(KikariaColors.GLASS_SURFACE + (isDarkModeEnabled() ? '33' : '7A'))
+    .backgroundColor(KikariaColors.GLASS_SURFACE + (isDarkModeEnabled() ? '5C' : '7A'))
     .backdropBlur(20)
     .shadow({
       radius: 14,
@@ -90,7 +90,7 @@ export struct LiquidGlassCircle {
     .width(this.circleSize)
     .height(this.circleSize)
     .borderRadius(this.circleSize / 2)
-    .backgroundColor(KikariaColors.GLASS_SURFACE + (isDarkModeEnabled() ? '33' : '7A'))
+    .backgroundColor(KikariaColors.GLASS_SURFACE + (isDarkModeEnabled() ? '5C' : '7A'))
     .backdropBlur(20)
     .shadow({
       radius: 14,
@@ -216,6 +216,7 @@ export struct SettingsToggleRow {
 
       Toggle({ type: ToggleType.Switch, isOn: this.isOn })
         .onChange((value: boolean) => {
+          this.isOn = value
           this.onChange(value)
         })
     }

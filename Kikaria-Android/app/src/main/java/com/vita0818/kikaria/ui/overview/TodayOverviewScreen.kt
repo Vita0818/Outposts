@@ -138,34 +138,40 @@ fun TodayOverviewScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // ── Metric grid (2×2), matches iOS LazyVGrid ──
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+                // Regular Column+Row instead of LazyVerticalGrid to avoid nesting
+                // lazy layouts inside KikariaScrollPageShell's verticalScroll.
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         OverviewMetricCard(
                             title = "查看答案",
-                            value = "$todayReviewCount"
+                            value = "$todayReviewCount",
+                            modifier = Modifier.weight(1f)
                         )
-                    }
-                    item {
                         OverviewMetricCard(
                             title = "总已掌握",
-                            value = "$totalMasteredCount"
+                            value = "$totalMasteredCount",
+                            modifier = Modifier.weight(1f)
                         )
                     }
-                    item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         OverviewMetricCard(
                             title = "查看提示",
-                            value = "$todayHintCount"
+                            value = "$todayHintCount",
+                            modifier = Modifier.weight(1f)
                         )
-                    }
-                    item {
                         OverviewMetricCard(
                             title = "倒数",
-                            value = if (countdownDays > 0) "${countdownDays} 天" else "--"
+                            value = if (countdownDays > 0) "${countdownDays} 天" else "--",
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
@@ -218,14 +224,15 @@ fun TodayOverviewScreen(
 @Composable
 private fun OverviewMetricCard(
     title: String,
-    value: String
+    value: String,
+    modifier: Modifier = Modifier
 ) {
     val isDark = isSystemInDarkTheme()
     val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
 
     KikariaGlassCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         cornerRadius = 24.dp,
         fillOpacity = 0.34f,
         shadowElevation = 14.dp,

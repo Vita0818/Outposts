@@ -1,6 +1,12 @@
 package com.rokurics.app.ui.connection
 
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -14,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -65,7 +72,7 @@ fun MacConnectionScreen(onBack: () -> Unit) {
         ) {
             Spacer(modifier = Modifier.height(18.dp))
 
-            // Header — iPhone parity: RokuricsMobilePageHeader with back button + status capsule
+            // Header — iPhone parity: back button + status capsule row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -78,7 +85,8 @@ fun MacConnectionScreen(onBack: () -> Unit) {
                             fillOpacity = 0.36f,
                             strokeOpacity = 0.50f,
                             shadowOpacity = 0.14f,
-                            shadowRadius = 12.dp
+                            shadowRadius = 12.dp,
+                            fillColor = if (isSystemInDarkTheme()) RokuricsColors.glassSurfaceDark else Color.White
                         )
                         .rokuricsScaleClickable(onClick = onBack),
                     contentAlignment = Alignment.Center
@@ -90,16 +98,6 @@ fun MacConnectionScreen(onBack: () -> Unit) {
                         modifier = Modifier.size(20.dp)
                     )
                 }
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                // Page title — iPhone parity: "Mac 连接"
-                Text(
-                    text = "Mac 连接",
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = RokuricsColors.deepText
-                )
 
                 Spacer(modifier = Modifier.weight(1f))
 
@@ -120,10 +118,19 @@ fun MacConnectionScreen(onBack: () -> Unit) {
                             modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                         )
                     }
-                } else {
-                    Spacer(modifier = Modifier.size(44.dp))
                 }
             }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Page title — iPhone parity: serif "Mac 连接", left-aligned
+            Text(
+                text = "Mac 连接",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
+                color = RokuricsColors.deepText
+            )
 
             Spacer(modifier = Modifier.height(22.dp))
 
@@ -221,6 +228,16 @@ private fun pairedContent(
     // iPhone parity: ConnectedDeviceBubbleView + ConnectedDeviceCardView
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         // Connected device bubble — animated breathing circle
+        val infiniteTransition = rememberInfiniteTransition(label = "bubbleBreath")
+        val breathScale by infiniteTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.035f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1500),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "breathScale"
+        )
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
@@ -228,6 +245,7 @@ private fun pairedContent(
             Box(
                 modifier = Modifier
                     .size(72.dp)
+                    .scale(breathScale)
                     .clip(CircleShape)
                     .background(
                         Brush.linearGradient(
@@ -264,8 +282,9 @@ private fun pairedContent(
             ) {
                 Text(
                     text = connectionStore.macName.ifEmpty { "Mac" },
-                    fontSize = 18.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
                     color = RokuricsColors.deepText
                 )
                 Text(

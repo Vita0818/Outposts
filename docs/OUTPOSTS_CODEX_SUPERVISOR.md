@@ -120,3 +120,31 @@ Claude Code 负责：
 - 下一轮目标可由报告、用户反馈或既定 batch plan 明确得出。
 
 不得从第一轮重新开始。不得重复发送上一轮 prompt。下一轮 prompt 必须基于最新报告、checkpoint 和用户反馈。
+
+## Claude Code Desktop 共同调度模式
+
+Claude Code Desktop / Claude Code 主 Agent 可以直接读取 `CLAUDE.md` 与本目录 `docs/` 规则并承担实际迁移工作。Codex Agent 仍只承担调度、记录、汇总和恢复判断。两者共同遵循同一套路径、模型、预算、视觉证据和安全边界。
+
+DeepSeek V4 Pro 是正式任务主推理模型。`qwen-vision` 只是 Claude Code 主 Agent 可调用的视觉 MCP 工具，不是主 Agent，不得直接修改文件。
+
+## 软状态处理
+
+以下状态不得被 Codex Agent 或 Claude Code Desktop 自动当成终止态：
+
+- `READY_FOR_USER_REVIEW` 但仍有 remaining gaps、next recommendation 或可执行下一步。
+- `REFERENCE_ONLY`。
+- actual screenshot 暂时不可用，但 reference screenshot 可用。
+- `QWEN_COMPARE_SCREENSHOTS_COMPLETED=NO`，但 qwen reference inspect 已完成。
+- `WINDOWS_HOST_VALIDATION_PENDING`，但仍有静态 WinUI/XAML 修复、reference UI 理解或 API 兼容处理可做。
+
+这些状态应进入 `ROUND_COMPLETE_CONTINUE_ELIGIBLE`。只有预算耗尽、轮次耗尽、用户要求暂停、或出现硬阻塞时才停止。
+
+`READY_FOR_USER_REVIEW` 只有在构建/测试或平台验证有明确结果、qwen reference-first 理解完成、可获得的 actual screenshot 已检查、没有明确剩余可执行任务、且报告没有继续修复建议时，才能作为真实终止态。
+
+## 项目特殊调度规则
+
+- Kikaria-Android：首页和背诵页是主要视觉对齐目标；多轮小修无改善时允许 UI shell、page layout、navigation 整体重构；优先使用 `Kikaria-Ref`；保持 `assembleDebug` / `testDebug` 绿色。
+- Kikaria-HarmonyOS：编译通过是第一优先级；构建未恢复前不得堆 UI 功能；禁止用户级 Hvigor/SDK 清理；若恢复报告显示 `SAFE_TO_CONTINUE=YES`，可从 0 轮重新纳入迁移调度。
+- Rokurics-Android：禁止按文字描述自创 UI；必须对照 `Rokurics-iOS-Ref` 和 Apple 源项目；目标是高级、极简、暗色/玻璃质感；dark mode/theme support 是明确事项；Android actual screenshot 已证明可行。
+- Rokurics-HarmonyOS：必须避免黄色/异常色块；需要有效 Preview/设备截图；无效桌面截图不算验收；禁止全局 `pnpm`/npm/ohpm 和用户级 Hvigor/SDK 清理。
+- Rokurics-Windows：目标是 WinUI 3 / Windows App SDK / C#；`WMC0011 Unknown member` 优先按混入 WPF/Avalonia/幻觉 XAML 属性处理；最小改动修兼容；不换框架、不重构架构；Debug/ARM64 build 与窗口启动必须在 Win11 ARM + VS2022 验证。

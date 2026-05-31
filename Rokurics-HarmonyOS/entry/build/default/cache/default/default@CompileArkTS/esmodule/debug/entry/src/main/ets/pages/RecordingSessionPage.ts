@@ -247,7 +247,14 @@ class RecordingSessionPage extends ViewPU {
             Stack.create();
             Stack.width('100%');
             Stack.height('100%');
-            Stack.backgroundColor(RokuricsColors.pageBackground);
+            Stack.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.pageGradientStart, 1.0],
+                    [RokuricsColors.pageGradientMid, 1.0],
+                    [RokuricsColors.pageGradientEnd, 1.0]
+                ]
+            });
         }, Stack);
         // Ambient background
         this.SessionBackground.bind(this)();
@@ -286,9 +293,9 @@ class RecordingSessionPage extends ViewPU {
                 width: 1,
                 color: {
                     colors: [
-                        [0xFFFFFF, 0.44],
-                        [0xEFFAF8, 0.14],
-                        [0x59C7C2, 0.12]
+                        [0xFFFFFF, 0.22],
+                        [RokuricsColors.glassStroke, 0.14],
+                        [RokuricsColors.aqua, 0.12]
                     ],
                     direction: GradientDirection.RightBottom
                 },
@@ -401,9 +408,9 @@ class RecordingSessionPage extends ViewPU {
                 width: 1,
                 color: {
                     colors: [
-                        [0xFFFFFF, 0.42],
-                        [0xEFFAF8, 0.18],
-                        [0x91E8D6, 0.14]
+                        [0xFFFFFF, 0.22],
+                        [RokuricsColors.glassStroke, 0.18],
+                        [RokuricsColors.glassStrokeAccent, 0.14]
                     ],
                     direction: GradientDirection.RightBottom
                 },
@@ -516,9 +523,9 @@ class RecordingSessionPage extends ViewPU {
                             width: 1,
                             color: {
                                 colors: [
-                                    [0xFFFFFF, 0.34],
-                                    [0xEFFAF8, 0.14],
-                                    [0x91E8D6, 0.10]
+                                    [0xFFFFFF, 0.18],
+                                    [RokuricsColors.glassStroke, 0.14],
+                                    [RokuricsColors.glassStrokeAccent, 0.10]
                                 ],
                                 direction: GradientDirection.RightBottom
                             },
@@ -761,9 +768,9 @@ class RecordingSessionPage extends ViewPU {
                 width: 1,
                 color: {
                     colors: [
-                        [0xFFFFFF, 0.50],
-                        [0xEFFAF8, 0.20],
-                        [0x91E8D6, 0.16]
+                        [0xFFFFFF, 0.24],
+                        [RokuricsColors.glassStroke, 0.20],
+                        [RokuricsColors.glassStrokeAccent, 0.16]
                     ],
                     direction: GradientDirection.RightBottom
                 },

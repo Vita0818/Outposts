@@ -72,10 +72,10 @@ fun ProfileSetupScreen(
     val cardPadding = if (isExpanded) 32.dp else 24.dp
 
     var displayName by remember { mutableStateOf(
-        if (initialDisplayName == "Vita" || initialDisplayName.isEmpty()) "" else initialDisplayName
+        if (initialDisplayName.isEmpty()) "" else initialDisplayName
     ) }
     var userHandle by remember { mutableStateOf(
-        if (initialHandle == "vita_0818" || initialHandle.isEmpty()) "" else initialHandle
+        if (initialHandle.isEmpty()) "" else initialHandle
     ) }
 
     val canSave = displayName.trim().isNotEmpty()

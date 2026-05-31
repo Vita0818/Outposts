@@ -1,19 +1,16 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Rokurics.Services;
 using Rokurics.Views;
 using Windows.Graphics;
 
 namespace Rokurics;
 
-/// <summary>
-/// Main app window with sidebar navigation matching MacRootView from Apple source.
-/// Pages resolve their dependencies from the App DI container.
-/// </summary>
 public sealed partial class MainWindow : Window
 {
     private string _currentSelection = "studyLibrary";
-    private bool _isSettingsSelected;
+    private readonly Dictionary<string, Page> _pageCache = new();
 
     public MainWindow()
     {
@@ -21,7 +18,12 @@ public sealed partial class MainWindow : Window
 
         var appWindow = GetAppWindowForCurrentWindow();
         if (appWindow is not null)
+        {
             appWindow.Resize(new SizeInt32(1040, 690));
+            appWindow.TitleBar.ExtendsContentIntoTitleBar = true;
+        }
+
+        SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
 
         NavigateTo("studyLibrary");
     }
@@ -33,36 +35,56 @@ public sealed partial class MainWindow : Window
         return AppWindow.GetFromWindowId(windowId);
     }
 
-    private void OnSidebarSelectionChanged(string selection)
+    private void OnNavSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
-        if (selection == "settings")
+        if (args.SelectedItem is NavigationViewItem item && item.Tag is string tag)
         {
-            _isSettingsSelected = true;
-            ContentFrame.Content = CreatePage<MacSettingsPage>();
-        }
-        else
-        {
-            _isSettingsSelected = false;
-            _currentSelection = selection;
-            NavigateTo(selection);
+            // Settings navigates without menu highlight; deselect all menu items
+            if (tag == "settings")
+            {
+                sender.SelectedItem = null;
+                if (!_pageCache.TryGetValue("settings", out var settingsPage))
+                    _pageCache["settings"] = settingsPage = new MacSettingsPage();
+                ContentFrame.Content = settingsPage;
+                _currentSelection = string.Empty;
+                return;
+            }
+
+            if (tag == _currentSelection)
+                return;
+
+            _currentSelection = tag;
+            NavigateTo(tag);
         }
     }
 
     private void NavigateTo(string page)
     {
-        ContentFrame.Content = page switch
+        if (_pageCache.TryGetValue(page, out var cached))
         {
-            "studyLibrary" => CreatePage<MacStudyLibraryPage>(),
-            "aiChat" => CreatePage<MacAIChatPage>(),
-            "iPhoneConnection" => CreatePage<MacIPhoneConnectionPage>(),
+            ContentFrame.Content = cached;
+            return;
+        }
+
+        Page newPage = page switch
+        {
+            "studyLibrary" => new MacStudyLibraryPage(),
+            "aiChat" => new MacAIChatPage(),
+            "iPhoneConnection" => new MacIPhoneConnectionPage(),
             "providerDetailTranscription" => CreateProviderDetailPage(
                 ProviderDetailCard.ProviderCardKind.Transcription, "Whisper.cpp"),
             "providerDetailNoteGeneration" => CreateProviderDetailPage(
                 ProviderDetailCard.ProviderCardKind.NoteGeneration, "笔记生成"),
             "providerDetailChat" => CreateProviderDetailPage(
                 ProviderDetailCard.ProviderCardKind.Chat, "AI 对话"),
-            _ => CreatePage<MacStudyLibraryPage>()
+            _ => new MacStudyLibraryPage()
         };
+
+        // Don't cache provider detail pages (they have per-instance configuration)
+        if (!page.StartsWith("providerDetail"))
+            _pageCache[page] = newPage;
+
+        ContentFrame.Content = newPage;
     }
 
     private MacProviderDetailPage CreateProviderDetailPage(
@@ -72,15 +94,53 @@ public sealed partial class MainWindow : Window
         page.ConfigureFor(kind, name);
         page.NavigateBack += () =>
         {
-            // Navigate back to settings when done
-            ContentFrame.Content = CreatePage<MacSettingsPage>();
+            if (!_pageCache.TryGetValue("settings", out var settingsPage))
+                _pageCache["settings"] = settingsPage = new MacSettingsPage();
+            ContentFrame.Content = settingsPage;
         };
         return page;
     }
 
-    /// <summary>
-    /// Creates a page using DI-resolved dependencies where possible.
-    /// Each page's constructor handles its own DI resolution via App.Current.Services.
-    /// </summary>
-    private static T CreatePage<T>() where T : Page, new() => new T();
+    private void OnSearchQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+        if (string.IsNullOrWhiteSpace(args.Query))
+            return;
+
+        // Navigate to study library with search context
+        if (_currentSelection != "studyLibrary")
+        {
+            _currentSelection = "studyLibrary";
+            StudyLibraryNavItem.IsSelected = true;
+            NavigateTo("studyLibrary");
+        }
+        // TODO: propagate search query to MacStudyLibraryPage for filtering
+    }
+
+    private void OnSearchTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+        {
+            var query = sender.Text?.Trim();
+            if (string.IsNullOrEmpty(query) || query.Length < 2)
+            {
+                sender.ItemsSource = null;
+                return;
+            }
+
+            var studyStore = (Application.Current as App)?.Services.GetService<StudyLibraryStore>();
+            if (studyStore is null)
+            {
+                sender.ItemsSource = null;
+                return;
+            }
+
+            var suggestions = studyStore.AllStudyItems
+                .Where(i => !i.IsTrashed && i.Title.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .Take(5)
+                .Select(i => i.Title)
+                .ToList();
+
+            sender.ItemsSource = suggestions.Count > 0 ? suggestions : null;
+        }
+    }
 }

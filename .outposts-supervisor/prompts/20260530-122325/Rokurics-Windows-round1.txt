@@ -1,0 +1,63 @@
+MANDATORY PREFLIGHT
+MODEL_CHECK_RESULT: 当前模型必须是 DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]。否则立即停止并报告 MODEL_MISMATCH。
+PATH_CHECK_RESULT: 当前工作目录必须严格等于 /Users/vita/Vitemis/Outposts/Rokurics-Windows。否则立即停止并报告 WORKDIR_MISMATCH。
+SOURCE_READONLY_CHECK: Apple 源项目 /Users/vita/Vitemis/Vela/Rokurics 只读；参考图目录 /Users/vita/Vitemis/Outposts/Rokurics-macOS-Ref 只读；所有写入只允许在当前目标项目目录和本批 visual-evidence 目录内。不得读取/发送密钥、token、.env、证书或私密配置。
+
+PROJECT: Rokurics-Windows
+ROUND_INDEX: 1
+BATCH_NAME: outposts-screenshot-gated-ui-and-kikaria-h-build-fix
+RUN_ID: 20260530-122325
+EVIDENCE_DIR: /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-screenshot-gated-ui-and-kikaria-h-build-fix/20260530-122325/Rokurics-Windows
+
+本轮仍必须先做 SCREENSHOT_PREFLIGHT：判断当前主机是否具备 Windows 11 ARM + Visual Studio 2022 的真实 build/launch/screenshot 环境。
+
+Windows 规则：
+1. 如果当前环境不是 Windows 11 ARM + VS2022，不能完成真实 Windows actual screenshot、Debug/ARM64 build 或窗口启动验证；必须报告 WINDOWS_HOST_VALIDATION_PENDING。
+2. 即使 Windows actual screenshot 不可得，仍必须读取 /Users/vita/Vitemis/Outposts/Rokurics-macOS-Ref，调用 qwen-vision.inspect_screenshot 先做 macOS reference-first 视觉理解。
+3. 继续最小改动修 WinUI 3 / Windows App SDK / XAML 兼容问题。
+4. 保持 WinUI 3 / Windows App SDK / C#。不得改成 WPF、Avalonia、MAUI、Electron、WebView、Flutter 或其他框架。
+5. 不得假装 build/launch/screenshot 已验证。
+
+重点：
+- 修 WMC0011 Unknown member。
+- 检查 Window、Border、TextBlock、SymbolIcon 等控件上混入的 WPF/Avalonia/幻觉 XAML 属性。
+- 将 macOS reference 的信息转译为 Win11 原生风格，而不是机械复制 macOS。
+- 优先 NavigationView、Grid、CommandBar、InfoBar、MenuFlyout、AppWindow、Fluent/Mica/Acrylic/rounded corners/native spacing 等 WinUI 3 原生方向。
+
+禁止：
+- 不得修改 Apple 源项目或参考图目录。
+- 不得 git clean/reset/restore/checkout。
+- 不得删除 visual-evidence、截图、qwen 输出、state、checkpoint、report。
+- 不得把源码、密钥、token、.env、证书传给 qwen-vision。
+- 不得声称当前 macOS 环境已完成 Windows build/launch 验证。
+
+最终报告必须包含：
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+SCREENSHOT_PREFLIGHT_RESULT
+ACTUAL_SCREENSHOT_PATH
+REFERENCE_SCREENSHOTS_USED
+QWEN_REQUIRED
+QWEN_CALLED
+QWEN_VALID_VISUAL_EVIDENCE
+QWEN_COMPARE_SCREENSHOTS_COMPLETED
+VISION_RESULT_SUMMARY
+BUILD_ALLOWED_AFTER_SCREENSHOT_GATE
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION
+WINUI3_CONFIRMED
+WINDOWS_APP_SDK_CONFIRMED
+NON_WINUI_FRAMEWORK_AVOIDED
+WIN11_NATIVE_STYLE_PROGRESS
+INVALID_XAML_MEMBERS_FIXED
+WMC0011_REMAINING
+DEBUG_ARM64_BUILD_RESULT
+WINDOW_LAUNCH_RESULT
+WINDOWS_HOST_VALIDATION_PENDING

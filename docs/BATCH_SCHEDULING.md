@@ -38,6 +38,25 @@ VISION_VALIDATION_MAX_ROUNDS
 
 目录下必须按项目创建 `reference/`、`actual/`、`qwen/`。Android 项目优先用已启动的 Emulator 和 `adb -s <DEVICE_SERIAL> exec-out screencap -p` 生成纯设备截图。HarmonyOS 项目优先用 DevEco Preview、Emulator 或真机截图；必要时可用 `screencapture` 保存 DevEco 可见窗口截图，并明确标注是否为完整 IDE 截图。Windows 项目必须有 Windows/.NET UI 环境，否则报告 `HOST_ENV_BLOCKED`。
 
+共享 Android Emulator 的调度含义是“截图阶段串行加锁”，不是“用户手动切换项目”。Codex Agent 不得要求用户在 Android Studio 中手动选择 Kikaria-Android 或 Rokurics-Android，不得要求用户点击 Build/Run 后回复 `READY`。Android 项目需要截图时，Claude Code 必须自动获取 `ANDROID_EMULATOR_LOCK`，通过固定 adb 路径、Gradle 配置读取 `applicationId`、必要的 `installDebug`、adb 启动、前台包名校验和 `screencap` 完成截图链。
+
+Android screenshot preflight 的顺序固定为：
+
+1. 获取 `ANDROID_EMULATOR_LOCK`。
+2. 确认 `/Users/vita/Library/Android/sdk/platform-tools/adb` 可用。
+3. 执行 `adb devices -l`。
+4. 从当前 Android 项目 Gradle 配置读取 `applicationId`。
+5. 检查目标 App 是否已安装。
+6. 如未安装，在当前目标项目内执行最小 `installDebug` 或等价安装命令。
+7. adb 启动目标 App。
+8. 校验前台包名等于目标 `applicationId`。
+9. 截图到 visual-evidence 的 `actual/` 目录，文件名必须唯一。
+10. 释放 `ANDROID_EMULATOR_LOCK`。
+
+`installDebug` 在此处只属于 `SCREENSHOT_PREFLIGHT`，用于让目标 App 出现在 Emulator 中；不得伴随 UI 修改。报告必须包含 `INSTALL_NEEDED_FOR_SCREENSHOT`、`INSTALL_COMMAND`、`INSTALL_RESULT`。如果安装失败，项目进入 `INSTALL_FOR_SCREENSHOT_FAILED`，不得继续 UI 修改。
+
+如果前台包名不等于目标 `applicationId`，Claude Code 必须自动重新启动目标 App 并重试校验，最多 2 次；仍失败才报告 `ANDROID_FOREGROUND_PACKAGE_MISMATCH`。不得把另一个项目的 App 截图当作当前项目截图。
+
 视觉证据是批次审计材料，不是临时垃圾文件。Claude Code 不得删除 `.outposts-supervisor/visual-evidence`、当前批次截图、qwen 输出、state、checkpoint、report 或 batch state。需要重新截图时必须创建新的 `RUN_ID` 目录，不得通过删除旧证据来“收尾”。
 
 视觉报告必须区分 `QWEN_CALLED`、`QWEN_VALID_VISUAL_EVIDENCE`、`QWEN_COMPARE_SCREENSHOTS_COMPLETED`。`qwen-vision` 调用过无效桌面截图时，只能计为 `QWEN_CALLED=YES`，不得计为有效视觉验收。
@@ -149,6 +168,9 @@ Claude Code 不得执行：
 - `HOST_ENV_BLOCKED`
 - `TOOLCHAIN_REPAIR_NEEDS_USER`
 - `QWEN_INVALID_VISUAL_EVIDENCE`
+- `INSTALL_FOR_SCREENSHOT_FAILED`
+- `ANDROID_FOREGROUND_PACKAGE_MISMATCH`
+- `USER_DEVICE_INTERVENTION_REQUIRED`
 - `MANUAL_DECISION_REQUIRED`
 
 只有所有项目均进入终止状态，才能输出批次最终主管摘要。
@@ -163,6 +185,8 @@ Claude Code 不得执行：
 - `API_402_INSUFFICIENT_BALANCE`
 - `BILLING_MODEL_MISMATCH`
 - `LOCAL_EXECUTION_POLICY_BLOCKED`
+- `INSTALL_FOR_SCREENSHOT_FAILED`
+- `USER_DEVICE_INTERVENTION_REQUIRED`
 - 明确边界违规，例如 `git checkout/reset/restore/clean`、清理用户级 `~/.hvigor`、全局安装 `pnpm/npm/ohpm`、删除 visual evidence、checkpoint 或 report。
 - 真实需要用户手动决策且 Claude Code 无法安全继续。
 
@@ -173,6 +197,7 @@ Claude Code 不得执行：
 - actual screenshot 暂时不可用，但 reference screenshot 可用。
 - Windows host validation pending，但仍可做静态 WinUI/XAML 修复。
 - qwen 已完成 reference inspect，但尚未完成 compare screenshots。
+- 共享 Android Emulator 当前前台包名不匹配但 adb 可用、目标 App 可安装或可启动。该情况应先自动启动目标 App 并重试前台校验，不得默认等待用户手动切换。
 
 `QWEN_VALID_VISUAL_EVIDENCE=REFERENCE_ONLY` 是有效退化路径，不是失败状态。只要用户提供的 reference screenshots 可用，且 qwen 已完成 reference 理解，Claude Code 可以继续根据 reference screenshots、Apple 源项目只读信息和目标项目当前实现修正 UI。后续若获得 actual screenshot，再补做 actual inspect 或 compare。
 
@@ -226,3 +251,84 @@ VISION_VALIDATION_MAX_ROUNDS=2
 ```
 
 需要后续确认：每个批次的实际时间预算、轮次上限、目标项目集合和预期 Claude 模型必须由用户或上游调度说明明确给出。
+
+## 标准批次模板
+
+```text
+BATCH_NAME:
+CONCURRENCY:
+BATCH_TIME_BUDGET_MINUTES:
+MAX_REPORT_ROUNDS_PER_PROJECT:
+STOP_MODE: SOFT_TIME_BUDGET
+AUTO_CONTINUE_WITHIN_BUDGET: YES/NO
+NO_NEW_ROUNDS_AFTER_TIME_BUDGET: YES
+WAIT_RUNNING_ROUNDS_TO_FINISH: YES
+```
+
+一轮定义为：短握手通过、正式任务发出、Claude Code 执行、结构化报告返回、Codex/主管判断完成。仅 handshake、路径检查、模型错误、执行策略拦截、API 402、prompt 未送达、边界违规 incident report 不计有效迁移轮次。
+
+## 继续条件
+
+在 `AUTO_CONTINUE_WITHIN_BUDGET=YES` 时，只要当前时间未达到预算、项目轮次未达到上限、没有硬阻塞、且仍有可执行下一步，就应继续下一轮。不得因为 Claude Code 写了 `READY_FOR_USER_REVIEW`、`REFERENCE_ONLY`、`actual screenshot unavailable`、`WINDOWS_HOST_VALIDATION_PENDING` 就提前收束。
+
+## 硬阻塞
+
+允许立即暂停或终止项目的硬阻塞：
+
+- `MODEL_MISMATCH`
+- `WORKDIR_MISMATCH`
+- `SOURCE_READONLY_FAILED`
+- `API_402_INSUFFICIENT_BALANCE`
+- `BILLING_MODEL_MISMATCH`
+- `LOCAL_EXECUTION_POLICY_BLOCKED`
+- git checkout/reset/restore/clean。
+- 清理 `~/.hvigor` 或用户级 DevEco/HarmonyOS SDK 缓存。
+- 全局安装 `pnpm`、npm、ohpm。
+- 删除 visual evidence、checkpoint、state、report。
+- 真实需要用户决策且 Claude 无法安全继续。
+
+## 软状态
+
+以下状态只能作为下一轮输入，不能单独作为终止理由：
+
+- `READY_FOR_USER_REVIEW` 但仍有 remaining gaps 或 next recommendation。
+- `REFERENCE_ONLY`。
+- actual screenshot 暂不可得，但 reference screenshot 可用。
+- qwen 已完成 reference inspect 但尚未 compare。
+- `WINDOWS_HOST_VALIDATION_PENDING`，但静态 WinUI/XAML 修复仍可做。
+- UI 仍有剩余差异。
+
+## 终止状态枚举
+
+```text
+STOPPED_BY_ROUND_BUDGET
+STOPPED_BY_TIME_BUDGET
+READY_FOR_USER_REVIEW
+BLOCKED_NEEDS_USER
+FAILED_PREFLIGHT
+MODEL_MISMATCH
+WORKDIR_MISMATCH
+SOURCE_READONLY_FAILED
+TOOLCHAIN_MISSING
+HOST_ENV_BLOCKED
+TOOLCHAIN_REPAIR_NEEDS_USER
+LOCAL_EXECUTION_POLICY_BLOCKED
+API_402_INSUFFICIENT_BALANCE
+BILLING_MODEL_MISMATCH
+QWEN_PERMISSION_GATED
+QWEN_UNAVAILABLE_IN_SESSION
+QWEN_INVALID_VISUAL_EVIDENCE
+INSTALL_FOR_SCREENSHOT_FAILED
+ANDROID_FOREGROUND_PACKAGE_MISMATCH
+USER_DEVICE_INTERVENTION_REQUIRED
+WINDOWS_HOST_VALIDATION_PENDING
+MANUAL_DECISION_REQUIRED
+```
+
+## 项目批次偏好
+
+- Kikaria-Android：首页和背诵页优先；可整体重构 UI shell；保持 Android build/test 绿色。
+- Kikaria-HarmonyOS：先编译；构建未恢复前不堆功能；若需要用户级工具链操作，进入 `TOOLCHAIN_REPAIR_NEEDS_USER`。
+- Rokurics-Android：必须 reference-first；dark mode/theme support 是明确任务；actual screenshot 可通过 adb 继续闭环。
+- Rokurics-HarmonyOS：有效 Preview/设备截图优先；禁止用户级工具链清理或全局包安装。
+- Rokurics-Windows：WinUI 3/XAML 静态修复可在 Windows 主机验证前继续；真正 build/launch 只能在 Win11 ARM + VS2022 验证。

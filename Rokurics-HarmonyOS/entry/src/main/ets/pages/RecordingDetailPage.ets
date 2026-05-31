@@ -4,7 +4,7 @@
 import { router } from '@kit.ArkUI'
 import { media } from '@kit.MediaKit'
 import { fileIo } from '@kit.CoreFileKit'
-import { Want, common } from '@kit.AbilityKit'
+import { Want, common, ConfigurationConstant } from '@kit.AbilityKit'
 import { getSharedRecordingManager, RecordingManager } from '../services/RecordingManager'
 import { RecordingMetadata, StudyFilingPath, filingLevelTitle } from '../models/RecordingModels'
 import { formatDuration, formatShortTime, fileSizeText } from '../utils/FormatHelpers'
@@ -13,22 +13,20 @@ import { ExportManager, ExportFormat } from '../services/ExportManager'
 import { RecordingUploadClient, UploadConfig, UploadStage } from '../services/RecordingUploadClient'
 import { SettingsStore } from '../services/SettingsStore'
 import { TranscriptionResult, NoteGenerationResult } from '../models/ProcessingModels'
+import { StudyFolderStore } from '../services/StudyFolderStore'
 import { colorAlpha,  RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity,
-  glassStrokeMidOpacity, glassAccentOpacity } from '../utils/RokuricsTheme'
+  glassStrokeMidOpacity, glassAccentOpacity, applyColorMode } from '../utils/RokuricsTheme'
 import { TrashIcon, CloudUploadIcon, EditIcon } from '../utils/CustomIcons'
 
 const LEVELS: string[] = ['type', 'subject', 'chapter', 'topic']
-const FILING_OPTIONS: Record<string, string[]> = {
-  'type': ['课堂录音', '自学笔记', '会议记录', '访谈采访', '灵感记录', '其他'],
-  'subject': ['数学', '物理', '化学', '生物', '计算机', '英语', '历史', '文学', '哲学', '艺术'],
-  'chapter': [],
-  'topic': []
-}
+const DEFAULT_TYPE_OPTIONS_DETAIL: string[] = ['课堂录音', '自学笔记', '会议记录', '访谈采访', '灵感记录', '其他']
 
 @Entry
 @Component
 struct RecordingDetailPage {
   private recordingManager: RecordingManager = getSharedRecordingManager()
+  private folderStore: StudyFolderStore = new StudyFolderStore(getContext(this))
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET
   @State recordingId: string = ''
   @State recording: RecordingMetadata | null = null
   @State showRenameDialog: boolean = false
@@ -59,6 +57,9 @@ struct RecordingDetailPage {
   @State uploadProgressText: string = ''
   @State uploadError: string = ''
   private avPlayer: media.AVPlayer | null = null
+  private audioFile: fileIo.File | null = null
+  @State filingTypeOptions: string[] = [...DEFAULT_TYPE_OPTIONS_DETAIL]
+  @State filingSubjectOptions: string[] = []
   private pipeline: TranscriptionPipeline | null = null
   private exportManager: ExportManager | null = null
   private uploadClient: RecordingUploadClient | null = null
@@ -83,6 +84,30 @@ struct RecordingDetailPage {
       this.editChapter = found.studyFiling?.chapter ?? ''
       this.editTopic = found.studyFiling?.topic ?? ''
     }
+    await this.extractFilingCandidates()
+  }
+
+  private async extractFilingCandidates(): Promise<void> {
+    const recordings = this.recordingManager.recordings
+    const typeSet = new Set<string>(DEFAULT_TYPE_OPTIONS_DETAIL)
+    const subjectSet = new Set<string>()
+
+    for (const r of recordings) {
+      const filing = r.studyFiling
+      if (filing) {
+        if (filing.type) typeSet.add(filing.type)
+        if (filing.subject) subjectSet.add(filing.subject)
+      }
+    }
+
+    const folders = await this.folderStore.listFolders()
+    for (const f of folders) {
+      if (f.level === 'type') typeSet.add(f.name)
+      if (f.level === 'subject') subjectSet.add(f.name)
+    }
+
+    this.filingTypeOptions = Array.from(typeSet).sort()
+    this.filingSubjectOptions = Array.from(subjectSet).sort()
   }
 
   private getFilingValue(level: string): string {
@@ -138,6 +163,10 @@ struct RecordingDetailPage {
       try { this.avPlayer.release() } catch (_e) { /* ignore */ }
       this.avPlayer = null
     }
+    if (this.audioFile) {
+      try { fileIo.closeSync(this.audioFile) } catch (_e) { /* ignore */ }
+      this.audioFile = null
+    }
     this.isPlaying = false
   }
 
@@ -161,6 +190,7 @@ struct RecordingDetailPage {
           return
         }
         const file: fileIo.File = fileIo.openSync(audioPath, fileIo.OpenMode.READ_ONLY)
+        this.audioFile = file
         this.avPlayer = await media.createAVPlayer()
         this.avPlayer.url = `fd://${file.fd}`
       } catch (err) {
@@ -179,6 +209,7 @@ struct RecordingDetailPage {
   }
 
   build() {
+    applyColorMode(this.colorMode)
     Stack() {
     Column() {
       // Header
@@ -442,9 +473,9 @@ struct RecordingDetailPage {
             // Filing editor (expandable)
             if (this.showFilingEditor) {
               Column({ space: 10 }) {
-                this.FilingEditRow('门类', this.editType, FILING_OPTIONS['type'],
+                this.FilingEditRow('门类', this.editType, this.filingTypeOptions,
                   (v: string) => { this.editType = (v === this.editType ? '' : v) })
-                this.FilingEditRow('课程', this.editSubject, FILING_OPTIONS['subject'],
+                this.FilingEditRow('课程', this.editSubject, this.filingSubjectOptions,
                   (v: string) => { this.editSubject = (v === this.editSubject ? '' : v) })
                 Column({ space: 4 }) {
                   Text('章节').fontSize(12).fontColor(RokuricsColors.softText)
@@ -887,6 +918,7 @@ struct RecordingDetailPage {
         .backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6'))
         .width('85%')
         .shadow({ radius: 30, color: '#20000000' })
+        .onClick(() => {}) // consume click to prevent dismiss overlay firing
       }
       .width('100%')
       .height('100%')

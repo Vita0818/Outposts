@@ -5,35 +5,34 @@
 export function colorAlpha(baseHex: string, alphaHex: string): string {
     return '#' + alphaHex + baseHex.substring(1);
 }
-// ── Colors ──
+// ── Colors (dark mode — mirrors RokuricsColors.swift adaptive dark values) ──
 export class RokuricsColors {
-    static readonly aqua = '#59C7C2';
-    static readonly mint = '#9EE8C7';
-    static readonly mistGreen = '#E2F9EF';
-    static readonly softTeal = '#75B3B5';
-    static readonly skyCyan = '#73C7F0';
-    static readonly paleAqua = '#C4F5E8';
-    static readonly coral = '#E06B6E';
-    static readonly amber = '#E0A852';
-    static readonly deepText = '#1A424A';
-    static readonly softText = '#638F94';
-    static readonly tertiaryText = '#94B3B8';
-    static readonly glassSurface = '#FFFFFF';
-    static readonly glassStroke = '#EFFAF8';
-    static readonly glassStrokeAccent = '#91E8D6';
-    static readonly shadowColor = '#4AB8A8';
-    static readonly pageBackground = '#EFFAF8';
-    static readonly actionStart = '#4FC2C0';
-    static readonly actionEnd = '#99E6C2';
-    static readonly recordingAccentStart = '#DB6B6B';
-    static readonly recordingAccentEnd = '#F5AD94';
-    // ── Page gradient color stops (mirrors pageGradient in RokuricsColors.swift) ──
-    static readonly pageGradientStart = '#EFFAF7';
-    static readonly pageGradientMid = '#DBF7F4';
-    static readonly pageGradientEnd = '#F2FAFF';
-    // ── Action/orb gradient stops (mirrors actionGradient in RokuricsColors.swift) ──
-    static readonly actionGradientStart = '#4FC2BF';
-    static readonly actionGradientEnd = '#99E6C2';
+    static readonly aqua = '#57D6D1';
+    static readonly mint = '#52BD94';
+    static readonly mistGreen = '#0F2B26';
+    static readonly softTeal = '#85CCCC';
+    static readonly skyCyan = '#4DB3EB';
+    static readonly paleAqua = '#266B61';
+    static readonly coral = '#F5757A';
+    static readonly deepText = '#E6FAF7';
+    static readonly softText = '#A8D1D1';
+    static readonly tertiaryText = '#759EA1';
+    static readonly glassSurface = '#0D2424';
+    static readonly glassStroke = '#8ADBD1';
+    static readonly glassStrokeAccent = '#61D4C2';
+    static readonly shadowColor = '#000808';
+    static readonly pageBackground = '#051414';
+    static readonly actionStart = '#128080';
+    static readonly actionEnd = '#2BAB82';
+    static readonly recordingAccentStart = '#D14257';
+    static readonly recordingAccentEnd = '#E0706B';
+    // ── Page gradient color stops (mirrors pageGradient dark in RokuricsColors.swift) ──
+    static readonly pageGradientStart = '#051414';
+    static readonly pageGradientMid = '#0A2B29';
+    static readonly pageGradientEnd = '#030D12';
+    // ── Action/orb gradient stops (mirrors actionGradient dark in RokuricsColors.swift) ──
+    static readonly actionGradientStart = '#128080';
+    static readonly actionGradientEnd = '#2BAB82';
 }
 // ── Typography ──
 export interface Font {
@@ -84,19 +83,19 @@ export function darkModeGlassOpacity(lightHexAlpha: string, isDark: boolean): st
     return scaled.toString(16).padStart(2, '0').toUpperCase();
 }
 // Pre-computed glass opacity strings (hex alpha for appending to colors).
-// Light mode defaults (matching Apple light mode fill/stroke opacities):
-export const glassFillOpacity = 'A8'; // ~66% light → ~51% dark
-export const glassStrokeHighOpacity = '44'; // ~27% light → ~21% dark
-export const glassStrokeMidOpacity = '12'; // ~7% light  → ~5% dark
-export const glassAccentOpacity = '08'; // ~3% light  → ~2% dark
-// Reusable glass card backing (mirrors rokuricsLiquidGlassCard) ──
+// Dark mode defaults (scaled from light 0.78× fill, 0.82× stroke, per Apple RokuricsGlassStyle):
+export const glassFillOpacity = '5C'; // min(0.66*0.78, 0.36) → ~36% fill
+export const glassStrokeHighOpacity = '38'; // min(0.27*0.82, 0.34) → ~22% stroke
+export const glassStrokeMidOpacity = '0E'; // min(0.07*0.82, 0.34) → ~5% stroke
+export const glassAccentOpacity = '0A'; // ~4% accent
+// Reusable glass card backing (mirrors rokuricsLiquidGlassCard dark mode) ──
 export function GlassCardContent(child: WrappedBuilder<[
 ]>, parent = null): void {
     const __child__ = child;
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender, child = __child__) => {
         Column.create();
         Column.borderRadius(20);
-        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'A8'));
+        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
         Column.shadow({
             color: colorAlpha(RokuricsColors.shadowColor, '18'),
             radius: 18,
@@ -106,9 +105,9 @@ export function GlassCardContent(child: WrappedBuilder<[
             width: 1,
             color: {
                 colors: [
-                    [0xFFFFFF, 0.44],
-                    [0xEFFAF8, 0.18],
-                    [0x91E8D6, 0.14]
+                    [0xFFFFFF, 0.22],
+                    [RokuricsColors.glassStroke, 0.18],
+                    [RokuricsColors.glassStrokeAccent, 0.24]
                 ],
                 direction: GradientDirection.RightBottom
             },
@@ -118,7 +117,7 @@ export function GlassCardContent(child: WrappedBuilder<[
     child.builder.bind(this)();
     Column.pop();
 }
-// ── Glass circle (mirrors rokuricsGlassCircle) ──
+// ── Glass circle (mirrors rokuricsGlassCircle dark mode) ──
 export function GlassCircle(size: number, child: WrappedBuilder<[
 ]>, parent = null): void {
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
@@ -126,7 +125,7 @@ export function GlassCircle(size: number, child: WrappedBuilder<[
         Stack.width(size);
         Stack.height(size);
         Stack.borderRadius(size / 2);
-        Stack.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
+        Stack.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '5C'));
         Stack.shadow({
             color: colorAlpha(RokuricsColors.shadowColor, '12'),
             radius: 14,
@@ -136,9 +135,9 @@ export function GlassCircle(size: number, child: WrappedBuilder<[
             width: 1,
             color: {
                 colors: [
-                    [0xFFFFFF, 0.44],
-                    [0xEFFAF8, 0.14],
-                    [0x59C7C2, 0.12]
+                    [0xFFFFFF, 0.22],
+                    [RokuricsColors.glassStroke, 0.14],
+                    [RokuricsColors.aqua, 0.24]
                 ],
                 direction: GradientDirection.RightBottom
             },
@@ -173,14 +172,14 @@ export function StatusPill(text: string, color: string, parent = null): void {
     Text.pop();
     Row.pop();
 }
-// ── Icon circle button (mirrors RokuricsIconCircleButton) ──
+// ── Icon circle button (mirrors RokuricsIconCircleButton dark mode) ──
 export function IconCircleButton(symbol: string, size: number, tint: string, onClick: () => void, parent = null): void {
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
         Button.createWithChild();
         Button.width(size);
         Button.height(size);
         Button.borderRadius(size / 2);
-        Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
+        Button.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '5C'));
         Button.shadow({
             color: colorAlpha(RokuricsColors.shadowColor, '10'),
             radius: 12,
@@ -190,9 +189,9 @@ export function IconCircleButton(symbol: string, size: number, tint: string, onC
             width: 1,
             color: {
                 colors: [
-                    [0xFFFFFF, 0.44],
-                    [0xEFFAF8, 0.14],
-                    [0x59C7C2, 0.12]
+                    [0xFFFFFF, 0.22],
+                    [RokuricsColors.glassStroke, 0.14],
+                    [RokuricsColors.aqua, 0.24]
                 ],
                 direction: GradientDirection.RightBottom
             },
@@ -217,14 +216,14 @@ export function WaveformIcon(size: number, parent = null): void {
         Stack.width(size);
         Stack.height(size);
         Stack.borderRadius(size / 2);
-        Stack.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '56'));
+        Stack.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '4A'));
         Stack.border({
             width: 1,
             color: {
                 colors: [
-                    [0xFFFFFF, 0.38],
-                    [0xEFFAF8, 0.12],
-                    [0x59C7C2, 0.10]
+                    [0xFFFFFF, 0.20],
+                    [RokuricsColors.glassStroke, 0.12],
+                    [RokuricsColors.aqua, 0.20]
                 ],
                 direction: GradientDirection.RightBottom
             },

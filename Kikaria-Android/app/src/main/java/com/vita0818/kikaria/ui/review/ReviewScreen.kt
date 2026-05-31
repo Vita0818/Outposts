@@ -26,6 +26,8 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -349,12 +351,10 @@ fun ReviewScreen(
         }
     }
 
-    // ── Swipe gesture modifier with spring settle ──
+    // ── Swipe gesture for the action bar area ──
     val swipeModifier = Modifier.pointerInput(viewModel.isContentShown, viewModel.isHintShown, viewModel.reviewMode) {
         val horizontalThreshold = 80f
-        val revealThreshold = 90f
-        val nextAfterAnswerThreshold = 160f
-        val dominance = 1.4f
+        val verticalThreshold = if (viewModel.isContentShown) 160f else 90f
 
         detectDragGestures(
             onDrag = { _, dragAmount ->
@@ -368,23 +368,14 @@ fun ReviewScreen(
                 val horizontal = abs(dx)
                 val vertical = abs(dy)
 
-                if (horizontal > horizontalThreshold && horizontal > vertical * dominance) {
+                if (horizontal > horizontalThreshold && horizontal > vertical) {
                     triggerGestureFlash()
-                    if (dx > 0) {
-                        handleSwipeRight(viewModel)
-                    } else {
-                        handleSwipeLeft(viewModel)
-                    }
-                } else {
-                    val threshold = if (viewModel.isContentShown) nextAfterAnswerThreshold else revealThreshold
-                    if (vertical > threshold && vertical > horizontal * dominance) {
-                        triggerGestureFlash()
-                        if (dy < 0) {
-                            handleSwipeUp(viewModel)
-                        } else {
-                            handleSwipeDown(viewModel)
-                        }
-                    }
+                    if (dx > 0) handleSwipeRight(viewModel)
+                    else handleSwipeLeft(viewModel)
+                } else if (vertical > verticalThreshold && vertical > horizontal) {
+                    triggerGestureFlash()
+                    if (dy < 0) handleSwipeUp(viewModel)
+                    else handleSwipeDown(viewModel)
                 }
                 swipeTargetX = 0f
                 swipeTargetY = 0f
@@ -399,7 +390,7 @@ fun ReviewScreen(
     }
 
     KikariaPageShell {
-        Box(modifier = Modifier.fillMaxSize().then(swipeModifier)) {
+        Box(modifier = Modifier.fillMaxSize()) {
             // ── Gesture feedback flash overlay ──
             if (flashAlpha > 0.01f) {
                 Box(
@@ -416,20 +407,8 @@ fun ReviewScreen(
             }
 
             Column(modifier = Modifier.fillMaxSize().offset { IntOffset(swipeDisplayX.roundToInt(), swipeDisplayY.roundToInt()) }) {
-                // Progress bar with metrics-driven padding
-                LinearProgressIndicator(
-                    progress = { viewModel.reviewProgress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = metrics.horizontalPadding)
-                        .padding(top = metrics.backButtonTopPadding)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp)),
-                    color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky,
-                    trackColor = if (isDark) KikariaColors.MistDark else KikariaColors.Mist,
-                )
-
-                Spacer(Modifier.height(16.dp))
+                // Top spacer for back button clearance (matches metrics.backButtonTopPadding)
+                Spacer(Modifier.height(metrics.backButtonTopPadding + 16.dp))
 
                 if (metrics.reviewUsesTwoColumnLayout) {
                     // ── Tablet two-column layout (iOS reviewLandscapeContent lines 8056-8078) ──
@@ -467,6 +446,7 @@ fun ReviewScreen(
                         ) {
                             if (!viewModel.isContentShown) {
                                 if (!viewModel.isHintShown) {
+                                    // Apple: both hint + answer buttons visible simultaneously
                                     ReviewActionButton(
                                         text = "查看提示",
                                         icon = "✦",
@@ -474,6 +454,14 @@ fun ReviewScreen(
                                         isPrimary = false,
                                         buttonScale = metrics.reviewButtonScale,
                                         onClick = { viewModel.showHint() }
+                                    )
+                                    ReviewActionButton(
+                                        text = "查看答案",
+                                        icon = "▣",
+                                        tone = ActionTone.Blue,
+                                        isPrimary = true,
+                                        buttonScale = metrics.reviewButtonScale,
+                                        onClick = { viewModel.showContent() }
                                     )
                                 } else {
                                     ReviewActionButton(
@@ -510,29 +498,43 @@ fun ReviewScreen(
                         Spacer(Modifier.height(16.dp))
                     }
 
-                    // Fixed-height bottom action region
+                    // Fixed-height bottom action region with swipe gestures
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = metrics.horizontalPadding)
                             .padding(bottom = metrics.reviewActionBottomPadding)
-                            .heightIn(min = 138.dp)
+                            .heightIn(min = 138.dp, max = 220.dp)
+                            .then(swipeModifier)
                     ) {
                         if (!viewModel.isContentShown) {
                             if (!viewModel.isHintShown) {
-                                ReviewActionButton(
-                                    text = "查看提示",
-                                    icon = "✦",
-                                    tone = ActionTone.Blue,
-                                    isPrimary = false,
-                                    buttonScale = metrics.reviewButtonScale,
-                                    onClick = { viewModel.showHint() },
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
+                                // Apple: both hint + answer buttons visible simultaneously
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    ReviewActionButton(
+                                        text = "查看提示",
+                                        icon = "✦",
+                                        tone = ActionTone.Blue,
+                                        isPrimary = false,
+                                        buttonScale = metrics.reviewButtonScale,
+                                        onClick = { viewModel.showHint() }
+                                    )
+                                    ReviewActionButton(
+                                        text = "查看答案",
+                                        icon = "▣",
+                                        tone = ActionTone.Blue,
+                                        isPrimary = true,
+                                        buttonScale = metrics.reviewButtonScale,
+                                        onClick = { viewModel.showContent() }
+                                    )
+                                }
                             } else {
                                 ReviewActionButton(
                                     text = "查看答案",
-                                    icon = "≡",
+                                    icon = "▣",
                                     tone = ActionTone.Blue,
                                     isPrimary = true,
                                     buttonScale = metrics.reviewButtonScale,
@@ -567,9 +569,11 @@ fun ReviewScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = scopePanelAlpha * 0.35f))
-                        .pointerInput(Unit) {
-                            detectTapGestures { showScopePanel = false }
-                        }
+                        .clickable(
+                            enabled = scopePanelAlpha > 0.5f,
+                            indication = null,
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                        ) { showScopePanel = false }
                 )
 
                 // Scope panel card — slides in from left
@@ -658,11 +662,11 @@ fun ReviewScreen(
                                 fontSize = 15.sp
                             )
                         } else {
-                            Column(
-                                modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+                            LazyColumn(
+                                modifier = Modifier.weight(1f),
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                filteredTags.chunked(2).forEach { rowTags ->
+                                items(filteredTags.chunked(2)) { rowTags ->
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
@@ -698,20 +702,21 @@ fun ReviewScreen(
                                     }
                                 }
 
-                                Spacer(Modifier.height(8.dp))
+                            }
 
-                                // Clear all
-                                if (viewModel.selectedTags.isNotEmpty()) {
-                                    Text(
-                                        "清除所有",
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky,
-                                        modifier = Modifier
-                                            .clickable { viewModel.selectedTags.clear() }
-                                            .padding(vertical = 6.dp)
-                                    )
-                                }
+                            Spacer(Modifier.height(8.dp))
+
+                            // Clear all
+                            if (viewModel.selectedTags.isNotEmpty()) {
+                                Text(
+                                    "清除所有",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky,
+                                    modifier = Modifier
+                                        .clickable { viewModel.selectedTags.clear() }
+                                        .padding(vertical = 6.dp)
+                                )
                             }
                         }
                     }
@@ -749,19 +754,15 @@ private fun ReviewContentCards(
             modifier = Modifier.padding(horizontal = 22.dp)
         )
 
-        if (point.tags.isNotEmpty()) {
-            Spacer(Modifier.height(18.dp))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(horizontal = 22.dp)
-            ) {
-                point.tags.forEach { tag ->
-                    KikariaTagChip(tag = tag)
-                }
-            }
+        // Chapter/context chip — Apple reference shows a single semantic chip
+        // (e.g. "5.4 Recursive Algorithms"), not multiple category tags.
+        val chapterTag = point.tags.firstOrNull()
+        if (chapterTag != null) {
+            Spacer(Modifier.height(14.dp))
+            KikariaTagChip(tag = chapterTag)
         }
 
-        Spacer(Modifier.height(18.dp))
+        Spacer(Modifier.height(14.dp))
 
         // Review count pill — matches Apple TodayReviewCountPill
         Box(
@@ -784,7 +785,7 @@ private fun ReviewContentCards(
         }
     }
 
-    Spacer(Modifier.height(18.dp))
+    Spacer(Modifier.height(14.dp))
 
     // Hint card
     AnimatedVisibility(
@@ -814,7 +815,7 @@ private fun ReviewContentCards(
     }
 
     if (viewModel.isHintShown) {
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(10.dp))
     }
 
     // Content card
@@ -860,7 +861,7 @@ private fun TabletReviewActions(
                 text = if (point?.isReinforced == true)
                     "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
                 icon = "+",
-                tone = ActionTone.Amber,
+                tone = ActionTone.Blue,
                 isPrimary = true,
                 buttonScale = buttonScale,
                 onClick = { viewModel.toggleReinforcement() }
@@ -899,7 +900,7 @@ private fun TabletReviewActions(
                 text = if (point?.isReinforced == true)
                     "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
                 icon = "+",
-                tone = ActionTone.Amber,
+                tone = ActionTone.Blue,
                 isPrimary = true,
                 buttonScale = buttonScale,
                 onClick = { viewModel.toggleReinforcement() }
@@ -954,7 +955,7 @@ private fun ReviewBottomActionBar(
                             text = if (point?.isReinforced == true)
                                 "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
                             icon = "+",
-                            tone = ActionTone.Amber,
+                            tone = ActionTone.Blue,
                             isPrimary = true,
                             buttonScale = buttonScale,
                             onClick = { viewModel.toggleReinforcement() }
@@ -993,7 +994,7 @@ private fun ReviewBottomActionBar(
                             text = if (point?.isReinforced == true)
                                 "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
                             icon = "+",
-                            tone = ActionTone.Amber,
+                            tone = ActionTone.Blue,
                             isPrimary = true,
                             buttonScale = buttonScale,
                             onClick = { viewModel.toggleReinforcement() }
@@ -1012,13 +1013,13 @@ private fun ReviewBottomActionBar(
 
             ReviewActionButton(
                 text = "下一个",
-                icon = "↻",
+                icon = "↬",
                 tone = ActionTone.Amber,
                 isPrimary = false,
                 verticalContent = true,
                 buttonScale = buttonScale,
                 onClick = { viewModel.nextPoint() },
-                modifier = Modifier.weight(0.54f).fillMaxHeight()
+                modifier = Modifier.weight(0.54f)
             )
         }
     }

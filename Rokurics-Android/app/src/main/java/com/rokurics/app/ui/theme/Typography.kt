@@ -7,6 +7,50 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.MaterialTheme
 
+val RokuricsTypographyTokens = Typography(
+    displayLarge = TextStyle(
+        fontSize = 39.sp,
+        fontWeight = FontWeight.SemiBold,
+        fontFamily = FontFamily.Serif,
+        letterSpacing = (-0.5).sp
+    ),
+    headlineLarge = TextStyle(
+        fontSize = 22.sp,
+        fontWeight = FontWeight.SemiBold
+    ),
+    titleLarge = TextStyle(
+        fontSize = 39.sp,
+        fontWeight = FontWeight.SemiBold,
+        fontFamily = FontFamily.Serif,
+        letterSpacing = (-0.5).sp
+    ),
+    titleMedium = TextStyle(
+        fontSize = 20.sp,
+        fontWeight = FontWeight.SemiBold
+    ),
+    bodyLarge = TextStyle(
+        fontSize = 15.sp,
+        fontWeight = FontWeight.Normal
+    ),
+    bodyMedium = TextStyle(
+        fontSize = 13.sp,
+        fontWeight = FontWeight.SemiBold
+    ),
+    labelLarge = TextStyle(
+        fontSize = 17.sp,
+        fontWeight = FontWeight.SemiBold
+    ),
+    labelMedium = TextStyle(
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Medium
+    ),
+    labelSmall = TextStyle(
+        fontSize = 15.sp,
+        fontWeight = FontWeight.SemiBold,
+        fontFamily = FontFamily.Monospace
+    )
+)
+
 object RokuricsTypography {
     /** iPhone parity: .system(size:size, weight:weight, design:.serif) */
     fun appTitle(size: Int = 39): TextStyle = TextStyle(

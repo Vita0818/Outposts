@@ -1,0 +1,50 @@
+[ROUND 1 / BATCH outposts-ui-structure-build-recovery-winui-native-round]
+
+Mandatory preflight:
+1. MODEL_CHECK_RESULT: current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop.
+2. PATH_CHECK_RESULT: current working directory must be /Users/vita/Vitemis/Outposts/Rokurics-Android. If not, stop.
+3. SOURCE_READONLY_CHECK: Apple source is read-only at /Users/vita/Vitemis/Vela/Rokurics. Reference screenshots are read-only at /Users/vita/Vitemis/Outposts/Rokurics-iOS-Ref. All writes must stay inside /Users/vita/Vitemis/Outposts/Rokurics-Android or .outposts-supervisor evidence/report paths.
+
+User feedback, highest priority: Rokurics-Android UI style and layout are far from iOS.
+
+Task:
+- Correct Android UI style, layout, component relationships, and visual quality by comparing to Rokurics iOS.
+- First read high-value images in /Users/vita/Vitemis/Outposts/Rokurics-iOS-Ref and call qwen-vision.inspect_screenshot on reference screenshots before modifying.
+- Read Apple Rokurics iPhone source only as read-only reference. Do not invent UI from text descriptions.
+- If emulator is available, capture actual app screenshot into /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-ui-structure-build-recovery-winui-native-round/20260529-160750/Rokurics-Android/actual/ and inspect it with qwen-vision. If reference and actual are both available, call compare_screenshots.
+- If actual screenshot is unavailable, continue with reference screenshot + Apple source understanding; REFERENCE_ONLY is not failure.
+- Focus pages/components: Dashboard/Home, Study Library, RecordingDetail, mini-player, upload progress, waveform/inline playback, bottom navigation, settings/provider/AI entry.
+- Visual direction: premium, minimal, iOS-like, dark glass feel, accurate floating capsule/tab, correct card/list hierarchy, icon/button/text proportions, background gradient/ambient bubble, consistent dark mode.
+- Try to keep build/tests green.
+
+Forbidden:
+- Do not modify Apple source or reference image directories.
+- Do not read/send secrets, .env, API keys, tokens, certificates, p12, ssh keys, Keychain contents.
+- Do not git clean/reset/restore/checkout. Do not commit/push/PR. Do not delete visual evidence.
+- qwen-vision only inspects/compares images; it must not modify files or receive source/secrets.
+
+Final report fields:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+QWEN_REQUIRED
+QWEN_CALLED
+QWEN_VALID_VISUAL_EVIDENCE
+QWEN_COMPARE_SCREENSHOTS_COMPLETED
+REFERENCE_SCREENSHOTS_USED
+ACTUAL_SCREENSHOTS
+VISION_TOOLS_CALLED
+VISION_RESULT_SUMMARY
+USER_FEEDBACK_ADDRESSED
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+ACTUAL_SCREENSHOT_BLOCKER
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION
+

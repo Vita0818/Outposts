@@ -537,6 +537,81 @@ export function SendIcon(size: number, color: string, parent = null) {
         Polygon.height(size);
     }, Polygon);
 }
+// ── Person / avatar silhouette ──
+export function PersonIcon(size: number, color: string, parent = null) {
+    (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
+        Stack.create({ alignContent: Alignment.Top });
+        Stack.width(size);
+        Stack.height(size);
+    }, Stack);
+    (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
+        // Head
+        Circle.create();
+        // Head
+        Circle.width(size * 0.36);
+        // Head
+        Circle.height(size * 0.36);
+        // Head
+        Circle.fill(color);
+        // Head
+        Circle.position({ x: size * 0.32, y: 0 });
+    }, Circle);
+    (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
+        // Body (rounded trapezoid approximated with shapes)
+        Circle.create();
+        // Body (rounded trapezoid approximated with shapes)
+        Circle.width(size * 0.7);
+        // Body (rounded trapezoid approximated with shapes)
+        Circle.height(size * 0.7);
+        // Body (rounded trapezoid approximated with shapes)
+        Circle.fill(color);
+        // Body (rounded trapezoid approximated with shapes)
+        Circle.position({ x: size * 0.15, y: size * 0.34 });
+    }, Circle);
+    Stack.pop();
+}
+// ── Edit / pencil ──
+export function EditIcon(size: number, color: string, parent = null) {
+    (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
+        Stack.create();
+        Stack.width(size * 0.5);
+        Stack.height(size * 0.6);
+    }, Stack);
+    (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
+        // Pencil body (diagonal line)
+        Rect.create();
+        // Pencil body (diagonal line)
+        Rect.width(size * 0.08);
+        // Pencil body (diagonal line)
+        Rect.height(size * 0.7);
+        // Pencil body (diagonal line)
+        Rect.radius(size * 0.04);
+        // Pencil body (diagonal line)
+        Rect.fill(color);
+        // Pencil body (diagonal line)
+        Rect.rotate({ angle: -45 });
+    }, Rect);
+    (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
+        // Pencil tip triangle
+        Polygon.create();
+        // Pencil tip triangle
+        Polygon.points([
+            [size * 0.05, size * 0.02],
+            [size * 0.26, size * 0.56],
+            [size * 0.06, size * 0.56]
+        ] as [
+            number,
+            number
+        ][]);
+        // Pencil tip triangle
+        Polygon.fill(color);
+        // Pencil tip triangle
+        Polygon.rotate({ angle: -45 });
+        // Pencil tip triangle
+        Polygon.position({ x: size * -0.04, y: size * -0.08 });
+    }, Polygon);
+    Stack.pop();
+}
 // ── Cloud upload ──
 export function CloudUploadIcon(size: number, color: string, parent = null) {
     (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {

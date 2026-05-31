@@ -26,6 +26,11 @@ export struct ScopeSelectionPageContent {
     this.selectedTags = new Set(appState.selectedTags)
   }
 
+  aboutToDisappear(): void {
+    appState.selectedTags = new Set(this.selectedTags)
+    appState.saveAppState()
+  }
+
   build() {
     NavDestination() {
       Column() {

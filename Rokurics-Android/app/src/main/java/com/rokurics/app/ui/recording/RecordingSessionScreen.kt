@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -106,7 +107,7 @@ fun RecordingSessionScreen(
         }
     }
 
-    // Low-power mode entry timer
+    // Low-power mode entry timer — monitors inactivity for auto-dimming
     LaunchedEffect(state, userInteractionTick, isAppActive, isFiling) {
         if (!canEnterLowPowerMode() || isLowPowerMode) return@LaunchedEffect
         delay(LOW_POWER_INACTIVITY_DELAY_MS)
@@ -115,27 +116,17 @@ fun RecordingSessionScreen(
             lowPowerMinuteText = String.format("%02d", totalSecs / 60)
             isLowPowerMode = true
         }
+        // Exit low-power mode when conditions are no longer met or app resumes
+        if (!canEnterLowPowerMode() || (isAppActive && isLowPowerMode)) {
+            isLowPowerMode = false
+        }
     }
 
-    // Update low-power minute text
+    // Update low-power minute text while in low-power mode
     LaunchedEffect(isLowPowerMode, elapsedSeconds) {
         if (isLowPowerMode) {
             val totalSecs = elapsedSeconds.toInt().coerceAtLeast(0)
             lowPowerMinuteText = String.format("%02d", totalSecs / 60)
-        }
-    }
-
-    // Exiting low-power mode when scene goes to background or state changes
-    LaunchedEffect(state, isAppActive) {
-        if (!canEnterLowPowerMode()) {
-            isLowPowerMode = false
-        }
-    }
-
-    // Exit low-power mode on scene resume (refresh timer)
-    LaunchedEffect(isAppActive) {
-        if (isAppActive && isLowPowerMode) {
-            isLowPowerMode = false
         }
     }
 
@@ -280,7 +271,8 @@ fun RecordingSessionScreen(
                             fillOpacity = 0.36f,
                             strokeOpacity = 0.50f,
                             shadowOpacity = 0.14f,
-                            shadowRadius = 12.dp
+                            shadowRadius = 12.dp,
+                            fillColor = if (isSystemInDarkTheme()) RokuricsColors.glassSurfaceDark else Color.White
                         )
                         .rokuricsScaleClickable(onClick = { handleBack() }),
                     contentAlignment = Alignment.Center
@@ -319,17 +311,21 @@ fun RecordingSessionScreen(
             )
 
             // Timer card — iPhone parity: rokuricsLiquidGlassCard styling
+            val isDark = isSystemInDarkTheme()
+            val timerFill = if (isDark) RokuricsColors.glassSurfaceDark.copy(alpha = 0.40f)
+                else Color.White.copy(alpha = 0.36f)
+            val timerStrokeColor = Color.White.copy(alpha = if (isDark) 0.06f else 0.42f)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(34.dp))
-                    .background(Color.White.copy(alpha = 0.36f))
+                    .background(timerFill)
                     .background(
                         Brush.linearGradient(
                             colors = listOf(
-                                Color.White.copy(alpha = 0.42f),
-                                Color.White.copy(alpha = 0.06f),
-                                RokuricsColors.aqua.copy(alpha = 0.12f)
+                                timerStrokeColor,
+                                Color.White.copy(alpha = if (isDark) 0.03f else 0.06f),
+                                RokuricsColors.aqua.copy(alpha = if (isDark) 0.08f else 0.12f)
                             ),
                             start = Offset(0f, 0f),
                             end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
@@ -544,8 +540,8 @@ fun RecordingSessionScreen(
                 onSubjectChange = { filingSubject = it },
                 onChapterChange = { filingChapter = it },
                 onTopicChange = { filingTopic = it },
-                items = studyLibraryStore.allStudyItems(),
-                folders = studyLibraryStore.allStudyFolders(),
+                items = studyLibraryStore.allStudyItems,
+                folders = studyLibraryStore.allStudyFolders,
                 onSave = {
                     val filing = StudyFilingPath(
                         type = filingType.ifEmpty { null },
@@ -605,10 +601,18 @@ fun FilingOverlay(
         activeLevel = autoLevel
     }
 
-    // Collect candidates
-    val candidates = remember(items, folders, activeLevel) {
+    // Collect candidates — filter by ancestor selections (iOS parity: StudyFilingCandidateResolver)
+    val candidates = remember(items, folders, activeLevel, type, subject, chapter) {
         val values = mutableSetOf<String>()
         for (item in items) {
+            val matchesAncestors = when (activeLevel) {
+                StudyFolderLevel.TYPE -> true
+                StudyFolderLevel.SUBJECT -> item.filingPath.type == type
+                StudyFolderLevel.CHAPTER -> item.filingPath.type == type && item.filingPath.subject == subject
+                StudyFolderLevel.TOPIC -> item.filingPath.type == type && item.filingPath.subject == subject && item.filingPath.chapter == chapter
+                StudyFolderLevel.CUSTOM -> false
+            }
+            if (!matchesAncestors) continue
             val v = when (activeLevel) {
                 StudyFolderLevel.TYPE -> item.filingPath.type
                 StudyFolderLevel.SUBJECT -> item.filingPath.subject
@@ -619,6 +623,14 @@ fun FilingOverlay(
             if (v != null && v.isNotEmpty()) values.add(v)
         }
         for (folder in folders) {
+            val matchesAncestors = when (activeLevel) {
+                StudyFolderLevel.TYPE -> true
+                StudyFolderLevel.SUBJECT -> folder.path.type == type
+                StudyFolderLevel.CHAPTER -> folder.path.type == type && folder.path.subject == subject
+                StudyFolderLevel.TOPIC -> folder.path.type == type && folder.path.subject == subject && folder.path.chapter == chapter
+                StudyFolderLevel.CUSTOM -> false
+            }
+            if (!matchesAncestors) continue
             val v = when (activeLevel) {
                 StudyFolderLevel.TYPE -> folder.path.type
                 StudyFolderLevel.SUBJECT -> folder.path.subject
@@ -631,10 +643,13 @@ fun FilingOverlay(
         values.toList().sorted()
     }
 
+    val isDark = isSystemInDarkTheme()
+    val overlayBg = if (isDark) Color.Black.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.18f)
+    val dialogBg = if (isDark) Color(0xFF0D2424).copy(alpha = 0.90f) else Color.White.copy(alpha = 0.52f)
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White.copy(alpha = 0.18f))
+            .background(overlayBg)
             .clickable(enabled = false) { /* consume clicks */ },
         contentAlignment = Alignment.Center
     ) {
@@ -643,7 +658,7 @@ fun FilingOverlay(
                 .padding(horizontal = 24.dp)
                 .widthIn(max = 360.dp),
             shape = RoundedCornerShape(30.dp),
-            color = Color.White.copy(alpha = 0.52f),
+            color = dialogBg,
             tonalElevation = 4.dp,
             shadowElevation = 14.dp
         ) {
@@ -825,13 +840,15 @@ fun FilingLevelButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isDark = isSystemInDarkTheme()
     Surface(
         modifier = modifier.clickable(enabled = isEnabled, onClick = onClick),
         shape = RoundedCornerShape(13.dp),
         color = if (isActive) RokuricsColors.aqua.copy(alpha = 0.15f)
+        else if (isDark) RokuricsColors.glassSurfaceDark.copy(alpha = 0.25f)
         else Color.White.copy(alpha = 0.2f),
         border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, RokuricsColors.aqua.copy(alpha = 0.46f))
-        else androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
+        else androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = if (isDark) 0.06f else 0.12f))
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp)
@@ -863,6 +880,7 @@ fun RecordButton(
     enabled: Boolean = true,
     onClick: () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
     Box(
         modifier = modifier
             .height(76.dp)
@@ -872,7 +890,8 @@ fun RecordButton(
                 fillOpacity = if (enabled) 0.38f else 0.24f,
                 strokeOpacity = 0.34f,
                 shadowOpacity = if (enabled) 0.08f else 0.03f,
-                shadowRadius = 12.dp
+                shadowRadius = 12.dp,
+                fillColor = if (isDark) RokuricsColors.glassSurfaceDark else RokuricsColors.glassSurface
             ),
         contentAlignment = Alignment.Center
     ) {

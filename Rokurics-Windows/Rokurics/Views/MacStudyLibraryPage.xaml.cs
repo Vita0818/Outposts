@@ -517,6 +517,7 @@ public sealed partial class MacStudyLibraryPage : Page
         // Load AI summary preview from summary.json
         LoadSummaryPreview(item);
 
+        this.FindName("DetailPanel");
         BrowserPanel.Visibility = Visibility.Collapsed;
         DetailPanel.Visibility = Visibility.Visible;
 
@@ -773,6 +774,7 @@ public sealed partial class MacStudyLibraryPage : Page
 
     private void ShowTranscriptView(StudyItemMetadata item)
     {
+        this.FindName("TranscriptPanel");
         DetailPanel.Visibility = Visibility.Collapsed;
         BrowserPanel.Visibility = Visibility.Collapsed;
         TranscriptPanel.Visibility = Visibility.Visible;
@@ -849,6 +851,7 @@ public sealed partial class MacStudyLibraryPage : Page
 
     private void ShowNoteView(StudyItemMetadata item)
     {
+        this.FindName("NotePanel");
         DetailPanel.Visibility = Visibility.Collapsed;
         BrowserPanel.Visibility = Visibility.Collapsed;
         NotePanel.Visibility = Visibility.Visible;

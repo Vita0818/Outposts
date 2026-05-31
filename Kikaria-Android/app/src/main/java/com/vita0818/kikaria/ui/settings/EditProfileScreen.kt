@@ -22,10 +22,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -91,20 +94,25 @@ fun EditProfileScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            val avatarBitmap = remember(avatarUri) {
-                try {
-                    val uri = avatarUri?.let { Uri.parse(it) }
-                    if (uri != null) {
-                        context.contentResolver.openInputStream(uri)?.use { stream ->
-                            BitmapFactory.decodeStream(stream)
-                        }?.asImageBitmap()
-                    } else null
-                } catch (_: Exception) { null }
+            var avatarBitmap by remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+            LaunchedEffect(avatarUri) {
+                val bitmap = withContext(Dispatchers.IO) {
+                    try {
+                        val uri = avatarUri?.let { Uri.parse(it) }
+                        if (uri != null) {
+                            context.contentResolver.openInputStream(uri)?.use { stream ->
+                                BitmapFactory.decodeStream(stream)
+                            }?.asImageBitmap()
+                        } else null
+                    } catch (_: Exception) { null }
+                }
+                avatarBitmap = bitmap
             }
 
-            if (avatarBitmap != null) {
+            val bitmap = avatarBitmap
+            if (bitmap != null) {
                 Image(
-                    bitmap = avatarBitmap,
+                    bitmap = bitmap,
                     contentDescription = "头像",
                     modifier = Modifier
                         .size(92.dp)

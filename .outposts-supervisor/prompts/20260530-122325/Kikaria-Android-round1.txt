@@ -1,0 +1,63 @@
+MANDATORY PREFLIGHT
+MODEL_CHECK_RESULT: 当前模型必须是 DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]。否则立即停止并报告 MODEL_MISMATCH。
+PATH_CHECK_RESULT: 当前工作目录必须严格等于 /Users/vita/Vitemis/Outposts/Kikaria-Android。否则立即停止并报告 WORKDIR_MISMATCH。
+SOURCE_READONLY_CHECK: Apple 源项目 /Users/vita/Vitemis/Vela/Kikaria 只读；参考图目录 /Users/vita/Vitemis/Outposts/Kikaria-Ref 只读；所有写入只允许在当前目标项目目录和本批 visual-evidence 目录内。不得读取/发送密钥、token、.env、证书或私密配置。
+
+PROJECT: Kikaria-Android
+ROUND_INDEX: 1
+BATCH_NAME: outposts-screenshot-gated-ui-and-kikaria-h-build-fix
+RUN_ID: 20260530-122325
+EVIDENCE_DIR: /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-screenshot-gated-ui-and-kikaria-h-build-fix/20260530-122325/Kikaria-Android
+
+本轮最高规则：先完成 SCREENSHOT_PREFLIGHT。actual screenshot 未生成前，不得修改 UI，不得构建，不得测试，不得做自评式修复。
+
+SCREENSHOT_PREFLIGHT:
+1. 使用 Android SDK adb 绝对路径：/Users/vita/Library/Android/sdk/platform-tools/adb
+2. 执行或等价确认：ANDROID_ADB="/Users/vita/Library/Android/sdk/platform-tools/adb"; "$ANDROID_ADB" devices -l
+3. 若 adb 不存在，报告 ADB_NOT_FOUND_AT_EXPECTED_PATH 并停止本项目。
+4. 若 adb 存在但无 emulator/device，报告 ANDROID_EMULATOR_NOT_CONNECTED 并停止本项目；不得 UI 修改/构建/测试。
+5. 若发现设备，必须显式使用 -s <DEVICE_SERIAL> 截图：
+   "$ANDROID_ADB" -s <DEVICE_SERIAL> exec-out screencap -p > /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-screenshot-gated-ui-and-kikaria-h-build-fix/20260530-122325/Kikaria-Android/actual/home.png
+6. 多设备时必须显式选择正确设备，不得把错误设备截图当作本项目截图。
+
+截图链通过后再执行：
+1. 读取 /Users/vita/Vitemis/Outposts/Kikaria-Ref 中首页、背诵页相关 reference screenshot。
+2. 调用 qwen-vision.inspect_screenshot 分析 reference。
+3. 调用 qwen-vision.inspect_screenshot 分析 actual/home.png。
+4. 若 reference + actual 都可用，调用 qwen-vision.compare_screenshots。
+5. 基于 qwen 差异和 Apple Kikaria 源码，只修首页和背诵页 UI 结构/位置/布局层级；不要无感小修。
+6. 修后再尽量运行 assembleDebug / testDebug。
+
+禁止：
+- 不得修改 Apple 源项目或参考图目录。
+- 不得 git clean/reset/restore/checkout。
+- 不得删除 visual-evidence、截图、qwen 输出、state、checkpoint、report。
+- 不得把源码、密钥、token、.env、证书传给 qwen-vision。
+- 不得在没有 actual screenshot 时声称完成视觉验收。
+
+最终报告必须包含：
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+SCREENSHOT_PREFLIGHT_RESULT
+ANDROID_ADB_PATH
+ANDROID_ADB_STATUS
+ANDROID_DEVICE_SERIALS
+ANDROID_SCREENSHOT_CHAIN_STATUS
+ANDROID_SCREENSHOT_BLOCKER
+ACTUAL_SCREENSHOT_PATH
+REFERENCE_SCREENSHOTS_USED
+QWEN_REQUIRED
+QWEN_CALLED
+QWEN_VALID_VISUAL_EVIDENCE
+QWEN_COMPARE_SCREENSHOTS_COMPLETED
+VISION_RESULT_SUMMARY
+BUILD_ALLOWED_AFTER_SCREENSHOT_GATE
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION

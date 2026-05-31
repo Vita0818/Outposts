@@ -52,8 +52,8 @@ object RokuricsColors {
     val shadowDark = Color(0xFF000808)
 
     // ── Gradients ───────────────────────────────────────────────────
-    val actionGradientLight = listOf(Color(0xFF4FC2C0), Color(0xFF99E6C2))
-    val actionGradientDark = listOf(Color(0xFF128080), Color(0xFF2BAB82))
+    val actionGradientLight = listOf(Color(0xFF5BAFA8), Color(0xFF8EC9B0))
+    val actionGradientDark = listOf(Color(0xFF1A6E6E), Color(0xFF2D9A78))
     val actionGradient = actionGradientLight
 
     val pageGradientLight = listOf(Color(0xFFF0FFF8), Color(0xFFDCF8F5), Color(0xFFF2FAFF))
@@ -68,19 +68,22 @@ object RokuricsColors {
     val white = Color(0xFFFFFFFF)
     val pageBackground = pageGradient[0]
 
-    // ── Brush helpers (light mode, non-Composable) ──────────────────
+    // ── Brush helpers (DEPRECATED: light-only, won't update with dark mode) ──
+    @Deprecated("Use adaptivePageGradientBrush() or similar @Composable function for dark mode support")
     val actionGradientBrush: Brush = Brush.linearGradient(
         colors = actionGradientLight,
         start = Offset(0f, 0f),
         end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
     )
 
+    @Deprecated("Use adaptivePageGradientBrush() @Composable function instead")
     val pageGradientBrush: Brush = Brush.linearGradient(
         colors = pageGradientLight,
         start = Offset(0f, 0f),
         end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
     )
 
+    @Deprecated("Use adaptivePageGradientBrush() or create a dark-mode-aware Composable alternative")
     val quietGradientBrush: Brush = Brush.linearGradient(
         colors = quietGradientLight,
         start = Offset(0f, 0f),

@@ -164,7 +164,7 @@ class StudyLibraryBrowserTest {
         val normal = StudyBrowseFolder(id = "f1", levelKey = "type", title = "Math")
         assertFalse(normal.isFallback)
 
-        val fallback = StudyBrowseFolder(id = "f2", levelKey = "type", title = "未分类", isFallback = true)
+        val fallback = StudyBrowseFolder(id = "f2", levelKey = "type", title = "未分类")
         assertTrue(fallback.isFallback)
     }
 }

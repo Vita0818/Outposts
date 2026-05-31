@@ -1,0 +1,89 @@
+[OUTPOSTS ROUND 1 - Rokurics-Android]
+
+Mandatory preflight first. If any check fails, stop and report.
+
+MODEL_CHECK_RESULT:
+Current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop.
+
+PATH_CHECK_RESULT:
+Current working directory must be exactly:
+/Users/vita/Vitemis/Outposts/Rokurics-Android
+If not, stop.
+
+SOURCE_READONLY_CHECK:
+Apple source is read-only:
+/Users/vita/Vitemis/Vela/Rokurics
+Reference screenshots are read-only:
+/Users/vita/Vitemis/Outposts/Rokurics-iOS-Ref
+Writes are allowed only inside this target project and:
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-android-windows-screenshot-compare-fix/20260530-134543/Rokurics-Android
+Do not read or send secrets, tokens, .env, certificates, private keys, p12, provisioning profiles, API keys, or Keychain content.
+Do not run git clean/reset/restore/checkout. Do not commit/push/PR. Do not delete visual-evidence, qwen output, state, checkpoint, or reports.
+
+Batch goal:
+User feedback says Rokurics-Android UI style and layout are far from iOS. This round must prevent wrong-app screenshots and must use actual Android screenshot evidence plus qwen comparison before UI changes.
+
+Required order:
+1. Acquire ANDROID_EMULATOR_LOCK for Rokurics-Android. Only one Android project may operate the emulator at a time.
+2. Confirm adb absolute path:
+/Users/vita/Library/Android/sdk/platform-tools/adb
+Do not merely run "adb" and report not found.
+3. Run adb devices -l with that adb path. Select the emulator serial explicitly.
+4. Read applicationId from this project's Gradle/Android config. Do not guess package name.
+5. Check whether the app is installed. If not installed, run the minimum current-project install command such as ./gradlew installDebug or the project-equivalent install task. This install is part of SCREENSHOT_PREFLIGHT only and must not be paired with UI edits.
+6. Launch the target app automatically:
+/Users/vita/Library/Android/sdk/platform-tools/adb -s <DEVICE_SERIAL> shell monkey -p <APPLICATION_ID> -c android.intent.category.LAUNCHER 1
+If monkey fails, confirm the main Activity from manifest/Gradle/device package manager output, then use adb shell am start -n. Do not guess Activity.
+7. Before screenshot, verify the foreground package equals applicationId using dumpsys activity/window/pidof or equivalent. If mismatch, relaunch and recheck up to 2 times. Do not screenshot Kikaria or another app.
+8. Save actual screenshot with a unique filename under:
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-android-windows-screenshot-compare-fix/20260530-134543/Rokurics-Android/actual/
+Example filename: round1-dashboard-rokurics-<timestamp>.png
+9. Select high-value iOS reference screenshots from:
+/Users/vita/Vitemis/Outposts/Rokurics-iOS-Ref
+If you copy reference screenshots for evidence, copy only into the evidence reference directory and do not modify the source reference dir.
+10. Call qwen-vision.inspect_screenshot on the reference screenshot(s).
+11. Call qwen-vision.inspect_screenshot on the actual screenshot(s).
+12. If reference + actual are both available, call qwen-vision.compare_screenshots.
+13. Only after screenshot chain and qwen analysis, modify UI based on qwen differences and Apple source UI structure.
+14. Focus on Dashboard, Study Library, RecordingDetail, mini-player, bottom navigation, dark glass style, upload progress, waveform/inline playback, settings/provider/AI entry.
+15. Keep the result high-end, minimal, and iOS-aligned; do not invent UI from text description.
+16. Run build/tests using existing project commands if feasible.
+17. Release ANDROID_EMULATOR_LOCK.
+
+qwen rules:
+qwen-vision is only for inspect_screenshot, compare_screenshots, extract_text_and_controls. qwen does not modify files. Do not send source code or secrets to qwen.
+
+If the screenshot chain fails:
+Report the exact blocker. Do not continue self-evaluation UI modifications.
+
+Final report fields:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+REFERENCE_SCREENSHOTS_USED
+ACTUAL_SCREENSHOTS
+QWEN_CALLED
+QWEN_VALID_VISUAL_EVIDENCE
+QWEN_COMPARE_SCREENSHOTS_COMPLETED
+VISION_TOOLS_CALLED
+VISION_RESULT_SUMMARY
+UI_CHANGES_FROM_COMPARE
+BUILD_RESULT
+TEST_RESULT
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION
+ANDROID_EMULATOR_LOCK_STATUS
+ANDROID_ADB_PATH
+ANDROID_DEVICE_SERIALS
+APPLICATION_ID
+INSTALL_NEEDED_FOR_SCREENSHOT
+INSTALL_COMMAND
+INSTALL_RESULT
+APP_LAUNCH_COMMAND
+FOREGROUND_PACKAGE_CHECK
+WRONG_APP_SCREENSHOT_PREVENTED
+ACTUAL_SCREENSHOT_FINAL_PATH
+ANDROID_SCREENSHOT_CHAIN_STATUS

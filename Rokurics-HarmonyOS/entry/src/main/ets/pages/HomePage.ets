@@ -2,11 +2,12 @@
  * Home page - mirrors RokuricsHomeView.swift
  */
 import { display } from '@kit.ArkUI'
+import { ConfigurationConstant } from '@kit.AbilityKit'
 import { getSharedRecordingManager, RecordingManager } from '../services/RecordingManager'
 import { RecordingState } from '../models/RecordingModels'
 import { formatClock } from '../utils/FormatHelpers'
 import { colorAlpha, RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity,
-  glassStrokeMidOpacity, glassAccentOpacity } from '../utils/RokuricsTheme'
+  glassStrokeMidOpacity, glassAccentOpacity, applyColorMode } from '../utils/RokuricsTheme'
 import { PersonIcon, BooksIcon, ChatIcon, ConnectionIcon } from '../utils/CustomIcons'
 import { hapticLight } from '../utils/HapticFeedback'
 import { DeviceConnectionCard } from '../components/DeviceConnectionCard'
@@ -15,6 +16,7 @@ import { DeviceConnectionCard } from '../components/DeviceConnectionCard'
 @Component
 struct HomePage {
   private recordingManager: RecordingManager = getSharedRecordingManager(getContext(this))
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET
   @State state: RecordingState = RecordingState.IDLE
   @State isActive: boolean = false
   @State breathePhase: number = 0
@@ -51,12 +53,21 @@ struct HomePage {
   }
 
   private startBreathing(): void {
-    const update = () => {
-      const t = Date.now() / 1000
-      this.breathePhase = Math.sin(t * Math.PI / 2.4) * 0.5 + 0.5
-      setTimeout(update, 50)
+    const runBreatheIn = () => {
+      animateTo({
+        duration: 2400,
+        curve: Curve.EaseInOut,
+        onFinish: () => { runBreatheOut() }
+      }, () => { this.breathePhase = 1.0 })
     }
-    update()
+    const runBreatheOut = () => {
+      animateTo({
+        duration: 2400,
+        curve: Curve.EaseInOut,
+        onFinish: () => { runBreatheIn() }
+      }, () => { this.breathePhase = 0.0 })
+    }
+    runBreatheIn()
   }
 
   private isActiveState(s: RecordingState): boolean {
@@ -69,6 +80,7 @@ struct HomePage {
   }
 
   build() {
+    applyColorMode(this.colorMode)
     Stack() {
       // Ambient background bubbles
       this.AmbientBackground()

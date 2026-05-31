@@ -126,3 +126,46 @@ NEXT_ACTION
 - 用户是否要求暂停自动发送 prompt。
 
 用户接管后，Codex Agent 不得继续向该会话发送正式任务 prompt，除非用户明确恢复自动调度。
+
+## Claude Code Desktop 启动纪律
+
+Claude Code Desktop 自行管理 Outposts 时，也必须遵循同样的真实终端纪律。每个项目一个独立会话；不得把多个项目塞进同一 Claude Code 上下文；不得在 `/Users/vita/Vitemis/Outposts` 根目录直接执行子项目正式任务。
+
+固定启动序列：
+
+```bash
+cd <目标项目路径>
+pwd
+claude
+```
+
+`pwd` 输出必须严格等于目标项目路径。若不匹配，立即停止，不得发送正式任务 prompt。
+
+正式任务前必须发送：
+
+```text
+[H]
+只回一行，不读文件，不改文件，不构建，不测试：
+MODEL=<当前模型>; PWD=<当前工作目录>; READY=<YES/NO>
+```
+
+`MODEL` 必须是 DeepSeek V4 Pro / `deepseek-v4-pro` / `deepseek-v4-pro[1m]`。不接受 Flash、Opus、Sonnet、Haiku、GPT、unknown 或其他非预期模型。`READY=YES` 且 `PWD` 正确后才允许发送正式任务。
+
+## 禁用正式任务通道
+
+以下机制不得作为正式迁移主通道：
+
+- 隐藏 headless。
+- `claude -p`。
+- stdin feed。
+- task-file launcher。
+- `--resume` 旧会话。
+- 用户不可见的后台 stdout。
+
+可观察 live log、`screen` 或 `tmux` 只能作为用户可见窗口的辅助读取层，不能替代真实可观察会话。
+
+## 监测与报告触发
+
+活跃会话约每 30 秒读取一次。读取目的只包括确认新输出、等待输入、工具调用、构建/测试状态、qwen 调用、结构化报告和错误。不得高频轮询，不得把“进程还活着”当作进展。
+
+哪个项目先输出结构化报告，就先处理哪个项目。不得等待所有项目统一完成。

@@ -1,17 +1,20 @@
 /**
  * Auth & Test detail page — mirrors iOS transcription authorization / test sub-page
  */
-import { colorAlpha, RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
+import { ConfigurationConstant } from '@kit.AbilityKit'
+import { colorAlpha, RokuricsColors, FontWeight, applyColorMode } from '../utils/RokuricsTheme'
 import { BackIcon } from '../utils/CustomIcons'
 
 @Entry
 @Component
 struct AuthTestPage {
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET
   @State isTesting: boolean = false
   @State testResult: string = ''
   @State lastTestTime: string = ''
 
   build() {
+    applyColorMode(this.colorMode)
     Column() {
       // Header
       Row() {

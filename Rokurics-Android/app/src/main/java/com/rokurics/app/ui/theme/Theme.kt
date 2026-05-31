@@ -38,6 +38,7 @@ fun RokuricsTheme(content: @Composable () -> Unit) {
     val useDarkTheme = isSystemInDarkTheme()
     MaterialTheme(
         colorScheme = if (useDarkTheme) DarkColorScheme else LightColorScheme,
+        typography = RokuricsTypographyTokens,
         content = content
     )
 }

@@ -29,7 +29,7 @@ import { formatDuration, formatShortTime } from "@bundle:com.vita0818.rokurics/e
 import { colorAlpha, RokuricsColors, FontWeight } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 import { StudyFolderStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/StudyFolderStore";
 const HIERARCHY_LEVELS: string[] = ['type', 'subject', 'chapter', 'topic'];
-const FOLDER_COLORS: string[] = ['#59C7C2', '#9EE8C7', '#73C7F0', '#E06B6E', '#B8A6D6', '#6B9FD4'];
+const FOLDER_COLORS: string[] = [RokuricsColors.aqua, RokuricsColors.mint, RokuricsColors.skyCyan, RokuricsColors.coral, '#B8A6D6', '#6B9FD4'];
 interface FilingGroup {
     path: string;
     level: string;
@@ -53,7 +53,7 @@ class StudyLibraryBrowserPage extends ViewPU {
         this.__showCreateFolder = new ObservedPropertySimplePU(false, this, "showCreateFolder");
         this.__newFolderName = new ObservedPropertySimplePU('', this, "newFolderName");
         this.__newFolderLevel = new ObservedPropertySimplePU('', this, "newFolderLevel");
-        this.__newFolderColor = new ObservedPropertySimplePU('#59C7C2', this, "newFolderColor");
+        this.__newFolderColor = new ObservedPropertySimplePU(RokuricsColors.aqua, this, "newFolderColor");
         this.__showRenameFolder = new ObservedPropertySimplePU(false, this, "showRenameFolder");
         this.__renameTargetId = new ObservedPropertySimplePU('', this, "renameTargetId");
         this.__renameText = new ObservedPropertySimplePU('', this, "renameText");
@@ -392,7 +392,14 @@ class StudyLibraryBrowserPage extends ViewPU {
             Column.create();
             Column.width('100%');
             Column.height('100%');
-            Column.backgroundColor(RokuricsColors.pageBackground);
+            Column.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.pageGradientStart, 1.0],
+                    [RokuricsColors.pageGradientMid, 1.0],
+                    [RokuricsColors.pageGradientEnd, 1.0]
+                ]
+            });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Header
@@ -975,7 +982,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                         Column.create({ space: 16 });
                         Column.padding(24);
                         Column.borderRadius(20);
-                        Column.backgroundColor(Color.White);
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6'));
                         Column.width('85%');
                         Column.shadow({ radius: 30, color: '#20000000' });
                     }, Column);
@@ -1074,7 +1081,7 @@ class StudyLibraryBrowserPage extends ViewPU {
                         Column.create({ space: 16 });
                         Column.padding(24);
                         Column.borderRadius(20);
-                        Column.backgroundColor(Color.White);
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6'));
                         Column.width('85%');
                         Column.shadow({ radius: 30, color: '#20000000' });
                     }, Column);
@@ -1244,7 +1251,7 @@ class StudyLibraryBrowserPage extends ViewPU {
         await store.setColorToken(record.id, this.newFolderColor);
         this.showCreateFolder = false;
         this.newFolderName = '';
-        this.newFolderColor = '#59C7C2';
+        this.newFolderColor = RokuricsColors.aqua;
         await this.loadData();
     }
     private async commitRenameFolder(): Promise<void> {

@@ -12,12 +12,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,7 +36,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vita0818.kikaria.ui.components.KikariaFormPageShell
@@ -181,10 +189,14 @@ private fun SettingsToggleRow(title: String, isOn: Boolean, scale: Float = 1f, o
     val isDark = isSystemInDarkTheme()
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
     val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+    val thumbOffset by animateDpAsState(
+        targetValue = if (isOn) 20.dp else 0.dp,
+        animationSpec = tween(200)
+    )
     Row(Modifier.fillMaxWidth().padding(horizontal = (18 * scale).dp, vertical = (16 * scale).dp), verticalAlignment = Alignment.CenterVertically) {
         Text(KikariaTypography.mixedText(title, size = (17 * scale).toInt(), weight = FontWeight.Medium), color = deepText, modifier = Modifier.weight(1f))
-        Box(Modifier.size(51.dp, 31.dp).clip(RoundedCornerShape(16.dp)).background(if (isOn) sky else (if (isDark) KikariaColors.MistDark else KikariaColors.Mist)).clickable { onToggle(!isOn) }, contentAlignment = if (isOn) Alignment.CenterEnd else Alignment.CenterStart) {
-            Box(Modifier.padding(4.dp).size(23.dp).clip(CircleShape).background(Color.White).shadow(2.dp, CircleShape))
+        Box(Modifier.size(51.dp, 31.dp).clip(RoundedCornerShape(16.dp)).background(if (isOn) sky else (if (isDark) KikariaColors.MistDark else KikariaColors.Mist)).clickable { onToggle(!isOn) }, contentAlignment = Alignment.CenterStart) {
+            Box(Modifier.offset(x = thumbOffset).padding(4.dp).size(23.dp).clip(CircleShape).background(Color.White).shadow(2.dp, CircleShape))
         }
     }
 }
@@ -205,7 +217,7 @@ private fun SettingsButton(text: String, isPrimary: Boolean = true, buttonScale:
 private fun PickerDialog(title: String, valueText: String, isDark: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit, onClear: (() -> Unit)? = null, content: @Composable () -> Unit) {
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
     val actionGrad = if (isDark) KikariaColors.ActionGradientDark else KikariaColors.ActionGradientLight
-    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.001f)).clickable { onDismiss() }, contentAlignment = Alignment.Center) {
+    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.35f)).clickable { onDismiss() }, contentAlignment = Alignment.Center) {
         KikariaGlassCard(Modifier.padding(horizontal = 34.dp).fillMaxWidth(), cornerRadius = 28.dp, fillOpacity = 0.50f) {
             Column(Modifier.padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -224,11 +236,35 @@ private fun PickerDialog(title: String, valueText: String, isDark: Boolean, onDi
 @Composable
 private fun PickerWheel(values: List<Int>, selected: Int, formatLabel: (Int) -> String, onSelected: (Int) -> Unit, isDark: Boolean) {
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
+    val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
+    var textValue by remember(selected) { mutableStateOf(formatLabel(selected).replace(Regex("[^0-9]"), "")) }
     Box(Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(16.dp)).background((if (isDark) KikariaColors.MistDark else KikariaColors.Mist).copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.clip(RoundedCornerShape(12.dp)).clickable { val idx = values.indexOf(selected); if (idx > 0) onSelected(values[idx - 1]) }.padding(12.dp)) { Text("‹", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = deepText) }
             Spacer(Modifier.width(16.dp))
-            Text(KikariaTypography.mixedText(formatLabel(selected), size = 20, weight = FontWeight.SemiBold), color = deepText)
+            androidx.compose.foundation.text.BasicTextField(
+                value = textValue,
+                onValueChange = { newText ->
+                    val digits = newText.filter { it.isDigit() }
+                    textValue = digits
+                    val parsed = digits.toIntOrNull()
+                    if (parsed != null) {
+                        val clamped = values.minOf { it }.let { min ->
+                            values.maxOf { it }.let { max -> parsed.coerceIn(min, max) }
+                        }
+                        onSelected(clamped)
+                    }
+                },
+                textStyle = TextStyle(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = deepText,
+                    textAlign = TextAlign.Center
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                modifier = Modifier.widthIn(min = 60.dp, max = 100.dp)
+            )
             Spacer(Modifier.width(16.dp))
             Box(Modifier.clip(RoundedCornerShape(12.dp)).clickable { val idx = values.indexOf(selected); if (idx < values.size - 1) onSelected(values[idx + 1]) }.padding(12.dp)) { Text("›", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = deepText) }
         }

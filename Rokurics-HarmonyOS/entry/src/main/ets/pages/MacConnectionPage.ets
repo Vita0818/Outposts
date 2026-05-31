@@ -2,8 +2,9 @@
  * Mac connection page - mirrors MacConnectionView.swift
  * Pairing form, connection test, paired device view
  */
+import { ConfigurationConstant } from '@kit.AbilityKit'
 import { colorAlpha, RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity,
-  glassStrokeMidOpacity, glassAccentOpacity } from '../utils/RokuricsTheme'
+  glassStrokeMidOpacity, glassAccentOpacity, applyColorMode } from '../utils/RokuricsTheme'
 import { BackIcon, ConnectionIcon } from '../utils/CustomIcons'
 import { DeviceConnectionCard } from '../components/DeviceConnectionCard'
 
@@ -24,11 +25,13 @@ struct MacConnectionPage {
   @State connectionStatus: string = 'offline'
   @State isTesting: boolean = false
   @State isPairing: boolean = false
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET
   @State feedbackText: string = ''
   @State feedbackError: string = ''
   @State isFingerprintVisible: boolean = false
 
   build() {
+    applyColorMode(this.colorMode)
     Column() {
       // Header
       Row() {
@@ -273,11 +276,22 @@ struct MacConnectionPage {
 
       // Device name and IP
       Column({ space: 4 }) {
-        Text(this.deviceModel || 'MacBook Pro')
-          .fontSize(24)
-          .fontWeight(FontWeight.Bold)
-          .fontFamily('serif')
-          .fontColor(RokuricsColors.deepText)
+        Row({ space: 8 }) {
+          Text(this.deviceModel || 'MacBook Pro')
+            .fontSize(24)
+            .fontWeight(FontWeight.Bold)
+            .fontFamily('serif')
+            .fontColor(RokuricsColors.deepText)
+          Text('演示')
+            .fontSize(10)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(RokuricsColors.coral)
+            .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+            .borderRadius(4)
+            .backgroundColor(colorAlpha(RokuricsColors.coral, '18'))
+            .border({ width: 1, color: colorAlpha(RokuricsColors.coral, '40'), radius: 4 })
+        }
+        .justifyContent(FlexAlign.Center)
         Text(`10.195.248.123 · ${this.macPortText}`)
           .fontSize(14)
           .fontWeight(FontWeight.Medium)
@@ -340,7 +354,7 @@ struct MacConnectionPage {
           offsetY: 6
         })
         .onClick(() => {
-          this.feedbackText = '同步完成 (Mock)'
+          this.feedbackText = '同步完成 [演示模式]'
           this.feedbackError = ''
         })
 
@@ -452,10 +466,10 @@ struct MacConnectionPage {
     this.feedbackText = '正在测试连接...'
     this.feedbackError = ''
 
-    // Mock test (real implementation would use HTTPS client)
+    // Demo stub — real implementation requires HTTPS client
     setTimeout(() => {
       this.isTesting = false
-      this.feedbackText = '连接测试完成 (Mock)'
+      this.feedbackText = '连接测试完成 [演示模式]'
       this.feedbackError = ''
     }, 1500)
   }
@@ -465,14 +479,13 @@ struct MacConnectionPage {
     this.feedbackText = '正在配对...'
     this.feedbackError = ''
 
-    // Mock pairing (real implementation would use crypto handshake)
+    // Demo stub — real implementation requires crypto handshake
     setTimeout(() => {
       this.isPairing = false
-      // Simulate successful pairing
       this.isPaired = true
       this.deviceModel = 'Mac'
       this.connectionStatus = 'connected'
-      this.feedbackText = '配对成功'
+      this.feedbackText = '配对成功 [演示模式]'
       this.feedbackError = ''
     }, 2000)
   }

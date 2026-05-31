@@ -1,0 +1,55 @@
+BEGIN_PROMPT: Do not execute until you receive END_PROMPT.
+
+[ROUND 2 / BATCH outposts-ui-structure-build-recovery-winui-native-round]
+
+Mandatory preflight:
+1. MODEL_CHECK_RESULT: current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop.
+2. PATH_CHECK_RESULT: current working directory must be /Users/vita/Vitemis/Outposts/Rokurics-Android. If not, stop.
+3. SOURCE_READONLY_CHECK: Apple source and Rokurics-iOS-Ref are read-only. Writes stay inside /Users/vita/Vitemis/Outposts/Rokurics-Android or .outposts-supervisor evidence/report paths.
+
+Context from Round 1:
+- qwen-vision inspected 8 Rokurics-iOS-Ref screenshots.
+- Actual screenshot unavailable because adb is missing; REFERENCE_ONLY is accepted.
+- assembleDebug passed via bash ./gradlew.
+- Round 1 improved AI chat, Mac connection, recording detail actions, study library cards, mini-player, and settings.
+- Remaining UI gaps include bottom nav glass, Dashboard extra cards vs iOS simplicity, chat bubble styling, audio player bar, recording session waveform, upload progress richness, and dark-mode hardcoded surface alphas.
+
+Round 2 task:
+- Continue reference-first iOS parity using the qwen insights already gathered.
+- Focus on the highest visible remaining gaps: bottom navigation/floating capsule glass, Dashboard/Home simplification, chat bubble/input visual polish, audio/mini-player consistency, and dark-mode adaptive surfaces.
+- Keep changes scoped and compile-safe. Do not invent UI from text; use Rokurics-iOS-Ref and Apple source as read-only reference.
+- If adb becomes available, capture actual screenshot and call qwen inspect/compare. If not, report REFERENCE_ONLY and continue.
+- Run assembleDebug after changes if feasible.
+
+Forbidden:
+- Do not modify Apple source or reference image directories.
+- Do not read/send secrets, .env, API keys, tokens, certificates, p12, ssh keys, Keychain contents.
+- Do not git clean/reset/restore/checkout. Do not commit/push/PR. Do not delete visual evidence.
+
+Final report fields:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+QWEN_REQUIRED
+QWEN_CALLED
+QWEN_VALID_VISUAL_EVIDENCE
+QWEN_COMPARE_SCREENSHOTS_COMPLETED
+REFERENCE_SCREENSHOTS_USED
+ACTUAL_SCREENSHOTS
+VISION_TOOLS_CALLED
+VISION_RESULT_SUMMARY
+USER_FEEDBACK_ADDRESSED
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+ACTUAL_SCREENSHOT_BLOCKER
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION
+
+END_PROMPT. Now execute Round 2 and return a structured report when complete.
+

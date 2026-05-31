@@ -125,3 +125,36 @@ Claude Code 读取本地项目内容并发送给外部模型服务前，必须�
 如果授权只允许只读恢复报告，则不得发送正式迁移 prompt，不得修改文件，不得运行构建测试。
 
 网络压缩、remote compact、stream disconnected 等问题出现时，按 `RECOVERY_PLAYBOOK.md` 处理。
+
+## Claude Code Desktop / Codex 共同安全边界
+
+Claude Code Desktop 可以在正式任务授权内读取 Apple 源项目、参考图目录和目标项目，并写目标项目；Codex Agent 不得读写业务源码、不得看具体业务 diff、不得运行构建测试。两者都不得读取或发送敏感文件。
+
+Apple 源项目只读：`/Users/vita/Vitemis/Vela`。参考图目录只读：
+
+- `/Users/vita/Vitemis/Outposts/Kikaria-Ref`
+- `/Users/vita/Vitemis/Outposts/Rokurics-iOS-Ref`
+- `/Users/vita/Vitemis/Outposts/Rokurics-macOS-Ref`
+
+Outposts 目标项目可读写，但只允许 Claude Code 主 Agent 在正式任务范围内写入对应目标项目目录，或写入 `.outposts-supervisor` 调度记录、视觉证据、checkpoint、report。
+
+## HarmonyOS 用户级工具链禁区
+
+HarmonyOS 项目不得删除、清理或修改：
+
+- `~/.hvigor`
+- 用户级 DevEco 缓存。
+- 用户级 HarmonyOS SDK、Hvigor、ohpm、npm、pnpm 缓存。
+- 全局工具链、全局包管理器状态。
+
+不得全局安装 `pnpm`、npm 包或 ohpm 包。若构建失败指向用户级工具链问题，只能报告 `HOST_ENV_BLOCKED` 或 `TOOLCHAIN_REPAIR_NEEDS_USER`，等待用户处理。
+
+## 视觉证据保护
+
+不得删除 `.outposts-supervisor/visual-evidence`、截图、qwen 输出、batch state、checkpoint、summary、report。视觉证据不是临时垃圾。重新截图必须新建 `RUN_ID` 目录，不得覆盖或删除旧证据。
+
+## 本地执行策略与计费异常
+
+本地执行策略拦截时，不得绕过，不得改用隐藏通道，不得请求全局授权。只请求当前对话、当前批次、当前路径、当前可见终端会话的最小授权。
+
+出现 API 402、DeepSeek 后台 Flash 增长、计费模型与握手模型不一致、Claude 握手返回 Opus/Sonnet/unknown 时，必须暂停启动新轮并报告。

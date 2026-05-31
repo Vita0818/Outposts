@@ -35,7 +35,7 @@ fun StudyReadingPage(
     audioFileStore: AudioFileStore = remember { AudioFileStore() },
     onBack: () -> Unit
 ) {
-    val item = studyLibraryStore.allStudyItems().find { it.recordingID == recordingID }
+    val item = studyLibraryStore.allStudyItems.find { it.recordingID == recordingID }
 
     var loadState by remember { mutableStateOf<ReadingLoadState>(ReadingLoadState.Loading) }
     val title = item?.title ?: "录音"

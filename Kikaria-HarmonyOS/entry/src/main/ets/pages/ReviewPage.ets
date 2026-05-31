@@ -276,41 +276,8 @@ export struct ReviewPageContent {
               .justifyContent(FlexAlign.Center)
             } else {
               Column({ space: 18 }) {
-                if (this.tags.length > 0) {
-                  Row({ space: 8 }) {
-                    ForEach(this.tags, (tag: string) => {
-                      Text(tag)
-                        .fontSize(12).fontWeight(FontWeight.Medium)
-                        .fontColor(KikariaColors.SOFT_TEXT)
-                        .backgroundColor(KikariaColors.MIST)
-                        .borderRadius(8)
-                        .padding({ left: 10, right: 10, top: 4, bottom: 4 })
-                    })
-                  }.width('100%').justifyContent(FlexAlign.Center)
-                }
-                Row() {
-                  Text(`今日复习: ${this.todayReviewCount} 次`)
-                    .fontSize(12).fontColor(KikariaColors.TERTIARY_TEXT)
-                }.width('100%').justifyContent(FlexAlign.Center)
-
-                Text(this.title)
-                  .fontSize(32).fontWeight(FontWeight.Bold)
-                  .fontColor(KikariaColors.DEEP_TEXT)
-                  .textAlign(TextAlign.Center).width('100%').padding({ top: 8 })
-
-                if (this.isHintVisible) {
-                  this.revealCard('💡 提示', KikariaColors.SKY, this.hint)
-                } else {
-                  this.primaryButton('💡 查看提示', KikariaColors.NEXT_GRADIENT_START, KikariaColors.NEXT_GRADIENT_END,
-                    () => { appState.showHint(); this.refreshFromState() }, true)
-                }
-                if (this.isContentVisible) {
-                  this.revealCard('📖 答案', KikariaColors.MASTERED_GREEN, this.content)
-                  this.actionPanel()
-                } else if (this.isHintVisible) {
-                  this.primaryButton('📖 查看答案', KikariaColors.ACTION_GRADIENT_START, KikariaColors.ACTION_GRADIENT_END,
-                    () => { appState.showContent(); this.refreshFromState() }, true)
-                }
+                this.readingColumn()
+                if (this.isContentVisible) { this.actionPanel() }
                 Row().height(40)
               }
               .width('100%')
@@ -336,9 +303,7 @@ export struct ReviewPageContent {
   advanceOrFinish(): void {
     if (this.hasNext) {
       appState.nextPoint()
-      setTimeout(() => {
-        this.refreshFromState()
-      }, 200)
+      this.refreshFromState()
     } else {
       navPathStack.pop()
     }

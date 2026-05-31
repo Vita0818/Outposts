@@ -62,14 +62,14 @@ class LocalNetworkSyncInventoryBuilder(
     }
 
     private fun buildFolderEntries(): List<LocalNetworkSyncFolderEntry> {
-        val folders = studyLibraryStore.allStudyFolders()
+        val folders = studyLibraryStore.allStudyFolders
         return folders.map { f ->
             LocalNetworkSyncFolderEntry(
                 folderID = f.folderID,
                 parentID = f.parentFolderID,
                 path = f.path.displaySummary,
                 name = f.name,
-                colorToken = f.colorToken.name,
+                colorToken = f.colorToken?.name,
                 updatedAt = f.updatedAt,
                 revisionHash = computeFolderHash(f),
                 deleted = f.isTrashed
@@ -78,7 +78,7 @@ class LocalNetworkSyncInventoryBuilder(
     }
 
     private fun buildStudyItemEntries(): List<LocalNetworkSyncStudyItemEntry> {
-        val items = studyLibraryStore.allStudyItems()
+        val items = studyLibraryStore.allStudyItems
         return items.map { item ->
             LocalNetworkSyncStudyItemEntry(
                 itemID = item.itemID,
@@ -98,7 +98,7 @@ class LocalNetworkSyncInventoryBuilder(
         recordings: List<LocalNetworkSyncRecordingEntry>
     ): List<LocalNetworkSyncArtifactEntry> {
         val artifacts = mutableListOf<LocalNetworkSyncArtifactEntry>()
-        val allItems = studyLibraryStore.allStudyItems()
+        val allItems = studyLibraryStore.allStudyItems
 
         for (item in allItems) {
             // Transcript markdown
@@ -169,8 +169,8 @@ class LocalNetworkSyncInventoryBuilder(
         return StudyLibrarySyncManifest(
             deviceID = deviceID,
             generatedAt = System.currentTimeMillis(),
-            items = studyLibraryStore.allStudyItems().sortedBy { it.itemID },
-            folders = studyLibraryStore.allStudyFolders().sortedBy { it.folderID }
+            items = studyLibraryStore.allStudyItems.sortedBy { it.itemID },
+            folders = studyLibraryStore.allStudyFolders.sortedBy { it.folderID }
         )
     }
 

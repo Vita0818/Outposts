@@ -1,0 +1,64 @@
+BEGIN_PROMPT: Do not execute until you receive END_PROMPT.
+
+[ROUND 4 / BATCH outposts-ui-structure-build-recovery-winui-native-round]
+
+Mandatory preflight:
+1. MODEL_CHECK_RESULT: current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop.
+2. PATH_CHECK_RESULT: current working directory must be /Users/vita/Vitemis/Outposts/Rokurics-Windows. If not, stop.
+3. SOURCE_READONLY_CHECK: Apple source and Rokurics-macOS-Ref are read-only. Writes stay inside /Users/vita/Vitemis/Outposts/Rokurics-Windows or .outposts-supervisor evidence/report paths.
+
+Context:
+- Round 1 qwen reference inspect completed.
+- Round 2 added Mica, dark theme, and titlebar code-behind.
+- Round 3 migrated custom sidebar to native NavigationView.
+- Remaining executable static work: restore brand accent on NavigationView selection if feasible, add AppWindow icon if a project-local asset exists, ensure settings/provider detail navigation does not confuse NavigationView selection, and keep XAML WMC0011 clean.
+
+Round 4 task:
+- Make small, safe WinUI 3 native polish changes after the NavigationView migration.
+- Prefer NavigationViewItem theme/resource customization for mint/aqua selection accent only if low risk.
+- Add AppWindow.SetIcon only if an existing project-local icon asset can be used; do not invent or fetch assets.
+- Improve settings/provider-detail navigation state only if it can be done narrowly.
+- Continue static scan for invalid XAML members and non-WinUI frameworks.
+- Do not claim Debug/ARM64 build or launch on macOS; report WINDOWS_HOST_VALIDATION_PENDING.
+
+Forbidden:
+- Do not modify Apple source or reference image directories.
+- Do not read/send secrets, .env, API keys, tokens, certificates, p12, ssh keys, Keychain contents.
+- Do not git clean/reset/restore/checkout. Do not commit/push/PR. Do not delete visual evidence.
+- Do not change framework or architecture.
+
+Final report fields:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+QWEN_REQUIRED
+QWEN_CALLED
+QWEN_VALID_VISUAL_EVIDENCE
+QWEN_COMPARE_SCREENSHOTS_COMPLETED
+REFERENCE_SCREENSHOTS_USED
+ACTUAL_SCREENSHOTS
+VISION_TOOLS_CALLED
+VISION_RESULT_SUMMARY
+USER_FEEDBACK_ADDRESSED
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+ACTUAL_SCREENSHOT_BLOCKER
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION
+WINUI3_CONFIRMED
+WINDOWS_APP_SDK_CONFIRMED
+NON_WINUI_FRAMEWORK_AVOIDED
+WIN11_NATIVE_STYLE_PROGRESS
+INVALID_XAML_MEMBERS_FIXED
+WMC0011_REMAINING
+DEBUG_ARM64_BUILD_RESULT
+WINDOW_LAUNCH_RESULT
+WINDOWS_HOST_VALIDATION_PENDING
+
+END_PROMPT. Now execute Round 4 and return a structured report when complete.

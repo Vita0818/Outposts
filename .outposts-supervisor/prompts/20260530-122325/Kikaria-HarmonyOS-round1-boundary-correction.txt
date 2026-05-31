@@ -1,0 +1,40 @@
+BOUNDARY CORRECTION FOR CURRENT ROUND
+
+Stop all build recovery work now.
+
+You modified sdk-mirror by creating top-level symlinks such as:
+- sdk-mirror/ets -> openharmony/ets
+- sdk-mirror/js -> openharmony/js
+- sdk-mirror/native -> openharmony/native
+- sdk-mirror/previewer -> openharmony/previewer
+- sdk-mirror/toolchains -> openharmony/toolchains
+
+This violates the batch boundary. The prompt allowed project-local source/config fixes, but SDK metadata/sdk-mirror problems must stop and report TOOLCHAIN_REPAIR_NEEDS_USER or SDK_MIRROR_REPAIR_NEEDS_USER. Do not revert, delete, clean, restore, checkout, reset, or modify more files. Do not run more build commands. Do not run tests. Do not touch ~/.hvigor or user-level SDK caches.
+
+Please output a structured RECOVERY / BOUNDARY INCIDENT report now, including:
+- MODEL_CHECK_RESULT
+- PATH_CHECK_RESULT
+- SOURCE_READONLY_CHECK
+- PROJECT_NAME=Kikaria-HarmonyOS
+- ROUND_INDEX=1
+- SCREENSHOT_PREFLIGHT_RESULT
+- HARMONYOS_SCREENSHOT_CHANNEL_STATUS
+- HDC_PATH
+- HDC_TARGETS
+- DEVECO_PREVIEW_STATUS
+- ORIGINAL_BUILD_COMMAND
+- ORIGINAL_BUILD_ERRORS
+- ERROR_CLASSIFICATION
+- PROJECT_LOCAL_FIXES=None or list only true source/config fixes
+- SDK_MIRROR_TOUCHED=YES
+- SDK_MIRROR_CHANGES_ATTEMPTED=list symlinks created
+- LOCAL_PROPERTIES_TOUCHED
+- TOOLCHAIN_OR_USER_LEVEL_CHANGES_ATTEMPTED
+- HAP_BUILD_RESULT
+- BUILD_RESULT
+- TEST_RESULT=NOT_RUN
+- BOUNDARY_COMPLIANCE=FAILED
+- IMPLEMENTED_THIS_ROUND=Stop after boundary violation
+- BLOCKERS=SDK_MIRROR_REPAIR_NEEDS_USER; MANUAL_DECISION_REQUIRED
+- REGRESSION_RISKS=User must inspect sdk-mirror symlinks before continuing
+- NEXT_RECOMMENDATION=User/manual decision required; do not continue automatic migration until workspace state is reviewed.

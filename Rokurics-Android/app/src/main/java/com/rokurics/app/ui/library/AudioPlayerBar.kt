@@ -15,11 +15,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rokurics.app.ui.theme.RokuricsColors
+import com.rokurics.app.ui.theme.rokuricsGlassCard
 import kotlinx.coroutines.delay
 import java.io.File
 
@@ -101,67 +103,51 @@ fun AudioPlayerBar(
         }
     }
 
+    val isDark = isSystemInDarkTheme()
+    val barSurface = if (isDark) Color(0xFF0D2424).copy(alpha = 0.80f) else Color.White.copy(alpha = 0.7f)
+    val barTextColor = if (isDark) RokuricsColors.deepTextDark else RokuricsColors.deepText
+    val barSubTextColor = if (isDark) RokuricsColors.softTextDark else RokuricsColors.softText
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.7f))
+        colors = CardDefaults.cardColors(containerColor = barSurface),
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = if (isDark) 0.08f else 0.18f))
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Title row
+            // Title + time row
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     text = "播放录音",
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = RokuricsColors.deepText
+                    color = barTextColor
                 )
                 Spacer(Modifier.weight(1f))
                 Text(
                     text = "${formatPosition(currentPositionMs)} / ${formatPosition(durationMs)}",
                     fontSize = 12.sp,
-                    color = RokuricsColors.softText
+                    color = barSubTextColor
                 )
             }
 
-            // Seek bar
-            Slider(
-                value = if (isSeeking) seekProgress
-                else if (durationMs > 0) currentPositionMs.toFloat() / durationMs else 0f,
-                onValueChange = { fraction ->
-                    seekProgress = fraction
-                    isSeeking = true
-                },
-                onValueChangeFinished = {
-                    val targetMs = (seekProgress * durationMs).toInt()
-                    mediaPlayer.seekTo(targetMs)
-                    currentPositionMs = targetMs
-                    isSeeking = false
-                },
-                modifier = Modifier.fillMaxWidth().height(20.dp),
-                colors = SliderDefaults.colors(
-                    thumbColor = RokuricsColors.aqua,
-                    activeTrackColor = RokuricsColors.aqua,
-                    inactiveTrackColor = RokuricsColors.aqua.copy(alpha = 0.18f)
-                ),
-                enabled = playerState != AudioPlayerState.ERROR && durationMs > 0
-            )
-
-            // Play/Pause button
+            // Seek + controls row
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
+                // Play/Pause button
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(38.dp)
                         .clip(CircleShape)
-                        .background(playPauseColor.copy(alpha = 0.12f))
+                        .background(playPauseColor.copy(alpha = 0.15f))
                         .clickable(enabled = playerState != AudioPlayerState.ERROR) {
                             try {
                                 when (playerState) {
@@ -190,9 +176,34 @@ fun AudioPlayerBar(
                         imageVector = if (playerState == AudioPlayerState.PLAYING) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = if (playerState == AudioPlayerState.PLAYING) "暂停" else "播放",
                         tint = playPauseColor,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
+
+                Spacer(Modifier.width(10.dp))
+
+                // Seek bar (compact)
+                Slider(
+                    value = if (isSeeking) seekProgress
+                    else if (durationMs > 0) currentPositionMs.toFloat() / durationMs else 0f,
+                    onValueChange = { fraction ->
+                        seekProgress = fraction
+                        isSeeking = true
+                    },
+                    onValueChangeFinished = {
+                        val targetMs = (seekProgress * durationMs).toInt()
+                        mediaPlayer.seekTo(targetMs)
+                        currentPositionMs = targetMs
+                        isSeeking = false
+                    },
+                    modifier = Modifier.weight(1f).height(20.dp),
+                    colors = SliderDefaults.colors(
+                        thumbColor = RokuricsColors.aqua,
+                        activeTrackColor = RokuricsColors.aqua,
+                        inactiveTrackColor = RokuricsColors.aqua.copy(alpha = 0.18f)
+                    ),
+                    enabled = playerState != AudioPlayerState.ERROR && durationMs > 0
+                )
             }
 
             if (errorMessage != null) {

@@ -2,9 +2,39 @@
 <Page
     x:Class="Rokurics.Views.MacSettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:views="using:Rokurics.Views">
 
-    <Grid Background="{StaticResource RokuricsPageGradientDarkBrush}">
+    <Page.Resources>
+        <DataTemplate x:Key="SettingsRowTemplate" x:DataType="views:SettingsRowItem">
+            <StackPanel Spacing="0">
+                <Button Padding="18,15"
+                        HorizontalAlignment="Stretch"
+                        Style="{StaticResource RokuricsButtonStyle}"
+                        Background="Transparent"
+                        HorizontalContentAlignment="Stretch"
+                        Click="SettingsRow_Click"
+                        Tag="{x:Bind ActionTag}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{x:Bind Label}" FontSize="15" FontWeight="SemiBold" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{x:Bind Value}" FontSize="14" Opacity="0.5" />
+                            <TextBlock Text="›" FontSize="12" Opacity="0.3" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </Button>
+                <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}"
+                           Margin="18,0,0,0"
+                           Visibility="{x:Bind SeparatorVisibility}" />
+            </StackPanel>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid Background="{ThemeResource RokuricsPageGradientBrush}">
         <ScrollViewer Padding="34,30,34,34">
             <StackPanel MaxWidth="1040" Spacing="18">
 
@@ -18,12 +48,11 @@
                         <ColumnDefinition Width="*" MaxWidth="610" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- Profile pane — Mac: avatar 92x92 with accentGradient ring, cornerRadius 22, padding 24,26 -->
+                    <!-- Profile pane -->
                     <Border Grid.Column="0"
                             Style="{StaticResource RokuricsGlassCardStyle}"
                             Padding="24,26" CornerRadius="22">
                         <StackPanel Spacing="13" HorizontalAlignment="Center">
-                            <!-- Avatar with accent gradient ring matching Mac -->
                             <Border Width="96" Height="96"
                                     CornerRadius="48"
                                     Background="{StaticResource RokuricsActionGradientBrush}"
@@ -48,75 +77,14 @@
 
                     <!-- Settings groups -->
                     <StackPanel Grid.Column="1" Spacing="16">
-                        <!-- Transcription Section — Mac: cornerRadius 22, glass card -->
+                        <!-- Transcription Section -->
                         <Border Style="{StaticResource RokuricsGlassCardStyle}"
                                 Padding="0" CornerRadius="22">
                             <StackPanel Spacing="0">
                                 <TextBlock Text="转写" FontSize="12" FontWeight="SemiBold"
                                            Opacity="0.5" Margin="18,12,18,8" />
-
-                                <Button Padding="18,15" Click="TranscriptionProvider_Click"
-                                        HorizontalAlignment="Stretch"
-                                        Style="{StaticResource RokuricsButtonStyle}"
-                                        Background="Transparent"
-                                        HorizontalContentAlignment="Stretch">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Provider" FontSize="15" FontWeight="SemiBold" />
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="{x:Bind TranscriptionProvider, Mode=OneWay}"
-                                                       FontSize="14" Opacity="0.5" />
-                                            <TextBlock Text="›" FontSize="12" Opacity="0.3"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Button>
-                                <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}"
-                                           Margin="18,0,0,0" />
-
-                                <Button Padding="18,15" Click="TranscriptionModel_Click"
-                                        HorizontalAlignment="Stretch"
-                                        Style="{StaticResource RokuricsButtonStyle}"
-                                        Background="Transparent"
-                                        HorizontalContentAlignment="Stretch">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="模型" FontSize="15" FontWeight="SemiBold" />
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="{x:Bind WhisperModelName, Mode=OneWay}"
-                                                       FontSize="14" Opacity="0.5" />
-                                            <TextBlock Text="›" FontSize="12" Opacity="0.3"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Button>
-                                <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}"
-                                           Margin="18,0,0,0" />
-
-                                <Button Padding="18,15" Click="TranscriptionAuthTest_Click"
-                                        HorizontalAlignment="Stretch"
-                                        Style="{StaticResource RokuricsButtonStyle}"
-                                        Background="Transparent"
-                                        HorizontalContentAlignment="Stretch">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="授权与测试" FontSize="15" FontWeight="SemiBold" />
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="未配置" FontSize="14" Opacity="0.5" />
-                                            <TextBlock Text="›" FontSize="12" Opacity="0.3"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Button>
+                                <ItemsControl x:Name="TranscriptionRows"
+                                              ItemTemplate="{StaticResource SettingsRowTemplate}" />
                             </StackPanel>
                         </Border>
 
@@ -126,90 +94,8 @@
                             <StackPanel Spacing="0">
                                 <TextBlock Text="AI" FontSize="12" FontWeight="SemiBold"
                                            Opacity="0.5" Margin="18,12,18,8" />
-
-                                <Button Padding="18,15" Click="AIProvider_Click"
-                                        HorizontalAlignment="Stretch"
-                                        Style="{StaticResource RokuricsButtonStyle}"
-                                        Background="Transparent"
-                                        HorizontalContentAlignment="Stretch">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Provider" FontSize="15" FontWeight="SemiBold" />
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="{x:Bind NoteProvider, Mode=OneWay}"
-                                                       FontSize="14" Opacity="0.5" />
-                                            <TextBlock Text="›" FontSize="12" Opacity="0.3"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Button>
-                                <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}"
-                                           Margin="18,0,0,0" />
-
-                                <Button Padding="18,15" Click="AIModel_Click"
-                                        HorizontalAlignment="Stretch"
-                                        Style="{StaticResource RokuricsButtonStyle}"
-                                        Background="Transparent"
-                                        HorizontalContentAlignment="Stretch">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="模型" FontSize="15" FontWeight="SemiBold" />
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="{x:Bind AIModelName, Mode=OneWay}"
-                                                       FontSize="14" Opacity="0.5" />
-                                            <TextBlock Text="›" FontSize="12" Opacity="0.3"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Button>
-                                <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}"
-                                           Margin="18,0,0,0" />
-
-                                <Button Padding="18,15" Click="AIApiSettings_Click"
-                                        HorizontalAlignment="Stretch"
-                                        Style="{StaticResource RokuricsButtonStyle}"
-                                        Background="Transparent"
-                                        HorizontalContentAlignment="Stretch">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="API 设置" FontSize="15" FontWeight="SemiBold" />
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="查看" FontSize="14" Opacity="0.5" />
-                                            <TextBlock Text="›" FontSize="12" Opacity="0.3"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Button>
-                                <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}"
-                                           Margin="18,0,0,0" />
-
-                                <Button Padding="18,15" Click="AITest_Click"
-                                        HorizontalAlignment="Stretch"
-                                        Style="{StaticResource RokuricsButtonStyle}"
-                                        Background="Transparent"
-                                        HorizontalContentAlignment="Stretch">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="测试" FontSize="15" FontWeight="SemiBold" />
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="查看" FontSize="14" Opacity="0.5" />
-                                            <TextBlock Text="›" FontSize="12" Opacity="0.3"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Button>
+                                <ItemsControl x:Name="AIRows"
+                                              ItemTemplate="{StaticResource SettingsRowTemplate}" />
                             </StackPanel>
                         </Border>
 
@@ -219,67 +105,8 @@
                             <StackPanel Spacing="0">
                                 <TextBlock Text="关于" FontSize="12" FontWeight="SemiBold"
                                            Opacity="0.5" Margin="18,12,18,8" />
-
-                                <Button Padding="18,15" Click="OpenStorage_Click"
-                                        HorizontalAlignment="Stretch"
-                                        Style="{StaticResource RokuricsButtonStyle}"
-                                        Background="Transparent"
-                                        HorizontalContentAlignment="Stretch">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="存储" FontSize="15" FontWeight="SemiBold" />
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="打开" FontSize="14" Opacity="0.5" />
-                                            <TextBlock Text="›" FontSize="12" Opacity="0.3"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Button>
-                                <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}"
-                                           Margin="18,0,0,0" />
-
-                                <Button Padding="18,15" Click="ShowPrivacyPolicy_Click"
-                                        HorizontalAlignment="Stretch"
-                                        Style="{StaticResource RokuricsButtonStyle}"
-                                        Background="Transparent"
-                                        HorizontalContentAlignment="Stretch">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="隐私政策" FontSize="15" FontWeight="SemiBold" />
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="查看" FontSize="14" Opacity="0.5" />
-                                            <TextBlock Text="›" FontSize="12" Opacity="0.3"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Button>
-                                <Rectangle Height="1" Fill="{ThemeResource CardStrokeColorDefaultBrush}"
-                                           Margin="18,0,0,0" />
-
-                                <Button Padding="18,15" Click="ShowCopyright_Click"
-                                        HorizontalAlignment="Stretch"
-                                        Style="{StaticResource RokuricsButtonStyle}"
-                                        Background="Transparent"
-                                        HorizontalContentAlignment="Stretch">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="版权" FontSize="15" FontWeight="SemiBold" />
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                            <TextBlock Text="1.0 (1)" FontSize="14" Opacity="0.5" />
-                                            <TextBlock Text="›" FontSize="12" Opacity="0.3"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Button>
+                                <ItemsControl x:Name="AboutRows"
+                                              ItemTemplate="{StaticResource SettingsRowTemplate}" />
                             </StackPanel>
                         </Border>
                     </StackPanel>

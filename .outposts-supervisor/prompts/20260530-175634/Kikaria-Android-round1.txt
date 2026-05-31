@@ -1,0 +1,90 @@
+[OUTPOSTS STRUCTURE REBUILD P1 - Kikaria-Android - ROUND 1]
+
+This is a structural rebuild round, not a visual tweak round.
+
+Mandatory preflight:
+MODEL_CHECK_RESULT:
+Current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop.
+
+PATH_CHECK_RESULT:
+Current working directory must be exactly:
+/Users/vita/Vitemis/Outposts/Kikaria-Android
+If not, stop.
+
+SOURCE_READONLY_CHECK:
+Apple source is read-only:
+/Users/vita/Vitemis/Vela/Kikaria
+Reference screenshots are read-only:
+/Users/vita/Vitemis/Outposts/Kikaria-Ref
+Writes are allowed only inside this target project and:
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-android-ui-structure-rebuild-p1/20260530-175634/Kikaria-Android
+Do not read or send secrets, tokens, .env, certificates, private keys, p12, provisioning profiles, API keys, or Keychain content.
+Do not run git clean/reset/restore/checkout. Do not commit/push/PR. Do not delete visual-evidence or old screenshots.
+
+User feedback:
+"有改，但是没改到点子上，方向也不对。"
+
+Direction review conclusion to execute:
+The problem is Answer / Review page skeleton, not colors, bubbles, avatar, or arrow details.
+Previous round improved polish but missed core structure.
+
+Primary goals:
+1. Answer screen must render a real content card with answer/body text. No large empty content space.
+2. Review chip model must change from wrong three category tags to Apple-reference semantic chips: chapter/context chip + review count/progress semantic chip.
+3. Remove progress bar from Review / Answer if Apple reference does not show it.
+4. Remove the non-reference "q->" shortcut hint.
+5. Home button over-dominance can be lowered only if time remains; do not spend main effort on bubbles, strokes, avatar, arrow details.
+
+Required order:
+1. Read Kikaria-Ref Answer / Review / Home reference screenshots.
+2. Call qwen-vision.inspect_screenshot on the relevant reference screenshots.
+3. Acquire ANDROID_EMULATOR_LOCK for screenshot phase using an atomic lock such as /tmp/outposts-android-emulator.lock. Do not require user manual Android Studio switching.
+4. Use adb absolute path:
+/Users/vita/Library/Android/sdk/platform-tools/adb
+5. Run adb devices -l.
+6. Read applicationId from Gradle config. Do not guess.
+7. If needed, run ./gradlew installDebug or equivalent to install current app.
+8. Launch app with adb monkey or confirmed Activity.
+9. Verify foreground package equals applicationId before every screenshot.
+10. Capture actual Review / Answer screenshots with unique filenames under:
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-android-ui-structure-rebuild-p1/20260530-175634/Kikaria-Android/actual/
+11. Call qwen-vision.inspect_screenshot on actual screenshots.
+12. If reference + actual exist, call qwen-vision.compare_screenshots.
+13. Based on structure differences, implement Answer / Review skeleton changes.
+14. Run assembleDebug.
+15. Run testDebug or current available tests.
+16. Install/launch again, capture post-fix screenshots, call qwen compare again to confirm structure direction improved.
+17. Release ANDROID_EMULATOR_LOCK.
+
+Do not do:
+- Do not spend the round only changing colors, shadows, radius, transparency, bubbles, avatar, or arrow details.
+- Do not use qwen score as user acceptance.
+- Do not mark READY_FOR_USER_REVIEW if Answer / Review structure is still wrong.
+
+Report fields:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+REFERENCE_SCREENSHOTS_USED
+ACTUAL_SCREENSHOTS
+QWEN_REFERENCE_INSPECT
+QWEN_ACTUAL_INSPECT
+QWEN_COMPARE_RESULT
+STRUCTURAL_REBUILD_PLAN
+IMPLEMENTED_STRUCTURAL_CHANGES
+WHAT_PREVIOUS_DIRECTION_GOT_WRONG
+WHAT_WAS_REPLACED
+WHAT_WAS_KEPT
+BUILD_RESULT
+TEST_RESULT
+POST_FIX_SCREENSHOTS
+POST_FIX_QWEN_COMPARE
+REMAINING_STRUCTURAL_GAPS
+NEXT_RECOMMENDATION
+ANSWER_CONTENT_CARD_STATUS
+REVIEW_CHIP_MODEL_STATUS
+PROGRESS_BAR_REMOVED
+WRONG_SHORTCUT_HINT_REMOVED
+HOME_BUTTON_PRIORITY_STATUS

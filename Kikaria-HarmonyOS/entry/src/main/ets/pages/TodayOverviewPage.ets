@@ -91,7 +91,7 @@ export struct TodayOverviewPageContent {
 
             Row() {
               Row()
-                .width(`${Math.min(100, this.todayMastered / Math.max(1, this.dailyGoal) * 100)}%`)
+                .width(`${Math.round(Math.min(100, this.todayMastered / Math.max(1, this.dailyGoal) * 100))}%`)
                 .height(6)
                 .borderRadius(3)
                 .linearGradient({

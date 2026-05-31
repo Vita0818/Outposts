@@ -747,8 +747,12 @@ export class AppState {
   }
 
   toggleDarkMode(): void {
-    this.isDarkMode = !this.isDarkMode
-    AppStorage.setAndRef<boolean>('kikaria_isDarkMode', this.isDarkMode).set(this.isDarkMode)
+    this.setDarkMode(!this.isDarkMode)
+  }
+
+  setDarkMode(value: boolean): void {
+    this.isDarkMode = value
+    AppStorage.setAndRef<boolean>('kikaria_isDarkMode', value)
     preferenceManager.saveDarkModeManual(true)
     this.saveAppState()
   }

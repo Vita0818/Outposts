@@ -2,6 +2,7 @@ package com.rokurics.app.ui.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -76,7 +77,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .size(44.dp)
-                        .rokuricsGlassCircle(fillOpacity = 0.42f, strokeOpacity = 0.50f, shadowOpacity = 0.14f, shadowRadius = 12.dp)
+                        .rokuricsGlassCircle(fillOpacity = 0.42f, strokeOpacity = 0.50f, shadowOpacity = 0.14f, shadowRadius = 12.dp, fillColor = if (isSystemInDarkTheme()) RokuricsColors.glassSurfaceDark else Color.White)
                         .rokuricsScaleClickable(onClick = onBack),
                     contentAlignment = Alignment.Center
                 ) {
@@ -111,7 +112,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .size(80.dp)
-                        .rokuricsGlassCircle(fillOpacity = 0.36f, strokeOpacity = 0.50f, shadowOpacity = 0.14f),
+                        .rokuricsGlassCircle(fillOpacity = 0.36f, strokeOpacity = 0.50f, shadowOpacity = 0.14f, fillColor = if (isSystemInDarkTheme()) RokuricsColors.glassSurfaceDark else Color.White),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -204,6 +205,13 @@ fun SettingsScreen(onBack: () -> Unit) {
                 SettingsDivider()
                 SettingsRow(
                     label = "API 设置",
+                    value = "查看",
+                    isAction = true,
+                    onClick = { showAISettings = true }
+                )
+                SettingsDivider()
+                SettingsRow(
+                    label = "测试",
                     value = "查看",
                     isAction = true,
                     onClick = { showAISettings = true }
@@ -307,13 +315,16 @@ private fun SettingsSectionHeader(title: String) {
 
 @Composable
 private fun SettingsGroupCard(content: @Composable ColumnScope.() -> Unit) {
+    val isDark = isSystemInDarkTheme()
+    val cardBg = if (isDark) Color(0xFF0D2424).copy(alpha = 0.6f) else Color.White.copy(alpha = 0.5f)
+    val cardBorder = Color.White.copy(alpha = if (isDark) 0.06f else 0.22f)
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp),
         shape = RoundedCornerShape(20.dp),
-        color = Color.White.copy(alpha = 0.5f),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = 0.22f))
+        color = cardBg,
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, cardBorder)
     ) {
         Column(modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp), content = content)
     }

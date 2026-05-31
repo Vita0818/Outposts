@@ -1,23 +1,22 @@
 /**
  * Recording session page - mirrors RecordingSessionView.swift
  */
+import { ConfigurationConstant } from '@kit.AbilityKit'
 import { getSharedRecordingManager, RecordingManager } from '../services/RecordingManager'
-import { RecordingState, StudyFilingPath, filingLevelTitle } from '../models/RecordingModels'
+import { RecordingState, StudyFilingPath, filingLevelTitle, RecordingMetadata } from '../models/RecordingModels'
 import { formatClock, formatDuration } from '../utils/FormatHelpers'
-import { colorAlpha,  RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
+import { colorAlpha,  RokuricsColors, FontWeight, applyColorMode } from '../utils/RokuricsTheme'
+import { StudyFolderStore } from '../services/StudyFolderStore'
 import { PlayIcon, PauseIcon, StopIcon } from '../utils/CustomIcons'
 
-const FILING_OPTIONS: Record<string, string[]> = {
-  'type': ['课堂录音', '自学笔记', '会议记录', '访谈采访', '灵感记录', '其他'],
-  'subject': ['数学', '物理', '化学', '生物', '计算机', '英语', '历史', '文学', '哲学', '艺术'],
-  'chapter': [],
-  'topic': []
-}
+const DEFAULT_TYPE_OPTIONS: string[] = ['课堂录音', '自学笔记', '会议记录', '访谈采访', '灵感记录', '其他']
 
 @Entry
 @Component
 struct RecordingSessionPage {
   private recordingManager: RecordingManager = getSharedRecordingManager()
+  private folderStore: StudyFolderStore = new StudyFolderStore(getContext(this))
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET
   @State state: RecordingState = RecordingState.IDLE
   @State elapsedSeconds: number = 0
   @State statusText: string = '准备中'
@@ -30,8 +29,11 @@ struct RecordingSessionPage {
   @State showFilingPicker: boolean = false
   @State isPausedBlinking: boolean = false
   @State pulsePhase: number = 0
+  @State filingTypeOptions: string[] = [...DEFAULT_TYPE_OPTIONS]
+  @State filingSubjectOptions: string[] = []
 
   aboutToAppear(): void {
+    this.extractFilingCandidates()
     this.recordingManager.onStateChange((s: RecordingState) => {
       this.state = s
       this.elapsedSeconds = this.recordingManager.elapsedSeconds
@@ -73,7 +75,31 @@ struct RecordingSessionPage {
     )
   }
 
+  private async extractFilingCandidates(): Promise<void> {
+    const recordings = this.recordingManager.recordings
+    const typeSet = new Set<string>(DEFAULT_TYPE_OPTIONS)
+    const subjectSet = new Set<string>()
+
+    for (const r of recordings) {
+      const filing = r.studyFiling
+      if (filing) {
+        if (filing.type) typeSet.add(filing.type)
+        if (filing.subject) subjectSet.add(filing.subject)
+      }
+    }
+
+    const folders = await this.folderStore.listFolders()
+    for (const f of folders) {
+      if (f.level === 'type') typeSet.add(f.name)
+      if (f.level === 'subject') subjectSet.add(f.name)
+    }
+
+    this.filingTypeOptions = Array.from(typeSet).sort()
+    this.filingSubjectOptions = Array.from(subjectSet).sort()
+  }
+
   build() {
+    applyColorMode(this.colorMode)
     Stack() {
       // Ambient background
       this.SessionBackground()
@@ -271,27 +297,6 @@ struct RecordingSessionPage {
           .padding({ left: 22, right: 22, bottom: 36 })
         }
 
-        // Pause/Resume single button for compact view
-        if (this.state === RecordingState.RECORDING || this.state === RecordingState.PAUSED) {
-          Button() {
-            if (this.state === RecordingState.RECORDING) {
-              PauseIcon(36, '#FFFFFF')
-            } else {
-              PlayIcon(36, '#FFFFFF')
-            }
-          }
-          .width(72)
-          .height(72)
-          .borderRadius(36)
-          .backgroundColor(this.state === RecordingState.RECORDING ? RokuricsColors.coral : RokuricsColors.aqua)
-          .shadow({
-            color: colorAlpha((this.state === RecordingState.RECORDING ? RokuricsColors.coral : RokuricsColors.aqua), '40'),
-            radius: 18,
-            offsetY: 6
-          })
-          .onClick(() => this.recordingManager.toggleRecording())
-          .margin({ bottom: 60 })
-        }
       }
       .width('100%')
       .height('100%')
@@ -433,7 +438,7 @@ struct RecordingSessionPage {
           } else if (this.filingType.length > 0) {
             // Subject options
             Row({ space: 6 }) {
-              ForEach(FILING_OPTIONS['subject'], (option: string) => {
+              ForEach(this.filingSubjectOptions, (option: string) => {
                 Text(option)
                   .fontSize(12)
                   .fontWeight(FontWeight.Medium)
@@ -454,7 +459,7 @@ struct RecordingSessionPage {
           } else {
             // Type options
             Row({ space: 6 }) {
-              ForEach(FILING_OPTIONS['type'], (option: string) => {
+              ForEach(this.filingTypeOptions, (option: string) => {
                 Text(option)
                   .fontSize(12)
                   .fontWeight(FontWeight.Medium)

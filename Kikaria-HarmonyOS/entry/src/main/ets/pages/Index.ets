@@ -57,7 +57,15 @@ struct Index {
     this.contentPadH = pageHorizontalPadding()
     this.useTwoColumn = isTwoColumnCapable()
     this.refreshState()
-    this.bubbleScale = 0.94
+
+    animateTo({
+      duration: 5400,
+      curve: Curve.EaseInOut,
+      iterations: -1,
+      playMode: PlayMode.Alternate
+    }, () => {
+      this.bubbleScale = 0.94
+    })
 
     if (!appState.hasCompletedProfileSetup) {
       navPathStack.pushPathByName('InitialProfileSetupPage', undefined)
@@ -186,12 +194,6 @@ struct Index {
       radius: 28,
       color: `${KikariaColors.SKY}48`,
       offsetY: 18
-    })
-    .animation({
-      duration: 5400,
-      curve: Curve.EaseInOut,
-      iterations: -1,
-      playMode: PlayMode.Alternate
     })
     .onClick(() => {
       this.startNormalReview()
@@ -545,7 +547,6 @@ struct Index {
             colors: [[KikariaColors.SKY, 0], [KikariaColors.CYAN, 1]]
           })
           .shadow({ radius: 28, color: `${KikariaColors.SKY}48`, offsetY: 18 })
-          .animation({ duration: 5400, curve: Curve.EaseInOut, iterations: -1, playMode: PlayMode.Alternate })
           .onClick(() => { this.startNormalReview() })
           Blank()
         }

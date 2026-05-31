@@ -23,7 +23,7 @@ public sealed partial class HomePage : Page
     {
         var studyVm = App.Current.Services.GetRequiredService<StudyLibraryViewModel>();
         studyVm.Refresh();
-        Frame.Navigate(typeof(StudyLibraryPage), studyVm);
+        Frame.Navigate(typeof(MacStudyLibraryPage));
     }
 
     private void NavigateToChat_Click(object sender, RoutedEventArgs e)

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -21,6 +22,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,11 +65,11 @@ import com.vita0818.kikaria.ui.theme.KikariaTypography
  */
 private fun glassCardStrokeColors(isDark: Boolean): List<Color> {
     val accent = if (isDark) KikariaColors.GlassStrokeAccentDark else KikariaColors.GlassStrokeAccent
-    val strokeOpacity = if (isDark) 0.36f else 0.42f
-    val accentOpacity = if (isDark) 0.22f else 0.13f
+    val strokeOpacity = if (isDark) 0.48f else 0.42f
+    val accentOpacity = if (isDark) 0.30f else 0.13f
     return listOf(
         Color.White.copy(alpha = strokeOpacity),
-        Color.White.copy(alpha = strokeOpacity * 0.24f),
+        Color.White.copy(alpha = strokeOpacity * 0.30f),
         accent.copy(alpha = accentOpacity)
     )
 }
@@ -100,7 +106,7 @@ fun Modifier.kikariaGlassInnerHighlight(
     shape: RoundedCornerShape,
     isDark: Boolean
 ): Modifier = this.drawBehind {
-    val hlOpacity = if (isDark) 0.10f else 0.18f
+    val hlOpacity = if (isDark) 0.18f else 0.18f
     drawRoundRect(
         color = Color.White.copy(alpha = hlOpacity),
         cornerRadius = CornerRadius(
@@ -186,6 +192,7 @@ fun KikariaPageShell(
         modifier = modifier
             .fillMaxSize()
             .background(pageGradient)
+            .systemBarsPadding()
     ) {
         content()
     }
@@ -495,7 +502,7 @@ fun KikariaGlassCard(
             )
             .clip(shape)
             .background(glassSurface.copy(alpha = adjustedFill))
-            .kikariaGlassStroke(shape, isDark)
+            .kikariaGlassStroke(shape, isDark, lineWidth = 1.4f)
             .kikariaGlassInnerHighlight(shape, isDark)
     ) {
         content()
@@ -745,4 +752,62 @@ fun KikariaMetricLabel(
         maxLines = 1,
         modifier = modifier
     )
+}
+
+/**
+ * Shared text field for preset editors — extracted from EditPresetScreen / NewPresetScreen.
+ */
+@Composable
+fun KikariaEditorTextField(
+    title: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    isDark: Boolean,
+    singleLine: Boolean = false
+) {
+    val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
+    val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
+    val sky = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky
+    Column {
+        Text(
+            KikariaTypography.mixedText(title, size = 14, weight = FontWeight.SemiBold),
+            color = softText,
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+        )
+        KikariaGlassCard(
+            Modifier.fillMaxWidth(),
+            cornerRadius = 20.dp,
+            fillOpacity = 0.50f,
+            shadowElevation = 12.dp,
+            shadowOpacity = 0.08f
+        ) {
+            TextField(
+                value = value,
+                onValueChange = onValueChange,
+                textStyle = TextStyle(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = deepText
+                ),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    cursorColor = sky
+                ),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                singleLine = singleLine,
+                placeholder = {
+                    Text(
+                        title,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = softText.copy(alpha = 0.5f)
+                    )
+                }
+            )
+        }
+    }
 }

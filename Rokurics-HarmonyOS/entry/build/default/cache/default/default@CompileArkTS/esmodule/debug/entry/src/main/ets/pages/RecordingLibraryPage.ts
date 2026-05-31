@@ -26,14 +26,14 @@ interface RecordingLibraryPage_Params {
 }
 import { getSharedRecordingManager } from "@bundle:com.vita0818.rokurics/entry/ets/services/RecordingManager";
 import type { RecordingManager } from "@bundle:com.vita0818.rokurics/entry/ets/services/RecordingManager";
-import { StudyFilingPath, filingLevelTitle } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
+import { StudyFilingPath } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import type { RecordingMetadata } from "@bundle:com.vita0818.rokurics/entry/ets/models/RecordingModels";
 import { formatDuration, formatShortTime } from "@bundle:com.vita0818.rokurics/entry/ets/utils/FormatHelpers";
 import { colorAlpha, RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity, glassStrokeMidOpacity, glassAccentOpacity } from "@bundle:com.vita0818.rokurics/entry/ets/utils/RokuricsTheme";
 import { StudyFolderStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/StudyFolderStore";
-import { BackIcon, BulletListIcon, TrashIcon, EllipsisIcon, DocBadgeIcon, NoteBadgeIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
+import { BackIcon, BulletListIcon, TrashIcon, DocBadgeIcon, NoteBadgeIcon } from "@bundle:com.vita0818.rokurics/entry/ets/utils/CustomIcons";
 const LEVELS: string[] = ['type', 'subject', 'chapter', 'topic'];
-const FOLDER_COLORS: string[] = ['#59C7C2', '#9EE8C7', '#73C7F0', '#E06B6E', '#B8A6D6', '#6B9FD4'];
+const FOLDER_COLORS: string[] = [RokuricsColors.aqua, RokuricsColors.mint, RokuricsColors.skyCyan, RokuricsColors.coral, '#B8A6D6', '#6B9FD4'];
 interface FilingGroup {
     key: string;
     label: string;
@@ -66,7 +66,7 @@ class RecordingLibraryPage extends ViewPU {
         this.__deleteTarget = new ObservedPropertySimplePU('', this, "deleteTarget");
         this.__deleteTargetName = new ObservedPropertySimplePU('', this, "deleteTargetName");
         this.__showColorPicker = new ObservedPropertySimplePU(false, this, "showColorPicker");
-        this.__selectedColor = new ObservedPropertySimplePU('#59C7C2', this, "selectedColor");
+        this.__selectedColor = new ObservedPropertySimplePU(RokuricsColors.aqua, this, "selectedColor");
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
@@ -440,7 +440,7 @@ class RecordingLibraryPage extends ViewPU {
         this.renameTarget = key;
         this.renameText = key;
         this.renameLevel = level;
-        this.selectedColor = this.folderColorMap[key] ?? '#59C7C2';
+        this.selectedColor = this.folderColorMap[key] ?? RokuricsColors.aqua;
         this.showRenameDialog = true;
     }
     private async commitRename(): Promise<void> {
@@ -482,11 +482,11 @@ class RecordingLibraryPage extends ViewPU {
         const match = folders.find(f => f.name === this.renameTarget);
         if (match) {
             await this.folderStore.renameFolder(match.id, newName);
-            if (this.selectedColor !== (this.folderColorMap[this.renameTarget] ?? '#59C7C2')) {
+            if (this.selectedColor !== (this.folderColorMap[this.renameTarget] ?? RokuricsColors.aqua)) {
                 await this.folderStore.setColorToken(match.id, this.selectedColor);
             }
         }
-        else if (this.selectedColor !== '#59C7C2') {
+        else if (this.selectedColor !== RokuricsColors.aqua) {
             // Create folder to persist color
             const record = await this.folderStore.createFolder(newName, level, this.browsePath);
             await this.folderStore.setColorToken(record.id, this.selectedColor);
@@ -538,7 +538,14 @@ class RecordingLibraryPage extends ViewPU {
             Column.create();
             Column.width('100%');
             Column.height('100%');
-            Column.backgroundColor(RokuricsColors.pageBackground);
+            Column.linearGradient({
+                direction: GradientDirection.RightBottom,
+                colors: [
+                    [RokuricsColors.pageGradientStart, 1.0],
+                    [RokuricsColors.pageGradientMid, 1.0],
+                    [RokuricsColors.pageGradientEnd, 1.0]
+                ]
+            });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             // Header
@@ -564,8 +571,8 @@ class RecordingLibraryPage extends ViewPU {
                 color: {
                     colors: [
                         [0xFFFFFF, glassStrokeHighOpacity],
-                        [0xEFFAF8, glassStrokeMidOpacity],
-                        [0x59C7C2, glassAccentOpacity]
+                        [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+                        [RokuricsColors.aqua, glassAccentOpacity]
                     ],
                     direction: GradientDirection.RightBottom
                 },
@@ -662,7 +669,7 @@ class RecordingLibraryPage extends ViewPU {
                         Column.create({ space: 16 });
                         Column.padding(24);
                         Column.borderRadius(20);
-                        Column.backgroundColor(Color.White);
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6'));
                         Column.width('85%');
                         Column.shadow({ radius: 30, color: '#20000000' });
                     }, Column);
@@ -804,7 +811,7 @@ class RecordingLibraryPage extends ViewPU {
                         Column.create({ space: 16 });
                         Column.padding(24);
                         Column.borderRadius(20);
-                        Column.backgroundColor(Color.White);
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6'));
                         Column.width('85%');
                         Column.shadow({ radius: 30, color: '#20000000' });
                     }, Column);
@@ -999,7 +1006,7 @@ class RecordingLibraryPage extends ViewPU {
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 8 });
+            Row.create({ space: 10 });
             Row.width('100%');
             Row.justifyContent(FlexAlign.Start);
         }, Row);
@@ -1010,104 +1017,101 @@ class RecordingLibraryPage extends ViewPU {
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Button.createWithChild();
                     Button.backgroundColor(Color.Transparent);
-                    Button.width('48%');
-                    Button.onClick(() => { });
+                    Button.layoutWeight(1);
+                    Button.onClick(() => {
+                        this.navigateToPath([group.label]);
+                    });
                 }, Button);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Column.create({ space: 6 });
+                    Column.create({ space: 12 });
                     Column.width('100%');
-                    Column.padding(14);
-                    Column.borderRadius(14);
-                    Column.backgroundColor(this.folderColorMap[group.label] ?
-                        colorAlpha(this.folderColorMap[group.label], '22') : colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
+                    Column.padding({ top: 20, bottom: 18, left: 12, right: 12 });
+                    Column.borderRadius(20);
+                    Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
                     Column.border({
-                        width: this.folderColorMap[group.label] ? 1 : 0,
-                        color: this.folderColorMap[group.label] ?
-                            colorAlpha(this.folderColorMap[group.label], '44') : Color.Transparent,
-                        radius: 14
-                    });
-                    Column.onClick(() => {
-                        this.navigateToPath([group.label]);
+                        width: 1,
+                        color: {
+                            colors: [
+                                [0xFFFFFF, 0.12],
+                                [RokuricsColors.glassStroke, 0.08],
+                                [RokuricsColors.glassStrokeAccent, 0.08]
+                            ],
+                            direction: GradientDirection.RightBottom
+                        },
+                        radius: 20
+                    } as BorderOptions);
+                    Column.shadow({
+                        color: colorAlpha(RokuricsColors.shadowColor, '06'),
+                        radius: 10,
+                        offsetY: 5
                     });
                 }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    // Color dot indicator
-                    Row.create();
-                    // Color dot indicator
-                    Row.width('100%');
-                }, Row);
+                    // Folder icon area
+                    Stack.create();
+                    // Folder icon area
+                    Stack.width(48);
+                    // Folder icon area
+                    Stack.height(48);
+                }, Stack);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
                     Circle.create();
-                    Circle.width(10);
-                    Circle.height(10);
-                    Circle.fill(this.folderColorMap[group.label] ?? RokuricsColors.aqua);
+                    Circle.width(48);
+                    Circle.height(48);
+                    Circle.fill(colorAlpha(this.folderColorMap[group.label] ?? RokuricsColors.aqua, '24'));
                 }, Circle);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    If.create();
-                    if (this.folderColorMap[group.label]) {
-                        this.ifElseBranchUpdateFunction(0, () => {
-                            this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                Text.create(group.label);
-                                Text.fontSize(14);
-                                Text.fontWeight(FontWeight.SemiBold);
-                                Text.fontColor(this.folderColorMap[group.label] ?? RokuricsColors.aqua);
-                                Text.maxLines(1);
-                            }, Text);
-                            Text.pop();
-                        });
-                    }
-                    else {
-                        this.ifElseBranchUpdateFunction(1, () => {
-                        });
-                    }
-                }, If);
-                If.pop();
-                // Color dot indicator
-                Row.pop();
+                    // Simple folder shape using rounded rects
+                    Column.create({ space: 0 });
+                }, Column);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    If.create();
-                    if (!this.folderColorMap[group.label]) {
-                        this.ifElseBranchUpdateFunction(0, () => {
-                            this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                Text.create(group.label);
-                                Text.fontSize(14);
-                                Text.fontWeight(FontWeight.SemiBold);
-                                Text.fontColor(RokuricsColors.deepText);
-                                Text.maxLines(1);
-                                Text.width('100%');
-                            }, Text);
-                            Text.pop();
-                        });
-                    }
-                    else {
-                        this.ifElseBranchUpdateFunction(1, () => {
-                        });
-                    }
-                }, If);
-                If.pop();
+                    Rect.create();
+                    Rect.width(28);
+                    Rect.height(4);
+                    Rect.radius(2);
+                    Rect.fill(this.folderColorMap[group.label] ?? RokuricsColors.aqua);
+                    Rect.translate({ x: -4, y: 0 });
+                }, Rect);
                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    Text.create(`${filingLevelTitle(group.level)} · ${group.count} 条`);
-                    Text.fontSize(11);
-                    Text.fontColor(RokuricsColors.tertiaryText);
-                    Text.width('100%');
+                    Rect.create();
+                    Rect.width(36);
+                    Rect.height(24);
+                    Rect.radius([0, 8, 8, 8]);
+                    Rect.fill(this.folderColorMap[group.label] ?? RokuricsColors.aqua);
+                }, Rect);
+                // Simple folder shape using rounded rects
+                Column.pop();
+                // Folder icon area
+                Stack.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    // Title
+                    Text.create(group.label);
+                    // Title
+                    Text.fontSize(15);
+                    // Title
+                    Text.fontWeight(FontWeight.SemiBold);
+                    // Title
+                    Text.fontColor(RokuricsColors.deepText);
+                    // Title
+                    Text.maxLines(1);
+                    // Title
+                    Text.textOverflow({ overflow: TextOverflow.Ellipsis });
                 }, Text);
+                // Title
+                Text.pop();
+                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                    // Count
+                    Text.create(`${group.count} 项`);
+                    // Count
+                    Text.fontSize(12);
+                    // Count
+                    Text.fontWeight(FontWeight.Regular);
+                    // Count
+                    Text.fontColor(RokuricsColors.tertiaryText);
+                }, Text);
+                // Count
                 Text.pop();
                 Column.pop();
-                Button.pop();
-                this.observeComponentCreation2((elmtId, isInitialRender) => {
-                    // Context menu
-                    Button.createWithChild();
-                    // Context menu
-                    Button.width(28);
-                    // Context menu
-                    Button.height(28);
-                    // Context menu
-                    Button.backgroundColor(Color.Transparent);
-                    // Context menu
-                    Button.onClick(() => this.openRenameDialog(group.label, group.level));
-                }, Button);
-                EllipsisIcon.bind(this)(14, RokuricsColors.tertiaryText);
-                // Context menu
                 Button.pop();
             };
             this.forEachUpdateFunction(elmtId, this.currentGroups, forEachItemGenFunction);
@@ -1197,10 +1201,23 @@ class RecordingLibraryPage extends ViewPU {
             if (this.currentGroups.length > 0) {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Row.create({ space: 8 });
+                        Column.create({ space: 6 });
+                        Column.width('100%');
+                        Column.padding({ left: 16, right: 16, bottom: 12 });
+                        Column.flexShrink(0);
+                    }, Column);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('子分类');
+                        Text.fontSize(12);
+                        Text.fontWeight(FontWeight.Medium);
+                        Text.fontColor(RokuricsColors.tertiaryText);
+                        Text.padding({ left: 20 });
+                        Text.width('100%');
+                    }, Text);
+                    Text.pop();
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Row.create({ space: 10 });
                         Row.width('100%');
-                        Row.padding({ left: 16, right: 16, bottom: 12 });
-                        Row.flexShrink(0);
                     }, Row);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         ForEach.create();
@@ -1209,6 +1226,7 @@ class RecordingLibraryPage extends ViewPU {
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
                                 Button.createWithChild();
                                 Button.backgroundColor(Color.Transparent);
+                                Button.layoutWeight(1);
                                 Button.onClick(() => {
                                     const newPath: string[] = [];
                                     for (const p of this.browsePath)
@@ -1218,22 +1236,64 @@ class RecordingLibraryPage extends ViewPU {
                                 });
                             }, Button);
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                Column.create({ space: 4 });
-                                Column.padding({ left: 12, right: 12, top: 8, bottom: 8 });
-                                Column.borderRadius(12);
+                                Column.create({ space: 6 });
+                                Column.width('100%');
+                                Column.padding({ top: 14, bottom: 12, left: 10, right: 10 });
+                                Column.borderRadius(16);
                                 Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, glassFillOpacity));
                                 Column.border({
                                     width: 1,
                                     color: {
                                         colors: [
-                                            [0xFFFFFF, glassStrokeHighOpacity],
-                                            [0xEFFAF8, glassStrokeMidOpacity]
+                                            [0xFFFFFF, 0.12],
+                                            [RokuricsColors.glassStroke, 0.08],
+                                            [RokuricsColors.glassStrokeAccent, 0.08]
                                         ],
                                         direction: GradientDirection.RightBottom
                                     },
-                                    radius: 12
+                                    radius: 16
                                 } as BorderOptions);
+                                Column.shadow({
+                                    color: colorAlpha(RokuricsColors.shadowColor, '04'),
+                                    radius: 6,
+                                    offsetY: 3
+                                });
                             }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                // Small folder icon
+                                Stack.create();
+                                // Small folder icon
+                                Stack.width(34);
+                                // Small folder icon
+                                Stack.height(34);
+                            }, Stack);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Circle.create();
+                                Circle.width(34);
+                                Circle.height(34);
+                                Circle.fill(colorAlpha(this.folderColorMap[group.label] ?? RokuricsColors.aqua, '20'));
+                            }, Circle);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Column.create({ space: 0 });
+                            }, Column);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Rect.create();
+                                Rect.width(18);
+                                Rect.height(3);
+                                Rect.radius(1.5);
+                                Rect.fill(this.folderColorMap[group.label] ?? RokuricsColors.aqua);
+                                Rect.translate({ x: -3, y: 0 });
+                            }, Rect);
+                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                Rect.create();
+                                Rect.width(24);
+                                Rect.height(16);
+                                Rect.radius([0, 5, 5, 5]);
+                                Rect.fill(this.folderColorMap[group.label] ?? RokuricsColors.aqua);
+                            }, Rect);
+                            Column.pop();
+                            // Small folder icon
+                            Stack.pop();
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
                                 Text.create(group.label);
                                 Text.fontSize(13);
@@ -1243,8 +1303,8 @@ class RecordingLibraryPage extends ViewPU {
                             }, Text);
                             Text.pop();
                             this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                Text.create(`${group.count} 条`);
-                                Text.fontSize(11);
+                                Text.create(`${group.count} 项`);
+                                Text.fontSize(10);
                                 Text.fontColor(RokuricsColors.tertiaryText);
                             }, Text);
                             Text.pop();
@@ -1255,6 +1315,7 @@ class RecordingLibraryPage extends ViewPU {
                     }, ForEach);
                     ForEach.pop();
                     Row.pop();
+                    Column.pop();
                 });
             }
             // Recording rows
@@ -1331,8 +1392,8 @@ class RecordingLibraryPage extends ViewPU {
                                             color: {
                                                 colors: [
                                                     [0xFFFFFF, glassStrokeHighOpacity],
-                                                    [0xEFFAF8, glassStrokeMidOpacity],
-                                                    [0x91E8D6, glassAccentOpacity]
+                                                    [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+                                                    [RokuricsColors.glassStrokeAccent, glassAccentOpacity]
                                                 ],
                                                 direction: GradientDirection.RightBottom
                                             },
@@ -1474,9 +1535,9 @@ class RecordingLibraryPage extends ViewPU {
                 width: 1,
                 color: {
                     colors: [
-                        [0xFFFFFF, 0.38],
-                        [0xEFFAF8, 0.12],
-                        [0x59C7C2, 0.10]
+                        [0xFFFFFF, 0.18],
+                        [RokuricsColors.glassStroke, 0.12],
+                        [RokuricsColors.aqua, 0.10]
                     ],
                     direction: GradientDirection.RightBottom
                 },
@@ -1585,8 +1646,8 @@ class RecordingLibraryPage extends ViewPU {
                                             color: {
                                                 colors: [
                                                     [0xFFFFFF, glassStrokeHighOpacity],
-                                                    [0xEFFAF8, glassStrokeMidOpacity],
-                                                    [0xE06B6E, 0.08]
+                                                    [RokuricsColors.glassStroke, glassStrokeMidOpacity],
+                                                    [RokuricsColors.coral, 0.12]
                                                 ],
                                                 direction: GradientDirection.RightBottom
                                             },

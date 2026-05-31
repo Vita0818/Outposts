@@ -52,17 +52,35 @@ public sealed partial class MacIPhoneConnectionPage : Page
         StartPairingButton.Visibility = Visibility.Collapsed;
         PairingCodeCard.Visibility = Visibility.Visible;
         PairingCodeText.Text = _activePairingCode;
+        StopBreathingAnimation();
         StartBreathingAnimation();
     }
 
     private void StartBreathingAnimation()
     {
-        try { BreathingAnimation.Begin(); } catch { }
+        try
+        {
+            BreathingAnimation.Stop();
+            BreathingAnimation.Begin();
+        }
+        catch { }
     }
 
     private void StopBreathingAnimation()
     {
-        try { BreathingAnimation.Stop(); } catch { }
+        try
+        {
+            BreathingAnimation.Stop();
+            DeviceBubble.Opacity = 1.0;
+            DeviceBubbleScaleTransform.ScaleX = 1.0;
+            DeviceBubbleScaleTransform.ScaleY = 1.0;
+        }
+        catch { }
+    }
+
+    private void OnConnectedPanelShown()
+    {
+        StopBreathingAnimation();
     }
 
     private void CopyPairingInfo_Click(object sender, RoutedEventArgs e)

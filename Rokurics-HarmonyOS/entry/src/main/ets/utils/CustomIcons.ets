@@ -4,13 +4,31 @@
  */
 import { colorAlpha,  RokuricsColors } from './RokuricsTheme'
 
-// ── Back arrow ──
+// ── Back arrow (polygon-drawn, consistent across devices) ──
 @Builder
 export function BackIcon(size: number, color: string) {
-  Text('←')
-    .fontSize(size)
-    .fontWeight(600)
-    .fontColor(color)
+  Stack() {
+    Polygon()
+      .points([
+        [size * 0.85, size * 0.15],
+        [size * 0.35, size * 0.46],
+        [size * 0.85, size * 0.77]
+      ])
+      .fill(Color.Transparent)
+      .stroke(color)
+      .strokeWidth(size * 0.10)
+      .strokeLineCap(LineCapStyle.Round)
+      .strokeLineJoin(LineJoinStyle.Round)
+      Rect()
+        .width(size * 0.55)
+        .height(size * 0.10)
+        .radius(size * 0.05)
+        .fill(color)
+        .position({ x: size * 0.05, y: size * 0.47 })
+        .translate({ x: 0, y: 0 })
+  }
+  .width(size)
+  .height(size)
 }
 
 // ── Close / X ──

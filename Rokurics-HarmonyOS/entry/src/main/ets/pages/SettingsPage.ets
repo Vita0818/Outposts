@@ -2,10 +2,11 @@
  * Settings page with user profile and AI provider configuration
  */
 import { router } from '@kit.ArkUI'
+import { ConfigurationConstant } from '@kit.AbilityKit'
 import { UserProfile } from '../models/UserProfile'
 import { SettingsStore } from '../services/SettingsStore'
 import { OpenAICompatibleClient, AIConfiguration, ProviderHealthResult } from '../services/OpenAICompatibleClient'
-import { colorAlpha,  RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
+import { colorAlpha,  RokuricsColors, FontWeight, applyColorMode, glassFillOpacity, glassStrokeHighOpacity, glassStrokeMidOpacity } from '../utils/RokuricsTheme'
 
 function formatTime(d: Date): string {
   const h = String(d.getHours()).padStart(2, '0')
@@ -25,6 +26,7 @@ function isTechValue(text: string): boolean {
 @Component
 struct SettingsPage {
   private settingsStore: SettingsStore = new SettingsStore(getContext(this))
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET
   @State profile: UserProfile = new UserProfile()
   @State displayName: string = ''
   @State handle: string = ''
@@ -149,14 +151,33 @@ struct SettingsPage {
   }
 
   build() {
+    applyColorMode(this.colorMode)
     Column() {
       Row() {
         Button() {
-          Text('←').fontSize(20).fontColor(RokuricsColors.deepText)
+          Text('←').fontSize(18).fontWeight(FontWeight.SemiBold).fontColor(RokuricsColors.deepText)
         }
         .width(44)
         .height(44)
-        .backgroundColor(Color.Transparent)
+        .borderRadius(22)
+        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'))
+        .shadow({
+          color: colorAlpha(RokuricsColors.shadowColor, '10'),
+          radius: 12,
+          offsetY: 6
+        })
+        .border({
+          width: 1,
+          color: {
+            colors: [
+              [0xFFFFFF, 0.22],
+              [RokuricsColors.glassStroke, 0.14],
+              [RokuricsColors.aqua, 0.12]
+            ],
+            direction: GradientDirection.RightBottom
+          },
+          radius: 22
+        } as BorderOptions)
         .onClick(() => this.getUIContext().getRouter().back())
 
         Text('设置')
@@ -240,7 +261,10 @@ struct SettingsPage {
           }
 
           // ── 转写 section ──
-          this.SettingsSection('转写') {
+          Column({ space: 8 }) {
+            Text('转写')
+              .fontSize(13).fontWeight(FontWeight.Medium).fontColor(RokuricsColors.tertiaryText)
+              .padding({ left: 6 }).width('100%')
             Column() {
               this.SettingsRow('Provider', 'Mac 安全转写')
               this.SettingsDivider()
@@ -255,10 +279,28 @@ struct SettingsPage {
                 this.getUIContext().getRouter().pushUrl({ url: 'pages/AuthTestPage' })
               })
             }
+            .width('100%').borderRadius(18)
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'))
+            .border({
+              width: 1,
+              color: {
+                colors: [
+                  [0xFFFFFF, 0.10],
+                  [RokuricsColors.glassStroke, 0.08],
+                  [RokuricsColors.glassStrokeAccent, 0.06]
+                ],
+                direction: GradientDirection.RightBottom
+              },
+              radius: 18
+            } as BorderOptions)
           }
+          .width('100%')
 
           // ── AI section ──
-          this.SettingsSection('AI') {
+          Column({ space: 8 }) {
+            Text('AI')
+              .fontSize(13).fontWeight(FontWeight.Medium).fontColor(RokuricsColors.tertiaryText)
+              .padding({ left: 6 }).width('100%')
             Column() {
               Row() {
                 this.SettingsRowContent('Provider', this.aiProviderKind === 'mock' ? 'Mock' : 'OpenAI')
@@ -280,7 +322,22 @@ struct SettingsPage {
               }
               .onClick(() => this.testConnection())
             }
+            .width('100%').borderRadius(18)
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'))
+            .border({
+              width: 1,
+              color: {
+                colors: [
+                  [0xFFFFFF, 0.10],
+                  [RokuricsColors.glassStroke, 0.08],
+                  [RokuricsColors.glassStrokeAccent, 0.06]
+                ],
+                direction: GradientDirection.RightBottom
+              },
+              radius: 18
+            } as BorderOptions)
           }
+          .width('100%')
 
           // ── AI detail editor (expandable) ──
           if (this.showAIEditor) {
@@ -353,7 +410,10 @@ struct SettingsPage {
           }
 
           // ── 关于 section ──
-          this.SettingsSection('关于') {
+          Column({ space: 8 }) {
+            Text('关于')
+              .fontSize(13).fontWeight(FontWeight.Medium).fontColor(RokuricsColors.tertiaryText)
+              .padding({ left: 6 }).width('100%')
             Column() {
               this.SettingsRow('存储', '本机')
               this.SettingsDivider()
@@ -368,7 +428,22 @@ struct SettingsPage {
               this.SettingsDivider()
               this.SettingsRow('版权', '1.0 (1)')
             }
+            .width('100%').borderRadius(18)
+            .backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'))
+            .border({
+              width: 1,
+              color: {
+                colors: [
+                  [0xFFFFFF, 0.10],
+                  [RokuricsColors.glassStroke, 0.08],
+                  [RokuricsColors.glassStrokeAccent, 0.06]
+                ],
+                direction: GradientDirection.RightBottom
+              },
+              radius: 18
+            } as BorderOptions)
           }
+          .width('100%')
         }
         .width('100%')
         .padding({ left: 16, right: 16, bottom: 40 })

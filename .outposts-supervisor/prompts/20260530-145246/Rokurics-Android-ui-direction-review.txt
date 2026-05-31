@@ -1,0 +1,101 @@
+[OUTPOSTS UI_DIRECTION_REVIEW - Rokurics-Android]
+
+This is NOT a migration round and NOT a normal UI iteration.
+Do not modify files. Do not run build. Do not run tests. Do not git clean/reset/restore/checkout. Do not commit/push/PR.
+
+User feedback has highest priority:
+"有改，但是没改到点子上，方向也不对。"
+
+You must not claim READY_FOR_USER_REVIEW. Do not use qwen scores, build pass, or test pass to override user feedback.
+This task is direction review and product-level UI plan only.
+
+Mandatory preflight:
+MODEL_CHECK_RESULT: current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m].
+PATH_CHECK_RESULT: current working directory must be exactly /Users/vita/Vitemis/Outposts/Rokurics-Android.
+SOURCE_READONLY_CHECK: Apple source and reference screenshots are read-only. Target project must not be modified in this review.
+
+Reference directory:
+/Users/vita/Vitemis/Outposts/Rokurics-iOS-Ref
+
+Existing actual screenshots from previous round:
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-android-windows-screenshot-compare-fix/20260530-134543/Rokurics-Android/actual/round1-dashboard-rokurics-20260530-134600.png
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-android-windows-screenshot-compare-fix/20260530-134543/Rokurics-Android/actual/round1-dashboard-rokurics-final-20260530-143500.png
+
+If these actual screenshots are missing, capture new actual screenshots with adb into a NEW evidence path under:
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/ui-direction-review/20260530-145246/Rokurics-Android/actual/
+Do not overwrite old screenshots. Verify foreground package equals com.rokurics.app before capture.
+
+Required diagnosis:
+
+A. Reference screenshot structure diagnosis
+Use qwen-vision.inspect_screenshot on the most relevant Rokurics iOS reference screenshots for Dashboard/home and navigation.
+Output:
+1. Page skeleton: top area, main visual area, content card/list area, navigation area, button/action area.
+2. Visual focus: what the eye should see first; main card/orb/capsule location; whether center of gravity is top/middle/bottom.
+3. Spatial relationships: vertical distances, horizontal margins, card width, nav position, main content vs title relationship.
+4. Style keywords: minimal, glass, lightweight, dark/light, card hierarchy, background texture, Apple-like whitespace.
+
+B. Current actual screenshot diagnosis
+Use qwen-vision.inspect_screenshot on the actual Android screenshots.
+Output:
+1. Current page skeleton.
+2. Current visual focus.
+3. Current spatial relationships.
+4. Current style impression.
+5. Whether it looks like a generic Android demo.
+6. How it deviates from iOS reference.
+
+C. Reference vs actual difference diagnosis
+Use qwen-vision.compare_screenshots where reference and actual are both available.
+Do not reduce the result to local parameter tweaks. Escalate to structural judgment:
+1. Is the skeleton wrong?
+2. Is the main visual position wrong?
+3. Is page center of gravity wrong?
+4. Is navigation position wrong?
+5. Is card hierarchy wrong?
+6. Is color direction wrong?
+7. Are typography/proportions wrong?
+8. Are interaction entries wrong?
+9. Does this require UI shell / page layout / navigation restructure rather than local patch?
+
+D. Wrong direction retrospective
+Answer:
+1. What did the previous round change?
+2. Why would the user say it missed the point?
+3. Which layer is wrong: page structure, element position, visual center, component style, color, platform style, interaction path, data/function entry, product feel?
+4. What layer must the next round change?
+5. Does it require UI shell / page layout / navigation-level restructure?
+6. Which previous changes should be kept?
+7. Which previous changes should be replaced or overwritten?
+
+E. Proposed fix plan
+Before any code changes, output:
+1. Pages to change.
+2. Structure to change.
+3. Components to move.
+4. Wrong components to remove/weaken.
+5. Correct components to keep.
+6. Expected screenshot changes.
+7. Acceptance criteria.
+
+Final report fields:
+USER_FEEDBACK
+REFERENCE_SCREENSHOTS_USED
+ACTUAL_SCREENSHOTS_USED
+QWEN_REFERENCE_INSPECT
+QWEN_ACTUAL_INSPECT
+QWEN_COMPARE_RESULT
+WRONG_DIRECTION_DIAGNOSIS
+STRUCTURAL_DIFFERENCES
+VISUAL_FOCUS_DIFFERENCES
+LAYOUT_POSITION_DIFFERENCES
+STYLE_DIRECTION_DIFFERENCES
+WHAT_PREVIOUS_ROUND_GOT_WRONG
+WHAT_TO_KEEP
+WHAT_TO_REPLACE
+REQUIRES_UI_RESTRUCTURE
+PROPOSED_FIX_PLAN
+IMPLEMENTED_THIS_ROUND
+BUILD_RESULT
+TEST_RESULT
+NEXT_RECOMMENDATION

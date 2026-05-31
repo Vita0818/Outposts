@@ -71,15 +71,15 @@ object KikariaColors {
 
     val ActionGradientLight = Brush.linearGradient(
         colors = listOf(
-            Color(0xFF59B8F8),
-            Color(0xFF80DEE3)
+            Color(0xFF4DA8F0),
+            Color(0xFF6EC6F2)
         )
     )
 
     val ActionGradientDark = Brush.linearGradient(
         colors = listOf(
-            Color(0xFF1470B3),
-            Color(0xFF0F9EA8)
+            Color(0xFF0077B6),
+            Color(0xFF00ACC1)
         )
     )
 

@@ -198,6 +198,85 @@ export struct SettingsPageContent {
     .alignItems(HorizontalAlign.Center)
   }
 
+  /* ── Shared settings sections (Daily Goal, Danger, Countdown, Notifications, Appearance, About) ── */
+  @Builder
+  settingsContent() {
+    Column({ space: 4 }) {
+      this.sectionHeader('每日目标')
+      SettingsSectionCard() {
+        SettingsStepperRow({
+          label: '每日掌握数量', value: this.dailyGoal, min: 1, max: 200,
+          valueColor: KikariaColors.DEEP_TEXT,
+          onDecrement: () => { if (this.dailyGoal > 1) { this.dailyGoal--; appState.updateDailyGoal(this.dailyGoal) } },
+          onIncrement: () => { if (this.dailyGoal < 200) { this.dailyGoal++; appState.updateDailyGoal(this.dailyGoal) } }
+        })
+        SettingsSectionDivider()
+        SettingsInfoTextRow({ text: `当前: ${this.masteredCount}/${this.totalCount} 已掌握 · 预设: ${this.presetName}` })
+      }
+    }.width('100%')
+
+    Column({ space: 4 }) {
+      this.sectionHeader('预警阈值')
+      SettingsSectionCard() {
+        SettingsStepperRow({
+          label: '进度低于预期时提醒', value: this.dangerPercent, min: 5, max: 100,
+          valueColor: KikariaColors.DEEP_TEXT,
+          onDecrement: () => { if (this.dangerPercent > 5) { this.dangerPercent -= 5; appState.updateDangerPercent(this.dangerPercent) } },
+          onIncrement: () => { if (this.dangerPercent < 100) { this.dangerPercent += 5; appState.updateDangerPercent(this.dangerPercent) } }
+        })
+        SettingsSectionDivider()
+        SettingsInfoTextRow({ text: '当实际掌握进度低于预设的预期百分比时触发提醒。' })
+      }
+    }.width('100%')
+
+    Column({ space: 4 }) {
+      this.sectionHeader('倒计时')
+      SettingsSectionCard() {
+        SettingsListRow({ label: '截止日期', value: this.countdownEndDateStr, onTap: () => { this.showCountdownPicker = true } })
+        SettingsSectionDivider()
+        Row({ space: 8 }) {
+          Button('设置日期').fontSize(14).fontWeight(FontWeight.Medium).fontColor('#FFFFFF').backgroundColor(KikariaColors.SKY).borderRadius(12).height(36).padding({ left: 16, right: 16 }).onClick(() => { this.showCountdownPicker = true })
+          Button('清除').fontSize(14).fontWeight(FontWeight.Medium).fontColor(KikariaColors.SOFT_TEXT).backgroundColor(KikariaColors.MIST).borderRadius(12).height(36).padding({ left: 16, right: 16 }).onClick(() => { appState.updateCountdownRange(null, null); this.countdownEndDateStr = '未设置'; this.refreshState() })
+        }.width('100%').padding({ left: 16, right: 16, top: 10, bottom: 14 })
+      }
+    }.width('100%')
+
+    Column({ space: 4 }) {
+      this.sectionHeader('通知')
+      SettingsSectionCard() {
+        SettingsToggleRow({ label: '学习进度提醒', isOn: this.notificationsEnabled, onChange: (value: boolean) => { this.handleNotificationToggle(value) } })
+        SettingsSectionDivider()
+        SettingsListRow({ label: '提醒时间', value: this.notificationTimeStr, onTap: () => { this.showNotificationPicker = true } })
+        SettingsSectionDivider()
+        SettingsInfoTextRow({ text: '需要先设置倒计时截止日期才能启用通知提醒。' })
+      }
+    }.width('100%')
+
+    Column({ space: 4 }) {
+      this.sectionHeader('外观')
+      SettingsSectionCard() {
+        SettingsToggleRow({ label: '暗色模式', isOn: this.isDark, onChange: (value: boolean) => { appState.setDarkMode(value) } })
+      }
+    }.width('100%')
+
+    Column({ space: 4 }) {
+      this.sectionHeader('关于')
+      SettingsSectionCard() {
+        SettingsListRow({ label: 'Markdown 格式指南', onTap: () => { navPathStack.pushPathByName('MarkdownFormatGuide', undefined) } })
+        SettingsSectionDivider()
+        SettingsListRow({ label: '新手指引', onTap: () => { navPathStack.pushPathByName('OnboardingPage', undefined) } })
+        SettingsSectionDivider()
+        SettingsListRow({ label: '预设管理', onTap: () => { navPathStack.pushPathByName('PresetSelectionPage', undefined) } })
+      }
+    }.width('100%')
+
+    Text('Kikaria HarmonyOS · v1.0.0')
+      .fontSize(12).fontColor(KikariaColors.TERTIARY_TEXT)
+      .width('100%').textAlign(TextAlign.Center).padding({ top: 4 })
+
+    Row().height(40)
+  }
+
   /* ── Overlay backdrop ── */
   @Builder
   overlayBackdrop(onDismiss: () => void) {
@@ -270,178 +349,19 @@ export struct SettingsPageContent {
               .justifyContent(FlexAlign.Center)
 
               Column({ space: 14 }) {
-                // ── Daily Goal ──
-                Column({ space: 4 }) {
-                  this.sectionHeader('每日目标')
-                  SettingsSectionCard() {
-                    SettingsStepperRow({
-                      label: '每日掌握数量', value: this.dailyGoal, min: 1, max: 200,
-                      valueColor: KikariaColors.DEEP_TEXT,
-                      onDecrement: () => { if (this.dailyGoal > 1) { this.dailyGoal--; appState.updateDailyGoal(this.dailyGoal) } },
-                      onIncrement: () => { if (this.dailyGoal < 200) { this.dailyGoal++; appState.updateDailyGoal(this.dailyGoal) } }
-                    })
-                    SettingsSectionDivider()
-                    SettingsInfoTextRow({ text: `当前: ${this.masteredCount}/${this.totalCount} 已掌握 · 预设: ${this.presetName}` })
-                  }
-                }.width('100%')
-
-                // ── Danger ──
-                Column({ space: 4 }) {
-                  this.sectionHeader('预警阈值')
-                  SettingsSectionCard() {
-                    SettingsStepperRow({
-                      label: '进度低于预期时提醒', value: this.dangerPercent, min: 5, max: 100,
-                      valueColor: KikariaColors.DEEP_TEXT,
-                      onDecrement: () => { if (this.dangerPercent > 5) { this.dangerPercent -= 5; appState.updateDangerPercent(this.dangerPercent) } },
-                      onIncrement: () => { if (this.dangerPercent < 100) { this.dangerPercent += 5; appState.updateDangerPercent(this.dangerPercent) } }
-                    })
-                    SettingsSectionDivider()
-                    SettingsInfoTextRow({ text: '当实际掌握进度低于预设的预期百分比时触发提醒。' })
-                  }
-                }.width('100%')
-
-                // ── Countdown ──
-                Column({ space: 4 }) {
-                  this.sectionHeader('倒计时')
-                  SettingsSectionCard() {
-                    SettingsListRow({ label: '截止日期', value: this.countdownEndDateStr, onTap: () => { this.showCountdownPicker = true } })
-                    SettingsSectionDivider()
-                    Row({ space: 8 }) {
-                      Button('设置日期').fontSize(14).fontWeight(FontWeight.Medium).fontColor('#FFFFFF').backgroundColor(KikariaColors.SKY).borderRadius(12).height(36).padding({ left: 16, right: 16 }).onClick(() => { this.showCountdownPicker = true })
-                      Button('清除').fontSize(14).fontWeight(FontWeight.Medium).fontColor(KikariaColors.SOFT_TEXT).backgroundColor(KikariaColors.MIST).borderRadius(12).height(36).padding({ left: 16, right: 16 }).onClick(() => { appState.updateCountdownRange(null, null); this.countdownEndDateStr = '未设置'; this.refreshState() })
-                    }.width('100%').padding({ left: 16, right: 16, top: 10, bottom: 14 })
-                  }
-                }.width('100%')
-
-                // ── Notifications ──
-                Column({ space: 4 }) {
-                  this.sectionHeader('通知')
-                  SettingsSectionCard() {
-                    SettingsToggleRow({ label: '学习进度提醒', isOn: this.notificationsEnabled, onChange: (value: boolean) => { this.handleNotificationToggle(value) } })
-                    SettingsSectionDivider()
-                    SettingsListRow({ label: '提醒时间', value: this.notificationTimeStr, onTap: () => { this.showNotificationPicker = true } })
-                    SettingsSectionDivider()
-                    SettingsInfoTextRow({ text: '需要先设置倒计时截止日期才能启用通知提醒。' })
-                  }
-                }.width('100%')
-
-                // ── Appearance ──
-                Column({ space: 4 }) {
-                  this.sectionHeader('外观')
-                  SettingsSectionCard() {
-                    SettingsToggleRow({ label: '暗色模式', isOn: this.isDark, onChange: (_value: boolean) => { appState.toggleDarkMode() } })
-                  }
-                }.width('100%')
-
-                // ── About ──
-                Column({ space: 4 }) {
-                  this.sectionHeader('关于')
-                  SettingsSectionCard() {
-                    SettingsListRow({ label: 'Markdown 格式指南', onTap: () => { navPathStack.pushPathByName('MarkdownFormatGuide', undefined) } })
-                    SettingsSectionDivider()
-                    SettingsListRow({ label: '新手指引', onTap: () => { navPathStack.pushPathByName('OnboardingPage', undefined) } })
-                    SettingsSectionDivider()
-                    SettingsListRow({ label: '预设管理', onTap: () => { navPathStack.pushPathByName('PresetSelectionPage', undefined) } })
-                  }
-                }.width('100%')
-
-                Text('Kikaria HarmonyOS · v1.0.0')
-                  .fontSize(12).fontColor(KikariaColors.TERTIARY_TEXT)
-                  .width('100%').textAlign(TextAlign.Center).padding({ top: 4 })
-
-                Row().height(40)
+                this.settingsContent()
               }
               .width(settingsLandscapeRightWidth())
             }
             .width('100%')
             .constraintSize({ maxWidth: settingsLandscapeMaxWidth() })
           } else {
-            // ── Profile ──
             Column({ space: 4 }) {
               this.sectionHeader('个人资料')
               SettingsSectionCard() { this.profileRow() }
             }.width('100%')
 
-            // ── Daily Goal ──
-            Column({ space: 4 }) {
-              this.sectionHeader('每日目标')
-              SettingsSectionCard() {
-                SettingsStepperRow({
-                  label: '每日掌握数量', value: this.dailyGoal, min: 1, max: 200,
-                  valueColor: KikariaColors.DEEP_TEXT,
-                  onDecrement: () => { if (this.dailyGoal > 1) { this.dailyGoal--; appState.updateDailyGoal(this.dailyGoal) } },
-                  onIncrement: () => { if (this.dailyGoal < 200) { this.dailyGoal++; appState.updateDailyGoal(this.dailyGoal) } }
-                })
-                SettingsSectionDivider()
-                SettingsInfoTextRow({ text: `当前: ${this.masteredCount}/${this.totalCount} 已掌握 · 预设: ${this.presetName}` })
-              }
-            }.width('100%')
-
-            // ── Danger ──
-            Column({ space: 4 }) {
-              this.sectionHeader('预警阈值')
-              SettingsSectionCard() {
-                SettingsStepperRow({
-                  label: '进度低于预期时提醒', value: this.dangerPercent, min: 5, max: 100,
-                  valueColor: KikariaColors.DEEP_TEXT,
-                  onDecrement: () => { if (this.dangerPercent > 5) { this.dangerPercent -= 5; appState.updateDangerPercent(this.dangerPercent) } },
-                  onIncrement: () => { if (this.dangerPercent < 100) { this.dangerPercent += 5; appState.updateDangerPercent(this.dangerPercent) } }
-                })
-                SettingsSectionDivider()
-                SettingsInfoTextRow({ text: '当实际掌握进度低于预设的预期百分比时触发提醒。' })
-              }
-            }.width('100%')
-
-            // ── Countdown ──
-            Column({ space: 4 }) {
-              this.sectionHeader('倒计时')
-              SettingsSectionCard() {
-                SettingsListRow({ label: '截止日期', value: this.countdownEndDateStr, onTap: () => { this.showCountdownPicker = true } })
-                SettingsSectionDivider()
-                Row({ space: 8 }) {
-                  Button('设置日期').fontSize(14).fontWeight(FontWeight.Medium).fontColor('#FFFFFF').backgroundColor(KikariaColors.SKY).borderRadius(12).height(36).padding({ left: 16, right: 16 }).onClick(() => { this.showCountdownPicker = true })
-                  Button('清除').fontSize(14).fontWeight(FontWeight.Medium).fontColor(KikariaColors.SOFT_TEXT).backgroundColor(KikariaColors.MIST).borderRadius(12).height(36).padding({ left: 16, right: 16 }).onClick(() => { appState.updateCountdownRange(null, null); this.countdownEndDateStr = '未设置'; this.refreshState() })
-                }.width('100%').padding({ left: 16, right: 16, top: 10, bottom: 14 })
-              }
-            }.width('100%')
-
-            // ── Notifications ──
-            Column({ space: 4 }) {
-              this.sectionHeader('通知')
-              SettingsSectionCard() {
-                SettingsToggleRow({ label: '学习进度提醒', isOn: this.notificationsEnabled, onChange: (value: boolean) => { this.handleNotificationToggle(value) } })
-                SettingsSectionDivider()
-                SettingsListRow({ label: '提醒时间', value: this.notificationTimeStr, onTap: () => { this.showNotificationPicker = true } })
-                SettingsSectionDivider()
-                SettingsInfoTextRow({ text: '需要先设置倒计时截止日期才能启用通知提醒。' })
-              }
-            }.width('100%')
-
-            // ── Appearance ──
-            Column({ space: 4 }) {
-              this.sectionHeader('外观')
-              SettingsSectionCard() {
-                SettingsToggleRow({ label: '暗色模式', isOn: this.isDark, onChange: (_value: boolean) => { appState.toggleDarkMode() } })
-              }
-            }.width('100%')
-
-            // ── About ──
-            Column({ space: 4 }) {
-              this.sectionHeader('关于')
-              SettingsSectionCard() {
-                SettingsListRow({ label: 'Markdown 格式指南', onTap: () => { navPathStack.pushPathByName('MarkdownFormatGuide', undefined) } })
-                SettingsSectionDivider()
-                SettingsListRow({ label: '新手指引', onTap: () => { navPathStack.pushPathByName('OnboardingPage', undefined) } })
-                SettingsSectionDivider()
-                SettingsListRow({ label: '预设管理', onTap: () => { navPathStack.pushPathByName('PresetSelectionPage', undefined) } })
-              }
-            }.width('100%')
-
-            Text('Kikaria HarmonyOS · v1.0.0')
-              .fontSize(12).fontColor(KikariaColors.TERTIARY_TEXT)
-              .width('100%').textAlign(TextAlign.Center).padding({ top: 4 })
-
-            Row().height(40)
+            this.settingsContent()
           }
         }
         .width('100%')

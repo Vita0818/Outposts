@@ -1,0 +1,54 @@
+[ROUND 1 / BATCH outposts-ui-structure-build-recovery-winui-native-round]
+
+Mandatory preflight:
+1. MODEL_CHECK_RESULT: current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop.
+2. PATH_CHECK_RESULT: current working directory must be /Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS. If not, stop.
+3. SOURCE_READONLY_CHECK: Apple source is read-only at /Users/vita/Vitemis/Vela/Kikaria. Reference screenshots are read-only at /Users/vita/Vitemis/Outposts/Kikaria-Ref. All writes must stay inside /Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS or .outposts-supervisor evidence/report paths.
+
+User feedback, highest priority: Kikaria-HarmonyOS build fails. First priority is build recovery.
+
+Task:
+- Restore build first. Until build is recovered, do not add UI features, new pages, or visual polish.
+- Identify the original build error, apply the smallest project-local source/config fix, then run the available build command to verify.
+- You may read /Users/vita/Vitemis/Outposts/Kikaria-Ref and use qwen-vision.inspect_screenshot for reference-first UI understanding, but this must not distract from build recovery.
+- If build succeeds and time remains, report follow-up UI/qwen work; do not perform large UI expansion in this round.
+
+HarmonyOS hard boundaries:
+- Do not delete, clean, or modify ~/.hvigor.
+- Do not delete, clean, or modify user-level DevEco/HarmonyOS SDK/Hvigor/ohpm/npm/pnpm caches.
+- Do not globally install pnpm/npm/ohpm packages or repair global toolchains.
+- Do not clean project build/cache/toolchain mirrors as a workaround.
+- Do not git clean/reset/restore/checkout.
+- If user-level toolchain repair is needed, stop and report TOOLCHAIN_REPAIR_NEEDS_USER.
+
+Forbidden:
+- Do not modify Apple source or reference image directories.
+- Do not read/send secrets, .env, API keys, tokens, certificates, p12, ssh keys, Keychain contents.
+- Do not commit/push/PR. Do not delete visual evidence/checkpoints/reports.
+
+Final report fields:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+QWEN_REQUIRED
+QWEN_CALLED
+QWEN_VALID_VISUAL_EVIDENCE
+QWEN_COMPARE_SCREENSHOTS_COMPLETED
+REFERENCE_SCREENSHOTS_USED
+ACTUAL_SCREENSHOTS
+VISION_TOOLS_CALLED
+VISION_RESULT_SUMMARY
+USER_FEEDBACK_ADDRESSED
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+ACTUAL_SCREENSHOT_BLOCKER
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION
+TOOLCHAIN_BOUNDARY_COMPLIANCE
+

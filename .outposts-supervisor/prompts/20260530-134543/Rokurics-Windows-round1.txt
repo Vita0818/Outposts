@@ -1,0 +1,72 @@
+[OUTPOSTS ROUND 1 - Rokurics-Windows]
+
+Mandatory preflight first. If any check fails, stop and report.
+
+MODEL_CHECK_RESULT:
+Current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop.
+
+PATH_CHECK_RESULT:
+Current working directory must be exactly:
+/Users/vita/Vitemis/Outposts/Rokurics-Windows
+If not, stop.
+
+SOURCE_READONLY_CHECK:
+Apple source is read-only:
+/Users/vita/Vitemis/Vela/Rokurics
+macOS reference screenshots are read-only:
+/Users/vita/Vitemis/Outposts/Rokurics-macOS-Ref
+Writes are allowed only inside this target project and:
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-android-windows-screenshot-compare-fix/20260530-134543/Rokurics-Windows
+Do not read or send secrets, tokens, .env, certificates, private keys, p12, provisioning profiles, API keys, or Keychain content.
+Do not run git clean/reset/restore/checkout. Do not commit/push/PR. Do not delete visual-evidence, qwen output, state, checkpoint, or reports.
+
+Batch goal:
+Rokurics-Windows must remain WinUI 3 / Windows App SDK / C# with Windows 11 native style. Use macOS reference screenshots for qwen visual understanding, then apply only valid WinUI 3 native/static fixes. Do not convert the app to WPF, Avalonia, MAUI, Electron, WebView, Flutter, or a generic demo.
+
+Required order:
+1. Confirm project framework remains WinUI 3 / Windows App SDK / C#.
+2. Select high-value reference screenshots from:
+/Users/vita/Vitemis/Outposts/Rokurics-macOS-Ref
+If you copy reference screenshots for evidence, copy only into the evidence reference directory and do not modify the source reference dir.
+3. Call qwen-vision.inspect_screenshot on the reference screenshot(s) before code changes.
+4. Detect whether this session is actually running in a Windows 11 ARM + Visual Studio 2022 environment.
+5. If this is a real Windows 11 ARM + VS2022 environment, attempt Debug/ARM64 build, launch window, capture actual Windows app screenshot into:
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-android-windows-screenshot-compare-fix/20260530-134543/Rokurics-Windows/actual/
+Then call qwen inspect actual and compare reference vs actual when both are available.
+6. If current host is macOS or otherwise not a Windows UI validation environment, set WINDOWS_HOST_VALIDATION_PENDING=YES. Do not claim Debug/ARM64 build, launch, or actual Windows screenshot succeeded. You may still perform static WinUI 3 XAML/API compatibility fixes and Win11-native UI alignment based on qwen reference understanding.
+7. Prioritize WinUI 3 XAML compatibility and native style: WMC0011 Unknown member, WPF/Avalonia/AI hallucinated properties, NavigationView, Grid, CommandBar, InfoBar, TeachingTip, MenuFlyout, AppWindow, Fluent/Mica/Acrylic/rounded corners/native spacing.
+8. Avoid architecture rewrite and framework swap. Keep changes minimal and targeted.
+9. Build/launch only if the host environment genuinely supports it. Otherwise report pending validation.
+
+qwen rules:
+qwen-vision is only for inspect_screenshot, compare_screenshots, extract_text_and_controls. qwen does not modify files. Do not send source code or secrets to qwen.
+
+Final report fields:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+REFERENCE_SCREENSHOTS_USED
+ACTUAL_SCREENSHOTS
+QWEN_CALLED
+QWEN_VALID_VISUAL_EVIDENCE
+QWEN_COMPARE_SCREENSHOTS_COMPLETED
+VISION_TOOLS_CALLED
+VISION_RESULT_SUMMARY
+UI_CHANGES_FROM_COMPARE
+BUILD_RESULT
+TEST_RESULT
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION
+WINUI3_CONFIRMED
+WINDOWS_APP_SDK_CONFIRMED
+NON_WINUI_FRAMEWORK_AVOIDED
+WIN11_NATIVE_STYLE_PROGRESS
+WINDOWS_HOST_VALIDATION_PENDING
+DEBUG_ARM64_BUILD_RESULT
+WINDOW_LAUNCH_RESULT
+WINDOWS_ACTUAL_SCREENSHOT
+INVALID_XAML_MEMBERS_FIXED
+WMC0011_REMAINING

@@ -119,6 +119,8 @@ Android：
 - Android Studio 只作为 Emulator 管理工具。
 - 不需要为 Kikaria-Android 和 Rokurics-Android 分别启动两个 Android Studio；一个 Android Studio 足够。
 - 机器性能允许时可以启动两个 Android Emulator；否则只启动一个 Emulator，并让两个 Android 项目串行做视觉截图。
+- 共享 Emulator 只意味着 Android 项目的截图阶段必须串行获取 `ANDROID_EMULATOR_LOCK`；不意味着用户需要在 Android Studio 中手动切项目、手动选择 Build/Run，或回复 `READY`。
+- Kikaria-Android 和 Rokurics-Android 共用同一个 Emulator 时，Claude Code 必须通过 adb、Gradle、安装、启动和前台包名校验自动切换目标 App。
 - 推荐默认设备名：`Outposts_Android_UI`。
 - 如果检测不到 emulator，不得声称完成 Android 视觉验收，必须报告 `BLOCKED_BY_NO_EMULATOR`。
 
@@ -161,14 +163,95 @@ qwen/
 
 ### Android 截图规则
 
-如果 emulator 已启动，Claude Code 应优先使用 adb 获取纯设备截图：
+如果 emulator 已启动，Claude Code 应优先使用 adb 获取纯设备截图。默认 adb 绝对路径为：
 
 ```text
-adb devices
-adb -s <DEVICE_SERIAL> exec-out screencap -p > <ACTUAL_SCREENSHOT_PATH>
+/Users/vita/Library/Android/sdk/platform-tools/adb
 ```
 
-如果有多个 emulator，必须显式指定 `-s <DEVICE_SERIAL>`。不得把错误设备截图当作当前项目截图。
+Android screenshot preflight 必须按以下顺序执行：
+
+1. 获取 `ANDROID_EMULATOR_LOCK`。同一时间只有一个 Android 项目可以操作共享 Emulator。
+2. 确认 adb 绝对路径可用；不得只运行 `adb` 后声称 `adb not found`。
+3. 执行 `adb devices -l`，确认目标 emulator 存在且不是 `offline` 或 `unauthorized`。
+4. 从当前 Android 目标项目的 Gradle 配置、manifest 或等价项目配置读取 `applicationId`；不得猜包名。
+5. 检查目标 App 是否已安装。
+6. 如果 App 未安装，允许在当前目标项目内执行最小安装流程，例如 `./gradlew installDebug` 或项目等价安装命令。该步骤只属于 `SCREENSHOT_PREFLIGHT`，不得伴随 UI 修改。
+7. 使用 adb 自动启动目标 App。
+8. 校验当前前台包名等于目标 `applicationId`。
+9. 前台包名正确后，执行 `screencap`。
+10. 截图保存到 visual-evidence 的 `actual/` 目录，使用唯一文件名。
+11. 释放 `ANDROID_EMULATOR_LOCK`。
+
+优先启动命令：
+
+```text
+/Users/vita/Library/Android/sdk/platform-tools/adb -s <DEVICE_SERIAL> shell monkey -p <APPLICATION_ID> -c android.intent.category.LAUNCHER 1
+```
+
+如果 `monkey` 无法启动，Claude Code 可以从项目 manifest、Gradle 配置或设备 package manager 输出确认主 Activity 后使用：
+
+```text
+adb -s <DEVICE_SERIAL> shell am start -n <APPLICATION_ID>/<MAIN_ACTIVITY>
+```
+
+不得猜 Activity。必须从项目配置或设备输出确认。
+
+截图命令形态：
+
+```text
+/Users/vita/Library/Android/sdk/platform-tools/adb -s <DEVICE_SERIAL> exec-out screencap -p > <ACTUAL_SCREENSHOT_PATH>
+```
+
+如果有多个 emulator，必须显式指定 `-s <DEVICE_SERIAL>`。不得把错误设备、错误 App 或另一个项目的 App 截图当作当前项目截图。
+
+前台包名校验可使用以下命令或等价方式：
+
+```text
+adb -s <DEVICE_SERIAL> shell dumpsys activity activities
+adb -s <DEVICE_SERIAL> shell dumpsys window
+adb -s <DEVICE_SERIAL> shell pidof <APPLICATION_ID>
+```
+
+如果前台包名不是目标 `applicationId`：
+
+1. 不得截图。
+2. 自动重新启动目标 App。
+3. 再次校验前台包名。
+4. 最多重试 2 次。
+5. 仍失败才报告 `ANDROID_FOREGROUND_PACKAGE_MISMATCH`。
+
+如果 `installDebug` 或等价安装失败，报告 `INSTALL_FOR_SCREENSHOT_FAILED`，停止该项目截图链，不得继续 UI 修改。
+
+Android 报告必须包含：
+
+```text
+ANDROID_EMULATOR_LOCK:
+ANDROID_ADB_PATH:
+ANDROID_ADB_STATUS:
+ANDROID_DEVICE_SERIALS:
+APPLICATION_ID_SOURCE:
+APPLICATION_ID:
+INSTALL_NEEDED_FOR_SCREENSHOT:
+INSTALL_COMMAND:
+INSTALL_RESULT:
+APP_LAUNCH_COMMAND:
+FOREGROUND_PACKAGE_CHECK:
+FOREGROUND_PACKAGE:
+ACTUAL_SCREENSHOT_PATH:
+SCREENSHOT_CHAIN_STATUS:
+```
+
+`ANDROID_WAITING_FOR_USER_APP_SWITCH` 不作为常规流程使用。只有 adb 完全看不到 emulator、设备 `offline/unauthorized`、系统权限弹窗无法处理、安装因签名或 Gradle 环境失败且无法项目内修复、或 App 启动后出现必须人工处理的系统弹窗时，才可报告 `USER_DEVICE_INTERVENTION_REQUIRED`。
+
+actual screenshot 文件名必须唯一，例如：
+
+```text
+round1-home-kikaria-20260530-130501.png
+round1-dashboard-rokurics-20260530-130544.png
+```
+
+不得覆盖旧图。若先写项目内临时文件，必须复制到 visual-evidence 后才算截图链成功；项目内临时截图不能作为最终视觉证据。
 
 ### HarmonyOS 截图规则
 
@@ -380,3 +463,80 @@ Codex 主管摘要中也应简要保留：
 - 不得用 `qwen-vision` 替代构建和测试。
 - 不得因为 `qwen-vision` 说“相似”就跳过用户人工验收。
 - 用户人工视觉反馈优先级高于 `qwen-vision` 的匹配判断。
+
+## Reference-first 视觉流程
+
+UI 视觉批次必须先读取 reference screenshot，再谈 actual screenshot。合法路径有两种：
+
+1. 理想路径：读取 reference screenshot，获取目标项目 actual screenshot，调用 qwen inspect/compare，再由 Claude Code 主 Agent 修改、构建、测试、总结。
+2. 退化路径：如果模拟器、Preview、真机或窗口截图暂不可得，仍必须先调用 `qwen-vision.inspect_screenshot` 理解 reference screenshot，再结合 Apple 源项目只读信息和目标项目实现进行修正。
+
+`REFERENCE_ONLY` 不是失败，也不是终止态。报告必须写明：
+
+```text
+QWEN_CALLED=YES
+QWEN_VALID_VISUAL_EVIDENCE=REFERENCE_ONLY
+QWEN_COMPARE_SCREENSHOTS_COMPLETED=NO
+ACTUAL_SCREENSHOT_BLOCKER=<具体原因>
+```
+
+## 参考图目录映射
+
+- Kikaria-Android、Kikaria-HarmonyOS：`/Users/vita/Vitemis/Outposts/Kikaria-Ref`
+- Rokurics-Android、Rokurics-HarmonyOS：`/Users/vita/Vitemis/Outposts/Rokurics-iOS-Ref`
+- Rokurics-Windows：`/Users/vita/Vitemis/Outposts/Rokurics-macOS-Ref`
+
+参考图目录只读。不得修改、删除、重命名或重新压缩参考图。Claude Code 的 `.claude/settings.local.json` 应仅授予对应参考图目录的只读 `Read(.../**)` 权限，并保留 `qwen-vision` 三个工具 allow：
+
+```text
+mcp__qwen-vision__inspect_screenshot
+mcp__qwen-vision__compare_screenshots
+mcp__qwen-vision__extract_text_and_controls
+```
+
+`disabledMcpjsonServers` 中不得包含 `qwen-vision`。不得使用 `bypassPermissions`，不得扩大到其他 MCP server。
+
+## 视觉证据目录
+
+所有视觉证据统一写入：
+
+```text
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/<BATCH_NAME>/<RUN_ID>/<PROJECT_NAME>/
+```
+
+每项目固定子目录：
+
+```text
+reference/
+actual/
+qwen/
+```
+
+不得把截图散落到子项目源码目录，不得写入 Apple 源项目，不得删除旧 visual evidence。需要重新截图时创建新的 `RUN_ID`。
+
+## 有效 actual screenshot 标准
+
+有效 actual screenshot 只能是 App 实际渲染画面、Android emulator/真机纯设备截图、HarmonyOS Preview/真机/模拟器画面、Windows app 真实窗口截图。
+
+未裁剪的全桌面截图、只显示 IDE 或桌面的截图、截错设备 serial、截错项目、截错窗口，都不能算有效视觉证据。`qwen-vision` 看过无效截图只代表 `QWEN_CALLED=YES`，不得报告有效验收。
+
+## 必填视觉报告字段
+
+```text
+QWEN_CALLED:
+QWEN_VALID_VISUAL_EVIDENCE:
+QWEN_COMPARE_SCREENSHOTS_COMPLETED:
+REFERENCE_SCREENSHOTS_USED:
+ACTUAL_SCREENSHOTS:
+VISION_TOOLS_CALLED:
+VISION_RESULT_SUMMARY:
+ACTUAL_SCREENSHOT_BLOCKER:
+```
+
+## 项目视觉重点
+
+- Kikaria-Android：首页、背诵页 / ReviewScreen；多轮无改善时允许 UI shell / page layout / navigation 整体重构。
+- Kikaria-HarmonyOS：构建未恢复前不堆 UI；恢复后再做有效 Preview/设备截图。
+- Rokurics-Android：禁止文字描述自创 UI；使用 `Rokurics-iOS-Ref`；暗色、玻璃、高级质感；qwen + adb actual screenshot 路径已证明可行。
+- Rokurics-HarmonyOS：重点检查黄色/异常色块、背景污染、组件层级；无效桌面截图不算。
+- Rokurics-Windows：使用 `Rokurics-macOS-Ref`；actual Windows screenshot 需要 Win11 ARM + VS2022 环境，缺环境时报告 `WINDOWS_HOST_VALIDATION_PENDING`。

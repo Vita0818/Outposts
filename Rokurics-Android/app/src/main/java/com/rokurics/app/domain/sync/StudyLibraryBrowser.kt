@@ -47,8 +47,7 @@ object StudyLibraryBrowser {
                 title = key,
                 itemCount = groupItems.size,
                 path = path.appending(key),
-                colorToken = persistedFolder?.colorToken,
-                isFallback = key == UNCATEGORIZED || key == MISSING
+                colorToken = persistedFolder?.colorToken
             ))
         }
 
@@ -70,8 +69,7 @@ object StudyLibraryBrowser {
                         title = name,
                         itemCount = 0,
                         path = path.appending(name),
-                        colorToken = folder.colorToken,
-                        isFallback = false
+                        colorToken = folder.colorToken
                     ))
                 }
             }

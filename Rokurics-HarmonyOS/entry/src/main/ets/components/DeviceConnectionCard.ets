@@ -23,11 +23,10 @@ export struct DeviceConnectionCard {
             .width(58)
             .height(58)
             .fill(RokuricsColors.mistGreen)
+          ConnectionIcon(24, this.isPaired ? RokuricsColors.softTeal : RokuricsColors.tertiaryText, this.isPaired)
         }
         .width(58)
         .height(58)
-
-        ConnectionIcon(24, this.isPaired ? RokuricsColors.softTeal : RokuricsColors.tertiaryText, this.isPaired)
 
         // Center: title + subtitle
         Column({ space: 6 }) {

@@ -1,0 +1,71 @@
+MANDATORY PREFLIGHT
+MODEL_CHECK_RESULT: 当前模型必须是 DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]。否则立即停止并报告 MODEL_MISMATCH。
+PATH_CHECK_RESULT: 当前工作目录必须严格等于 /Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS。否则立即停止并报告 WORKDIR_MISMATCH。
+SOURCE_READONLY_CHECK: Apple 源项目 /Users/vita/Vitemis/Vela/Kikaria 只读；参考图目录 /Users/vita/Vitemis/Outposts/Kikaria-Ref 只读；所有写入只允许在当前目标项目目录和本批 visual-evidence 目录内。不得读取/发送密钥、token、.env、证书或私密配置。
+
+PROJECT: Kikaria-HarmonyOS
+ROUND_INDEX: 1
+BATCH_NAME: outposts-screenshot-gated-ui-and-kikaria-h-build-fix
+RUN_ID: 20260530-122325
+EVIDENCE_DIR: /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-screenshot-gated-ui-and-kikaria-h-build-fix/20260530-122325/Kikaria-HarmonyOS
+
+本轮最高优先级：Kikaria-HarmonyOS 仍然编译错误，本批必须尝试修好。但正式任务仍必须先做 HarmonyOS SCREENSHOT_PREFLIGHT。若截图失败原因是 App 构建失败，可进入构建恢复专用流程。
+
+SCREENSHOT_PREFLIGHT:
+1. 只读确认 DevEco Preview 是否运行、hdc 是否可用、hdc 是否有 target、是否可通过 DevEco/hdc/设备/Preview 生成 actual screenshot。
+2. 优先检查 hdc 路径：/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/toolchains/hdc
+3. 若 hdc 有 target，可尝试：
+   hdc shell snapshot_display -f /data/local/tmp/outposts-shot.jpeg
+   hdc file recv /data/local/tmp/outposts-shot.jpeg /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-screenshot-gated-ui-and-kikaria-h-build-fix/20260530-122325/Kikaria-HarmonyOS/actual/home.jpeg
+4. 若只是 DevEco Preview 面板且无 hdc target，不得假装 hdc 可截 Preview。可使用 DevEco 内置截图或 macOS screencapture 兜底，但必须裁剪/确认是唯一 App/Preview 区域；无效桌面截图不算。
+5. 若 screencapture 缺权限，报告 SCREENSHOT_BLOCKED_BY_SCREEN_RECORDING。
+
+构建恢复专用流程：
+1. 如果截图因构建失败不可得，报告 SCREENSHOT_PREFLIGHT_FAILED_FOR_HARMONYOS 后进入构建恢复。
+2. 获取真实原始构建错误，分类为 ArkTS/路由/组件属性/JSON5/依赖声明/SDK-toolchain 路径等。
+3. 只修项目内源码/配置错误。
+4. 如果是 SDK metadata、sdk-mirror 或用户级工具链问题，停止并报告 TOOLCHAIN_REPAIR_NEEDS_USER 或 SDK_MIRROR_REPAIR_NEEDS_USER。
+5. 不得修改 sdk-mirror/openharmony/*/sdk-pkg.json，除非用户明确授权；本轮没有该授权。
+6. 不得修改用户级 DevEco/HarmonyOS SDK 缓存，不得清理 ~/.hvigor，不得全局安装 pnpm/npm/ohpm，不得 git clean/reset/restore/checkout，不得清理任何缓存。
+7. 构建恢复后必须立刻再尝试 actual screenshot，并按需调用 qwen-vision inspect/compare。
+
+禁止：
+- 构建未恢复前不得堆 UI 功能。
+- 不得修改 Apple 源项目或参考图目录。
+- 不得删除 visual-evidence、截图、qwen 输出、state、checkpoint、report。
+- 不得把源码、密钥、token、.env、证书传给 qwen-vision。
+
+最终报告必须包含：
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+SCREENSHOT_PREFLIGHT_RESULT
+HARMONYOS_SCREENSHOT_CHANNEL_STATUS
+HDC_PATH
+HDC_TARGETS
+DEVECO_PREVIEW_STATUS
+ACTUAL_SCREENSHOT_PATH
+REFERENCE_SCREENSHOTS_USED
+QWEN_REQUIRED
+QWEN_CALLED
+QWEN_VALID_VISUAL_EVIDENCE
+QWEN_COMPARE_SCREENSHOTS_COMPLETED
+VISION_RESULT_SUMMARY
+BUILD_ALLOWED_AFTER_SCREENSHOT_GATE
+ORIGINAL_BUILD_COMMAND
+ORIGINAL_BUILD_ERRORS
+ERROR_CLASSIFICATION
+PROJECT_LOCAL_FIXES
+SDK_MIRROR_TOUCHED
+LOCAL_PROPERTIES_TOUCHED
+TOOLCHAIN_OR_USER_LEVEL_CHANGES_ATTEMPTED
+HAP_BUILD_RESULT
+BUILD_RESULT
+TEST_RESULT
+BOUNDARY_COMPLIANCE
+IMPLEMENTED_THIS_ROUND
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION

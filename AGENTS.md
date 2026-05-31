@@ -4,6 +4,8 @@
 
 本文件只服务于未来 Codex Agent 在 `/Users/vita/Vitemis/Outposts` 中进行 Claude Code 调度时读取。它不是给 Claude Code 直接读取的项目说明，也不是任何 Outposts 子项目的开发文档。
 
+Claude Code Desktop / Claude Code 主 Agent 的共享入口是 `CLAUDE.md`。Codex Agent 每轮必须先读 `CLAUDE.md`，再读本文件和 `docs/` 下的细则。Codex Agent 可以把这些规则压缩成当前项目、当前轮次、当前目标所需的精简 prompt，但不得把整套文档粗暴粘给 Claude Code。
+
 ## 启动前检查
 
 每轮进入本目录后，Codex Agent 必须先执行并记录：
@@ -22,14 +24,15 @@ git status --short
 
 任何 Claude Code 调度前，Codex Agent 必须按顺序阅读：
 
-1. `docs/OUTPOSTS_CODEX_SUPERVISOR.md`
-2. `docs/CLAUDE_CODE_TERMINAL_PROTOCOL.md`
-3. `docs/CLAUDE_CODE_VISUAL_MCP_PROTOCOL.md`
-4. `docs/BATCH_SCHEDULING.md`
-5. `docs/SECURITY_AND_BOUNDARIES.md`
-6. `docs/RECOVERY_PLAYBOOK.md`
-7. `docs/REPORTING_FORMATS.md`
-8. `docs/DO_NOT_BREAK.md`
+1. `CLAUDE.md`
+2. `docs/OUTPOSTS_CODEX_SUPERVISOR.md`
+3. `docs/CLAUDE_CODE_TERMINAL_PROTOCOL.md`
+4. `docs/CLAUDE_CODE_VISUAL_MCP_PROTOCOL.md`
+5. `docs/BATCH_SCHEDULING.md`
+6. `docs/SECURITY_AND_BOUNDARIES.md`
+7. `docs/RECOVERY_PLAYBOOK.md`
+8. `docs/REPORTING_FORMATS.md`
+9. `docs/DO_NOT_BREAK.md`
 
 这些文档给 Codex Agent 读，用于形成调度判断。Codex 可以根据这些文档生成给 Claude Code 的任务 prompt，但不得把整套调度文档粗暴粘给 Claude Code。Claude Code 只应收到当前项目、当前轮次、当前目标所需的精简任务 prompt。
 
@@ -52,10 +55,13 @@ Codex Agent 不负责：
 
 - 阅读业务源码。
 - 修改业务源码。
+- 查看具体业务 diff。
 - 运行构建或测试。
 - 清理构建产物、缓存、`.gradle`、`intermediates`。
 - 代替 Claude Code 判断迁移完成。
 - 用 Claude Code 自评覆盖用户验收反馈。
+
+Codex Agent 遇到本地执行策略拦截时，不得绕过，不得改用隐藏通道，不得扩大授权到全局。只能请求当前 Codex 对话、当前批次、当前 Outposts 项目路径、当前可见终端会话的最小授权。未获授权时，项目进入阻塞状态。
 
 ## Claude Code 调度原则
 

@@ -78,17 +78,18 @@ data class StudyLibrarySyncManifest(
     val pendingUploads: List<PendingRecordingUpload> = emptyList(),
     val baseCommitID: String? = null,
     val commitID: String? = null,
-    val localManifestHash: String? = null
+    val localManifestHash: String? = null,
+    val checksum: String = ""
 ) {
-    val checksum: String by lazy { computeChecksum() }
+    val resolvedChecksum: String get() = checksum.ifEmpty { computeChecksum() }
 
     fun hasValidChecksum(): Boolean {
         val computed = computeChecksum()
         val legacy = legacyComputeChecksum()
-        return computed == checksum || legacy == checksum
+        return resolvedChecksum == computed || resolvedChecksum == legacy
     }
 
-    private fun computeChecksum(): String {
+    fun computeChecksum(): String {
         val gson = GsonBuilder().disableHtmlEscaping().create()
         val itemsSorted = items.sortedBy { it.itemID }
         val foldersSorted = folders.sortedBy { it.folderID }

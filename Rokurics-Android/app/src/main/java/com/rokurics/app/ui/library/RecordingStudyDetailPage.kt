@@ -2,6 +2,7 @@ package com.rokurics.app.ui.library
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -51,7 +52,7 @@ fun RecordingStudyDetailPage(
 ) {
     val recordings by recordingManager.recordings.collectAsState()
     val recording = recordings.find { it.id == recordingID }
-    val studyItem = studyLibraryStore.allStudyItems().find { it.recordingID == recordingID }
+    val studyItem = studyLibraryStore.allStudyItems.find { it.recordingID == recordingID }
 
     if (recording == null) {
         Box(Modifier.fillMaxSize().background(adaptivePageGradientBrush()), contentAlignment = Alignment.Center) {
@@ -73,8 +74,8 @@ fun RecordingStudyDetailPage(
     var showFileInfo by remember { mutableStateOf(false) }
     val audioFilePath = remember(recordingID) { recordingManager.getAudioFilePath(recordingID) }
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA) }
-    val allItems = studyLibraryStore.allStudyItems()
-    val allFolders = studyLibraryStore.allStudyFolders()
+    val allItems = studyLibraryStore.allStudyItems
+    val allFolders = studyLibraryStore.allStudyFolders
 
     val saveFiling: () -> Unit = {
         val filing = StudyFilingPath(
@@ -103,17 +104,17 @@ fun RecordingStudyDetailPage(
                 StudyFolderLevel.TOPIC -> item.filingPath.topic
                 else -> null
             }
-            if (v != null && v.isNotEmpty()) values.add(v)
+            v?.let { if (it.isNotEmpty()) values.add(it) }
         }
         for (folder in allFolders) {
-            val v = when (level) {
+            val v: String? = when (level) {
                 StudyFolderLevel.TYPE -> folder.path.type
                 StudyFolderLevel.SUBJECT -> folder.path.subject
                 StudyFolderLevel.CHAPTER -> folder.path.chapter
                 StudyFolderLevel.TOPIC -> folder.path.topic
                 else -> null
             }
-            if (v != null && v.isNotEmpty()) values.add(v)
+            v?.let { if (it.isNotEmpty()) values.add(it) }
         }
         return values.toList().sorted()
     }
@@ -142,7 +143,7 @@ fun RecordingStudyDetailPage(
                     modifier = Modifier
                         .size(42.dp)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.46f))
+                        .background(if (isSystemInDarkTheme()) Color(0xFF0D2424).copy(alpha = 0.55f) else Color.White.copy(alpha = 0.46f))
                         .rokuricsScaleClickable(onClick = onBack),
                     contentAlignment = Alignment.Center
                 ) {
@@ -177,30 +178,47 @@ fun RecordingStudyDetailPage(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Import to chat button
-                IconButton(
-                    onClick = { /* import to chat */ },
-                    modifier = Modifier.size(42.dp)
+                // Right action capsule (Apple parity: glass capsule with import + delete)
+                Surface(
+                    shape = RoundedCornerShape(22.dp),
+                    color = Color.White.copy(alpha = 0.36f),
+                    border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = 0.36f))
                 ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.Chat,
-                        contentDescription = "导入 AI 对话",
-                        tint = RokuricsColors.aqua,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-
-                // Delete button
-                IconButton(
-                    onClick = { showDeleteConfirm = true },
-                    modifier = Modifier.size(42.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "删除",
-                        tint = RokuricsColors.coral,
-                        modifier = Modifier.size(22.dp)
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Import to chat button
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .rokuricsScaleClickable(onClick = { /* import to chat */ }),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.Chat,
+                                contentDescription = "导入 AI 对话",
+                                tint = RokuricsColors.aqua,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        VerticalDivider(
+                            modifier = Modifier.height(22.dp),
+                            thickness = 0.5.dp,
+                            color = Color.White.copy(alpha = 0.18f)
+                        )
+                        // Delete button
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .rokuricsScaleClickable(onClick = { showDeleteConfirm = true }),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = "删除",
+                                tint = RokuricsColors.coral,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -258,11 +276,14 @@ fun RecordingStudyDetailPage(
             }
 
             // ── Filing card (Apple parity: glass card + level buttons) ──
+            val isDark = isSystemInDarkTheme()
+            val filingCardBg = if (isDark) Color(0xFF0D2424).copy(alpha = 0.55f) else Color.White.copy(alpha = 0.30f)
+            val filingCardBorder = Color.White.copy(alpha = if (isDark) 0.08f else 0.24f)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.30f)),
-                border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.24f))
+                colors = CardDefaults.cardColors(containerColor = filingCardBg),
+                border = BorderStroke(0.5.dp, filingCardBorder)
             ) {
                 Column(
                     modifier = Modifier.padding(14.dp),
@@ -402,11 +423,13 @@ fun RecordingStudyDetailPage(
             }
 
             // ── File info card (collapsible, Apple parity) ──
+            val fileInfoBg = if (isDark) Color(0xFF0D2424).copy(alpha = 0.45f) else Color.White.copy(alpha = 0.24f)
+            val fileInfoBorder = Color.White.copy(alpha = if (isDark) 0.06f else 0.20f)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.24f)),
-                border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.20f))
+                colors = CardDefaults.cardColors(containerColor = fileInfoBg),
+                border = BorderStroke(0.5.dp, fileInfoBorder)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -521,6 +544,7 @@ private fun DetailGridButton(
     enabled: Boolean,
     onClick: () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
     Box(
         modifier = modifier
             .clickable(enabled = enabled, onClick = onClick)
@@ -529,7 +553,8 @@ private fun DetailGridButton(
                 fillOpacity = if (enabled) 0.28f else 0.16f,
                 strokeOpacity = if (enabled) 0.24f else 0.12f,
                 shadowOpacity = if (enabled) 0.04f else 0.02f,
-                shadowRadius = 6.dp
+                shadowRadius = 6.dp,
+                fillColor = if (isDark) RokuricsColors.glassSurfaceDark else RokuricsColors.glassSurface
             ),
         contentAlignment = Alignment.Center
     ) {
@@ -567,13 +592,15 @@ private fun FilingLevelChip(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
     Surface(
         modifier = modifier.clickable(enabled = isEnabled, onClick = onClick),
         shape = RoundedCornerShape(13.dp),
         color = if (isActive) RokuricsColors.aqua.copy(alpha = 0.24f) else RokuricsColors.aqua.copy(alpha = 0.10f),
         border = BorderStroke(
             0.5.dp,
-            if (isActive) RokuricsColors.aqua.copy(alpha = 0.42f) else Color.White.copy(alpha = 0.14f)
+            if (isActive) RokuricsColors.aqua.copy(alpha = 0.42f)
+            else Color.White.copy(alpha = if (isDark) 0.06f else 0.14f)
         )
     ) {
         Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {

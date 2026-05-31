@@ -1,0 +1,101 @@
+# Outposts project-scoped Codex GUI configuration.
+#
+# Intent:
+# 1. /Users/vita/Vitemis/Outposts is the only writable project root.
+# 2. /Users/vita/Vitemis outside Outposts is read-only by sandbox boundary.
+# 3. Build-related commands for iOS/macOS/Android/HarmonyOS/Windows are allowed
+#    when they operate on Outposts target projects.
+#
+# Do not use danger-full-access for the normal Outposts workflow.
+
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
+allow_login_shell = true
+
+[sandbox_workspace_write]
+network_access = false
+exclude_tmpdir_env_var = false
+exclude_slash_tmp = false
+writable_roots = [
+  "/Users/vita/Vitemis/Outposts"
+]
+
+[shell_environment_policy]
+inherit = "core"
+ignore_default_excludes = false
+exclude = [
+  "*KEY*",
+  "*SECRET*",
+  "*TOKEN*",
+  "*PASSWORD*",
+  "*PASSWD*",
+  "*PRIVATE*",
+  "*CREDENTIAL*",
+  "*AUTH*",
+  "*COOKIE*",
+  "*SESSION*"
+]
+
+[auto_review]
+policy = """
+Outposts Codex GUI auto-review policy.
+
+High-level intent:
+- /Users/vita/Vitemis/Outposts is writable and command-executable.
+- /Users/vita/Vitemis outside /Users/vita/Vitemis/Outposts is read-only.
+- Apple source projects under /Users/vita/Vitemis/Vela may be read for migration reference, but must never be modified.
+- Build-related commands for iOS, macOS, Android, HarmonyOS, and Windows are allowed when executed for Outposts target projects.
+- Codex itself should normally act as supervisor/orchestrator; actual project implementation is performed by visible Claude Code terminal sessions unless the user explicitly changes the workflow.
+
+Approve routine operations when all conditions are met:
+- The command runs with cwd under /Users/vita/Vitemis/Outposts.
+- The command writes only under /Users/vita/Vitemis/Outposts.
+- The command reads /Users/vita/Vitemis/Vela or other /Users/vita/Vitemis paths only as read-only reference material.
+- The command creates, updates, or reads Outposts supervisor files under .outposts-supervisor.
+- The command creates, updates, or reads project-local .claude/settings.local.json for Outposts target projects.
+- The command creates, updates, or reads Outposts docs, AGENTS.md, .codex/config.toml, and tools/outposts scripts.
+- The command launches visible macOS Terminal.app windows for Claude Code sessions in known Outposts target project directories.
+- The command uses osascript only to open visible Terminal.app windows, not hidden background shells.
+- The command uses adb only for Android emulator discovery, app install/launch, foreground package verification, and screencap for visual evidence.
+- The command uses hdc only for HarmonyOS device/emulator discovery and screenshot/build diagnostics for Outposts target projects.
+- The command uses DevEco/Android/Windows/iOS/macOS build tools only against Outposts target project directories.
+
+Known Outposts target directories:
+- /Users/vita/Vitemis/Outposts/Kikaria-Android
+- /Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS
+- /Users/vita/Vitemis/Outposts/Rokurics-Android
+- /Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS
+- /Users/vita/Vitemis/Outposts/Rokurics-Windows
+
+Read-only reference roots:
+- /Users/vita/Vitemis/Vela
+- /Users/vita/Vitemis/Outposts/Kikaria-Ref
+- /Users/vita/Vitemis/Outposts/Rokurics-iOS-Ref
+- /Users/vita/Vitemis/Outposts/Rokurics-macOS-Ref
+
+Build-related commands that may be approved when scoped to Outposts targets:
+- Android: ./gradlew, gradle, adb, emulator, Android Studio generated build/install/test commands.
+- HarmonyOS: hvigor wrapper/project build commands, hdc diagnostics/screenshot commands, DevEco project-local build invocations.
+- Windows: dotnet restore/build/test/run, MSBuild, Visual Studio build commands, Windows App SDK/WinUI build checks, when run in Rokurics-Windows or a Windows validation environment.
+- iOS/macOS: xcodebuild and simulator/device commands only when explicitly needed for read-only reference validation or Outposts-controlled target validation; never modify Vela.
+
+Reject or require user review for:
+- Any write under /Users/vita/Vitemis/Vela.
+- Any write under /Users/vita/Vitemis outside /Users/vita/Vitemis/Outposts.
+- Any command that attempts to modify Apple source projects.
+- Any git clean, git reset, git restore, git checkout, force push, commit, or PR operation unless the user explicitly asks for it.
+- Any deletion of .outposts-supervisor/visual-evidence, checkpoint, report, batch-state, or reference screenshots.
+- Any command that reads or prints .env, API keys, tokens, private keys, certificates, p12 files, ssh keys, Keychain, credential files, cookies, or session material.
+- Any operation touching ~/.hvigor, user-level DevEco/HarmonyOS SDK caches, /Applications/DevEco-Studio.app contents, or global npm/pnpm/ohpm installs.
+- Any write to /Applications, /Library, /System, /usr, /bin, /sbin, /etc, or user-level toolchain directories.
+- Any network-enabling change unless the user explicitly authorizes it.
+- Any hidden screen/tmux/headless route used as the main formal task channel.
+- Any use of claude -p, stdin feed, task-file launcher, or --resume as the main formal migration channel, unless explicitly requested by the user.
+- Any command outside the Outposts workflow that is not clearly covered by this policy.
+
+If a request is denied:
+- Do not attempt a workaround.
+- Do not move to a hidden/headless route.
+- Ask the user for a narrower explicit authorization or stop.
+"""

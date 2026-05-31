@@ -1,7 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
-using Rokurics.Helpers;
 using Rokurics.Models;
 
 namespace Rokurics.Converters;
@@ -53,7 +52,7 @@ public class ChatRoleToBackgroundConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, string language)
     {
         if (value is ChatMessageRole.User)
-            return RokuricsColors.ActionGradientBrush;
+            return Application.Current.Resources["RokuricsActionGradientBrush"];
         return AssistantBubbleBrush;
     }
 

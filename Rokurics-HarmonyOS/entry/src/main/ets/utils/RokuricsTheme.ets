@@ -1,47 +1,161 @@
 /**
  * Theme system - mirrors RokuricsColors.swift + RokuricsTypography.swift + glass modifiers
+ * Supports light/dark dual-palette via applyColorMode().
  */
+
+import { ConfigurationConstant } from '@kit.AbilityKit'
 
 // ── Color utility: converts #RRGGBB base + AA alpha suffix to HarmonyOS #AARRGGBB ──
 export function colorAlpha(baseHex: string, alphaHex: string): string {
   return '#' + alphaHex + baseHex.substring(1)
 }
 
-// ── Colors (dark mode — mirrors RokuricsColors.swift adaptive dark values) ──
-export class RokuricsColors {
-  static readonly aqua = '#57D6D1'
-  static readonly mint = '#52BD94'
-  static readonly mistGreen = '#0F2B26'
-  static readonly softTeal = '#85CCCC'
-  static readonly skyCyan = '#4DB3EB'
-  static readonly paleAqua = '#266B61'
-  static readonly coral = '#F5757A'
+// ── Color palette interface (enables dot-notation: RokuricsColors.aqua) ──
+interface ColorPalette {
+  aqua: string
+  mint: string
+  mistGreen: string
+  softTeal: string
+  skyCyan: string
+  paleAqua: string
+  coral: string
+  deepText: string
+  softText: string
+  tertiaryText: string
+  glassSurface: string
+  glassStroke: string
+  glassStrokeAccent: string
+  shadowColor: string
+  pageBackground: string
+  actionStart: string
+  actionEnd: string
+  recordingAccentStart: string
+  recordingAccentEnd: string
+  pageGradientStart: string
+  pageGradientMid: string
+  pageGradientEnd: string
+  actionGradientStart: string
+  actionGradientEnd: string
+}
 
-  static readonly deepText = '#E6FAF7'
-  static readonly softText = '#A8D1D1'
-  static readonly tertiaryText = '#759EA1'
+// ── Dark palette (mirrors RokuricsColors.swift adaptive dark values) ──
+const DarkPalette: ColorPalette = {
+  aqua: '#57D6D1',
+  mint: '#52BD94',
+  mistGreen: '#0F2B26',
+  softTeal: '#85CCCC',
+  skyCyan: '#4DB3EB',
+  paleAqua: '#266B61',
+  coral: '#F5757A',
 
-  static readonly glassSurface = '#0D2424'
-  static readonly glassStroke = '#8ADBD1'
-  static readonly glassStrokeAccent = '#61D4C2'
-  static readonly shadowColor = '#000808'
+  deepText: '#E6FAF7',
+  softText: '#A8D1D1',
+  tertiaryText: '#759EA1',
 
-  static readonly pageBackground = '#051414'
+  glassSurface: '#0D2424',
+  glassStroke: '#8ADBD1',
+  glassStrokeAccent: '#61D4C2',
+  shadowColor: '#000808',
 
-  static readonly actionStart = '#128080'
-  static readonly actionEnd = '#2BAB82'
+  pageBackground: '#051414',
 
-  static readonly recordingAccentStart = '#D14257'
-  static readonly recordingAccentEnd = '#E0706B'
+  actionStart: '#128080',
+  actionEnd: '#2BAB82',
 
-  // ── Page gradient color stops (mirrors pageGradient dark in RokuricsColors.swift) ──
-  static readonly pageGradientStart = '#051414'
-  static readonly pageGradientMid = '#0A2B29'
-  static readonly pageGradientEnd = '#030D12'
+  recordingAccentStart: '#D14257',
+  recordingAccentEnd: '#E0706B',
 
-  // ── Action/orb gradient stops (mirrors actionGradient dark in RokuricsColors.swift) ──
-  static readonly actionGradientStart = '#128080'
-  static readonly actionGradientEnd = '#2BAB82'
+  pageGradientStart: '#051414',
+  pageGradientMid: '#0A2B29',
+  pageGradientEnd: '#030D12',
+
+  actionGradientStart: '#128080',
+  actionGradientEnd: '#2BAB82',
+}
+
+// ── Light palette (derived from iOS light mode adaptive values) ──
+const LightPalette: ColorPalette = {
+  aqua: '#1A8A85',
+  mint: '#3A9D74',
+  mistGreen: '#C8F0E6',
+  softTeal: '#5AAAAA',
+  skyCyan: '#2D93CB',
+  paleAqua: '#A8DFD4',
+  coral: '#E0555A',
+
+  deepText: '#0A1F1C',
+  softText: '#3D6B66',
+  tertiaryText: '#5C8A84',
+
+  glassSurface: '#EAF7F4',
+  glassStroke: '#6BBBB1',
+  glassStrokeAccent: '#4DAFA2',
+  shadowColor: '#C0D0CC',
+
+  pageBackground: '#EEF7F5',
+
+  actionStart: '#0E6E6E',
+  actionEnd: '#23996E',
+
+  recordingAccentStart: '#C83A4F',
+  recordingAccentEnd: '#D6605C',
+
+  pageGradientStart: '#EDF6F4',
+  pageGradientMid: '#DAEEE9',
+  pageGradientEnd: '#F0F7F5',
+
+  actionGradientStart: '#0E6E6E',
+  actionGradientEnd: '#23996E',
+}
+
+// ── Active color set (mutated by applyColorMode) ──
+let _activePalette: ColorPalette = { ...DarkPalette }
+
+// ── Public color accessor (backward-compatible; reads from active palette) ──
+export const RokuricsColors: ColorPalette = _activePalette
+
+/**
+ * Switch the active color palette. Call this at the top of each page's build()
+ * or in response to @StorageLink('colorMode') changes.
+ */
+export function applyColorMode(mode: ConfigurationConstant.ColorMode): void {
+  const isDark = mode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK
+  const target = isDark ? DarkPalette : LightPalette
+  _activePalette.aqua = target.aqua
+  _activePalette.mint = target.mint
+  _activePalette.mistGreen = target.mistGreen
+  _activePalette.softTeal = target.softTeal
+  _activePalette.skyCyan = target.skyCyan
+  _activePalette.paleAqua = target.paleAqua
+  _activePalette.coral = target.coral
+  _activePalette.deepText = target.deepText
+  _activePalette.softText = target.softText
+  _activePalette.tertiaryText = target.tertiaryText
+  _activePalette.glassSurface = target.glassSurface
+  _activePalette.glassStroke = target.glassStroke
+  _activePalette.glassStrokeAccent = target.glassStrokeAccent
+  _activePalette.shadowColor = target.shadowColor
+  _activePalette.pageBackground = target.pageBackground
+  _activePalette.actionStart = target.actionStart
+  _activePalette.actionEnd = target.actionEnd
+  _activePalette.recordingAccentStart = target.recordingAccentStart
+  _activePalette.recordingAccentEnd = target.recordingAccentEnd
+  _activePalette.pageGradientStart = target.pageGradientStart
+  _activePalette.pageGradientMid = target.pageGradientMid
+  _activePalette.pageGradientEnd = target.pageGradientEnd
+  _activePalette.actionGradientStart = target.actionGradientStart
+  _activePalette.actionGradientEnd = target.actionGradientEnd
+}
+
+/**
+ * Return page gradient color stops for the current mode.
+ */
+export function pageGradientColors(): Array<[string, number]> {
+  return [
+    [_activePalette.pageGradientStart, 1.0],
+    [_activePalette.pageGradientMid, 1.0],
+    [_activePalette.pageGradientEnd, 1.0]
+  ]
 }
 
 // ── Typography ──
@@ -85,11 +199,9 @@ export class RokuricsTypography {
 // ── Dark-mode glass opacity scaling (mirrors Apple's colorScheme adaptation) ──
 // Apple reduces glass opacity by ~0.78× in dark mode across all glass modifiers.
 // These constants are the light-mode values. For dark mode, multiply by 0.78.
-// Callers: use the exported constants directly; they already include dark-mode scaling.
 
 let DARK_MODE_SCALE = 0.78
 
-// Utility to adapt a hex alpha (last 2 chars) for dark mode
 export function darkModeGlassOpacity(lightHexAlpha: string, isDark: boolean): string {
   if (!isDark) return lightHexAlpha
   const alpha = parseInt(lightHexAlpha, 16)
@@ -99,10 +211,10 @@ export function darkModeGlassOpacity(lightHexAlpha: string, isDark: boolean): st
 
 // Pre-computed glass opacity strings (hex alpha for appending to colors).
 // Dark mode defaults (scaled from light 0.78× fill, 0.82× stroke, per Apple RokuricsGlassStyle):
-export const glassFillOpacity = '5C'      // min(0.66*0.78, 0.36) → ~36% fill
-export const glassStrokeHighOpacity = '38' // min(0.27*0.82, 0.34) → ~22% stroke
-export const glassStrokeMidOpacity = '0E'  // min(0.07*0.82, 0.34) → ~5% stroke
-export const glassAccentOpacity = '0A'     // ~4% accent
+export const glassFillOpacity = '5C'
+export const glassStrokeHighOpacity = '38'
+export const glassStrokeMidOpacity = '0E'
+export const glassAccentOpacity = '0A'
 
 // Reusable glass card backing (mirrors rokuricsLiquidGlassCard dark mode) ──
 @Builder
@@ -129,6 +241,20 @@ export function GlassCardContent(child: WrappedBuilder<[]>): void {
     },
     radius: 20
   } as BorderOptions)
+}
+
+// ── Shared page background gradient ──
+// Replaces the duplicated .linearGradient() at the end of every page's build().
+// Pages that import this can call: PageBackground() as the outermost element.
+@Builder
+export function PageBackground() {
+  Column()
+    .width('100%')
+    .height('100%')
+    .linearGradient({
+      direction: GradientDirection.RightBottom,
+      colors: pageGradientColors()
+    })
 }
 
 // ── Glass circle (mirrors rokuricsGlassCircle dark mode) ──

@@ -1,0 +1,28 @@
+CORRECTION FOR CURRENT ROUND
+
+Stop the current qwen/UI/build path now.
+
+Reason: the required actual screenshot path is under:
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-screenshot-gated-ui-and-kikaria-h-build-fix/20260530-122325/Kikaria-Android/actual/home.png
+
+Your attempt to write that path failed with "operation not permitted", then you wrote a screenshot under the project directory. That project-local screenshot does not satisfy this batch's visual-evidence rule, because screenshots must not be scattered into project source directories.
+
+Do not delete that file. Do not clean anything. Do not modify UI. Do not build. Do not test. Do not continue qwen compare.
+
+Please output the required structured report now with:
+- SCREENSHOT_PREFLIGHT_RESULT=FAILED
+- ANDROID_ADB_PATH=/Users/vita/Library/Android/sdk/platform-tools/adb
+- ANDROID_ADB_STATUS=FOUND
+- ANDROID_DEVICE_SERIALS=emulator-5554
+- ANDROID_SCREENSHOT_CHAIN_STATUS=BLOCKED_BY_VISUAL_EVIDENCE_WRITE_PERMISSION
+- ANDROID_SCREENSHOT_BLOCKER=Could not write actual screenshot to required .outposts-supervisor/visual-evidence path; project-local screenshot is invalid evidence for this batch.
+- ACTUAL_SCREENSHOT_PATH=NONE_VALID_FOR_BATCH
+- QWEN_CALLED=PARTIAL/INTERRUPTED if applicable
+- QWEN_VALID_VISUAL_EVIDENCE=NO
+- QWEN_COMPARE_SCREENSHOTS_COMPLETED=NO
+- BUILD_ALLOWED_AFTER_SCREENSHOT_GATE=NO
+- BUILD_RESULT=NOT_RUN
+- TEST_RESULT=NOT_RUN
+- IMPLEMENTED_THIS_ROUND=None
+- BLOCKERS=SCREENSHOT_CHAIN_BLOCKED
+- NEXT_RECOMMENDATION=Run a follow-up with permission/settings adjusted so Claude Code can write actual screenshots directly to the required visual-evidence directory.

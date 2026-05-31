@@ -17,7 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
+
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -283,10 +283,9 @@ private fun CodeBlock(text: String) {
             .padding(14.dp)
     ) {
         Text(
-            text = text,
+            text = KikariaTypography.mixedText(text, size = 12, weight = FontWeight.Normal),
             fontSize = 12.sp,
             fontWeight = FontWeight.Normal,
-            fontFamily = FontFamily.Monospace,
             color = deepText.copy(alpha = 0.88f),
             lineHeight = 19.sp
         )

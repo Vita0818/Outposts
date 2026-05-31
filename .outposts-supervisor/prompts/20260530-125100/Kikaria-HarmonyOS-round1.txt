@@ -1,0 +1,59 @@
+MANDATORY PREFLIGHT
+MODEL_CHECK_RESULT: 当前模型必须是 DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]。否则立即停止并报告 MODEL_MISMATCH。
+PATH_CHECK_RESULT: 当前工作目录必须严格等于 /Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS。否则立即停止并报告 WORKDIR_MISMATCH。
+SOURCE_READONLY_CHECK: Apple 源项目 /Users/vita/Vitemis/Vela/Kikaria 只读；参考图目录 /Users/vita/Vitemis/Outposts/Kikaria-Ref 只读；所有写入只允许在当前目标项目目录和本批 visual-evidence 目录内。不得读取/发送密钥、token、.env、证书或私密配置。
+
+PROJECT: Kikaria-HarmonyOS
+ROUND_INDEX: 1
+BATCH_NAME: outposts-force-screenshot-chain-and-kikaria-h-build-fix
+RUN_ID: 20260530-125100
+EVIDENCE_DIR: /Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-force-screenshot-chain-and-kikaria-h-build-fix/20260530-125100/Kikaria-HarmonyOS
+
+本批最高优先级：Kikaria-HarmonyOS 构建必须给出可行修复方案，并尽可能修到 build PASS。构建恢复前不得堆 UI 功能。
+
+边界：
+- 不得清理 ~/.hvigor。
+- 不得修改用户级 DevEco/HarmonyOS SDK 缓存。
+- 不得全局安装 pnpm/npm/ohpm。
+- 不得 git clean/reset/restore/checkout。
+- 不得修改 /Applications/DevEco-Studio.app。
+- 不得修改 Apple 源项目或参考图目录。
+- 不得删除整个 sdk-mirror，不得大范围重建 sdk-mirror。
+
+本批对项目内 sdk-mirror 的受限授权：
+允许读取和最小修改 /Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/sdk-mirror 下与当前项目构建直接相关的 metadata / symlink / package descriptor。
+若需要调整上一批遗留的 sdk-mirror 顶层 symlink，也必须先写明计划，再只处理这些项目内 symlink/metadata。
+
+执行顺序：
+1. 先运行当前可用构建命令，捕获 ORIGINAL_BUILD_ERROR。
+2. 分类错误：
+   - 项目源码错误
+   - 项目配置错误
+   - local.properties 路径错误
+   - sdk-mirror metadata 错误
+   - 用户级工具链错误
+3. 如果是项目源码/配置/local.properties，优先修这些。
+4. 如果确认为 sdk-mirror metadata 错误，先在终端报告 SDK_MIRROR_REPAIR_PLAN，必须包括：
+   - 要改哪个文件或 symlink
+   - 为什么必须改
+   - 如何回滚
+   - 是否只影响项目内 sdk-mirror
+5. 输出计划后，可在本项目内做最小修改；不得等待外部确认，除非计划需要越界。
+6. 修改后运行构建。
+7. 若仍失败，继续按错误最小修复，最多完成本轮合理范围。
+8. 若需要用户级工具链或 DevEco 安装修复，立即停止并报告 TOOLCHAIN_REPAIR_NEEDS_USER。
+
+构建通过后：
+1. 尝试 hdc / Preview / screenshot actual。
+2. 若有 actual screenshot，写入本批 visual-evidence actual/。
+3. 调用 qwen inspect/compare。构建未通过前不要做 UI 修复。
+
+必须记录：
+ORIGINAL_BUILD_ERROR
+ERROR_CLASSIFICATION
+SDK_MIRROR_REPAIR_PLAN
+SDK_MIRROR_FILES_CHANGED
+LOCAL_PROPERTIES_CHANGED
+BUILD_RESULT
+BOUNDARY_COMPLIANCE
+NEXT_ACTION

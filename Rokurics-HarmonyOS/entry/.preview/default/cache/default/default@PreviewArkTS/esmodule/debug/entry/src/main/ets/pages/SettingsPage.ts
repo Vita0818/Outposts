@@ -26,6 +26,8 @@ interface SettingsPage_Params {
     uploadAPIKey?: string;
     isSavingUpload?: boolean;
     uploadSavedMessage?: string;
+    showProfileEditor?: boolean;
+    showAIEditor?: boolean;
 }
 import { UserProfile } from "@bundle:com.vita0818.rokurics/entry/ets/models/UserProfile";
 import { SettingsStore } from "@bundle:com.vita0818.rokurics/entry/ets/services/SettingsStore";
@@ -36,6 +38,12 @@ function formatTime(d: Date): string {
     const h = String(d.getHours()).padStart(2, '0');
     const m = String(d.getMinutes()).padStart(2, '0');
     return `${h}:${m}`;
+}
+function isEnglishLabel(text: string): boolean {
+    return /^[A-Za-z]/.test(text);
+}
+function isTechValue(text: string): boolean {
+    return /[.\\-_]/.test(text) || /^[a-z]/.test(text);
 }
 class SettingsPage extends ViewPU {
     constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
@@ -67,6 +75,8 @@ class SettingsPage extends ViewPU {
         this.__uploadAPIKey = new ObservedPropertySimplePU('', this, "uploadAPIKey");
         this.__isSavingUpload = new ObservedPropertySimplePU(false, this, "isSavingUpload");
         this.__uploadSavedMessage = new ObservedPropertySimplePU('', this, "uploadSavedMessage");
+        this.__showProfileEditor = new ObservedPropertySimplePU(false, this, "showProfileEditor");
+        this.__showAIEditor = new ObservedPropertySimplePU(false, this, "showAIEditor");
         this.setInitiallyProvidedValue(params);
         this.finalizeConstruction();
     }
@@ -143,6 +153,12 @@ class SettingsPage extends ViewPU {
         if (params.uploadSavedMessage !== undefined) {
             this.uploadSavedMessage = params.uploadSavedMessage;
         }
+        if (params.showProfileEditor !== undefined) {
+            this.showProfileEditor = params.showProfileEditor;
+        }
+        if (params.showAIEditor !== undefined) {
+            this.showAIEditor = params.showAIEditor;
+        }
     }
     updateStateVars(params: SettingsPage_Params) {
     }
@@ -170,6 +186,8 @@ class SettingsPage extends ViewPU {
         this.__uploadAPIKey.purgeDependencyOnElmtId(rmElmtId);
         this.__isSavingUpload.purgeDependencyOnElmtId(rmElmtId);
         this.__uploadSavedMessage.purgeDependencyOnElmtId(rmElmtId);
+        this.__showProfileEditor.purgeDependencyOnElmtId(rmElmtId);
+        this.__showAIEditor.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
         this.__profile.aboutToBeDeleted();
@@ -195,6 +213,8 @@ class SettingsPage extends ViewPU {
         this.__uploadAPIKey.aboutToBeDeleted();
         this.__isSavingUpload.aboutToBeDeleted();
         this.__uploadSavedMessage.aboutToBeDeleted();
+        this.__showProfileEditor.aboutToBeDeleted();
+        this.__showAIEditor.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
@@ -360,6 +380,20 @@ class SettingsPage extends ViewPU {
     set uploadSavedMessage(newValue: string) {
         this.__uploadSavedMessage.set(newValue);
     }
+    private __showProfileEditor: ObservedPropertySimplePU<boolean>;
+    get showProfileEditor() {
+        return this.__showProfileEditor.get();
+    }
+    set showProfileEditor(newValue: boolean) {
+        this.__showProfileEditor.set(newValue);
+    }
+    private __showAIEditor: ObservedPropertySimplePU<boolean>;
+    get showAIEditor() {
+        return this.__showAIEditor.get();
+    }
+    set showAIEditor(newValue: boolean) {
+        this.__showAIEditor.set(newValue);
+    }
     aboutToAppear(): void {
         this.loadAllSettings();
     }
@@ -463,7 +497,7 @@ class SettingsPage extends ViewPU {
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Column.create();
-            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(142:5)", "entry");
+            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(152:5)", "entry");
             Column.width('100%');
             Column.height('100%');
             Column.linearGradient({
@@ -477,13 +511,13 @@ class SettingsPage extends ViewPU {
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
-            Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(143:7)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(153:7)", "entry");
             Row.width('100%');
             Row.padding({ left: 16, right: 16, top: 56, bottom: 24 });
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Button.createWithChild();
-            Button.debugLine("entry/src/main/ets/pages/SettingsPage.ets(144:9)", "entry");
+            Button.debugLine("entry/src/main/ets/pages/SettingsPage.ets(154:9)", "entry");
             Button.width(44);
             Button.height(44);
             Button.backgroundColor(Color.Transparent);
@@ -491,7 +525,7 @@ class SettingsPage extends ViewPU {
         }, Button);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('←');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(145:11)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(155:11)", "entry");
             Text.fontSize(20);
             Text.fontColor(RokuricsColors.deepText);
         }, Text);
@@ -499,7 +533,7 @@ class SettingsPage extends ViewPU {
         Button.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create('设置');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(152:9)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(162:9)", "entry");
             Text.fontSize(24);
             Text.fontWeight(FontWeight.Bold);
             Text.fontColor(RokuricsColors.deepText);
@@ -508,369 +542,163 @@ class SettingsPage extends ViewPU {
         Row.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Scroll.create();
-            Scroll.debugLine("entry/src/main/ets/pages/SettingsPage.ets(160:7)", "entry");
+            Scroll.debugLine("entry/src/main/ets/pages/SettingsPage.ets(170:7)", "entry");
             Scroll.width('100%');
             Scroll.layoutWeight(1);
         }, Scroll);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 24 });
-            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(161:9)", "entry");
+            Column.create({ space: 28 });
+            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(171:9)", "entry");
             Column.width('100%');
             Column.padding({ left: 16, right: 16, bottom: 40 });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Avatar
-            Column.create({ space: 12 });
-            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(163:11)", "entry");
-            // Avatar
+            // ── Profile avatar area ──
+            Column.create({ space: 10 });
+            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(173:11)", "entry");
+            // ── Profile avatar area ──
             Column.width('100%');
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create();
+            Stack.debugLine("entry/src/main/ets/pages/SettingsPage.ets(174:13)", "entry");
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
             Circle.create();
-            Circle.debugLine("entry/src/main/ets/pages/SettingsPage.ets(164:13)", "entry");
-            Circle.width(80);
-            Circle.height(80);
-            Circle.fill(colorAlpha(RokuricsColors.aqua, '20'));
+            Circle.debugLine("entry/src/main/ets/pages/SettingsPage.ets(175:15)", "entry");
+            Circle.width(72);
+            Circle.height(72);
+            Circle.fill(colorAlpha(RokuricsColors.aqua, '18'));
         }, Circle);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(this.profile.initial);
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(168:13)", "entry");
-            Text.fontSize(32);
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(178:15)", "entry");
+            Text.fontSize(28);
             Text.fontWeight(FontWeight.SemiBold);
             Text.fontColor(RokuricsColors.aqua);
         }, Text);
         Text.pop();
+        Stack.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(this.profile.displayName);
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(172:13)", "entry");
-            Text.fontSize(20);
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(183:13)", "entry");
+            Text.fontSize(18);
             Text.fontWeight(FontWeight.SemiBold);
             Text.fontColor(RokuricsColors.deepText);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Text.create(this.profile.displayHandle);
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(176:13)", "entry");
-            Text.fontSize(14);
-            Text.fontColor(RokuricsColors.softText);
-        }, Text);
-        Text.pop();
-        // Avatar
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Profile form
-            Column.create({ space: 16 });
-            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(183:11)", "entry");
-            // Profile form
-            Column.padding(20);
-            // Profile form
-            Column.borderRadius(20);
-            // Profile form
-            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 6 });
-            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(184:13)", "entry");
-            Column.width('100%');
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('显示名称');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(185:15)", "entry");
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(187:13)", "entry");
             Text.fontSize(12);
-            Text.fontColor(RokuricsColors.softText);
+            Text.fontColor(RokuricsColors.tertiaryText);
         }, Text);
         Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            TextInput.create({ text: this.displayName, placeholder: '输入显示名称' });
-            TextInput.debugLine("entry/src/main/ets/pages/SettingsPage.ets(186:15)", "entry");
-            TextInput.fontSize(16);
-            TextInput.fontColor(RokuricsColors.deepText);
-            TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'));
-            TextInput.borderRadius(10);
-            TextInput.padding({ left: 14, right: 14, top: 10, bottom: 10 });
-            TextInput.onChange((value: string) => { this.displayName = value; });
-        }, TextInput);
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 6 });
-            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(194:13)", "entry");
-            Column.width('100%');
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('账号 (@handle)');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(195:15)", "entry");
-            Text.fontSize(12);
-            Text.fontColor(RokuricsColors.softText);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            TextInput.create({ text: this.handle, placeholder: '输入账号' });
-            TextInput.debugLine("entry/src/main/ets/pages/SettingsPage.ets(196:15)", "entry");
-            TextInput.fontSize(16);
-            TextInput.fontColor(RokuricsColors.deepText);
-            TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '80'));
-            TextInput.borderRadius(10);
-            TextInput.padding({ left: 14, right: 14, top: 10, bottom: 10 });
-            TextInput.onChange((value: string) => { this.handle = value; });
-        }, TextInput);
-        Column.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Button.createWithChild();
-            Button.debugLine("entry/src/main/ets/pages/SettingsPage.ets(204:13)", "entry");
-            Button.width('100%');
-            Button.height(48);
-            Button.borderRadius(12);
-            Button.backgroundColor(RokuricsColors.aqua);
-            Button.enabled(!this.isSaving);
-            Button.onClick(() => this.saveProfile());
+            Button.debugLine("entry/src/main/ets/pages/SettingsPage.ets(191:13)", "entry");
+            Button.padding({ left: 18, right: 18, top: 7, bottom: 7 });
+            Button.borderRadius(16);
+            Button.backgroundColor(Color.Transparent);
+            Button.border({ width: 1, color: colorAlpha(RokuricsColors.softText, '30'), radius: 16 });
+            Button.onClick(() => { this.showProfileEditor = !this.showProfileEditor; });
         }, Button);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('保存');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(205:15)", "entry");
-            Text.fontSize(16);
-            Text.fontWeight(FontWeight.SemiBold);
-            Text.fontColor(Color.White);
+            Text.create('编辑个人资料');
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(192:15)", "entry");
+            Text.fontSize(13);
+            Text.fontWeight(FontWeight.Medium);
+            Text.fontColor(RokuricsColors.softText);
         }, Text);
         Text.pop();
         Button.pop();
+        // ── Profile avatar area ──
+        Column.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             If.create();
-            if (this.savedMessage.length > 0) {
-                this.ifElseBranchUpdateFunction(0, () => {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create(this.savedMessage);
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(213:15)", "entry");
-                        Text.fontSize(13);
-                        Text.fontColor(this.savedMessage.startsWith('已保存') ? RokuricsColors.mint : RokuricsColors.coral);
-                    }, Text);
-                    Text.pop();
-                });
-            }
-            else {
-                this.ifElseBranchUpdateFunction(1, () => {
-                });
-            }
-        }, If);
-        If.pop();
-        // Profile form
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // AI Provider Configuration
-            Column.create({ space: 16 });
-            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(221:11)", "entry");
-            // AI Provider Configuration
-            Column.padding(20);
-            // AI Provider Configuration
-            Column.borderRadius(20);
-            // AI Provider Configuration
-            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('AI 提供商配置');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(222:13)", "entry");
-            Text.fontSize(16);
-            Text.fontWeight(FontWeight.SemiBold);
-            Text.fontColor(RokuricsColors.deepText);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Provider kind toggle
-            Row.create({ space: 12 });
-            Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(227:13)", "entry");
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('提供商');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(228:15)", "entry");
-            Text.fontSize(14);
-            Text.fontColor(RokuricsColors.softText);
-            Text.width(80);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 0 });
-            Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(229:15)", "entry");
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Button.createWithChild();
-            Button.debugLine("entry/src/main/ets/pages/SettingsPage.ets(230:17)", "entry");
-            Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
-            Button.borderRadius({ topLeft: 8, bottomLeft: 8 });
-            Button.backgroundColor(this.aiProviderKind === 'mock' ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
-            Button.onClick(() => { this.aiProviderKind = 'mock'; });
-        }, Button);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('Mock');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(231:19)", "entry");
-            Text.fontSize(13);
-            Text.fontColor(this.aiProviderKind === 'mock' ? Color.White : RokuricsColors.softText);
-        }, Text);
-        Text.pop();
-        Button.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Button.createWithChild();
-            Button.debugLine("entry/src/main/ets/pages/SettingsPage.ets(240:17)", "entry");
-            Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
-            Button.borderRadius({ topRight: 8, bottomRight: 8 });
-            Button.backgroundColor(this.aiProviderKind === 'openaiCompatible' ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '50'));
-            Button.onClick(() => { this.aiProviderKind = 'openaiCompatible'; });
-        }, Button);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('OpenAI');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(241:19)", "entry");
-            Text.fontSize(13);
-            Text.fontColor(this.aiProviderKind === 'openaiCompatible' ? Color.White : RokuricsColors.softText);
-        }, Text);
-        Text.pop();
-        Button.pop();
-        Row.pop();
-        // Provider kind toggle
-        Row.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            If.create();
-            if (this.aiProviderKind === 'openaiCompatible') {
+            // Expandable profile editor
+            if (this.showProfileEditor) {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create({ space: 12 });
-                        Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(253:15)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(207:13)", "entry");
+                        Column.padding(16);
+                        Column.borderRadius(16);
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '50'));
+                        Column.width('100%');
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create({ space: 4 });
-                        Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(254:17)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(208:15)", "entry");
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('API 地址');
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(255:19)", "entry");
-                        Text.fontSize(12);
-                        Text.fontColor(RokuricsColors.softText);
+                        Text.create('显示名称');
+                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(209:17)", "entry");
+                        Text.fontSize(11);
+                        Text.fontColor(RokuricsColors.tertiaryText);
                     }, Text);
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        TextInput.create({ text: this.aiBaseURL, placeholder: 'https://api.openai.com/v1' });
-                        TextInput.debugLine("entry/src/main/ets/pages/SettingsPage.ets(256:19)", "entry");
-                        TextInput.fontSize(14);
+                        TextInput.create({ text: this.displayName, placeholder: '输入显示名称' });
+                        TextInput.debugLine("entry/src/main/ets/pages/SettingsPage.ets(210:17)", "entry");
+                        TextInput.fontSize(15);
                         TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '60'));
                         TextInput.borderRadius(8);
-                        TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
-                        TextInput.onChange((value: string) => { this.aiBaseURL = value; });
+                        TextInput.padding({ left: 12, right: 12, top: 9, bottom: 9 });
+                        TextInput.onChange((value: string) => { this.displayName = value; });
                     }, TextInput);
                     Column.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Column.create({ space: 4 });
-                        Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(263:17)", "entry");
+                        Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(216:15)", "entry");
                     }, Column);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('模型名称');
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(264:19)", "entry");
-                        Text.fontSize(12);
-                        Text.fontColor(RokuricsColors.softText);
+                        Text.create('账号 (@handle)');
+                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(217:17)", "entry");
+                        Text.fontSize(11);
+                        Text.fontColor(RokuricsColors.tertiaryText);
                     }, Text);
                     Text.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        TextInput.create({ text: this.aiModelName, placeholder: 'gpt-4o-mini' });
-                        TextInput.debugLine("entry/src/main/ets/pages/SettingsPage.ets(265:19)", "entry");
-                        TextInput.fontSize(14);
+                        TextInput.create({ text: this.handle, placeholder: '输入账号' });
+                        TextInput.debugLine("entry/src/main/ets/pages/SettingsPage.ets(218:17)", "entry");
+                        TextInput.fontSize(15);
                         TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
+                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '60'));
                         TextInput.borderRadius(8);
-                        TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
-                        TextInput.onChange((value: string) => { this.aiModelName = value; });
+                        TextInput.padding({ left: 12, right: 12, top: 9, bottom: 9 });
+                        TextInput.onChange((value: string) => { this.handle = value; });
                     }, TextInput);
                     Column.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Column.create({ space: 4 });
-                        Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(272:17)", "entry");
-                    }, Column);
+                        Button.createWithChild();
+                        Button.debugLine("entry/src/main/ets/pages/SettingsPage.ets(224:15)", "entry");
+                        Button.width('100%');
+                        Button.height(42);
+                        Button.borderRadius(10);
+                        Button.backgroundColor(RokuricsColors.aqua);
+                        Button.enabled(!this.isSaving);
+                        Button.onClick(() => this.saveProfile());
+                    }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('API Key');
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(273:19)", "entry");
-                        Text.fontSize(12);
-                        Text.fontColor(RokuricsColors.softText);
+                        Text.create(this.isSaving ? '保存中...' : '保存');
+                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(225:17)", "entry");
+                        Text.fontSize(14);
+                        Text.fontWeight(FontWeight.SemiBold);
+                        Text.fontColor(Color.White);
                     }, Text);
                     Text.pop();
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        TextInput.create({ text: this.aiAPIKey, placeholder: 'sk-...' });
-                        TextInput.debugLine("entry/src/main/ets/pages/SettingsPage.ets(274:19)", "entry");
-                        TextInput.fontSize(14);
-                        TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.type(InputType.Password);
-                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
-                        TextInput.borderRadius(8);
-                        TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
-                        TextInput.onChange((value: string) => { this.aiAPIKey = value; });
-                    }, TextInput);
-                    Column.pop();
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Row.create({ space: 12 });
-                        Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(282:17)", "entry");
-                        Row.width('100%');
-                    }, Row);
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Column.create({ space: 4 });
-                        Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(283:19)", "entry");
-                        Column.layoutWeight(1);
-                    }, Column);
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('温度');
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(284:21)", "entry");
-                        Text.fontSize(12);
-                        Text.fontColor(RokuricsColors.softText);
-                    }, Text);
-                    Text.pop();
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        TextInput.create({ text: String(this.aiTemperature), placeholder: '0.3' });
-                        TextInput.debugLine("entry/src/main/ets/pages/SettingsPage.ets(285:21)", "entry");
-                        TextInput.fontSize(14);
-                        TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.type(InputType.Number);
-                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
-                        TextInput.borderRadius(8);
-                        TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
-                        TextInput.onChange((value: string) => {
-                            const n = parseFloat(value);
-                            if (!isNaN(n))
-                                this.aiTemperature = n;
-                        });
-                    }, TextInput);
-                    Column.pop();
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Column.create({ space: 4 });
-                        Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(297:19)", "entry");
-                        Column.layoutWeight(1);
-                    }, Column);
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('最大 Tokens');
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(298:21)", "entry");
-                        Text.fontSize(12);
-                        Text.fontColor(RokuricsColors.softText);
-                    }, Text);
-                    Text.pop();
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        TextInput.create({ text: String(this.aiMaxTokens), placeholder: '2000' });
-                        TextInput.debugLine("entry/src/main/ets/pages/SettingsPage.ets(299:21)", "entry");
-                        TextInput.fontSize(14);
-                        TextInput.fontColor(RokuricsColors.deepText);
-                        TextInput.type(InputType.Number);
-                        TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
-                        TextInput.borderRadius(8);
-                        TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
-                        TextInput.onChange((value: string) => {
-                            const n = parseInt(value);
-                            if (!isNaN(n))
-                                this.aiMaxTokens = n;
-                        });
-                    }, TextInput);
-                    Column.pop();
-                    Row.pop();
+                    Button.pop();
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
                         If.create();
-                        if (this.testConnectionResult.length > 0) {
+                        if (this.savedMessage.length > 0) {
                             this.ifElseBranchUpdateFunction(0, () => {
                                 this.observeComponentCreation2((elmtId, isInitialRender) => {
-                                    Text.create(this.testConnectionResult);
-                                    Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(314:19)", "entry");
-                                    Text.fontSize(13);
-                                    Text.fontColor(this.testConnectionResult === '连接成功' ? RokuricsColors.mint : RokuricsColors.coral);
+                                    Text.create(this.savedMessage);
+                                    Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(233:17)", "entry");
+                                    Text.fontSize(12);
+                                    Text.fontColor(this.savedMessage.startsWith('已保存') ? RokuricsColors.mint : RokuricsColors.coral);
                                 }, Text);
                                 Text.pop();
                             });
@@ -884,7 +712,7 @@ class SettingsPage extends ViewPU {
                     Column.pop();
                 });
             }
-            // Provider health summary
+            // ── 转写 section ──
             else {
                 this.ifElseBranchUpdateFunction(1, () => {
                 });
@@ -892,198 +720,300 @@ class SettingsPage extends ViewPU {
         }, If);
         If.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Provider health summary
-            Column.create({ space: 6 });
-            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(322:13)", "entry");
-            // Provider health summary
+            // ── 转写 section ──
+            Column.create({ space: 8 });
+            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(243:11)", "entry");
+            // ── 转写 section ──
             Column.width('100%');
-            // Provider health summary
-            Column.padding(12);
-            // Provider health summary
-            Column.borderRadius(12);
-            // Provider health summary
-            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '30'));
-            // Provider health summary
-            Column.margin({ top: 4 });
         }, Column);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('提供商状态');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(323:15)", "entry");
-            Text.fontSize(14);
-            Text.fontWeight(FontWeight.SemiBold);
-            Text.fontColor(RokuricsColors.deepText);
+            Text.create('转写');
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(244:13)", "entry");
+            Text.fontSize(13);
+            Text.fontWeight(FontWeight.Medium);
+            Text.fontColor(RokuricsColors.tertiaryText);
+            Text.padding({ left: 6 });
             Text.width('100%');
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(247:13)", "entry");
+            Column.width('100%');
+            Column.borderRadius(18);
+            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
+            Column.border({
+                width: 1,
+                color: {
+                    colors: [
+                        [0xFFFFFF, 0.10],
+                        [RokuricsColors.glassStroke, 0.08],
+                        [RokuricsColors.glassStrokeAccent, 0.06]
+                    ],
+                    direction: GradientDirection.RightBottom
+                },
+                radius: 18
+            } as BorderOptions);
+        }, Column);
+        this.SettingsRow.bind(this)('Provider', 'Mac 安全转写');
+        this.SettingsDivider.bind(this)();
+        this.SettingsRow.bind(this)('模型', 'whisper.cpp');
+        this.SettingsDivider.bind(this)();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
-            Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(328:15)", "entry");
+            Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(252:15)", "entry");
+            Row.width('100%');
+            Row.padding({ left: 16, right: 16, top: 13, bottom: 13 });
+            Row.onClick(() => {
+                this.getUIContext().getRouter().pushUrl({ url: 'pages/AuthTestPage' });
+            });
         }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Circle.create();
-            Circle.debugLine("entry/src/main/ets/pages/SettingsPage.ets(329:17)", "entry");
-            Circle.width(8);
-            Circle.height(8);
-            Circle.fill(this.providerHealthSummary.startsWith('已连接') ? RokuricsColors.mint : RokuricsColors.tertiaryText);
-        }, Circle);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(this.aiProviderKind === 'openaiCompatible' ? 'OpenAI 兼容模式' : 'Mock 模式');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(332:17)", "entry");
-            Text.fontSize(13);
-            Text.fontColor(RokuricsColors.softText);
-            Text.margin({ left: 6 });
-        }, Text);
-        Text.pop();
+        this.SettingsLinkRowContent.bind(this)('授权与测试');
         Row.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            If.create();
-            if (this.aiProviderKind === 'openaiCompatible') {
-                this.ifElseBranchUpdateFunction(0, () => {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Row.create();
-                        Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(338:17)", "entry");
-                    }, Row);
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create('模型:');
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(339:19)", "entry");
-                        Text.fontSize(11);
-                        Text.fontColor(RokuricsColors.tertiaryText);
-                    }, Text);
-                    Text.pop();
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create(this.aiModelName);
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(341:19)", "entry");
-                        Text.fontSize(11);
-                        Text.fontColor(RokuricsColors.deepText);
-                        Text.margin({ left: 4 });
-                    }, Text);
-                    Text.pop();
-                    Row.pop();
-                });
-            }
-            else {
-                this.ifElseBranchUpdateFunction(1, () => {
-                });
-            }
-        }, If);
-        If.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            If.create();
-            if (this.providerHealthSummary.length > 0) {
-                this.ifElseBranchUpdateFunction(0, () => {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create(this.providerHealthSummary);
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(348:17)", "entry");
-                        Text.fontSize(12);
-                        Text.fontColor(this.providerHealthSummary.startsWith('已连接') ?
-                            RokuricsColors.mint : RokuricsColors.coral);
-                    }, Text);
-                    Text.pop();
-                });
-            }
-            else {
-                this.ifElseBranchUpdateFunction(1, () => {
-                });
-            }
-        }, If);
-        If.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            If.create();
-            if (this.providerLatency.length > 0) {
-                this.ifElseBranchUpdateFunction(0, () => {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create(`延迟: ${this.providerLatency}`);
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(355:17)", "entry");
-                        Text.fontSize(11);
-                        Text.fontColor(RokuricsColors.tertiaryText);
-                    }, Text);
-                    Text.pop();
-                });
-            }
-            else {
-                this.ifElseBranchUpdateFunction(1, () => {
-                });
-            }
-        }, If);
-        If.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            If.create();
-            if (this.lastConnectionTest.length > 0) {
-                this.ifElseBranchUpdateFunction(0, () => {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create(`上次测试: ${this.lastConnectionTest}`);
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(361:17)", "entry");
-                        Text.fontSize(11);
-                        Text.fontColor(RokuricsColors.tertiaryText);
-                    }, Text);
-                    Text.pop();
-                });
-            }
-            else {
-                this.ifElseBranchUpdateFunction(1, () => {
-                });
-            }
-        }, If);
-        If.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            If.create();
-            if (this.providerModels.length > 0) {
-                this.ifElseBranchUpdateFunction(0, () => {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create(`可用模型 (${this.providerModels.length}):`);
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(367:17)", "entry");
-                        Text.fontSize(11);
-                        Text.fontColor(RokuricsColors.tertiaryText);
-                        Text.margin({ top: 6 });
-                    }, Text);
-                    Text.pop();
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create(this.providerModels.join(', '));
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(370:17)", "entry");
-                        Text.fontSize(10);
-                        Text.fontColor(RokuricsColors.softText);
-                        Text.maxLines(3);
-                        Text.textOverflow({ overflow: TextOverflow.Ellipsis });
-                    }, Text);
-                    Text.pop();
-                });
-            }
-            else {
-                this.ifElseBranchUpdateFunction(1, () => {
-                });
-            }
-        }, If);
-        If.pop();
-        // Provider health summary
+        Column.pop();
+        // ── 转写 section ──
         Column.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create({ space: 12 });
-            Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(380:13)", "entry");
-            Row.width('100%');
+            // ── AI section ──
+            Column.create({ space: 8 });
+            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(279:11)", "entry");
+            // ── AI section ──
+            Column.width('100%');
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('AI');
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(280:13)", "entry");
+            Text.fontSize(13);
+            Text.fontWeight(FontWeight.Medium);
+            Text.fontColor(RokuricsColors.tertiaryText);
+            Text.padding({ left: 6 });
+            Text.width('100%');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(283:13)", "entry");
+            Column.width('100%');
+            Column.borderRadius(18);
+            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
+            Column.border({
+                width: 1,
+                color: {
+                    colors: [
+                        [0xFFFFFF, 0.10],
+                        [RokuricsColors.glassStroke, 0.08],
+                        [RokuricsColors.glassStrokeAccent, 0.06]
+                    ],
+                    direction: GradientDirection.RightBottom
+                },
+                radius: 18
+            } as BorderOptions);
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(284:15)", "entry");
+            Row.onClick(() => { this.showAIEditor = !this.showAIEditor; });
         }, Row);
+        this.SettingsRowContent.bind(this)('Provider', this.aiProviderKind === 'mock' ? 'Mock' : 'OpenAI');
+        Row.pop();
+        this.SettingsDivider.bind(this)();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(289:15)", "entry");
+            Row.onClick(() => { this.showAIEditor = !this.showAIEditor; });
+        }, Row);
+        this.SettingsRowContent.bind(this)('模型', this.aiModelName);
+        Row.pop();
+        this.SettingsDivider.bind(this)();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(294:15)", "entry");
+            Row.onClick(() => { this.showAIEditor = !this.showAIEditor; });
+        }, Row);
+        this.SettingsLinkRowContent.bind(this)('API 设置');
+        Row.pop();
+        this.SettingsDivider.bind(this)();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(299:15)", "entry");
+            Row.onClick(() => this.testConnection());
+        }, Row);
+        this.SettingsLinkRowContent.bind(this)('测试');
+        Row.pop();
+        Column.pop();
+        // ── AI section ──
+        Column.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             If.create();
-            if (this.aiProviderKind === 'openaiCompatible') {
+            // ── AI detail editor (expandable) ──
+            if (this.showAIEditor) {
                 this.ifElseBranchUpdateFunction(0, () => {
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Column.create({ space: 12 });
+                        Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(323:13)", "entry");
+                        Column.width('100%');
+                        Column.padding(14);
+                        Column.borderRadius(16);
+                        Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '50'));
+                    }, Column);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        // Provider kind toggle
+                        Row.create({ space: 0 });
+                        Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(325:15)", "entry");
+                    }, Row);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
                         Button.createWithChild();
-                        Button.debugLine("entry/src/main/ets/pages/SettingsPage.ets(382:17)", "entry");
-                        Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
-                        Button.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 8 });
-                        Button.backgroundColor(Color.Transparent);
-                        Button.enabled(!this.isTestingConnection);
-                        Button.onClick(() => this.testConnection());
+                        Button.debugLine("entry/src/main/ets/pages/SettingsPage.ets(326:17)", "entry");
+                        Button.padding({ left: 14, right: 14, top: 6, bottom: 6 });
+                        Button.borderRadius({ topLeft: 8, bottomLeft: 8 });
+                        Button.backgroundColor(this.aiProviderKind === 'mock' ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '40'));
+                        Button.onClick(() => { this.aiProviderKind = 'mock'; });
                     }, Button);
                     this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create(this.isTestingConnection ? '测试中...' : '测试连接');
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(383:19)", "entry");
-                        Text.fontSize(13);
-                        Text.fontColor(RokuricsColors.aqua);
+                        Text.create('Mock');
+                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(327:19)", "entry");
+                        Text.fontSize(12);
+                        Text.fontColor(this.aiProviderKind === 'mock' ? Color.White : RokuricsColors.softText);
                     }, Text);
                     Text.pop();
                     Button.pop();
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Button.createWithChild();
+                        Button.debugLine("entry/src/main/ets/pages/SettingsPage.ets(334:17)", "entry");
+                        Button.padding({ left: 14, right: 14, top: 6, bottom: 6 });
+                        Button.borderRadius({ topRight: 8, bottomRight: 8 });
+                        Button.backgroundColor(this.aiProviderKind === 'openaiCompatible' ? RokuricsColors.aqua : colorAlpha(RokuricsColors.glassSurface, '40'));
+                        Button.onClick(() => { this.aiProviderKind = 'openaiCompatible'; });
+                    }, Button);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('OpenAI');
+                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(335:19)", "entry");
+                        Text.fontSize(12);
+                        Text.fontColor(this.aiProviderKind === 'openaiCompatible' ? Color.White : RokuricsColors.softText);
+                    }, Text);
+                    Text.pop();
+                    Button.pop();
+                    // Provider kind toggle
+                    Row.pop();
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        If.create();
+                        if (this.aiProviderKind === 'openaiCompatible') {
+                            this.ifElseBranchUpdateFunction(0, () => {
+                                this.SettingsInput.bind(this)('API 地址', this.aiBaseURL, 'https://api.openai.com/v1', (v: string) => { this.aiBaseURL = v; });
+                                this.SettingsInput.bind(this)('模型名称', this.aiModelName, 'gpt-4o-mini', (v: string) => { this.aiModelName = v; });
+                                this.SettingsInput.bind(this)('API Key', this.aiAPIKey, 'sk-...', (v: string) => { this.aiAPIKey = v; }, true);
+                                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                    Row.create({ space: 8 });
+                                    Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(350:17)", "entry");
+                                    Row.width('100%');
+                                }, Row);
+                                this.SettingsInput.bind(this)('温度', String(this.aiTemperature), '0.3', (v: string) => { const n = parseFloat(v); if (!isNaN(n))
+                                    this.aiTemperature = n; }, false, true);
+                                this.SettingsInput.bind(this)('最大 Tokens', String(this.aiMaxTokens), '2000', (v: string) => { const n = parseInt(v); if (!isNaN(n))
+                                    this.aiMaxTokens = n; }, false, true);
+                                Row.pop();
+                                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                    If.create();
+                                    if (this.aiProviderKind === 'openaiCompatible') {
+                                        this.ifElseBranchUpdateFunction(0, () => {
+                                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                                Row.create({ space: 8 });
+                                                Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(358:19)", "entry");
+                                            }, Row);
+                                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                                Button.createWithChild();
+                                                Button.debugLine("entry/src/main/ets/pages/SettingsPage.ets(359:21)", "entry");
+                                                Button.padding({ left: 12, right: 12, top: 6, bottom: 6 });
+                                                Button.border({ width: 1, color: colorAlpha(RokuricsColors.aqua, '40'), radius: 6 });
+                                                Button.backgroundColor(Color.Transparent);
+                                                Button.enabled(!this.isTestingConnection);
+                                                Button.onClick(() => this.testConnection());
+                                            }, Button);
+                                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                                Text.create(this.isTestingConnection ? '测试中...' : '测试连接');
+                                                Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(360:23)", "entry");
+                                                Text.fontSize(12);
+                                                Text.fontColor(RokuricsColors.aqua);
+                                            }, Text);
+                                            Text.pop();
+                                            Button.pop();
+                                            this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                                If.create();
+                                                if (this.testConnectionResult.length > 0) {
+                                                    this.ifElseBranchUpdateFunction(0, () => {
+                                                        this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                                            Text.create(this.testConnectionResult);
+                                                            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(369:23)", "entry");
+                                                            Text.fontSize(11);
+                                                            Text.fontColor(this.testConnectionResult === '连接成功' ? RokuricsColors.mint : RokuricsColors.coral);
+                                                        }, Text);
+                                                        Text.pop();
+                                                    });
+                                                }
+                                                else {
+                                                    this.ifElseBranchUpdateFunction(1, () => {
+                                                    });
+                                                }
+                                            }, If);
+                                            If.pop();
+                                            Row.pop();
+                                        });
+                                    }
+                                    else {
+                                        this.ifElseBranchUpdateFunction(1, () => {
+                                        });
+                                    }
+                                }, If);
+                                If.pop();
+                            });
+                        }
+                        else {
+                            this.ifElseBranchUpdateFunction(1, () => {
+                            });
+                        }
+                    }, If);
+                    If.pop();
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Button.createWithChild();
+                        Button.debugLine("entry/src/main/ets/pages/SettingsPage.ets(375:15)", "entry");
+                        Button.padding({ left: 16, right: 16, top: 8, bottom: 8 });
+                        Button.borderRadius(8);
+                        Button.backgroundColor(RokuricsColors.aqua);
+                        Button.enabled(!this.isSavingAI);
+                        Button.onClick(() => this.saveAIConfig());
+                    }, Button);
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('保存 AI 配置');
+                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(376:17)", "entry");
+                        Text.fontSize(13);
+                        Text.fontWeight(FontWeight.SemiBold);
+                        Text.fontColor(Color.White);
+                    }, Text);
+                    Text.pop();
+                    Button.pop();
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        If.create();
+                        if (this.aiSavedMessage.length > 0) {
+                            this.ifElseBranchUpdateFunction(0, () => {
+                                this.observeComponentCreation2((elmtId, isInitialRender) => {
+                                    Text.create(this.aiSavedMessage);
+                                    Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(383:17)", "entry");
+                                    Text.fontSize(11);
+                                    Text.fontColor(this.aiSavedMessage.startsWith('AI') ? RokuricsColors.mint : RokuricsColors.coral);
+                                }, Text);
+                                Text.pop();
+                            });
+                        }
+                        else {
+                            this.ifElseBranchUpdateFunction(1, () => {
+                            });
+                        }
+                    }, If);
+                    If.pop();
+                    Column.pop();
                 });
             }
+            // ── 关于 section ──
             else {
                 this.ifElseBranchUpdateFunction(1, () => {
                 });
@@ -1091,196 +1021,214 @@ class SettingsPage extends ViewPU {
         }, If);
         If.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
+            // ── 关于 section ──
+            Column.create({ space: 8 });
+            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(392:11)", "entry");
+            // ── 关于 section ──
+            Column.width('100%');
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('关于');
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(393:13)", "entry");
+            Text.fontSize(13);
+            Text.fontWeight(FontWeight.Medium);
+            Text.fontColor(RokuricsColors.tertiaryText);
+            Text.padding({ left: 6 });
+            Text.width('100%');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(396:13)", "entry");
+            Column.width('100%');
+            Column.borderRadius(18);
+            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
+            Column.border({
+                width: 1,
+                color: {
+                    colors: [
+                        [0xFFFFFF, 0.10],
+                        [RokuricsColors.glassStroke, 0.08],
+                        [RokuricsColors.glassStrokeAccent, 0.06]
+                    ],
+                    direction: GradientDirection.RightBottom
+                },
+                radius: 18
+            } as BorderOptions);
+        }, Column);
+        this.SettingsRow.bind(this)('存储', '本机');
+        this.SettingsDivider.bind(this)();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(399:15)", "entry");
+            Row.width('100%');
+            Row.padding({ left: 16, right: 16, top: 13, bottom: 13 });
+            Row.onClick(() => {
+                this.getUIContext().getRouter().pushUrl({ url: 'pages/PrivacyPolicyPage' });
+            });
+        }, Row);
+        this.SettingsLinkRowContent.bind(this)('隐私政策');
+        Row.pop();
+        this.SettingsDivider.bind(this)();
+        this.SettingsRow.bind(this)('版权', '1.0 (1)');
+        Column.pop();
+        // ── 关于 section ──
+        Column.pop();
+        Column.pop();
+        Scroll.pop();
+        Column.pop();
+    }
+    // ── Settings grouped card builders ──
+    SettingsSection(title: string, child: WrappedBuilder<[
+    ]>, parent = null) {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 8 });
+            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(447:5)", "entry");
+            Column.width('100%');
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(title);
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(448:7)", "entry");
+            Text.fontSize(13);
+            Text.fontWeight(FontWeight.Medium);
+            Text.fontColor(RokuricsColors.tertiaryText);
+            Text.padding({ left: 6 });
+            Text.width('100%');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(454:7)", "entry");
+            Column.width('100%');
+            Column.borderRadius(18);
+            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
+            Column.border({
+                width: 1,
+                color: {
+                    colors: [
+                        [0xFFFFFF, 0.10],
+                        [RokuricsColors.glassStroke, 0.08],
+                        [RokuricsColors.glassStrokeAccent, 0.06]
+                    ],
+                    direction: GradientDirection.RightBottom
+                },
+                radius: 18
+            } as BorderOptions);
+        }, Column);
+        child.builder.bind(this)();
+        Column.pop();
+        Column.pop();
+    }
+    SettingsRow(label: string, value: string, parent = null) {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(478:5)", "entry");
+            Row.width('100%');
+            Row.padding({ left: 16, right: 16, top: 13, bottom: 13 });
+        }, Row);
+        this.SettingsRowContent.bind(this)(label, value);
+        Row.pop();
+    }
+    SettingsRowContent(label: string, value: string, parent = null) {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(label);
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(487:5)", "entry");
+            Text.fontSize(15);
+            Text.fontWeight(FontWeight.Medium);
+            Text.fontColor(RokuricsColors.deepText);
+            Text.fontFamily(isEnglishLabel(label) ? 'serif' : 'sans-serif');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
             Blank.create();
-            Blank.debugLine("entry/src/main/ets/pages/SettingsPage.ets(393:15)", "entry");
+            Blank.debugLine("entry/src/main/ets/pages/SettingsPage.ets(492:5)", "entry");
         }, Blank);
         Blank.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Button.createWithChild();
-            Button.debugLine("entry/src/main/ets/pages/SettingsPage.ets(395:15)", "entry");
-            Button.padding({ left: 20, right: 20, top: 10, bottom: 10 });
-            Button.borderRadius(10);
-            Button.backgroundColor(RokuricsColors.aqua);
-            Button.enabled(!this.isSavingAI);
-            Button.onClick(() => this.saveAIConfig());
-        }, Button);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('保存 AI 配置');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(396:17)", "entry");
+            Text.create(value);
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(493:5)", "entry");
             Text.fontSize(14);
-            Text.fontWeight(FontWeight.SemiBold);
-            Text.fontColor(Color.White);
+            Text.fontWeight(FontWeight.Regular);
+            Text.fontColor(RokuricsColors.softText);
+            Text.fontFamily(isTechValue(value) ? 'monospace' : (isEnglishLabel(value) ? 'serif' : 'sans-serif'));
         }, Text);
         Text.pop();
-        Button.pop();
+    }
+    SettingsLinkRow(label: string, parent = null) {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.debugLine("entry/src/main/ets/pages/SettingsPage.ets(502:5)", "entry");
+            Row.width('100%');
+            Row.padding({ left: 16, right: 16, top: 13, bottom: 13 });
+        }, Row);
+        this.SettingsLinkRowContent.bind(this)(label);
         Row.pop();
+    }
+    SettingsLinkRowContent(label: string, parent = null) {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            If.create();
-            if (this.aiSavedMessage.length > 0) {
-                this.ifElseBranchUpdateFunction(0, () => {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create(this.aiSavedMessage);
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(408:15)", "entry");
-                        Text.fontSize(13);
-                        Text.fontColor(this.aiSavedMessage.startsWith('AI') ? RokuricsColors.mint : RokuricsColors.coral);
-                    }, Text);
-                    Text.pop();
-                });
-            }
-            else {
-                this.ifElseBranchUpdateFunction(1, () => {
-                });
-            }
-        }, If);
-        If.pop();
-        // AI Provider Configuration
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // Upload server configuration
-            Column.create({ space: 12 });
-            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(417:11)", "entry");
-            // Upload server configuration
-            Column.padding(20);
-            // Upload server configuration
-            Column.borderRadius(20);
-            // Upload server configuration
-            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '66'));
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('上传服务器配置');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(418:13)", "entry");
-            Text.fontSize(16);
-            Text.fontWeight(FontWeight.SemiBold);
-            Text.fontColor(RokuricsColors.deepText);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 4 });
-            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(421:13)", "entry");
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('服务器地址');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(422:15)", "entry");
-            Text.fontSize(12);
-            Text.fontColor(RokuricsColors.softText);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            TextInput.create({ text: this.uploadServerURL, placeholder: 'http://your-server.com' });
-            TextInput.debugLine("entry/src/main/ets/pages/SettingsPage.ets(423:15)", "entry");
-            TextInput.fontSize(14);
-            TextInput.fontColor(RokuricsColors.deepText);
-            TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
-            TextInput.borderRadius(8);
-            TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
-            TextInput.onChange((v: string) => { this.uploadServerURL = v; });
-        }, TextInput);
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 4 });
-            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(429:13)", "entry");
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('API Key（可选）');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(430:15)", "entry");
-            Text.fontSize(12);
-            Text.fontColor(RokuricsColors.softText);
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            TextInput.create({ text: this.uploadAPIKey, placeholder: 'Bearer token' });
-            TextInput.debugLine("entry/src/main/ets/pages/SettingsPage.ets(431:15)", "entry");
-            TextInput.fontSize(14);
-            TextInput.fontColor(RokuricsColors.deepText);
-            TextInput.type(InputType.Password);
-            TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
-            TextInput.borderRadius(8);
-            TextInput.padding({ left: 12, right: 12, top: 8, bottom: 8 });
-            TextInput.onChange((v: string) => { this.uploadAPIKey = v; });
-        }, TextInput);
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Button.createWithChild();
-            Button.debugLine("entry/src/main/ets/pages/SettingsPage.ets(438:13)", "entry");
-            Button.width('100%');
-            Button.height(44);
-            Button.borderRadius(10);
-            Button.backgroundColor(RokuricsColors.aqua);
-            Button.enabled(!this.isSavingUpload);
-            Button.onClick(() => this.saveUploadConfig());
-        }, Button);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('保存上传配置');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(439:15)", "entry");
-            Text.fontSize(14);
-            Text.fontWeight(FontWeight.SemiBold);
-            Text.fontColor(Color.White);
-        }, Text);
-        Text.pop();
-        Button.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            If.create();
-            if (this.uploadSavedMessage.length > 0) {
-                this.ifElseBranchUpdateFunction(0, () => {
-                    this.observeComponentCreation2((elmtId, isInitialRender) => {
-                        Text.create(this.uploadSavedMessage);
-                        Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(447:15)", "entry");
-                        Text.fontSize(13);
-                        Text.fontColor(this.uploadSavedMessage.startsWith('上传') ? RokuricsColors.mint : RokuricsColors.coral);
-                    }, Text);
-                    Text.pop();
-                });
-            }
-            else {
-                this.ifElseBranchUpdateFunction(1, () => {
-                });
-            }
-        }, If);
-        If.pop();
-        // Upload server configuration
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            // About
-            Column.create({ space: 8 });
-            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(455:11)", "entry");
-            // About
-            Column.width('100%');
-            // About
-            Column.padding(20);
-            // About
-            Column.borderRadius(20);
-            // About
-            Column.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
-            // About
-            Column.margin({ top: 12 });
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('关于 Rokurics');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(456:13)", "entry");
+            Text.create(label);
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(511:5)", "entry");
             Text.fontSize(15);
-            Text.fontWeight(FontWeight.SemiBold);
+            Text.fontWeight(FontWeight.Medium);
             Text.fontColor(RokuricsColors.deepText);
+            Text.fontFamily(isEnglishLabel(label) ? 'serif' : 'sans-serif');
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('版本 1.0.0');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(457:13)", "entry");
-            Text.fontSize(13);
+            Blank.create();
+            Blank.debugLine("entry/src/main/ets/pages/SettingsPage.ets(516:5)", "entry");
+        }, Blank);
+        Blank.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('查看');
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(517:5)", "entry");
+            Text.fontSize(14);
+            Text.fontWeight(FontWeight.Regular);
+            Text.fontColor(RokuricsColors.aqua);
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('›');
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(521:5)", "entry");
+            Text.fontSize(16);
+            Text.fontColor(RokuricsColors.tertiaryText);
+            Text.margin({ left: 2 });
+        }, Text);
+        Text.pop();
+    }
+    SettingsDivider(parent = null) {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Divider.create();
+            Divider.debugLine("entry/src/main/ets/pages/SettingsPage.ets(529:5)", "entry");
+            Divider.strokeWidth(0.5);
+            Divider.color(colorAlpha(RokuricsColors.softText, '10'));
+            Divider.margin({ left: 16, right: 16 });
+        }, Divider);
+    }
+    SettingsInput(label: string, value: string, placeholder: string, onChange: (v: string) => void, isPassword?: boolean, isNumber?: boolean, parent = null) {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create({ space: 3 });
+            Column.debugLine("entry/src/main/ets/pages/SettingsPage.ets(538:5)", "entry");
+            Column.layoutWeight(1);
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create(label);
+            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(539:7)", "entry");
+            Text.fontSize(10);
             Text.fontColor(RokuricsColors.tertiaryText);
         }, Text);
         Text.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('学习录音与 AI 笔记\nHarmonyOS 平台');
-            Text.debugLine("entry/src/main/ets/pages/SettingsPage.ets(458:13)", "entry");
-            Text.fontSize(13);
-            Text.fontColor(RokuricsColors.softText);
-            Text.textAlign(TextAlign.Center);
-        }, Text);
-        Text.pop();
-        // About
-        Column.pop();
-        Column.pop();
-        Scroll.pop();
+            TextInput.create({ text: value, placeholder: placeholder });
+            TextInput.debugLine("entry/src/main/ets/pages/SettingsPage.ets(540:7)", "entry");
+            TextInput.fontSize(13);
+            TextInput.fontColor(RokuricsColors.deepText);
+            TextInput.type(isPassword ? InputType.Password : isNumber ? InputType.Number : InputType.Normal);
+            TextInput.backgroundColor(colorAlpha(RokuricsColors.glassSurface, '40'));
+            TextInput.borderRadius(6);
+            TextInput.padding({ left: 10, right: 10, top: 7, bottom: 7 });
+            TextInput.onChange(onChange);
+        }, TextInput);
         Column.pop();
     }
     rerender() {

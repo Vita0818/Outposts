@@ -1,13 +1,17 @@
 /**
  * Privacy policy page — minimal stub mirroring iOS sub-page pattern
  */
-import { colorAlpha, RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
+import { ConfigurationConstant } from '@kit.AbilityKit'
+import { colorAlpha, RokuricsColors, FontWeight, applyColorMode } from '../utils/RokuricsTheme'
 import { BackIcon } from '../utils/CustomIcons'
 
 @Entry
 @Component
 struct PrivacyPolicyPage {
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET
+
   build() {
+    applyColorMode(this.colorMode)
     Column() {
       Row() {
         Button() {

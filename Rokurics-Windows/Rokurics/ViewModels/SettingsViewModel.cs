@@ -86,9 +86,23 @@ public partial class SettingsViewModel : ObservableObject
         _userHandle = Environment.UserName.ToLowerInvariant();
     }
 
+    private CancellationTokenSource? _saveDebounceCts;
+
     [RelayCommand]
-    private void Save()
+    private async Task Save()
     {
+        _saveDebounceCts?.Cancel();
+        _saveDebounceCts = new CancellationTokenSource();
+        var token = _saveDebounceCts.Token;
+        try
+        {
+            await Task.Delay(300, token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+
         var settings = new AppSettings
         {
             TranscriptionProvider = SelectedTranscriptionProvider,

@@ -1,0 +1,93 @@
+[OUTPOSTS STRUCTURE REBUILD P1 - Rokurics-Android - ROUND 1]
+
+This is a structural rebuild round, not a visual tweak round.
+
+Mandatory preflight:
+MODEL_CHECK_RESULT:
+Current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. If not, stop.
+
+PATH_CHECK_RESULT:
+Current working directory must be exactly:
+/Users/vita/Vitemis/Outposts/Rokurics-Android
+If not, stop.
+
+SOURCE_READONLY_CHECK:
+Apple source is read-only:
+/Users/vita/Vitemis/Vela/Rokurics
+Reference screenshots are read-only:
+/Users/vita/Vitemis/Outposts/Rokurics-iOS-Ref
+Writes are allowed only inside this target project and:
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-android-ui-structure-rebuild-p1/20260530-175634/Rokurics-Android
+Do not read or send secrets, tokens, .env, certificates, private keys, p12, provisioning profiles, API keys, or Keychain content.
+Do not run git clean/reset/restore/checkout. Do not commit/push/PR. Do not delete visual-evidence or old screenshots.
+
+User feedback:
+"有改，但是没改到点子上，方向也不对。"
+
+Direction review conclusion to execute:
+The problem is information architecture. iOS Home is a hub; the dock belongs to Home. Android's current global BottomNav direction is wrong. Library, AI Chat, Recording Detail, and subpage navigation need real structure, not visual polish.
+
+Primary goals:
+1. Remove or scope global BottomNav so it is not persistent across every subpage.
+2. Home should have a Home-only dock or equivalent hub entry structure.
+3. Subpages should use independent navigation stack / back hierarchy instead of persistent global bottom tabs.
+4. Library must move toward iOS folder card grid + breadcrumb/navigation hierarchy, not empty generic state.
+5. AI Chat must have a real conversation area and input bar, not a welcome placeholder.
+6. Recording Detail / subpage structure must follow iOS page stack and content-first logic.
+7. Do not prioritize nav blur, icons, radius, or bubble tuning in this round.
+
+Required order:
+1. Read Rokurics-iOS-Ref Home / Library / AI Chat / Recording Detail reference screenshots.
+2. Call qwen-vision.inspect_screenshot on the relevant reference screenshots.
+3. Acquire ANDROID_EMULATOR_LOCK for screenshot phase using an atomic lock such as /tmp/outposts-android-emulator.lock. Do not require user manual Android Studio switching.
+4. Use adb absolute path:
+/Users/vita/Library/Android/sdk/platform-tools/adb
+5. Run adb devices -l.
+6. Read applicationId from Gradle config. Do not guess.
+7. If needed, run ./gradlew installDebug or equivalent to install current app.
+8. Launch app with adb monkey or confirmed Activity.
+9. Verify foreground package equals applicationId before every screenshot.
+10. Capture actual Home / Library / AI Chat / Recording Detail screenshots where reachable, with unique filenames under:
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/outposts-android-ui-structure-rebuild-p1/20260530-175634/Rokurics-Android/actual/
+11. Call qwen-vision.inspect_screenshot on actual screenshots.
+12. If reference + actual exist, call qwen-vision.compare_screenshots.
+13. Based on structure differences, rebuild navigation architecture and core page skeletons.
+14. Run assembleDebug.
+15. Run available tests if present.
+16. Install/launch again, capture post-fix screenshots, call qwen compare again to confirm structural direction improved.
+17. Release ANDROID_EMULATOR_LOCK.
+
+Do not do:
+- Do not spend the round on colors, blur, icons, corner radius, shadows, or bubbles before architecture is corrected.
+- Do not keep global BottomNav as the main architecture if it conflicts with iOS reference.
+- Do not use qwen score as user acceptance.
+- Do not mark READY_FOR_USER_REVIEW if information architecture remains wrong.
+
+Report fields:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+REFERENCE_SCREENSHOTS_USED
+ACTUAL_SCREENSHOTS
+QWEN_REFERENCE_INSPECT
+QWEN_ACTUAL_INSPECT
+QWEN_COMPARE_RESULT
+STRUCTURAL_REBUILD_PLAN
+IMPLEMENTED_STRUCTURAL_CHANGES
+WHAT_PREVIOUS_DIRECTION_GOT_WRONG
+WHAT_WAS_REPLACED
+WHAT_WAS_KEPT
+BUILD_RESULT
+TEST_RESULT
+POST_FIX_SCREENSHOTS
+POST_FIX_QWEN_COMPARE
+REMAINING_STRUCTURAL_GAPS
+NEXT_RECOMMENDATION
+GLOBAL_BOTTOM_NAV_REMOVED_OR_SCOPED
+HOME_ONLY_DOCK_STATUS
+LIBRARY_GRID_STATUS
+AI_CHAT_INPUT_STATUS
+RECORDING_DETAIL_STACK_STATUS
+SUBPAGE_NAVIGATION_STATUS

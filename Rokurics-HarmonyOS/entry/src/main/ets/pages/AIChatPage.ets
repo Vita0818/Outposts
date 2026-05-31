@@ -1,12 +1,13 @@
 /**
  * AI Chat page - mirrors IPhoneAIChatView.swift
  */
+import { ConfigurationConstant } from '@kit.AbilityKit'
 import { ChatMessage, ChatMessageRole, ChatConversation, ChatRequest, ChatResult } from '../models/ChatModels'
 import { MockChatProvider, OpenAICompatibleChatProvider, createChatProvider } from '../providers/ProviderInterfaces'
 import { ChatStore } from '../services/ChatStore'
 import { SettingsStore } from '../services/SettingsStore'
 import { AIConfiguration } from '../services/OpenAICompatibleClient'
-import { colorAlpha,  RokuricsColors, FontWeight } from '../utils/RokuricsTheme'
+import { colorAlpha,  RokuricsColors, FontWeight, applyColorMode } from '../utils/RokuricsTheme'
 import { SendIcon, BulletListIcon, EditIcon } from '../utils/CustomIcons'
 
 @Entry
@@ -15,6 +16,7 @@ struct AIChatPage {
   private chatProvider: MockChatProvider | OpenAICompatibleChatProvider = new MockChatProvider()
   private chatStore: ChatStore = new ChatStore(getContext(this))
   private settingsStore: SettingsStore = new SettingsStore(getContext(this))
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET
   @State messages: ChatMessage[] = []
   @State inputText: string = ''
   @State isGenerating: boolean = false
@@ -111,6 +113,7 @@ struct AIChatPage {
   }
 
   build() {
+    applyColorMode(this.colorMode)
     Column() {
       // Header
       Row() {
@@ -198,84 +201,98 @@ struct AIChatPage {
       .width('100%')
       .padding({ left: 16, right: 16, top: 56, bottom: 12 })
 
-      // Conversation list overlay with glass card
+      // Conversation list overlay with backdrop mask and glass card
       if (this.showConversationList) {
         Column() {
-          Row() {
-            Text('对话历史')
-              .fontSize(16)
-              .fontWeight(FontWeight.SemiBold)
-              .fontColor(RokuricsColors.deepText)
-            Blank()
-            Button() {
-              Text('+ 新建')
-                .fontSize(14)
-                .fontWeight(FontWeight.Medium)
-                .fontColor(RokuricsColors.aqua)
-            }
-            .backgroundColor(Color.Transparent)
-            .onClick(() => this.startNewConversation())
-          }
-          .width('100%')
-          .padding(16)
+          // Semi-transparent backdrop mask
+          Column()
+            .width('100%')
+            .height('100%')
+            .backgroundColor('#40000000')
+            .onClick(() => { this.showConversationList = false })
 
-          if (this.recentConversations.length === 0) {
-            Text('暂无历史对话')
-              .fontSize(13)
-              .fontColor(RokuricsColors.tertiaryText)
-              .margin({ top: 16, bottom: 24 })
-          } else {
-            List({ space: 6 }) {
-              ForEach(this.recentConversations, (conv: ChatConversation) => {
-                ListItem() {
-                  Row() {
-                    Column({ space: 2 }) {
-                      Text(conv.title)
-                        .fontSize(14)
-                        .fontWeight(FontWeight.Medium)
-                        .fontColor(conv.id === this.activeConversation?.id ?
-                          RokuricsColors.aqua : RokuricsColors.deepText)
-                        .maxLines(1)
-                        .textOverflow({ overflow: TextOverflow.Ellipsis })
-                      Text(`${conv.messages.length} 条消息`)
-                        .fontSize(11)
-                        .fontColor(RokuricsColors.tertiaryText)
-                    }
-                    .layoutWeight(1)
-                    .alignItems(HorizontalAlign.Start)
-
-                    Button() {
-                      Text('🗑')
-                        .fontSize(14)
-                        .fontColor(RokuricsColors.tertiaryText)
-                    }
-                    .width(32)
-                    .height(32)
-                    .backgroundColor(Color.Transparent)
-                    .onClick(() => this.deleteConversation(conv.id))
-                  }
-                  .width('100%')
-                  .padding({ left: 14, right: 14, top: 10, bottom: 10 })
-                  .borderRadius(12)
-                  .backgroundColor(conv.id === this.activeConversation?.id ?
-                    colorAlpha(RokuricsColors.aqua, '14') : colorAlpha(RokuricsColors.glassSurface, '50'))
-                  .onClick(() => this.selectConversation(conv.id))
-                }
-              })
+          // Glass card with conversation list
+          Column() {
+            Row() {
+              Text('对话历史')
+                .fontSize(16)
+                .fontWeight(FontWeight.SemiBold)
+                .fontColor(RokuricsColors.deepText)
+              Blank()
+              Button() {
+                Text('+ 新建')
+                  .fontSize(14)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(RokuricsColors.aqua)
+              }
+              .backgroundColor(Color.Transparent)
+              .onClick(() => this.startNewConversation())
             }
             .width('100%')
-            .constraintSize({ maxHeight: 280 })
-            .scrollBar(BarState.Off)
+            .padding(16)
+
+            if (this.recentConversations.length === 0) {
+              Text('暂无历史对话')
+                .fontSize(13)
+                .fontColor(RokuricsColors.tertiaryText)
+                .margin({ top: 16, bottom: 24 })
+            } else {
+              List({ space: 6 }) {
+                ForEach(this.recentConversations, (conv: ChatConversation) => {
+                  ListItem() {
+                    Row() {
+                      Column({ space: 2 }) {
+                        Text(conv.title)
+                          .fontSize(14)
+                          .fontWeight(FontWeight.Medium)
+                          .fontColor(conv.id === this.activeConversation?.id ?
+                            RokuricsColors.aqua : RokuricsColors.deepText)
+                          .maxLines(1)
+                          .textOverflow({ overflow: TextOverflow.Ellipsis })
+                        Text(`${conv.messages.length} 条消息`)
+                          .fontSize(11)
+                          .fontColor(RokuricsColors.tertiaryText)
+                      }
+                      .layoutWeight(1)
+                      .alignItems(HorizontalAlign.Start)
+
+                      Button() {
+                        Text('🗑')
+                          .fontSize(14)
+                          .fontColor(RokuricsColors.tertiaryText)
+                      }
+                      .width(32)
+                      .height(32)
+                      .backgroundColor(Color.Transparent)
+                      .onClick(() => this.deleteConversation(conv.id))
+                    }
+                    .width('100%')
+                    .padding({ left: 14, right: 14, top: 10, bottom: 10 })
+                    .borderRadius(12)
+                    .backgroundColor(conv.id === this.activeConversation?.id ?
+                      colorAlpha(RokuricsColors.aqua, '14') : colorAlpha(RokuricsColors.glassSurface, '50'))
+                    .onClick(() => this.selectConversation(conv.id))
+                  }
+                })
+              }
+              .width('100%')
+              .constraintSize({ maxHeight: 280 })
+              .scrollBar(BarState.Off)
+            }
           }
+          .width('100%')
+          .backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'F0'))
+          .borderRadius({ bottomLeft: 16, bottomRight: 16 })
+          .shadow({
+            color: colorAlpha(RokuricsColors.shadowColor, '20'),
+            radius: 16,
+            offsetY: 8
+          })
+          .onClick(() => {}) // consume click to prevent mask dismiss
         }
         .width('100%')
-        .backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'F0'))
-        .borderRadius({ bottomLeft: 16, bottomRight: 16 })
-        .shadow({
-          color: colorAlpha(RokuricsColors.shadowColor, '20'),
-          radius: 16,
-          offsetY: 8
-        })
+        .height('100%')
+        .position({ x: 0, y: 0 })
         .zIndex(10)
       }
 

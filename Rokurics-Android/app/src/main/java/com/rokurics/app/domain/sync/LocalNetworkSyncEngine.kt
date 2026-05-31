@@ -184,7 +184,7 @@ class LocalNetworkSyncEngine(
                 when (response.kind) {
                     "transcriptMarkdown" -> {
                         val artID = response.artifactID ?: return
-                        val items = studyLibraryStore.allStudyItems()
+                        val items = studyLibraryStore.allStudyItems
                         val item = items.find { it.itemID == artID.removePrefix("artifact_").take(36) }
                         if (item != null) {
                             studyLibraryStore.save(item.copy(transcriptMarkdownRelativePath = relativePath))
@@ -192,7 +192,7 @@ class LocalNetworkSyncEngine(
                     }
                     "noteMarkdown" -> {
                         val artID = response.artifactID ?: return
-                        val items = studyLibraryStore.allStudyItems()
+                        val items = studyLibraryStore.allStudyItems
                         val item = items.find { it.itemID == artID.removePrefix("artifact_").take(36) }
                         if (item != null) {
                             studyLibraryStore.save(item.copy(noteRelativePath = relativePath))

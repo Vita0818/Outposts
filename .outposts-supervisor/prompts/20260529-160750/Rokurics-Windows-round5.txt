@@ -1,0 +1,78 @@
+BEGIN_PROMPT
+Do not execute until END_PROMPT.
+
+Round 5 for Rokurics-Windows.
+
+MANDATORY PREFLIGHT:
+1. MODEL_CHECK_RESULT
+Current model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m]. Otherwise stop.
+2. PATH_CHECK_RESULT
+Current working directory must be exactly /Users/vita/Vitemis/Outposts/Rokurics-Windows. Otherwise stop.
+3. SOURCE_READONLY_CHECK
+Apple source is read-only. Reference screenshots are read-only. All writes must stay inside /Users/vita/Vitemis/Outposts/Rokurics-Windows or the batch evidence directory.
+
+PROJECT:
+Rokurics-Windows
+
+USER FEEDBACK:
+Must remain WinUI 3 / Windows App SDK / C# and must feel native to Windows 11. Do not convert to WPF, Avalonia, WebView, Flutter, Electron, MAUI, or any other framework.
+
+ROUND 5 GOAL:
+Continue minimal static WinUI 3 native-client improvements that can be safely done on macOS without claiming build or launch success.
+
+Use the qwen reference understanding from Round 1. Do not call qwen again unless you need a fresh reference understanding.
+
+Priorities:
+1. Preserve WinUI 3 / Windows App SDK / C#.
+2. Do not introduce non-WinUI frameworks.
+3. Keep existing WMC0011 fixes intact.
+4. Improve native Win11 structure only with small changes:
+   - Prefer NavigationView, CommandBar, InfoBar, TeachingTip, MenuFlyout, AutoSuggestBox, AppWindow, Mica, Acrylic, native spacing.
+   - If safe, wire NavigationView.AutoSuggestBox for search using native WinUI controls.
+   - If safe, improve page header actions with CommandBar instead of custom non-native controls.
+   - If safe, improve DI/page creation so it does not rely on unsupported or brittle patterns.
+5. Do not perform broad architecture refactors.
+6. Do not claim Debug/ARM64 build or window launch succeeded on macOS. If not verified on Win11 ARM + VS2022, report WINDOWS_HOST_VALIDATION_PENDING=YES.
+
+Forbidden:
+- Do not change framework.
+- Do not introduce WPF/Avalonia/WebView/Electron/MAUI.
+- Do not run destructive git commands.
+- Do not access secrets.
+- Do not modify Apple source or reference screenshot directories.
+
+Return a structured report with:
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
+PROJECT_NAME
+ROUND_INDEX
+QWEN_REQUIRED
+QWEN_CALLED
+QWEN_VALID_VISUAL_EVIDENCE
+QWEN_COMPARE_SCREENSHOTS_COMPLETED
+REFERENCE_SCREENSHOTS_USED
+ACTUAL_SCREENSHOTS
+VISION_TOOLS_CALLED
+VISION_RESULT_SUMMARY
+USER_FEEDBACK_ADDRESSED
+BUILD_RESULT
+TEST_RESULT
+IMPLEMENTED_THIS_ROUND
+REMAINING_UI_DIFFERENCES
+REMAINING_FUNCTIONAL_GAPS
+ACTUAL_SCREENSHOT_BLOCKER
+BLOCKERS
+REGRESSION_RISKS
+NEXT_RECOMMENDATION
+WINUI3_CONFIRMED
+WINDOWS_APP_SDK_CONFIRMED
+NON_WINUI_FRAMEWORK_AVOIDED
+WIN11_NATIVE_STYLE_PROGRESS
+INVALID_XAML_MEMBERS_FIXED
+WMC0011_REMAINING
+DEBUG_ARM64_BUILD_RESULT
+WINDOW_LAUNCH_RESULT
+WINDOWS_HOST_VALIDATION_PENDING
+
+END_PROMPT

@@ -2,6 +2,7 @@ package com.rokurics.app.ui.chat
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,7 +37,7 @@ import com.rokurics.app.ui.theme.rokuricsScaleClickable
 import com.rokurics.app.domain.model.StudyItemMetadata
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+
 import kotlinx.coroutines.withContext
 import java.util.UUID
 
@@ -107,7 +108,7 @@ fun AIChatScreen(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.46f))
+                        .background(if (isSystemInDarkTheme()) Color(0xFF0D2424).copy(alpha = 0.55f) else Color.White.copy(alpha = 0.46f))
                         .rokuricsScaleClickable(onClick = onBack),
                     contentAlignment = Alignment.Center
                 ) {
@@ -121,34 +122,41 @@ fun AIChatScreen(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Right action group (Apple parity: history + new chat)
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.46f))
-                            .rokuricsScaleClickable(onClick = {
-                                saveSnapshot(messages, activeContext, activeConversationId, recentConversations, chatStore) { recentConversations = it }
-                                showConversations = true
-                            }),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.History, contentDescription = "最近对话", tint = RokuricsColors.deepText, modifier = Modifier.size(20.dp))
-                    }
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.46f))
-                            .rokuricsScaleClickable(onClick = {
-                                startNewConversation(messages, activeContext, activeConversationId, recentConversations, chatStore) { newId, clearedMessages, clearedContext, savedConversations ->
-                                    activeConversationId = newId; messages = clearedMessages; activeContext = clearedContext; recentConversations = savedConversations; errorText = null
-                                }
-                            }),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = "新对话", tint = RokuricsColors.deepText, modifier = Modifier.size(20.dp))
+                // Right action capsule (Apple parity: single glass capsule with history + new chat)
+                Surface(
+                    shape = RoundedCornerShape(22.dp),
+                    color = Color.White.copy(alpha = 0.36f),
+                    border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = 0.36f))
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .rokuricsScaleClickable(onClick = {
+                                    saveSnapshot(messages, activeContext, activeConversationId, recentConversations, chatStore, scope) { recentConversations = it }
+                                    showConversations = true
+                                }),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.History, contentDescription = "最近对话", tint = RokuricsColors.deepText, modifier = Modifier.size(18.dp))
+                        }
+                        VerticalDivider(
+                            modifier = Modifier.height(22.dp),
+                            thickness = 0.5.dp,
+                            color = Color.White.copy(alpha = 0.18f)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .rokuricsScaleClickable(onClick = {
+                                    startNewConversation(messages, activeContext, activeConversationId, recentConversations, chatStore, scope) { newId, clearedMessages, clearedContext, savedConversations ->
+                                        activeConversationId = newId; messages = clearedMessages; activeContext = clearedContext; recentConversations = savedConversations; errorText = null
+                                    }
+                                }),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = "新对话", tint = RokuricsColors.deepText, modifier = Modifier.size(18.dp))
+                        }
                     }
                 }
             }
@@ -156,10 +164,8 @@ fun AIChatScreen(
             // Page title (Apple parity: serif "AI 对话")
             Text(
                 text = "AI 对话",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
-                color = RokuricsColors.deepText,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
 
@@ -187,7 +193,7 @@ fun AIChatScreen(
                         } else {
                             saveSnapshot(
                                 messages, activeContext, activeConversationId, recentConversations,
-                                chatStore
+                                chatStore, scope
                             ) { recentConversations = it }
                         }
                     }
@@ -252,7 +258,7 @@ fun AIChatScreen(
                         messages = messages + userMsg
                         saveSnapshot(
                             messages, activeContext, activeConversationId, recentConversations,
-                            chatStore
+                            chatStore, scope
                         ) { recentConversations = it }
 
                         val provider = buildProvider(settingsStore)
@@ -269,7 +275,7 @@ fun AIChatScreen(
                                 )
                                 saveSnapshot(
                                     messages, activeContext, activeConversationId, recentConversations,
-                                    chatStore
+                                    chatStore, scope
                                 ) { recentConversations = it }
                             } catch (e: AIError) {
                                 errorText = e.message
@@ -292,7 +298,7 @@ fun AIChatScreen(
             onSelect = { context ->
                 saveSnapshot(
                     messages, activeContext, activeConversationId, recentConversations,
-                    chatStore
+                    chatStore, scope
                 ) { recentConversations = it }
                 activeContext = context
                 showContextPicker = false
@@ -322,7 +328,7 @@ fun AIChatScreen(
             },
             onDelete = { conv ->
                 recentConversations = recentConversations.filter { it.id != conv.id }
-                runBlocking { chatStore.delete(conv.id) }
+                scope.launch(Dispatchers.IO) { chatStore.delete(conv.id) }
                 if (conv.id == activeConversationId) {
                     activeConversationId = UUID.randomUUID().toString()
                     messages = emptyList()
@@ -358,17 +364,15 @@ fun GreetingCard(displayName: String) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // iOS parity: centered greeting, no card wrapper
             Text(
                 text = greetingText,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = RokuricsColors.deepText
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 text = "我是 Rokurics 的学习助手。在开始提问前，你可以先导入学习库中的内容作为对话上下文。",
-                fontSize = 14.sp,
-                color = RokuricsColors.softText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 20.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -379,9 +383,16 @@ fun GreetingCard(displayName: String) {
 
 @Composable
 fun ChatBubble(message: DisplayChatMessage) {
+    val isDark = isSystemInDarkTheme()
     val isUser = message.role == ChatMessageRole.USER
-    val bgColor = if (isUser) RokuricsColors.aqua.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.7f)
-    val textColor = RokuricsColors.deepText
+    val bgColor = if (isUser) RokuricsColors.aqua.copy(alpha = 0.15f)
+    else if (isDark) Color(0xFF142828).copy(alpha = 0.7f)
+    else Color.White.copy(alpha = 0.7f)
+    val textColor = if (isDark) RokuricsColors.deepTextDark else RokuricsColors.deepText
+    val borderColor = if (isUser) RokuricsColors.aqua.copy(alpha = 0.15f)
+    else if (isDark) Color.White.copy(alpha = 0.06f)
+    else Color.White.copy(alpha = 0.18f)
+    val avatarBg = if (isUser) RokuricsColors.mint else RokuricsColors.aqua
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -395,7 +406,7 @@ fun ChatBubble(message: DisplayChatMessage) {
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(RokuricsColors.aqua.copy(alpha = 0.12f))
+                    .background(avatarBg.copy(alpha = 0.12f))
                     .padding(6.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -410,10 +421,7 @@ fun ChatBubble(message: DisplayChatMessage) {
                 bottomEnd = if (isUser) 4.dp else 16.dp
             ),
             color = bgColor,
-            border = androidx.compose.foundation.BorderStroke(
-                0.5.dp,
-                if (isUser) RokuricsColors.aqua.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.18f)
-            )
+            border = androidx.compose.foundation.BorderStroke(0.5.dp, borderColor)
         ) {
             Text(
                 text = message.content,
@@ -497,10 +505,12 @@ fun ChatInputBar(
     onSettings: () -> Unit,
     onSend: () -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
+    val inputBarColor = if (isDark) Color(0xFF0D2424).copy(alpha = 0.88f) else Color.White.copy(alpha = 0.7f)
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = Color.White.copy(alpha = 0.7f),
-        shadowElevation = 4.dp
+        color = inputBarColor,
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color.White.copy(alpha = if (isDark) 0.06f else 0.14f))
     ) {
         Row(
             modifier = Modifier
@@ -511,25 +521,26 @@ fun ChatInputBar(
         ) {
             IconButton(onClick = onAttach) {
                 Icon(
-                    Icons.Default.AddCircle,
+                    Icons.Default.AttachFile,
                     contentDescription = "导入上下文",
-                    tint = RokuricsColors.aqua
-                )
-            }
-            IconButton(onClick = onSettings) {
-                Icon(
-                    Icons.Default.Settings,
-                    contentDescription = "AI 设置",
-                    tint = RokuricsColors.softText
+                    tint = RokuricsColors.aqua.copy(alpha = 0.7f)
                 )
             }
             OutlinedTextField(
                 value = draft,
                 onValueChange = onDraftChange,
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("输入消息...", fontSize = 14.sp) },
+                placeholder = { Text("消息", fontSize = 14.sp, color = if (isDark) RokuricsColors.tertiaryTextDark else RokuricsColors.tertiaryText) },
                 shape = RoundedCornerShape(20.dp),
-                maxLines = 3
+                maxLines = 3,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedContainerColor = if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.24f),
+                    unfocusedContainerColor = if (isDark) Color.White.copy(alpha = 0.06f) else Color.White.copy(alpha = 0.18f),
+                    focusedTextColor = if (isDark) RokuricsColors.deepTextDark else RokuricsColors.deepText,
+                    unfocusedTextColor = if (isDark) RokuricsColors.deepTextDark else RokuricsColors.deepText
+                )
             )
             Spacer(modifier = Modifier.width(8.dp))
             if (isSending) {
@@ -544,7 +555,7 @@ fun ChatInputBar(
                     enabled = draft.isNotBlank()
                 ) {
                     Icon(
-                        Icons.Default.Send,
+                        Icons.AutoMirrored.Filled.Send,
                         contentDescription = "发送",
                         tint = if (draft.isNotBlank()) RokuricsColors.aqua else RokuricsColors.softText
                     )
@@ -554,70 +565,81 @@ fun ChatInputBar(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContextPickerDialog(
     studyLibraryStore: StudyLibraryStore,
     onDismiss: () -> Unit,
     onSelect: (ChatContext) -> Unit
 ) {
-    val items = remember { studyLibraryStore.allStudyItems() }
+    val items = remember { studyLibraryStore.allStudyItems }
+    val isDark = isSystemInDarkTheme()
+    val itemBg = if (isDark) Color(0xFF0D2424).copy(alpha = 0.55f) else Color.White.copy(alpha = 0.5f)
 
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = { Text("导入学习库上下文") },
-        text = {
-            if (items.isEmpty()) {
+        containerColor = if (isDark) Color(0xFF0A1B1B) else Color.White,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    ) {
+        Text(
+            text = "导入学习库上下文",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (isDark) RokuricsColors.deepTextDark else RokuricsColors.deepText,
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+        )
+        if (items.isEmpty()) {
+            Box(Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
                 Text("暂无学习库内容。请先录音并归档。", color = RokuricsColors.softText)
-            } else {
-                LazyColumn(
-                    modifier = Modifier.height(400.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    items(items.size) { index ->
-                        val item = items[index]
-                        val context = buildChatContext(item)
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onSelect(context)
-                                },
-                            shape = RoundedCornerShape(12.dp),
-                            color = Color.White.copy(alpha = 0.5f)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 400.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                items(items.size) { index ->
+                    val item = items[index]
+                    val context = buildChatContext(item)
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(context) },
+                        shape = RoundedCornerShape(12.dp),
+                        color = itemBg
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Default.Description,
-                                    contentDescription = null,
-                                    tint = RokuricsColors.aqua
+                            Icon(
+                                Icons.Default.Description,
+                                contentDescription = null,
+                                tint = RokuricsColors.aqua
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = item.title,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (isDark) RokuricsColors.deepTextDark else RokuricsColors.deepText
                                 )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column {
-                                    Text(
-                                        text = item.title,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = RokuricsColors.deepText
-                                    )
-                                    Text(
-                                        text = item.filingPath.displaySummary,
-                                        fontSize = 12.sp,
-                                        color = RokuricsColors.softText
-                                    )
-                                }
+                                Text(
+                                    text = item.filingPath.displaySummary,
+                                    fontSize = 12.sp,
+                                    color = RokuricsColors.softText
+                                )
                             }
                         }
                     }
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
         }
-    )
+        Spacer(modifier = Modifier.navigationBarsPadding())
+    }
 }
 
 @Composable
@@ -738,6 +760,7 @@ fun AISettingsDialog(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecentConversationsDialog(
     conversations: List<SavedConversation>,
@@ -746,75 +769,89 @@ fun RecentConversationsDialog(
     onDelete: (SavedConversation) -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
+    val isDark = isSystemInDarkTheme()
+    val itemBgInactive = if (isDark) Color(0xFF0D2424).copy(alpha = 0.55f) else Color.White.copy(alpha = 0.5f)
+    val textColor = if (isDark) RokuricsColors.deepTextDark else RokuricsColors.deepText
+
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = { Text("最近对话") },
-        text = {
-            if (conversations.isEmpty()) {
+        containerColor = if (isDark) Color(0xFF0A1B1B) else Color.White,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    ) {
+        Text(
+            text = "最近对话",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = textColor,
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+        )
+        if (conversations.isEmpty()) {
+            Box(Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
                 Text("暂无最近对话", color = RokuricsColors.softText)
-            } else {
-                LazyColumn(
-                    modifier = Modifier.height(400.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    items(conversations.size) { index ->
-                        val conv = conversations[index]
-                        val isActive = conv.id == activeConversationId
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onSelect(conv) },
-                            shape = RoundedCornerShape(12.dp),
-                            color = if (isActive) RokuricsColors.aqua.copy(alpha = 0.12f)
-                            else Color.White.copy(alpha = 0.5f)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 400.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                items(conversations.size) { index ->
+                    val conv = conversations[index]
+                    val isActive = conv.id == activeConversationId
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(conv) },
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (isActive) RokuricsColors.aqua.copy(alpha = 0.12f)
+                        else itemBgInactive
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Default.ChatBubble,
-                                    contentDescription = null,
-                                    tint = if (isActive) RokuricsColors.aqua else RokuricsColors.softText,
-                                    modifier = Modifier.size(20.dp)
+                            Icon(
+                                Icons.Default.ChatBubble,
+                                contentDescription = null,
+                                tint = if (isActive) RokuricsColors.aqua else RokuricsColors.softText,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = conv.title,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = textColor,
+                                    maxLines = 1
                                 )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column(modifier = Modifier.weight(1f)) {
+                                if (conv.preview != null) {
                                     Text(
-                                        text = conv.title,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = RokuricsColors.deepText,
-                                        maxLines = 1
-                                    )
-                                    if (conv.preview != null) {
-                                        Text(
-                                            text = conv.preview,
-                                            fontSize = 12.sp,
-                                            color = RokuricsColors.softText,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                }
-                                IconButton(onClick = { onDelete(conv) }) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = "删除",
-                                        tint = RokuricsColors.softText,
-                                        modifier = Modifier.size(18.dp)
+                                        text = conv.preview,
+                                        fontSize = 12.sp,
+                                        color = RokuricsColors.softText,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
+                            }
+                            IconButton(onClick = { onDelete(conv) }) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "删除",
+                                    tint = RokuricsColors.softText,
+                                    modifier = Modifier.size(18.dp)
+                                )
                             }
                         }
                     }
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text("完成") }
         }
-    )
+        Spacer(modifier = Modifier.navigationBarsPadding())
+    }
 }
 
 data class SavedConversation(
@@ -869,6 +906,7 @@ private fun saveSnapshot(
     conversationId: String,
     existingConversations: List<SavedConversation>,
     chatStore: ChatStore,
+    scope: kotlinx.coroutines.CoroutineScope,
     onUpdate: (List<SavedConversation>) -> Unit
 ) {
     if (messages.isEmpty() && context == null) return
@@ -908,7 +946,7 @@ private fun saveSnapshot(
         contextFormattedContext = context?.formattedContext,
         createdAt = System.currentTimeMillis()
     )
-    runBlocking { chatStore.save(persisted); chatStore.pruneOldest() }
+    scope.launch(Dispatchers.IO) { chatStore.save(persisted); chatStore.pruneOldest() }
 }
 
 private fun startNewConversation(
@@ -917,9 +955,10 @@ private fun startNewConversation(
     conversationId: String,
     existingConversations: List<SavedConversation>,
     chatStore: ChatStore,
+    scope: kotlinx.coroutines.CoroutineScope,
     onComplete: (String, List<DisplayChatMessage>, ChatContext?, List<SavedConversation>) -> Unit
 ) {
-    saveSnapshot(messages, context, conversationId, existingConversations, chatStore) { updated ->
+    saveSnapshot(messages, context, conversationId, existingConversations, chatStore, scope) { updated ->
         onComplete(UUID.randomUUID().toString(), emptyList(), null, updated)
     }
 }

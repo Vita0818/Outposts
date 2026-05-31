@@ -2,11 +2,12 @@
  * Recording library page - mirrors RecordingLibraryView.swift with integrated StudyLibrary browser
  * Shows folder hierarchy tiles at root, recording cards within folders
  */
+import { ConfigurationConstant } from '@kit.AbilityKit'
 import { getSharedRecordingManager, RecordingManager } from '../services/RecordingManager'
 import { RecordingMetadata, StudyFilingPath, filingLevelTitle } from '../models/RecordingModels'
 import { formatDuration, formatShortTime } from '../utils/FormatHelpers'
 import { colorAlpha, RokuricsColors, FontWeight, glassFillOpacity, glassStrokeHighOpacity,
-  glassStrokeMidOpacity, glassAccentOpacity } from '../utils/RokuricsTheme'
+  glassStrokeMidOpacity, glassAccentOpacity, applyColorMode } from '../utils/RokuricsTheme'
 import { StudyFolderStore } from '../services/StudyFolderStore'
 import { BackIcon, BulletListIcon, TrashIcon, EllipsisIcon, DocBadgeIcon, NoteBadgeIcon } from '../utils/CustomIcons'
 
@@ -25,6 +26,7 @@ interface FilingGroup {
 struct RecordingLibraryPage {
   private recordingManager: RecordingManager = getSharedRecordingManager()
   private folderStore: StudyFolderStore = new StudyFolderStore(getContext(this))
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET
   @State recordings: RecordingMetadata[] = []
   @State trashedRecordings: RecordingMetadata[] = []
   @State showTrash: boolean = false
@@ -44,6 +46,9 @@ struct RecordingLibraryPage {
   @State deleteTargetName: string = ''
   @State showColorPicker: boolean = false
   @State selectedColor: string = RokuricsColors.aqua
+  @State filterTranscribedActive: boolean = false
+  @State filterNoteGeneratedActive: boolean = false
+  @State filterUploadedActive: boolean = false
 
   aboutToAppear(): void {
     this.loadAll()
@@ -265,6 +270,7 @@ struct RecordingLibraryPage {
   // ── Build ──
 
   build() {
+    applyColorMode(this.colorMode)
     Stack() {
     Column() {
       // Header
@@ -402,6 +408,7 @@ struct RecordingLibraryPage {
         }
         .padding(24).borderRadius(20).backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6')).width('85%')
         .shadow({ radius: 30, color: '#20000000' })
+        .onClick(() => {}) // consume click to prevent dismiss overlay firing
       }
       .width('100%').height('100%').justifyContent(FlexAlign.Center)
       .backgroundColor('#50000000').position({ x: 0, y: 0 })
@@ -432,6 +439,7 @@ struct RecordingLibraryPage {
         }
         .padding(24).borderRadius(20).backgroundColor(colorAlpha(RokuricsColors.glassSurface, 'E6')).width('85%')
         .shadow({ radius: 30, color: '#20000000' })
+        .onClick(() => {}) // consume click to prevent dismiss overlay firing
       }
       .width('100%').height('100%').justifyContent(FlexAlign.Center)
       .backgroundColor('#50000000').position({ x: 0, y: 0 })
@@ -483,12 +491,12 @@ struct RecordingLibraryPage {
 
           // Filter chips
           Row({ space: 6 }) {
-            this.FilterChip('已转写', this.filterTranscribed(),
-              (v: boolean) => { /* toggle handled in filtered list */ })
-            this.FilterChip('有笔记', this.filterNoteGenerated(),
-              (v: boolean) => { /* */ })
-            this.FilterChip('已上传', this.filterUploaded(),
-              (v: boolean) => { /* */ })
+            this.FilterChip('已转写', this.filterTranscribedActive,
+              (v: boolean) => { this.filterTranscribedActive = v })
+            this.FilterChip('有笔记', this.filterNoteGeneratedActive,
+              (v: boolean) => { this.filterNoteGeneratedActive = v })
+            this.FilterChip('已上传', this.filterUploadedActive,
+              (v: boolean) => { this.filterUploadedActive = v })
           }
           .width('100%')
 
@@ -528,7 +536,7 @@ struct RecordingLibraryPage {
                     .translate({ x: -4, y: 0 })
                   Rect()
                     .width(36).height(24)
-                    .radius({ topRight: 8, bottomLeft: 8, bottomRight: 8 })
+                    .radius([0, 8, 8, 8])
                     .fill(this.folderColorMap[group.label] ?? RokuricsColors.aqua)
                 }
               }
@@ -648,7 +656,7 @@ struct RecordingLibraryPage {
                         .fill(this.folderColorMap[group.label] ?? RokuricsColors.aqua)
                         .translate({ x: -3, y: 0 })
                       Rect().width(24).height(16)
-                        .radius({ topRight: 5, bottomLeft: 5, bottomRight: 5 })
+                        .radius([0, 5, 5, 5])
                         .fill(this.folderColorMap[group.label] ?? RokuricsColors.aqua)
                     }
                   }
@@ -905,14 +913,25 @@ struct RecordingLibraryPage {
         r.title.toLowerCase().indexOf(q) >= 0
       )
     }
+    if (this.filterTranscribedActive) {
+      result = result.filter((r: RecordingMetadata) =>
+        r.transcriptionStatus === 'transcribed'
+      )
+    }
+    if (this.filterNoteGeneratedActive) {
+      result = result.filter((r: RecordingMetadata) =>
+        r.noteStatus === 'generated'
+      )
+    }
+    if (this.filterUploadedActive) {
+      result = result.filter((r: RecordingMetadata) =>
+        r.uploadStatus === 'uploaded'
+      )
+    }
     result.sort((a: RecordingMetadata, b: RecordingMetadata) => {
       if (this.sortOrder === 'newest') return b.createdAt.getTime() - a.createdAt.getTime()
       return a.createdAt.getTime() - b.createdAt.getTime()
     })
     return result
   }
-
-  private filterTranscribed(): boolean { return false }
-  private filterNoteGenerated(): boolean { return false }
-  private filterUploaded(): boolean { return false }
 }

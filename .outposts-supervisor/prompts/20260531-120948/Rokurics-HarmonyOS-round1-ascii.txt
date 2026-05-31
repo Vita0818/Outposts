@@ -1,0 +1,112 @@
+This round is SOURCE-TO-SOURCE migration. It is not prose-spec rewrite.
+
+MANDATORY PREFLIGHT:
+
+MODEL_CHECK_RESULT:
+Model must be DeepSeek V4 Pro / deepseek-v4-pro / deepseek-v4-pro[1m].
+If not, stop and report MODEL_MISMATCH.
+
+PATH_CHECK_RESULT:
+Current working directory must exactly be:
+/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS
+If not, stop and report WORKDIR_MISMATCH.
+
+SOURCE_READONLY_CHECK:
+Apple source is read-only:
+/Users/vita/Vitemis/Vela/Rokurics
+All writes are allowed only inside:
+/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS
+Do not access unrelated directories.
+Do not read or transmit secrets, tokens, private keys, certs, .env, p12, ssh keys, API keys, or Keychain content.
+Do not run git clean / reset / restore / checkout.
+Do not clean workspace.
+Do not delete visual-evidence, state, checkpoint, or report.
+Do not clean ~/.hvigor.
+Do not modify user-level DevEco / HarmonyOS SDK.
+Do not globally install pnpm/npm/ohpm.
+
+SOURCE_TO_TARGET_MODE:
+YES
+
+Round goal:
+Directly compare iOS source code with Rokurics-HarmonyOS target source code and port the P0 study-library core logic.
+
+Do NOT:
+1. Do not summarize iOS source into prose spec and then rewrite from that prose.
+2. Do not output a roadmap instead of implementation.
+3. Do not say only "I understand the iOS logic".
+4. Do not replace iOS business logic with platform habit.
+5. Do not report stubs / TODO / fake implementation as migrated.
+6. Do not skip iOS comparison because target code looks reasonable.
+
+Required workflow:
+1. In /Users/vita/Vitemis/Vela/Rokurics, directly find and read real iOS source files for:
+   - StudyLibraryStore
+   - StudyFilingModels
+   - related study library / filing / manifest / migration / record files
+2. Read corresponding target files in Rokurics-HarmonyOS.
+3. If a target file does not exist, create the smallest corresponding implementation.
+4. Port one clear module or one tightly related function group.
+5. Use iOS source code structure directly. No prose-spec middle step.
+
+Priority behavior to port from iOS:
+1. manifest generation
+2. checksum
+3. tombstone
+4. conflict merge
+5. updatedAt last-write-wins
+6. equal timestamp conflict handling
+7. folder rename cascade
+8. filing path cascade
+9. RecordingReceiveRecord
+10. legacy migration
+11. atomic write
+12. sandbox path safety
+
+Implementation rules:
+- Every new field, enum/state, function, error path, persistence format, path convention, timestamp strategy, merge/conflict rule must trace to an iOS source location.
+- If HarmonyOS cannot fully support an iOS behavior in this round, implement the smallest verifiable equivalent and list the gap in REMAINING_GAPS.
+- If build fails due to project source/config, fix inside the target project.
+- If build fails due to user-level toolchain, stop and report TOOLCHAIN_REPAIR_NEEDS_USER.
+
+Validation:
+- Run the current project build command after changes.
+- Run available tests if present.
+- Do not clean user-level cache or globally install tools.
+
+Final report must include:
+
+MODEL_CHECK_RESULT:
+PATH_CHECK_RESULT:
+SOURCE_READONLY_CHECK:
+PROJECT_NAME:
+ROUND_INDEX:
+
+SOURCE_TO_TARGET_MODE:
+- YES
+
+IOS_FILES_READ:
+- actual iOS file paths read
+
+TARGET_FILES_READ:
+- actual target file paths read
+
+CODE_MAPPING_SUMMARY:
+- iOS type / function / field -> HarmonyOS type / function / field
+
+IMPLEMENTED_THIS_ROUND:
+- concrete implementation completed
+
+IOS_BEHAVIOR_PORTED:
+- behaviors directly ported from iOS
+
+STUBS_REPLACED:
+- stubs or simplified implementations replaced
+
+REMAINING_GAPS:
+- missing items
+
+BUILD_RESULT:
+TEST_RESULT:
+REGRESSION_RISKS:
+NEXT_RECOMMENDATION:
