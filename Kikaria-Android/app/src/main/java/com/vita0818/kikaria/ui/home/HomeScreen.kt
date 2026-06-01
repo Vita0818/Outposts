@@ -148,7 +148,7 @@ private fun CompactHomeLayout(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
-        contentAlignment = Alignment.TopCenter
+        contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
@@ -317,7 +317,7 @@ private fun HomeLandscapeLayout(
                     .padding(horizontal = metrics.horizontalPadding)
                     .padding(vertical = 36.dp)
                     .widthIn(max = 1080.dp),
-                horizontalArrangement = Arrangement.spacedBy(56.dp),
+                horizontalArrangement = Arrangement.spacedBy(metrics.homeLandscapeColumnSpacing),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Left column: title + bubble

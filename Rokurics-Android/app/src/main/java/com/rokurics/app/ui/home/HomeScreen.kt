@@ -1220,18 +1220,21 @@ fun HomeNavigationCard(
             .clip(RoundedCornerShape((30 * scale).dp))
             .background(navCardFill)
             .background(Color.White.copy(alpha = if (isDark) 0.04f else 0.12f), RoundedCornerShape((30 * scale).dp))
-            .background(
-                Brush.linearGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = if (isDark) 0.08f else 0.44f),
-                        Color.White.copy(alpha = if (isDark) 0.02f else 0.06f),
-                        RokuricsColors.aqua.copy(alpha = if (isDark) 0.06f else 0.12f)
+            .drawBehind {
+                drawRoundRect(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = if (isDark) 0.08f else 0.44f),
+                            Color.White.copy(alpha = if (isDark) 0.02f else 0.06f),
+                            RokuricsColors.aqua.copy(alpha = if (isDark) 0.06f else 0.12f)
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(size.width, size.height)
                     ),
-                    start = Offset(0f, 0f),
-                    end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-                ),
-                RoundedCornerShape((30 * scale).dp)
-            ),
+                    cornerRadius = CornerRadius((30 * scale).dp.toPx()),
+                    style = Stroke(width = 2.dp.toPx())
+                )
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         HomeNavButton(

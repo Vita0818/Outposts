@@ -250,7 +250,7 @@ data class KikariaPhoneMetrics(
 
     // ── Top/bottom padding ──
 
-    val titleTopPadding: Dp get() = 18.dp
+    val titleTopPadding: Dp get() = 14.dp
     val pageTopPadding: Dp get() = 24.dp
 
     // ── Spacing ──
@@ -351,6 +351,15 @@ data class KikariaPhoneMetrics(
             if (!isTwoColumnCapable) return 1.05f
             val rightW = homeLandscapeRightWidth.value
             return minOf(maxOf(rightW / 420f, 1.0f), 1.05f)
+        }
+
+    /** Landscape two-column gap — matches iOS metrics.homeLandscapeColumnSpacing */
+    val homeLandscapeColumnSpacing: Dp
+        get() {
+            if (!isTwoColumnCapable) return 56.dp
+            val avail = horizontalPadding
+            val maxW = minOf(widthDp - avail.value * 2, 1080f)
+            return minOf(maxOf(maxW * 0.06f, 56f), 68f).dp
         }
 
     companion object {
