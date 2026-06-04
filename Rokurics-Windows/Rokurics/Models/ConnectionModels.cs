@@ -213,7 +213,7 @@ public sealed class StudyLibrarySyncManifest
         var raw = $"{manifest.DeviceId}|{manifest.Items.Count}|{manifest.Folders.Count}|{manifest.Tombstones.Count}";
         var hash = System.Security.Cryptography.SHA256.HashData(
             System.Text.Encoding.UTF8.GetBytes(raw));
-        return Convert.ToHexStringLower(hash);
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 }
 

@@ -23,7 +23,9 @@ public sealed class AnthropicMessagesClient
     {
         var request = BuildRequest(baseUrl, "/v1/models", HttpMethod.Get,
             apiKey, anthropicVersion, null, timeout);
-        var response = await _http.SendAsync(request);
+        using var cts = timeout.HasValue ? new System.Threading.CancellationTokenSource(timeout.Value) : null;
+        var token = cts?.Token ?? default(System.Threading.CancellationToken);
+        var response = await _http.SendAsync(request, token);
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadAsStringAsync();
@@ -34,7 +36,10 @@ public sealed class AnthropicMessagesClient
             foreach (var item in data.EnumerateArray())
             {
                 var id = item.GetProperty("id").GetString() ?? "";
-                models.Add(new AnthropicModel { Id = id });
+                var displayName = item.TryGetProperty("display_name", out var displayNameProperty)
+                    ? displayNameProperty.GetString()
+                    : null;
+                models.Add(new AnthropicModel { Id = id, DisplayName = displayName });
             }
         }
         return models;
@@ -63,15 +68,17 @@ public sealed class AnthropicMessagesClient
         var request = BuildRequest(baseUrl, "/v1/messages", HttpMethod.Post,
             apiKey, anthropicVersion, json, timeout);
 
-        var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var cts = timeout.HasValue ? new System.Threading.CancellationTokenSource(timeout.Value) : null;
+        var token = cts?.Token ?? default(System.Threading.CancellationToken);
+        var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
         if (!response.IsSuccessStatusCode)
         {
-            var errorBody = await response.Content.ReadAsStringAsync();
+            var errorBody = await response.Content.ReadAsStringAsync(token);
             throw new AnthropicMessagesClientException(
                 $"HTTP {response.StatusCode}: {Truncate(errorBody)}", (int)response.StatusCode);
         }
 
-        using var stream = await response.Content.ReadAsStreamAsync();
+        using var stream = await response.Content.ReadAsStreamAsync(token);
         using var reader = new StreamReader(stream);
 
         while (!reader.EndOfStream)
@@ -83,30 +90,13 @@ public sealed class AnthropicMessagesClient
             var data = line["data: ".Length..];
             if (data == "[DONE]") yield break;
 
-            try
+            if (TryReadMessageStreamToken(data, out var tokenText, out var shouldStop))
             {
-                using var doc = JsonDocument.Parse(data);
-                var root = doc.RootElement;
-                if (root.TryGetProperty("type", out var eventType))
-                {
-                    var type = eventType.GetString();
-                    if (type == "content_block_delta" &&
-                        root.TryGetProperty("delta", out var delta) &&
-                        delta.TryGetProperty("type", out var deltaType) &&
-                        deltaType.GetString() == "text_delta" &&
-                        delta.TryGetProperty("text", out var text))
-                    {
-                        var token = text.GetString();
-                        if (!string.IsNullOrEmpty(token))
-                            yield return token;
-                    }
-                    else if (type == "message_stop")
-                    {
-                        yield break;
-                    }
-                }
+                if (!string.IsNullOrEmpty(tokenText))
+                    yield return tokenText;
+                if (shouldStop)
+                    yield break;
             }
-            catch { }
         }
     }
 
@@ -131,7 +121,9 @@ public sealed class AnthropicMessagesClient
         var request = BuildRequest(baseUrl, "/v1/messages", HttpMethod.Post,
             apiKey, anthropicVersion, json, timeout);
 
-        var response = await _http.SendAsync(request);
+        using var cts = timeout.HasValue ? new System.Threading.CancellationTokenSource(timeout.Value) : null;
+        var token = cts?.Token ?? default(System.Threading.CancellationToken);
+        var response = await _http.SendAsync(request, token);
         var responseBody = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
@@ -166,9 +158,42 @@ public sealed class AnthropicMessagesClient
         }
 
         if (timeout.HasValue)
-            request.SetTimeout(timeout.Value);
+            _ = timeout.Value;
 
         return request;
+    }
+
+    private static bool TryReadMessageStreamToken(string data, out string? tokenText, out bool shouldStop)
+    {
+        tokenText = null;
+        shouldStop = false;
+        try
+        {
+            using var doc = JsonDocument.Parse(data);
+            var root = doc.RootElement;
+            if (!root.TryGetProperty("type", out var eventType))
+                return false;
+
+            var type = eventType.GetString();
+            if (type == "content_block_delta" &&
+                root.TryGetProperty("delta", out var delta) &&
+                delta.TryGetProperty("type", out var deltaType) &&
+                deltaType.GetString() == "text_delta" &&
+                delta.TryGetProperty("text", out var text))
+            {
+                tokenText = text.GetString();
+            }
+            else if (type == "message_stop")
+            {
+                shouldStop = true;
+            }
+
+            return shouldStop || !string.IsNullOrEmpty(tokenText);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static Uri EndpointUrl(string baseUrl, string path)
@@ -225,6 +250,7 @@ public sealed class AnthropicMessagesClient
 public sealed class AnthropicModel
 {
     public string Id { get; set; } = "";
+    public string? DisplayName { get; set; }
 }
 
 public sealed class AnthropicMessageResult

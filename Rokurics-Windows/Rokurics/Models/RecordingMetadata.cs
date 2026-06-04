@@ -7,24 +7,24 @@ namespace Rokurics.Models;
 /// </summary>
 public sealed class RecordingMetadata
 {
-    public string Id { get; init; }
-    public string Title { get; init; }
-    public string FileName { get; init; }
-    public string RelativeAudioPath { get; init; }
-    public string RelativeMetadataPath { get; init; }
+    public string Id { get; init; } = "";
+    public string Title { get; init; } = "";
+    public string FileName { get; init; } = "";
+    public string RelativeAudioPath { get; init; } = "";
+    public string RelativeMetadataPath { get; init; } = "";
     public DateTime CreatedAt { get; init; }
     public DateTime EndedAt { get; init; }
     public TimeSpan Duration { get; init; }
-    public string Format { get; init; }
-    public string Codec { get; init; }
+    public string Format { get; init; } = "";
+    public string Codec { get; init; } = "";
     public double SampleRate { get; init; }
     public int Channels { get; init; }
     public int Bitrate { get; init; }
     public long FileSize { get; init; }
-    public string UploadStatus { get; init; }
-    public string TranscriptionStatus { get; init; }
-    public string NoteStatus { get; init; }
-    public List<string> Tags { get; init; }
+    public string UploadStatus { get; init; } = RecordingUploadStatus.LocalOnlyValue;
+    public string TranscriptionStatus { get; init; } = "";
+    public string NoteStatus { get; init; } = "";
+    public List<string> Tags { get; init; } = [];
     public StudyFilingPath? StudyFiling { get; init; }
     public double? UploadProgressFraction { get; init; }
     public long? UploadProgressConfirmedBytes { get; init; }
@@ -76,22 +76,89 @@ public sealed class RecordingMetadata
     [JsonConstructor]
     public RecordingMetadata() { }
 
-    public RecordingMetadata WithTitle(string title) => this with { Title = title };
+    public RecordingMetadata WithTitle(string title) => Clone(title: title);
 
     public RecordingMetadata WithUploadStatus(RecordingUploadStatus status) =>
-        this with { UploadStatus = status.Value };
+        Clone(uploadStatus: status.Value);
 
-    public RecordingMetadata WithUploadProgress(double? fraction, long? confirmedBytes, long? totalBytes, string? phase, string? description) =>
-        this with { UploadProgressFraction = fraction, UploadProgressConfirmedBytes = confirmedBytes, UploadProgressTotalBytes = totalBytes, UploadPhase = phase, UploadProgressDescription = description };
+    public RecordingMetadata WithUploadProgress(
+        double? fraction, long? confirmedBytes, long? totalBytes, string? phase, string? description) =>
+        Clone(
+            uploadProgressFraction: fraction,
+            uploadProgressConfirmedBytes: confirmedBytes,
+            uploadProgressTotalBytes: totalBytes,
+            uploadPhase: phase,
+            uploadProgressDescription: description);
 
     public RecordingMetadata RecoveringStaleUploadingStatus() =>
-        UploadStatus == RecordingUploadStatus.UploadingValue ? this with { UploadStatus = RecordingUploadStatus.FailedValue } : this;
+        UploadStatus == RecordingUploadStatus.UploadingValue
+            ? Clone(uploadStatus: RecordingUploadStatus.FailedValue)
+            : this;
 
     public RecordingMetadata WithTrashState(bool isDeleted, DateTime? deletedAt) =>
-        this with { IsDeleted = isDeleted, DeletedAt = deletedAt };
+        Clone(isDeleted: isDeleted, deletedAt: deletedAt);
 
     public RecordingMetadata WithStudyFiling(StudyFilingPath? filing) =>
-        this with { StudyFiling = filing?.IsEmpty == true ? null : filing };
+        Clone(keepStudyFiling: false, studyFiling: filing);
+
+    private RecordingMetadata Clone(
+        string? id = null,
+        string? title = null,
+        string? fileName = null,
+        string? relativeAudioPath = null,
+        string? relativeMetadataPath = null,
+        DateTime? createdAt = null,
+        DateTime? endedAt = null,
+        TimeSpan? duration = null,
+        string? format = null,
+        string? codec = null,
+        double? sampleRate = null,
+        int? channels = null,
+        int? bitrate = null,
+        long? fileSize = null,
+        string? uploadStatus = null,
+        string? transcriptionStatus = null,
+        string? noteStatus = null,
+        List<string>? tags = null,
+        bool keepStudyFiling = true,
+        StudyFilingPath? studyFiling = null,
+        double? uploadProgressFraction = null,
+        long? uploadProgressConfirmedBytes = null,
+        long? uploadProgressTotalBytes = null,
+        string? uploadPhase = null,
+        string? uploadProgressDescription = null,
+        bool? isDeleted = null,
+        DateTime? deletedAt = null)
+    {
+        return new RecordingMetadata(
+            id: id ?? Id,
+            title: title ?? Title,
+            fileName: fileName ?? FileName,
+            relativeAudioPath: relativeAudioPath ?? RelativeAudioPath,
+            relativeMetadataPath: relativeMetadataPath ?? RelativeMetadataPath,
+            createdAt: createdAt ?? CreatedAt,
+            endedAt: endedAt ?? EndedAt,
+            duration: duration ?? Duration,
+            format: format ?? Format,
+            codec: codec ?? Codec,
+            sampleRate: sampleRate ?? SampleRate,
+            channels: channels ?? Channels,
+            bitrate: bitrate ?? Bitrate,
+            fileSize: fileSize ?? FileSize,
+            uploadStatus: uploadStatus ?? UploadStatus,
+            transcriptionStatus: transcriptionStatus ?? TranscriptionStatus,
+            noteStatus: noteStatus ?? NoteStatus,
+            tags: tags ?? Tags,
+            studyFiling: keepStudyFiling ? StudyFiling : studyFiling?.IsEmpty == true ? null : studyFiling,
+            uploadProgressFraction: uploadProgressFraction ?? UploadProgressFraction,
+            uploadProgressConfirmedBytes: uploadProgressConfirmedBytes ?? UploadProgressConfirmedBytes,
+            uploadProgressTotalBytes: uploadProgressTotalBytes ?? UploadProgressTotalBytes,
+            uploadPhase: uploadPhase ?? UploadPhase,
+            uploadProgressDescription: uploadProgressDescription ?? UploadProgressDescription,
+            isDeleted: isDeleted ?? IsDeleted,
+            deletedAt: deletedAt ?? DeletedAt
+        );
+    }
 
     public static string DefaultTitle(DateTime createdAt) =>
         $"录音 {createdAt:yyyy-MM-dd HH:mm}";
@@ -102,11 +169,11 @@ public sealed class RecordingUploadStatus
     public string Value { get; }
     private RecordingUploadStatus(string value) => Value = value;
 
-    public static readonly string LocalOnlyValue = "localOnly";
-    public static readonly string PendingValue = "pending";
-    public static readonly string UploadingValue = "uploading";
-    public static readonly string UploadedValue = "uploaded";
-    public static readonly string FailedValue = "failed";
+    public const string LocalOnlyValue = "localOnly";
+    public const string PendingValue = "pending";
+    public const string UploadingValue = "uploading";
+    public const string UploadedValue = "uploaded";
+    public const string FailedValue = "failed";
 
     public static RecordingUploadStatus LocalOnly => new(LocalOnlyValue);
     public static RecordingUploadStatus Pending => new(PendingValue);

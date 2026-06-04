@@ -22,7 +22,9 @@ public sealed class OpenAICompatibleClient
         string baseUrl, string? apiKey = null, TimeSpan? timeout = null)
     {
         var request = BuildRequest(baseUrl, "/models", HttpMethod.Get, apiKey, null, timeout);
-        var response = await _http.SendAsync(request);
+        using var cts = timeout.HasValue ? new System.Threading.CancellationTokenSource(timeout.Value) : null;
+        var token = cts?.Token ?? default(System.Threading.CancellationToken);
+        var response = await _http.SendAsync(request, token);
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadAsStringAsync();
@@ -33,7 +35,21 @@ public sealed class OpenAICompatibleClient
             foreach (var item in data.EnumerateArray())
             {
                 var id = item.GetProperty("id").GetString() ?? "";
-                models.Add(new OpenAICompatibleModel { Id = id });
+                var ownedBy = item.TryGetProperty("owned_by", out var ownedByProperty)
+                    ? ownedByProperty.GetString()
+                    : null;
+                var created = item.TryGetProperty("created", out var createdProperty)
+                    && createdProperty.ValueKind == JsonValueKind.Number
+                    && createdProperty.TryGetInt64(out var createdUnix)
+                    ? DateTimeOffset.FromUnixTimeSeconds(createdUnix).UtcDateTime
+                    : (DateTime?)null;
+
+                models.Add(new OpenAICompatibleModel
+                {
+                    Id = id,
+                    OwnedBy = ownedBy,
+                    Created = created
+                });
             }
         }
         return models;
@@ -56,7 +72,9 @@ public sealed class OpenAICompatibleClient
         var json = JsonSerializer.Serialize(body);
         var request = BuildRequest(baseUrl, "/chat/completions", HttpMethod.Post, apiKey, json, timeout);
 
-        var response = await _http.SendAsync(request);
+        using var cts = timeout.HasValue ? new System.Threading.CancellationTokenSource(timeout.Value) : null;
+        var token = cts?.Token ?? default(System.Threading.CancellationToken);
+        var response = await _http.SendAsync(request, token);
         var responseBody = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
@@ -90,10 +108,12 @@ public sealed class OpenAICompatibleClient
         var json = JsonSerializer.Serialize(body);
         var request = BuildRequest(baseUrl, "/chat/completions", HttpMethod.Post, apiKey, json, timeout);
 
-        var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var cts = timeout.HasValue ? new System.Threading.CancellationTokenSource(timeout.Value) : null;
+        var token = cts?.Token ?? default(System.Threading.CancellationToken);
+        var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
         response.EnsureSuccessStatusCode();
 
-        using var stream = await response.Content.ReadAsStreamAsync();
+        using var stream = await response.Content.ReadAsStreamAsync(token);
         using var reader = new StreamReader(stream);
 
         while (!reader.EndOfStream)
@@ -105,29 +125,13 @@ public sealed class OpenAICompatibleClient
             var data = line["data: ".Length..];
             if (data == "[DONE]") yield break;
 
-            try
+            if (TryReadStreamToken(data, out var tokenText, out var shouldStop))
             {
-                using var doc = JsonDocument.Parse(data);
-                var choices = doc.RootElement.GetProperty("choices");
-                if (choices.GetArrayLength() == 0) continue;
-
-                var delta = choices[0].GetProperty("delta");
-                if (delta.TryGetProperty("content", out var content))
-                {
-                    var token = content.GetString();
-                    if (!string.IsNullOrEmpty(token))
-                        yield return token;
-                }
-
-                // Check finish_reason
-                if (choices[0].TryGetProperty("finish_reason", out var fr))
-                {
-                    var reason = fr.GetString();
-                    if (!string.IsNullOrEmpty(reason) && reason != "null")
-                        yield break;
-                }
+                if (!string.IsNullOrEmpty(tokenText))
+                    yield return tokenText;
+                if (shouldStop)
+                    yield break;
             }
-            catch { }
         }
     }
 
@@ -146,10 +150,37 @@ public sealed class OpenAICompatibleClient
             request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
         }
 
-        if (timeout.HasValue)
-            request.SetTimeout(timeout.Value);
-
         return request;
+    }
+
+    private static bool TryReadStreamToken(string data, out string? tokenText, out bool shouldStop)
+    {
+        tokenText = null;
+        shouldStop = false;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(data);
+            if (!doc.RootElement.TryGetProperty("choices", out var choices) || choices.GetArrayLength() == 0)
+                return false;
+
+            var delta = choices[0].GetProperty("delta");
+            if (delta.TryGetProperty("content", out var content))
+                tokenText = content.GetString();
+
+            if (choices[0].TryGetProperty("finish_reason", out var fr))
+            {
+                var reason = fr.GetString();
+                if (!string.IsNullOrWhiteSpace(reason) && reason != "null")
+                    shouldStop = true;
+            }
+
+            return shouldStop || !string.IsNullOrEmpty(tokenText);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static Uri EndpointUrl(string baseUrl, string path)
@@ -200,6 +231,8 @@ public sealed class OpenAICompatibleClient
 public sealed class OpenAICompatibleModel
 {
     public string Id { get; set; } = "";
+    public string? OwnedBy { get; set; }
+    public DateTime? Created { get; set; }
 }
 
 public sealed class OpenAICompatibleChatResult

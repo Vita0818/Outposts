@@ -688,6 +688,7 @@ public sealed partial class MacSettingsPage : Page
     {
         var isAnthropic = _viewModel.SelectedNoteProvider == "Claude / Anthropic";
         var panel = new StackPanel { Spacing = 14, Width = 460 };
+        TextBox baseUrlBox = new TextBox();
 
         panel.Children.Add(new TextBlock
         {
@@ -698,6 +699,19 @@ public sealed partial class MacSettingsPage : Page
 
         if (!isAnthropic)
         {
+            panel.Children.Add(new TextBlock
+            {
+                Text = "Base URL",
+                FontSize = 12,
+                Opacity = 0.5
+            });
+            baseUrlBox = new TextBox
+            {
+                Text = isAnthropic ? _viewModel.AnthropicBaseUrl : _viewModel.OpenAiBaseUrl,
+                Width = 420
+            };
+            panel.Children.Add(baseUrlBox);
+
             panel.Children.Add(new TextBlock
             {
                 Text = "Provider Preset",
@@ -735,18 +749,21 @@ public sealed partial class MacSettingsPage : Page
             panel.Children.Add(presetCombo);
         }
 
-        panel.Children.Add(new TextBlock
+        if (isAnthropic)
         {
-            Text = isAnthropic ? "Anthropic Base URL" : "Base URL",
-            FontSize = 12,
-            Opacity = 0.5
-        });
-        var baseUrlBox = new TextBox
-        {
-            Text = isAnthropic ? _viewModel.AnthropicBaseUrl : _viewModel.OpenAiBaseUrl,
-            Width = 420
-        };
-        panel.Children.Add(baseUrlBox);
+            panel.Children.Add(new TextBlock
+            {
+                Text = "Anthropic Base URL",
+                FontSize = 12,
+                Opacity = 0.5
+            });
+            baseUrlBox = new TextBox
+            {
+                Text = _viewModel.AnthropicBaseUrl,
+                Width = 420
+            };
+            panel.Children.Add(baseUrlBox);
+        }
 
         panel.Children.Add(new TextBlock
         {

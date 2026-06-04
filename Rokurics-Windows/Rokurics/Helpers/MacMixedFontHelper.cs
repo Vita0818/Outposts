@@ -1,9 +1,10 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
+using Windows.UI.Text;
 
 namespace Rokurics.Helpers;
 
@@ -18,15 +19,13 @@ public static partial class MacMixedFontHelper
     private const string DefaultFont = "Microsoft YaHei UI";
     private const string MonoFont = "Cascadia Code, Consolas";
 
-    // CJK Unicode ranges (matching macContainsCJK from MacTypography.swift)
+        // CJK Unicode ranges (matching macContainsCJK from MacTypography.swift)
     private static bool IsCJK(char c) => c is
-        >= '㐀' and <= '䶿' or
-        >= '一' and <= '鿿' or
-        >= '豈' and <= '﫿' or
-        >= '︰' and <= '﹏' or
-        >= '⾀0' and <= '⾡F';
-
-    // Match UUIDs, hex hashes, IPs, file paths (matching macLooksTechnicalToken)
+        >= '\u4E00' and <= '\u9FFF' or
+        >= '\u3400' and <= '\u4DBF' or
+        >= '\u3040' and <= '\u30FF' or
+        >= '\uAC00' and <= '\uD7A3';
+// Match UUIDs, hex hashes, IPs, file paths (matching macLooksTechnicalToken)
     [GeneratedRegex(@"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
     private static partial Regex UuidPattern();
 
@@ -147,14 +146,15 @@ public static partial class MacMixedFontHelper
     private static bool IsPunctuation(char c) =>
         char.IsPunctuation(c) || char.IsSeparator(c) || char.IsWhiteSpace(c);
 
-    private static Microsoft.UI.Text.FontWeight ParseWeight(string weight) => weight.ToLowerInvariant() switch
+    private static FontWeight ParseWeight(string weight) => weight.ToLowerInvariant() switch
     {
-        "bold" => Microsoft.UI.Text.FontWeights.Bold,
-        "semibold" => Microsoft.UI.Text.FontWeights.SemiBold,
-        "medium" => Microsoft.UI.Text.FontWeights.Medium,
-        "regular" => Microsoft.UI.Text.FontWeights.Normal,
-        _ => Microsoft.UI.Text.FontWeights.Normal,
+        "bold" => new FontWeight { Weight = 700 },
+        "semibold" => new FontWeight { Weight = 600 },
+        "medium" => new FontWeight { Weight = 500 },
+        "regular" => new FontWeight { Weight = 400 },
+        _ => new FontWeight { Weight = 400 },
     };
 
     private enum TextSegmentKind { CJK, Latin, Digit, Technical }
 }
+

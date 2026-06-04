@@ -104,7 +104,7 @@ public class RecordingManager : IDisposable
 
     public void StartRecording()
     {
-        if (State.IsBusy || State == RokuricsRecordingState.Recording || State == RokuricsRecordingState.Paused)
+        if (State.IsBusy() || State == RokuricsRecordingState.Recording || State == RokuricsRecordingState.Paused)
             return;
 
         LastErrorMessage = null;

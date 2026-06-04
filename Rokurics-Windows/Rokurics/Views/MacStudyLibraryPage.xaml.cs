@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Rokurics.Helpers;
 using Rokurics.Models;
@@ -163,7 +164,7 @@ public sealed partial class MacStudyLibraryPage : Page
                 HorizontalAlignment = HorizontalAlignment.Right,
                 VerticalAlignment = VerticalAlignment.Bottom,
                 Margin = new Thickness(0, 0, 4, 2),
-                BorderBrush = new SolidColorBrush(Microsoft.UI.Colors.White) { Opacity = 0.6 },
+                BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255)) { Opacity = 0.6 },
                 BorderThickness = new Thickness(1)
             };
             iconContainer.Children.Add(dot);
@@ -232,18 +233,18 @@ public sealed partial class MacStudyLibraryPage : Page
 
     private static SolidColorBrush ColorTokenBrush(StudyFolderColorToken token) => token switch
     {
-        StudyFolderColorToken.Red => new SolidColorBrush(Microsoft.UI.Color.FromArgb(255, 255, 69, 58)),
-        StudyFolderColorToken.Orange => new SolidColorBrush(Microsoft.UI.Color.FromArgb(255, 245, 133, 41)),
-        StudyFolderColorToken.Yellow => new SolidColorBrush(Microsoft.UI.Color.FromArgb(255, 245, 200, 66)),
-        StudyFolderColorToken.Green => new SolidColorBrush(Microsoft.UI.Color.FromArgb(255, 52, 199, 89)),
-        StudyFolderColorToken.Mint => new SolidColorBrush(Microsoft.UI.Color.FromArgb(255, 84, 209, 158)),
-        StudyFolderColorToken.Teal => new SolidColorBrush(Microsoft.UI.Color.FromArgb(255, 43, 173, 168)),
-        StudyFolderColorToken.Cyan => new SolidColorBrush(Microsoft.UI.Color.FromArgb(255, 56, 184, 235)),
-        StudyFolderColorToken.Blue => new SolidColorBrush(Microsoft.UI.Color.FromArgb(255, 0, 122, 255)),
-        StudyFolderColorToken.Indigo => new SolidColorBrush(Microsoft.UI.Color.FromArgb(255, 87, 107, 219)),
-        StudyFolderColorToken.Purple => new SolidColorBrush(Microsoft.UI.Color.FromArgb(255, 140, 110, 240)),
-        StudyFolderColorToken.Gray => new SolidColorBrush(Microsoft.UI.Color.FromArgb(255, 142, 142, 147)),
-        _ => new SolidColorBrush(Microsoft.UI.Color.FromArgb(255, 128, 128, 128))
+        StudyFolderColorToken.Red => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 69, 58)),
+        StudyFolderColorToken.Orange => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 245, 133, 41)),
+        StudyFolderColorToken.Yellow => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 245, 200, 66)),
+        StudyFolderColorToken.Green => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 52, 199, 89)),
+        StudyFolderColorToken.Mint => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 84, 209, 158)),
+        StudyFolderColorToken.Teal => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 43, 173, 168)),
+        StudyFolderColorToken.Cyan => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 56, 184, 235)),
+        StudyFolderColorToken.Blue => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 0, 122, 255)),
+        StudyFolderColorToken.Indigo => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 87, 107, 219)),
+        StudyFolderColorToken.Purple => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 140, 110, 240)),
+        StudyFolderColorToken.Gray => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 142, 142, 147)),
+        _ => new SolidColorBrush(Windows.UI.Color.FromArgb(255, 128, 128, 128))
     };
 
     private async Task ShowRenameFolderDialog(StudyBrowserFolder folder)
@@ -1053,15 +1054,16 @@ public sealed partial class MacStudyLibraryPage : Page
     private void Candidate_ItemClick(object sender, ItemClickEventArgs e)
     {
         if (e.ClickedItem is not string value) return;
+        if (sender is not ListView senderList) return;
 
         // Determine which TextBox to fill based on which candidate list was clicked
-        if (sender == TypeCandidates)
+        if (ReferenceEquals(senderList, TypeCandidates))
             TypeBox.Text = value;
-        else if (sender == SubjectCandidates)
+        else if (ReferenceEquals(senderList, SubjectCandidates))
             SubjectBox.Text = value;
-        else if (sender == ChapterCandidates)
+        else if (ReferenceEquals(senderList, ChapterCandidates))
             ChapterBox.Text = value;
-        else if (sender == TopicCandidates)
+        else if (ReferenceEquals(senderList, TopicCandidates))
             TopicBox.Text = value;
 
         // Hide all candidate lists

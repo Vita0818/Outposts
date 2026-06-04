@@ -2,6 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Windows.UI;
 using Rokurics.Services;
 using Rokurics.ViewModels;
 
@@ -20,7 +21,6 @@ public sealed partial class ProviderDetailCard : UserControl
     public enum ProviderCardKind { Transcription, NoteGeneration, Chat }
 
     private readonly SettingsViewModel _settingsVm;
-    private readonly ProviderCardKind _kind;
 
     /// <summary>
     /// Fires when the provider selection or settings change and parent should refresh.
@@ -32,7 +32,6 @@ public sealed partial class ProviderDetailCard : UserControl
         InitializeComponent();
         _settingsVm = App.Current.Services.GetService<SettingsViewModel>()
             ?? new SettingsViewModel();
-        _kind = ProviderCardKind.NoteGeneration;
         Loaded += (_, _) => ConfigureFor(ProviderCardKind.NoteGeneration);
     }
 

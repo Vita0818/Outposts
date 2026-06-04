@@ -103,7 +103,7 @@ public sealed partial class MainWindow : Window
 
     private void OnSearchQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
-        if (string.IsNullOrWhiteSpace(args.Query))
+        if (string.IsNullOrWhiteSpace(args.QueryText))
             return;
 
         // Navigate to study library with search context

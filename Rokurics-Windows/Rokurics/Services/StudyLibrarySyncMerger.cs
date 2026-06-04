@@ -109,7 +109,7 @@ public sealed class StudyLibrarySyncMerger
         {
             // Check tombstones: if item was deleted remotely, skip
             var tombstone = remote.Tombstones.FirstOrDefault(t =>
-                t.EntityKind == StudyLibrarySyncEntityKind.StudyItem &&
+                t.EntityKind == StudyLibrarySyncEntityKind.Item &&
                 t.EntityId == localItemMap[id].ItemId);
             if (tombstone is not null)
                 deletedOnlyRemotely.Add(id);
@@ -124,7 +124,7 @@ public sealed class StudyLibrarySyncMerger
             var remoteItem = remoteItemMap[id];
 
             // Simple conflict detection: both sides modified since last sync
-            var localModified = localItem.MergedWithCurrentRecording?.RecordingId is not null;
+            var localModified = localItem.UpdatedAt > remoteItem.UpdatedAt;
             if (localModified)
                 conflicting.Add(id);
             else
@@ -133,7 +133,7 @@ public sealed class StudyLibrarySyncMerger
 
         // Check local tombstones for items deleted locally
         foreach (var tombstone in local.Tombstones.Where(t =>
-            t.EntityKind == StudyLibrarySyncEntityKind.StudyItem &&
+            t.EntityKind == StudyLibrarySyncEntityKind.Item &&
             t.Operation == StudyLibrarySyncOperation.Delete))
         {
             var matchingRemote = remote.Items.FirstOrDefault(i => i.ItemId == tombstone.EntityId);
@@ -357,14 +357,12 @@ public static class SyncSanitizer
 
     public static StudyItemMetadata Sanitize(StudyItemMetadata item, string? deviceId = null)
     {
-        var copy = item with { };
-        return copy;
+        return item.SyncSanitized(deviceId ?? "");
     }
 
     public static StudyFolderMetadata Sanitize(StudyFolderMetadata folder, string? deviceId = null)
     {
-        var copy = folder with { };
-        return copy;
+        return folder.SyncSanitized(deviceId ?? "");
     }
 }
 

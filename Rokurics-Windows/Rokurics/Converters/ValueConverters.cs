@@ -47,7 +47,8 @@ public class ChatRoleToAlignmentConverter : IValueConverter
 /// </summary>
 public class ChatRoleToBackgroundConverter : IValueConverter
 {
-    private static readonly SolidColorBrush AssistantBubbleBrush = new(Color.FromArgb(60, 128, 128, 128));
+    private static readonly SolidColorBrush AssistantBubbleBrush =
+        new(Windows.UI.Color.FromArgb(60, 128, 128, 128));
 
     public object Convert(object value, Type targetType, object parameter, string language)
     {

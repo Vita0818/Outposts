@@ -1,0 +1,167 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl x:ConnectionId='1'
+    x:Class="Rokurics.Views.SidebarView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Brand header — Mac: "Rokurics" serif 30pt, "Windows" 12pt medium secondary -->
+        <StackPanel Grid.Row="0" Padding="20,24,20,18" Spacing="4">
+            <TextBlock Text="Rokurics"
+                       FontFamily="{StaticResource RokuricsSerifFont}"
+                       FontSize="30"
+                       FontWeight="SemiBold" />
+            <TextBlock Text="Windows"
+                       FontFamily="{StaticResource RokuricsFontFamily}"
+                       FontSize="12"
+                       FontWeight="Medium"
+                       Opacity="0.5" />
+        </StackPanel>
+
+        <!-- Sidebar items — Mac: VStack spacing 6, horizontal padding 12, vertical padding 4 -->
+        <ListView x:ConnectionId='2' Grid.Row="1"
+                  x:Name="SidebarItemsList"
+                  SelectionMode="Single"
+                                                   
+                  Padding="12,4"
+                  Background="Transparent">
+            <ListView.Resources>
+                <!-- Custom ListViewItem style matching MacSidebarItemButton:
+                     Selected: diagonal mint→aqua gradient (topLeading→bottomTrailing)
+                     Hover: glass surface with border -->
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Padding" Value="12,10" />
+                    <Setter Property="Margin" Value="0,3" />
+                    <Setter Property="CornerRadius" Value="15" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListViewItem">
+                                <Grid x:Name="RootGrid" CornerRadius="15" Background="Transparent">
+                                    <ContentPresenter x:Name="ContentPresenter"
+                                                      Content="{TemplateBinding Content}"
+                                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                      Padding="{TemplateBinding Padding}"
+                                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroup x:Name="CommonStates">
+                                            <VisualState x:Name="Normal" />
+                                            <VisualState x:Name="PointerOver">
+                                                <VisualState.Setters>
+                                                    <Setter Target="RootGrid.Background">
+                                                        <Setter.Value>
+                                                            <SolidColorBrush Color="#184FBEBA" />
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                            <VisualState x:Name="Pressed">
+                                                <VisualState.Setters>
+                                                    <Setter Target="RootGrid.Background">
+                                                        <Setter.Value>
+                                                            <SolidColorBrush Color="#104FBEBA" />
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                        <VisualStateGroup x:Name="SelectionStates">
+                                            <VisualState x:Name="Unselected" />
+                                            <VisualState x:Name="Selected">
+                                                <VisualState.Setters>
+                                                    <Setter Target="RootGrid.Background">
+                                                        <Setter.Value>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                                <GradientStop Color="#6B94E6C2" Offset="0" />
+                                                                <GradientStop Color="#424FBEBA" Offset="1" />
+                                                            </LinearGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                            <VisualState x:Name="SelectedUnfocused">
+                                                <VisualState.Setters>
+                                                    <Setter Target="RootGrid.Background">
+                                                        <Setter.Value>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                                <GradientStop Color="#4294E6C2" Offset="0" />
+                                                                <GradientStop Color="#264FBEBA" Offset="1" />
+                                                            </LinearGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                    </VisualStateManager.VisualStateGroups>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListView.Resources>
+            <ListViewItem x:ConnectionId='17' x:Name="StudyLibraryItem" Tag="studyLibrary" IsSelected="True">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <SymbolIcon Symbol="Library" />
+                    <TextBlock Text="学习库" FontSize="13" FontWeight="Medium" />
+                </StackPanel>
+            </ListViewItem>
+            <ListViewItem x:ConnectionId='18' x:Name="AIChatItem" Tag="aiChat">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <SymbolIcon Symbol="Message" />
+                    <StackPanel Orientation="Horizontal" Spacing="3">
+                        <TextBlock Text="AI" FontSize="13" FontWeight="Medium" />
+                        <TextBlock Text="对话" FontSize="13" FontWeight="Medium" />
+                    </StackPanel>
+                </StackPanel>
+            </ListViewItem>
+            <ListViewItem x:ConnectionId='19' x:Name="ConnectionItem" Tag="iPhoneConnection">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <SymbolIcon Symbol="PhoneBook" />
+                    <StackPanel Orientation="Horizontal" Spacing="3">
+                        <TextBlock Text="iPhone" FontSize="13" FontWeight="Medium" />
+                        <TextBlock Text="连接" FontSize="13" FontWeight="Medium" />
+                    </StackPanel>
+                </StackPanel>
+            </ListViewItem>
+        </ListView>
+
+        <!-- Bottom: Profile / Settings button — matching MacSidebarView profile button
+             Mac: Circle with person.fill (aqua), glass surface / accent gradient bg, white stroke -->
+        <Button x:ConnectionId='3' Grid.Row="2"
+                x:Name="SettingsButton"
+                                         
+                Margin="14"
+                Padding="12,10"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Left"
+                Background="Transparent">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <!-- Person icon circle — Mac: 30x30, person.fill (aqua), glass surface bg, white stroke -->
+                <Border Width="30" Height="30"
+                        CornerRadius="15"
+                        Background="#7A4FBEBA"
+                        BorderBrush="#75FFFFFF"
+                        BorderThickness="1">
+                    <SymbolIcon Symbol="Setting"
+                              Foreground="#4FBEBA"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+                </Border>
+                <StackPanel Spacing="2">
+                    <TextBlock x:ConnectionId='4'                                                                   
+                               FontSize="13" FontWeight="SemiBold" />
+                    <TextBlock x:ConnectionId='5'                                                               
+                               FontSize="10" Opacity="0.5" />
+                </StackPanel>
+            </StackPanel>
+        </Button>
+    </Grid>
+</UserControl>
+

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Rokurics.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4ef06f1edc95b17723ccb3501d7b4544b2e094c6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+64b6cb382c4b14c74350c48a685a287bf16b3755")]
 [assembly: System.Reflection.AssemblyProductAttribute("Rokurics.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Rokurics.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

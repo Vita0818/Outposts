@@ -7,6 +7,13 @@ namespace Rokurics.Models;
 /// </summary>
 public sealed class StudyItemMetadata
 {
+    public static readonly string[] TranscribedStatuses = new[]
+    {
+        "transcribed",
+        "completed",
+        "done"
+    };
+
     public string ItemId { get; set; }
     public StudyItemKind Kind { get; set; }
     public string Title { get; set; }
@@ -51,6 +58,9 @@ public sealed class StudyItemMetadata
     public bool HasTranscript => TranscriptMarkdownRelativePath is not null || TranscriptRelativePath is not null;
     [JsonIgnore]
     public bool HasNote => NoteRelativePath is not null;
+    [JsonIgnore]
+    public bool IsTranscribed => !string.IsNullOrWhiteSpace(TranscriptionStatus) &&
+        TranscribedStatuses.Contains(TranscriptionStatus, StringComparer.OrdinalIgnoreCase);
 
     public StudyItemMetadata()
     {

@@ -21,6 +21,12 @@ public sealed class StudyFolderMetadata
     public string? ModifiedByDeviceId { get; set; }
     public string? SyncConflictStatus { get; set; }
 
+    public string Title
+    {
+        get => Name;
+        set => Name = value;
+    }
+
     public StudyFolderMetadata()
     {
         FolderId = "";

@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Windows.UI;
 using Rokurics.Models;
 using Rokurics.Services;
 using Rokurics.ViewModels;
@@ -62,7 +63,7 @@ public sealed partial class MacAIChatPage : Page
         var border = new Border
         {
             CornerRadius = new CornerRadius(18),
-            Padding = new Thickness(14, 10),
+            Padding = new Thickness(14, 10, 14, 10),
             MaxWidth = 600,
             HorizontalAlignment = isUser ? HorizontalAlignment.Right : HorizontalAlignment.Left,
             Child = new TextBlock
@@ -294,7 +295,11 @@ public sealed partial class MacAIChatPage : Page
         {
             Id = Guid.NewGuid().ToString(),
             Title = "学习库",
-            Items = items,
+            Items = items.Select(item => new ChatContextItem(
+                item.ItemId,
+                item.Title,
+                item.FilingPath.DisplaySummary,
+                string.Empty)).ToList(),
             BrowsePathComponents = new List<string>(),
             ItemCount = items.Count
         };
