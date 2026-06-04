@@ -16,7 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -29,9 +29,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -479,8 +477,6 @@ fun HomeContent(
     val elapsedSeconds by recordingManager.elapsedSeconds.collectAsState()
     val isMacPaired = connectionStore.isPaired
 
-    val verticalScroll = rememberScrollState()
-
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -527,13 +523,13 @@ fun HomeContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(verticalScroll)
                 .padding(horizontal = metrics.horizontalPadding)
                 .statusBarsPadding()
+                .navigationBarsPadding()
                 .then(if (isWide) Modifier.widthIn(max = contentMaxWidth) else Modifier),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(if (isWide) 24.dp else 18.dp))
+            Spacer(modifier = Modifier.height(metrics.homeTopPadding))
 
             // Header — iPhone parity: HStack "Rokurics" + profile avatar button
             Row(
@@ -554,7 +550,10 @@ fun HomeContent(
                 )
             }
 
-            Spacer(modifier = Modifier.height(if (isWide) 34.dp else 22.dp))
+            // Elastic spacer — absorbs extra height above Orb (min = iOS minLength)
+            Spacer(modifier = Modifier
+                .weight(1f)
+                .heightIn(min = if (isWide) 34.dp else 22.dp))
 
             // Recording Orb — iPhone parity: central hero element
             RecordingOrb(
@@ -564,7 +563,10 @@ fun HomeContent(
                 onClick = { navController.navigate("recording") }
             )
 
-            Spacer(modifier = Modifier.height(if (metrics.isPadWidth) 32.dp else 20.dp))
+            // Elastic spacer — absorbs extra height below Orb (min = iOS minLength)
+            Spacer(modifier = Modifier
+                .weight(1f)
+                .heightIn(min = if (metrics.isPadWidth) 32.dp else 20.dp))
 
             // Navigation card — iPhone parity: RokuricsHomeNavigationCard
             HomeNavigationCard(
@@ -577,9 +579,6 @@ fun HomeContent(
 
             // Bottom spacer (iPhone parity: homeBottomPadding)
             Spacer(modifier = Modifier.height(metrics.homeBottomPadding))
-
-            Spacer(modifier = Modifier.navigationBarsPadding())
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -1220,7 +1219,8 @@ fun HomeNavigationCard(
             .clip(RoundedCornerShape((30 * scale).dp))
             .background(navCardFill)
             .background(Color.White.copy(alpha = if (isDark) 0.04f else 0.12f), RoundedCornerShape((30 * scale).dp))
-            .drawBehind {
+            .drawWithContent {
+                drawContent()
                 drawRoundRect(
                     brush = Brush.linearGradient(
                         colors = listOf(

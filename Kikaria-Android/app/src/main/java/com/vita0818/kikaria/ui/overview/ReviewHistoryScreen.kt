@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vita0818.kikaria.ui.components.KikariaIcons
 import com.vita0818.kikaria.data.StudyActivityRecord
 import com.vita0818.kikaria.data.StudyActivityType
 import com.vita0818.kikaria.ui.components.KikariaGlassCard
@@ -162,7 +165,12 @@ fun ReviewHistoryScreen(
                                     .padding(12.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("‹", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = sky)
+                                Icon(
+                                    imageVector = KikariaIcons.back,
+                                    contentDescription = "上个月",
+                                    modifier = Modifier.size(20.dp),
+                                    tint = sky
+                                )
                             }
 
                             Text(
@@ -185,7 +193,12 @@ fun ReviewHistoryScreen(
                                     .padding(12.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("›", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = sky)
+                                Icon(
+                                    imageVector = KikariaIcons.forward,
+                                    contentDescription = "下个月",
+                                    modifier = Modifier.size(20.dp),
+                                    tint = sky
+                                )
                             }
                         }
 

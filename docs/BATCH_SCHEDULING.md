@@ -5,6 +5,7 @@
 每个批次开始前必须确定：
 
 ```text
+MODE
 BATCH_NAME
 CONCURRENCY
 BATCH_TIME_BUDGET_MINUTES
@@ -15,6 +16,21 @@ NO_NEW_ROUNDS_AFTER_TIME_BUDGET
 WAIT_RUNNING_ROUNDS_TO_FINISH
 VISION_VALIDATION_MAX_ROUNDS
 ```
+
+## 双轨批次必填字段
+
+在每个批次状态里需额外记录：
+
+- `MODE: SPARK|AGENT`
+- `MODEL_CHECK_RESULT: <模型校验结果>`
+- `EXECUTOR: <Codex | Claude Code>`
+- `DIRECT_CODE_MODIFICATION_ALLOWED: YES|NO`
+
+规则：
+
+- Spark 执行轮次由 Codex 本体直接完成，不应记入“正式 Claude Code 轮次”。
+- Agent 执行轮次按 Claude Code 的一次完整报告计入 `ROUNDS_COMPLETED`。
+- 禁止把 Spark 的直接修改记录为 Claude 报告轮次，反之也不应把 Agent 运行直接记作 Codex 一人完成。
 
 推荐默认语义：
 

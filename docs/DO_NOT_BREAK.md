@@ -12,6 +12,17 @@
 - 不得把 `qwen-vision` 当主 Agent。
 - 不得让 `qwen-vision` 修改文件。
 
+## 双轨模式禁区
+
+- 不得在未确认 Spark 模式时让 Codex 本体直接改业务代码。
+- 不得在 Agent 模式下让 Codex 本体读写业务源码。
+- 不得在 Spark 模式下跳过 `GPT-5.3-Codex-Spark` 模型确认。
+- 不得在模型无法确认时继续执行 Spark。
+- 不得混用 Spark 与 Agent 的权限边界。
+- 不得因为任务紧急而跳过“模式声明”确认。
+- 不得把 `.claude/settings.local.json` 当作 Codex GUI 权限文件。
+- 不得把 `.codex/config.toml` 当作 Claude Code 权限文件。
+
 ## 终端禁区
 
 - 不得隐藏运行用户无法观察的正式任务。

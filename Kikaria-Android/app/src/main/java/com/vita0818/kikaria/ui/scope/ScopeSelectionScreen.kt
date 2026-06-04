@@ -169,9 +169,11 @@ fun ScopeSelectionScreen(
                                         .clickable { searchText = "" }
                                         .padding(4.dp)
                                 ) {
-                                    Text(
-                                        "✕", fontSize = (15 * scale).sp,
-                                        color = if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray
+                                    Icon(
+                                        imageVector = KikariaIcons.close,
+                                        contentDescription = "清空搜索",
+                                        modifier = Modifier.size((15 * scale).dp),
+                                        tint = if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray
                                     )
                                 }
                             }

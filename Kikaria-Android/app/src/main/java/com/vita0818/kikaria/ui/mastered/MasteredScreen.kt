@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.vita0818.kikaria.data.KnowledgePoint
 import com.vita0818.kikaria.ui.components.KikariaEmptyState
 import com.vita0818.kikaria.ui.components.KikariaGlassCard
+import com.vita0818.kikaria.ui.components.KikariaIcons
 import com.vita0818.kikaria.ui.components.KikariaMathText
 import com.vita0818.kikaria.ui.components.KikariaPageTitle
 import com.vita0818.kikaria.ui.components.KikariaScrollPageShell
@@ -76,7 +79,12 @@ private fun MasteredStartButton(count: Int, onClick: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(KikariaTypography.mixedText("$count", size = 20, weight = FontWeight.Bold), color = Color.White)
                 Spacer(Modifier.padding(start = 12.dp))
-                Text("›", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color.White.copy(alpha = 0.72f))
+                Icon(
+                    imageVector = KikariaIcons.forward,
+                    contentDescription = "开始复习",
+                    modifier = Modifier.size(18.dp),
+                    tint = Color.White.copy(alpha = 0.72f)
+                )
             }
         }
     }

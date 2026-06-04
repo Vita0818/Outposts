@@ -362,6 +362,68 @@ data class KikariaPhoneMetrics(
             return minOf(maxOf(maxW * 0.06f, 56f), 68f).dp
         }
 
+    /** Home landscape column height — matches iOS homeLandscapeContent columnHeight */
+    val homeLandscapeColumnHeight: Dp
+        get() {
+            val constrainedHeight = minOf(maxOf(heightDp - 112f, 460f), 640f)
+            return constrainedHeight.dp
+        }
+
+    /** Landscape bubble scale — matches iOS homeLandscapeBubbleScale */
+    val homeLandscapeBubbleScale: Float
+        get() {
+            if (!isTwoColumnCapable) return 1.04f
+            val leftW = homeLandscapeLeftWidth.value
+            return minOf(maxOf(leftW / 500f * 1.04f, 1.0f), 1.12f)
+        }
+
+    /** Two-column review layout max width — matches iOS reviewLandscapeMaxWidth */
+    val reviewLandscapeMaxWidth: Dp
+        get() = 1160.dp
+
+    /** Two-column review available width — matches iOS reviewLandscapeAvailableWidth */
+    val reviewLandscapeAvailableWidth: Dp
+        get() {
+            if (!isTwoColumnCapable) return Dp.Unspecified
+            val available = maxOf(widthDp - horizontalPadding.value * 2, 0f)
+            return minOf(available, reviewLandscapeMaxWidth.value).dp
+        }
+
+    /** Two-column review column spacing — matches iOS reviewLandscapeColumnSpacing */
+    val reviewLandscapeColumnSpacing: Dp
+        get() {
+            if (!isTwoColumnCapable) return 0.dp
+            return minOf(maxOf(reviewLandscapeAvailableWidth.value * 0.055f, 48f), 64f).dp
+        }
+
+    /** Two-column review right column width — matches iOS reviewLandscapeRightWidth */
+    val reviewLandscapeRightWidth: Dp
+        get() {
+            if (!isTwoColumnCapable) return Dp.Unspecified
+            return minOf(maxOf(reviewLandscapeAvailableWidth.value * 0.32f, 340f), 380f).dp
+        }
+
+    /** Two-column review left column width — matches iOS reviewLandscapeLeftWidth */
+    val reviewLandscapeLeftWidth: Dp
+        get() {
+            if (!isTwoColumnCapable) return Dp.Unspecified
+            return maxOf(
+                reviewLandscapeAvailableWidth.value - reviewLandscapeRightWidth.value - reviewLandscapeColumnSpacing.value,
+                0f
+            ).dp
+        }
+
+    /** iPad portrait card edge inset — matches iOS cardEdgeInset */
+    val homeCardEdgeInset: Dp
+        get() {
+            if (!isPadPortrait) return 0.dp
+            val cw = homeMaxWidth.value
+            return maxOf(
+                horizontalPadding.value,
+                (widthDp - cw) / 2f + horizontalPadding.value
+            ).dp
+        }
+
     companion object {
         fun compute(
             widthPx: Float,

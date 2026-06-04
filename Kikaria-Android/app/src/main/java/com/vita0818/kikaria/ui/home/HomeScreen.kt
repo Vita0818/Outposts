@@ -12,20 +12,27 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -144,16 +151,19 @@ private fun CompactHomeLayout(
     val homeScale = metrics.homeScale
     val headerScale = metrics.headerScale
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
                 .padding(horizontal = metrics.horizontalPadding)
-                .widthIn(max = metrics.homeMaxWidth),
+                .widthIn(max = metrics.homeMaxWidth)
+                .defaultMinSize(minHeight = maxHeight)
+                .verticalScroll(rememberScrollState())
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header: title + avatar — Apple: HStack(.top, 14)
@@ -220,12 +230,17 @@ private fun PadPortraitHomeLayout(
     val isLargePortrait = metrics.isLargePadPortrait
     val bubbleScale = minOf(metrics.homeScale, 1.32f)
     val topPadding = if (isLargePortrait) 58.dp else 48.dp
+    val bubbleSafeSpacing = if (isLargePortrait) 36.dp else 30.dp
+    val cardEdgeInset = metrics.homeCardEdgeInset
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .padding(top = topPadding)
-            .padding(horizontal = metrics.horizontalPadding),
+            .padding(horizontal = metrics.horizontalPadding)
+            .padding(bottom = cardEdgeInset),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Column(
@@ -256,12 +271,12 @@ private fun PadPortraitHomeLayout(
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(bubbleSafeSpacing))
 
         // Bubble centered between header and Dashboard
         KikariaStartBubble(onClick = onStartReview, homeScale = bubbleScale)
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(bubbleSafeSpacing))
 
         // Bottom cards
         Column(
@@ -303,6 +318,7 @@ private fun HomeLandscapeLayout(
 ) {
     val leftWidth = metrics.homeLandscapeLeftWidth
     val rightWidth = metrics.homeLandscapeRightWidth
+    val leftColumnHeight = metrics.homeLandscapeColumnHeight
     val cardScale = metrics.homeLandscapeCardScale
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -322,7 +338,9 @@ private fun HomeLandscapeLayout(
             ) {
                 // Left column: title + bubble
                 Column(
-                    modifier = Modifier.width(leftWidth),
+                    modifier = Modifier
+                        .width(leftWidth)
+                        .heightIn(min = leftColumnHeight),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -339,7 +357,7 @@ private fun HomeLandscapeLayout(
 
                     KikariaStartBubble(
                         onClick = onStartReview,
-                        homeScale = 1.04f // Apple: homeLandscapeBubbleScale
+                        homeScale = metrics.homeLandscapeBubbleScale
                     )
 
                     Spacer(modifier = Modifier.height(34.dp))
@@ -389,9 +407,11 @@ private fun HomeLandscapeLayout(
                                 maxLines = 1
                             )
                             Spacer(modifier = Modifier.width((12 * cardScale).dp))
-                            Text(
-                                "›", fontSize = (15 * cardScale).sp, fontWeight = FontWeight.SemiBold,
-                                color = (if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray)
+                            Icon(
+                                imageVector = KikariaIcons.forward,
+                                contentDescription = "查看详情",
+                                modifier = Modifier.size((15 * cardScale).dp),
+                                tint = (if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray)
                                     .copy(alpha = 0.52f)
                             )
                         }
@@ -411,14 +431,14 @@ private fun HomeLandscapeLayout(
                                     modifier = Modifier.weight(1f),
                                     onClick = onOpenScope, cardScale = cardScale
                                 )
-                                DashboardDivider()
+                                DashboardDivider(scale = cardScale)
                                 LandscapeMetricColumn(
                                     title = "重点集锦", value = "$reinforcedCount",
                                     tint = if (isDark) KikariaColors.CyanDark else KikariaColors.Cyan,
                                     modifier = Modifier.weight(1f),
                                     onClick = onOpenReinforcement, cardScale = cardScale
                                 )
-                                DashboardDivider()
+                                DashboardDivider(scale = cardScale)
                                 LandscapeMetricColumn(
                                     title = "已掌握", value = "$masteredCount",
                                     tint = if (isDark) KikariaColors.MasteredGreenDark else KikariaColors.MasteredGreen,
@@ -440,7 +460,8 @@ private fun HomeLandscapeLayout(
                                 Modifier
                                     .fillMaxWidth()
                                     .clickable { onOpenPresetSelection() }
-                                    .padding(horizontal = (20 * cardScale).dp, vertical = (16 * cardScale).dp),
+                                    .padding(horizontal = (20 * cardScale).dp, vertical = (16 * cardScale).dp)
+                                    .heightIn(min = (56 * cardScale).dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
@@ -457,9 +478,11 @@ private fun HomeLandscapeLayout(
                                     maxLines = 1
                                 )
                                 Spacer(Modifier.weight(1f))
-                                Text(
-                                    "›", fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
-                                    color = (if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray)
+                                Icon(
+                                    imageVector = KikariaIcons.forward,
+                                    contentDescription = "切换预设",
+                                    modifier = Modifier.size((12 * cardScale).dp),
+                                    tint = (if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray)
                                         .copy(alpha = 0.58f)
                                 )
                             }
@@ -582,11 +605,39 @@ private fun KikariaStartBubble(
         label = "orbitAngle"
     )
     val breathe by transition.animateFloat(
-        initialValue = 0.992f, targetValue = 1.018f,
+        initialValue = 1.012f, targetValue = 0.996f,
         animationSpec = infiniteRepeatable(
             animation = tween(5400, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
         ), label = "breathe"
+    )
+    val breatheB1 by transition.animateFloat(
+        initialValue = 1.035f, targetValue = 0.985f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(5400, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "breatheB1"
+    )
+    val breatheB2 by transition.animateFloat(
+        initialValue = 0.985f, targetValue = 1.04f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(5400, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "breatheB2"
+    )
+    val breatheB3 by transition.animateFloat(
+        initialValue = 1.035f, targetValue = 0.985f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(5400, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "breatheB3"
+    )
+    val breatheB4 by transition.animateFloat(
+        initialValue = 0.985f, targetValue = 1.04f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(5400, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "breatheB4"
     )
     val breatheY by transition.animateFloat(
         initialValue = 2f, targetValue = -5f,
@@ -597,14 +648,12 @@ private fun KikariaStartBubble(
     )
 
     val visualScale = maxOf(homeScale, 0.1f)
-    val containerSize = (272 * visualScale).dp
     val centerSize = (190 * visualScale).dp
-    val arrowSize = (70 * visualScale).sp
     val orbitScale = visualScale
 
     Box(
         modifier = Modifier
-            .size(containerSize)
+            .size(width = (272 * visualScale).dp, height = (260 * visualScale).dp)
             .graphicsLayer { translationY = breatheY * orbitScale },
         contentAlignment = Alignment.Center
     ) {
@@ -614,7 +663,7 @@ private fun KikariaStartBubble(
                 .fillMaxSize()
                 .graphicsLayer { rotationZ = orbitAngle }
         ) {
-            // Bubble 1: cyan+mint (top) — cardinal layout matching iOS reference
+            // Bubble 1: cyan+mint (top-left diagonal) — iOS diagonal layout
             GlassyBubble(
                 sizeDp = (92 * orbitScale).dp,
                 fillColors = listOf(bubble1Color.copy(alpha = 0.42f), bubble1Color2.copy(alpha = 0.42f)),
@@ -623,10 +672,10 @@ private fun KikariaStartBubble(
                 highlightFractionY = 0.14f,
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(x = (0 * orbitScale).dp, y = (-98 * orbitScale).dp)
-                    .graphicsLayer { scaleX = breathe; scaleY = breathe; rotationZ = -orbitAngle }
+                    .offset(x = (-96 * orbitScale).dp, y = (-68 * orbitScale).dp)
+                    .graphicsLayer { scaleX = breatheB1; scaleY = breatheB1; rotationZ = -orbitAngle }
             )
-            // Bubble 2: lavender+mist (right)
+            // Bubble 2: lavender+mist (top-right diagonal)
             GlassyBubble(
                 sizeDp = (80 * orbitScale).dp,
                 fillColors = listOf(bubble2Color.copy(alpha = 0.32f), bubble2Color2.copy(alpha = 0.32f)),
@@ -635,10 +684,10 @@ private fun KikariaStartBubble(
                 highlightFractionY = 0.24f,
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(x = (100 * orbitScale).dp, y = (0 * orbitScale).dp)
-                    .graphicsLayer { scaleX = 1f / breathe; scaleY = 1f / breathe; rotationZ = -orbitAngle }
+                    .offset(x = (102 * orbitScale).dp, y = (-56 * orbitScale).dp)
+                    .graphicsLayer { scaleX = breatheB2; scaleY = breatheB2; rotationZ = -orbitAngle }
             )
-            // Bubble 3: green+cyan (bottom)
+            // Bubble 3: green+cyan (bottom-right diagonal)
             GlassyBubble(
                 sizeDp = (78 * orbitScale).dp,
                 fillColors = listOf(bubble3Color.copy(alpha = 0.30f), bubble3Color2.copy(alpha = 0.30f)),
@@ -647,10 +696,10 @@ private fun KikariaStartBubble(
                 highlightFractionY = 0.08f,
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(x = (0 * orbitScale).dp, y = (98 * orbitScale).dp)
-                    .graphicsLayer { scaleX = breathe; scaleY = breathe; rotationZ = -orbitAngle }
+                    .offset(x = (92 * orbitScale).dp, y = (80 * orbitScale).dp)
+                    .graphicsLayer { scaleX = breatheB3; scaleY = breatheB3; rotationZ = -orbitAngle }
             )
-            // Bubble 4: sky+white (left)
+            // Bubble 4: sky+white (bottom-left diagonal)
             GlassyBubble(
                 sizeDp = (74 * orbitScale).dp,
                 fillColors = listOf(bubble4Color.copy(alpha = 0.34f), bubble4Color2.copy(alpha = 0.34f)),
@@ -659,29 +708,10 @@ private fun KikariaStartBubble(
                 highlightFractionY = 0.18f,
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(x = (-100 * orbitScale).dp, y = (0 * orbitScale).dp)
-                    .graphicsLayer { scaleX = 1f / breathe; scaleY = 1f / breathe; rotationZ = -orbitAngle }
+                    .offset(x = (-106 * orbitScale).dp, y = (78 * orbitScale).dp)
+                    .graphicsLayer { scaleX = breatheB4; scaleY = breatheB4; rotationZ = -orbitAngle }
             )
         }
-
-        // Outer glow ring — teal/cyan halo matching iOS reference glow
-        val glowSize = (210 * visualScale).dp
-        val glowCyan = if (isDark) KikariaColors.CyanDark else KikariaColors.Cyan
-        Box(
-            modifier = Modifier
-                .size(glowSize)
-                .graphicsLayer { scaleX = breathe; scaleY = breathe }
-                .clip(CircleShape)
-                .background(
-                    Brush.radialGradient(
-                        listOf(
-                            glowCyan.copy(alpha = 0.18f),
-                            glowCyan.copy(alpha = 0.06f),
-                            Color.Transparent
-                        )
-                    )
-                )
-        )
 
         // Center circle — 190dp actionGradient + radial overlay + gradient stroke + arrow
         val centerStrokeCyan = if (isDark) KikariaColors.CyanDark else KikariaColors.Cyan
@@ -729,11 +759,18 @@ private fun KikariaStartBubble(
                         )
                     )
             )
-            Text(
-                KikariaIcons.TEXT_ARROW_RIGHT,
-                color = Color.White.copy(alpha = 0.96f),
-                fontSize = arrowSize, fontWeight = FontWeight.Normal,
-                textAlign = TextAlign.Center
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "开始复习",
+                modifier = Modifier
+                    .size((70 * visualScale).dp)
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(4.dp),
+                        ambientColor = Color.White.copy(alpha = 0.10f),
+                        spotColor = Color.White.copy(alpha = 0.10f)
+                    ),
+                tint = Color.White.copy(alpha = 0.96f)
             )
         }
     }
@@ -756,18 +793,20 @@ private fun HomeInfoCards(
 ) {
     val cardScale = if (padPortrait) metrics.cardScale else 1f
     val scale = maxOf(cardScale, 1f)
+    val progressSpacing = (if (padPortrait) 18f else 14f) * scale
+    val spacerMinLength = 12f * scale
 
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(if (padPortrait) (18 * scale).dp else 12.dp)
     ) {
-        // Progress card — matches TodayOverviewHomeProgressButton
-        KikariaGlassCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onOpenTodayOverview() },
-            cornerRadius = if (padPortrait) (28 * scale).dp else 25.dp,
-            fillOpacity = 0.58f
+            // Progress card — matches TodayOverviewHomeProgressButton
+            KikariaGlassCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onOpenTodayOverview() },
+                cornerRadius = if (padPortrait) (28 * scale).dp else 25.dp,
+                fillOpacity = 0.58f
         ) {
             Row(
                 modifier = Modifier
@@ -775,10 +814,11 @@ private fun HomeInfoCards(
                     .padding(
                         horizontal = (if (padPortrait) 24 * scale else 20f).dp,
                         vertical = (if (padPortrait) 24 * scale else 20f).dp
-                    ),
-                verticalAlignment = Alignment.CenterVertically
+                ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(progressSpacing.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column {
                     Text(
                         text = KikariaTypography.mixedText(
                             dateTitle,
@@ -788,7 +828,7 @@ private fun HomeInfoCards(
                         color = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText,
                         maxLines = 1
                     )
-                    Spacer(modifier = Modifier.height((if (padPortrait) 6 * scale else 4f).dp))
+                    Spacer(modifier = Modifier.height((if (padPortrait) 6 * scale else 5 * scale).dp))
                     Text(
                         text = daysLeftText,
                         fontSize = (if (padPortrait) 14 * scale else 13f).sp,
@@ -797,24 +837,33 @@ private fun HomeInfoCards(
                         maxLines = 1
                     )
                 }
-                Text(
-                    text = KikariaTypography.mixedText(
-                        progressText,
-                        size = (if (padPortrait) 30 * scale else 25f).toInt(),
-                        weight = FontWeight.Bold
-                    ),
-                    color = if (isDark) KikariaColors.MasteredDeepGreenDark
-                        else KikariaColors.MasteredDeepGreen,
-                    maxLines = 1
+
+                Spacer(
+                    modifier = Modifier
+                        .widthIn(min = spacerMinLength.dp)
+                        .weight(1f)
                 )
-                Spacer(modifier = Modifier.width((8 * scale).dp))
-                Text(
-                    "›",
-                    fontSize = (if (padPortrait) 15 * scale else 12f).sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = (if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray)
-                        .copy(alpha = 0.52f)
-                )
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = KikariaTypography.mixedText(
+                            progressText,
+                            size = (if (padPortrait) 30 * scale else 25f).toInt(),
+                            weight = FontWeight.Bold
+                        ),
+                        color = if (isDark) KikariaColors.MasteredDeepGreenDark
+                            else KikariaColors.MasteredDeepGreen,
+                        maxLines = 1
+                    )
+                    Spacer(modifier = Modifier.width((8 * scale).dp))
+                    Icon(
+                        imageVector = KikariaIcons.forward,
+                        contentDescription = "查看详情",
+                        modifier = Modifier.size((if (padPortrait) 15f * scale else 12f).dp),
+                        tint = (if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray)
+                            .copy(alpha = 0.52f)
+                    )
+                }
             }
         }
 
@@ -830,21 +879,24 @@ private fun HomeInfoCards(
                         title = "范围", value = scopeCountText,
                         tint = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky,
                         modifier = Modifier.weight(1f), onClick = onOpenScope,
-                        scale = scale
+                        scale = scale,
+                        isExpanded = padPortrait
                     )
-                    DashboardDivider()
+                    DashboardDivider(scale = scale, isExpanded = padPortrait)
                     DashboardMetricColumn(
                         title = "重点集锦", value = "$reinforcedCount",
                         tint = if (isDark) KikariaColors.CyanDark else KikariaColors.Cyan,
                         modifier = Modifier.weight(1f), onClick = onOpenReinforcement,
-                        scale = scale
+                        scale = scale,
+                        isExpanded = padPortrait
                     )
-                    DashboardDivider()
+                    DashboardDivider(scale = scale, isExpanded = padPortrait)
                     DashboardMetricColumn(
                         title = "已掌握", value = "$masteredCount",
                         tint = if (isDark) KikariaColors.MasteredGreenDark else KikariaColors.MasteredGreen,
                         modifier = Modifier.weight(1f), onClick = onOpenMastered,
-                        scale = scale
+                        scale = scale,
+                        isExpanded = padPortrait
                     )
                 }
                 Box(
@@ -857,14 +909,15 @@ private fun HomeInfoCards(
                                 .copy(alpha = 0.12f)
                         )
                 )
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable { onOpenPresetSelection() }
-                        .padding(
-                            horizontal = (if (padPortrait) 22 * scale else 20f).dp,
-                            vertical = (if (padPortrait) 18 * scale else 16f).dp
-                        ),
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable { onOpenPresetSelection() }
+                            .padding(
+                                horizontal = (if (padPortrait) 22 * scale else 20f).dp,
+                                vertical = (if (padPortrait) 18 * scale else 16f).dp
+                            )
+                            .heightIn(min = if (padPortrait) (64 * scale).dp else (56 * scale).dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -878,16 +931,19 @@ private fun HomeInfoCards(
                         modifier = Modifier.weight(1f, fill = false)
                     )
                     Text(
-                        " 当前预设",
+                        "当前预设",
                         fontSize = (if (padPortrait) 14 * scale else 12f).sp,
                         fontWeight = FontWeight.SemiBold,
                         color = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText,
                         maxLines = 1
                     )
+                    Spacer(modifier = Modifier.width((8 * scale).dp))
                     Spacer(Modifier.weight(1f))
-                    Text(
-                        "›", fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
-                        color = (if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray)
+                    Icon(
+                        imageVector = KikariaIcons.forward,
+                        contentDescription = "切换预设",
+                        modifier = Modifier.size((12 * scale).dp),
+                        tint = (if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray)
                             .copy(alpha = 0.58f)
                     )
                 }
@@ -905,16 +961,19 @@ private fun DashboardMetricColumn(
     title: String, value: String, tint: Color,
     modifier: Modifier = Modifier, onClick: () -> Unit,
     scale: Float = 1f,
+    isExpanded: Boolean = false,
 ) {
+    val minHeight = (if (isExpanded) 98f else 82f) * maxOf(scale, 1f)
     Box(
         modifier = modifier
             .clickable { onClick() }
-            .padding(horizontal = (12 * scale).dp, vertical = (18 * scale).dp),
+            .padding(horizontal = (12 * scale).dp, vertical = (18 * scale).dp)
+            .heightIn(min = minHeight.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             KikariaMetricLabel(title, fontSize = (13 * scale).toInt())
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height((8 * scale).dp))
             KikariaMetricValue(
                 value = value, tint = tint,
                 fontSize = (24 * scale).toInt()
@@ -937,7 +996,7 @@ private fun LandscapeMetricColumn(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             KikariaMetricLabel(title, fontSize = (13 * cardScale).toInt())
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height((8 * cardScale).dp))
             KikariaMetricValue(
                 value = value, tint = tint,
                 fontSize = (24 * cardScale).toInt()
@@ -947,12 +1006,17 @@ private fun LandscapeMetricColumn(
 }
 
 @Composable
-private fun DashboardDivider(modifier: Modifier = Modifier) {
+private fun DashboardDivider(
+    modifier: Modifier = Modifier,
+    scale: Float = 1f,
+    isExpanded: Boolean = false
+) {
     val isDark = isSystemInDarkTheme()
+    val dividerHeight = (if (isExpanded) 50f else 42f) * maxOf(scale, 1f)
     Box(
         modifier
             .width(1.dp)
-            .height(42.dp)
+            .height(dividerHeight.dp)
             .background(
                 (if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray)
                     .copy(alpha = 0.16f)

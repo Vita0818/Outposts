@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vita0818.kikaria.ui.components.KikariaIcons
 import com.vita0818.kikaria.ui.components.KikariaGlassCard
 import com.vita0818.kikaria.ui.components.KikariaScrollPageShell
 import com.vita0818.kikaria.ui.theme.KikariaColors
@@ -186,34 +189,36 @@ fun TodayOverviewScreen(
                     cornerRadius = 26.dp,
                     fillOpacity = 0.38f
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 19.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = KikariaTypography.mixedText(
-                                "复习历史",
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp, vertical = 19.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = KikariaTypography.mixedText(
+                                    "复习历史",
                                 size = 18,
                                 weight = FontWeight.SemiBold
                             ),
                             color = deepText,
                             modifier = Modifier.weight(1f)
-                        )
-                        Text(
-                            "📅",
-                            fontSize = 18.sp
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            "›",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = blueGray.copy(alpha = 0.52f)
-                        )
+                            )
+                            Icon(
+                                imageVector = KikariaIcons.calendar,
+                                contentDescription = "复习历史",
+                                modifier = Modifier.size(18.dp),
+                                tint = deepText
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Icon(
+                                imageVector = KikariaIcons.forward,
+                                contentDescription = "查看复习历史",
+                                modifier = Modifier.size(18.dp),
+                                tint = blueGray.copy(alpha = 0.52f)
+                            )
+                        }
                     }
-                }
 
                 Spacer(modifier = Modifier.height(32.dp))
     }

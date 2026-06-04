@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -32,6 +33,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,14 +46,18 @@ import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.abs
@@ -60,6 +66,7 @@ import com.vita0818.kikaria.ui.components.KikariaBackButton
 import com.vita0818.kikaria.ui.components.KikariaGlassCard
 import com.vita0818.kikaria.ui.components.KikariaMathText
 import com.vita0818.kikaria.ui.components.KikariaPageShell
+import com.vita0818.kikaria.ui.components.KikariaIcons
 import com.vita0818.kikaria.ui.components.KikariaTagChip
 import com.vita0818.kikaria.ui.theme.KikariaColors
 import com.vita0818.kikaria.ui.theme.KikariaDesign
@@ -154,52 +161,257 @@ private fun toneColors(tone: ActionTone, isDark: Boolean, isPrimary: Boolean): T
 
 // ─── ReviewActionButton ───
 
+private fun reviewActionRevealButtonMinHeight(isExpanded: Boolean, buttonScale: Float): Dp? {
+    if (!isExpanded) return null
+
+    val scale = maxOf(buttonScale, 1f)
+    return (76f * scale).dp
+}
+
+private fun reviewActionRegionMinHeight(
+    isExpanded: Boolean,
+    buttonScale: Float,
+    isContentShown: Boolean,
+    usesWideAnswerStack: Boolean
+): Dp {
+    val scale = maxOf(buttonScale, 1f)
+
+    return if (isContentShown && usesWideAnswerStack) {
+        val buttonHeight = if (isExpanded) 76f else 66f
+        val spacing = if (isExpanded) 14f else 12f
+        ((buttonHeight * 3f + spacing * 2f) * scale).dp
+    } else {
+        ((if (isExpanded) 178f else 156f) * scale).dp
+    }
+}
+
+private fun reviewActionRevealSpacing(isExpanded: Boolean, buttonScale: Float): Dp {
+    return ((if (isExpanded) 16f else 14f) * maxOf(buttonScale, 1f)).dp
+}
+
+private fun reviewActionAnsweredButtonHeight(
+    isExpanded: Boolean,
+    buttonScale: Float
+): Dp {
+    val scale = maxOf(buttonScale, 1f)
+    val buttonHeight = if (isExpanded) 76f else 66f
+    return (buttonHeight * scale).dp
+}
+
+private fun reviewActionAnsweredSpacing(
+    isExpanded: Boolean,
+    buttonScale: Float
+): Dp {
+    return ((if (isExpanded) 14f else 12f) * maxOf(buttonScale, 1f)).dp
+}
+
+private fun reviewActionCompactGridNextButtonHeight(
+    isExpanded: Boolean,
+    buttonScale: Float
+): Dp {
+    val scale = maxOf(buttonScale, 1f)
+    val buttonHeight = if (isExpanded) 166f else 144f
+    return (buttonHeight * scale).dp
+}
+
+@Composable
+private fun reviewActionRevealRow(
+    isHintShown: Boolean,
+    isInteractive: Boolean,
+    buttonScale: Float,
+    buttonSpacing: Dp,
+    revealButtonMinHeight: Dp?,
+    onShowHint: () -> Unit,
+    onShowContent: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(buttonSpacing)
+    ) {
+        ReviewActionButton(
+            text = "查看提示",
+            iconImage = KikariaIcons.hint,
+            tone = ActionTone.Blue,
+            isPrimary = false,
+            isEnabled = isInteractive && !isHintShown,
+            minHeight = revealButtonMinHeight,
+            buttonScale = buttonScale,
+            modifier = Modifier.alpha(if (isHintShown) 0f else 1f),
+            onClick = { if (isInteractive && !isHintShown) onShowHint() }
+        )
+
+        ReviewActionButton(
+            text = "查看答案",
+            iconImage = KikariaIcons.document,
+            tone = ActionTone.Blue,
+            isPrimary = true,
+            isEnabled = isInteractive,
+            minHeight = revealButtonMinHeight,
+            buttonScale = buttonScale,
+            onClick = { if (isInteractive) onShowContent() }
+        )
+    }
+}
+
+@Composable
+private fun ReviewActionContent(
+    isContentShown: Boolean,
+    isHintShown: Boolean,
+    isInteractive: Boolean,
+    buttonScale: Float,
+    buttonSpacing: Dp,
+    revealButtonMinHeight: Dp?,
+    answerButtonHeight: Dp,
+    answerButtonSpacing: Dp,
+    usesWideAnswerStack: Boolean,
+    viewModel: KikariaViewModel,
+    onShowHint: () -> Unit,
+    onShowContent: () -> Unit
+) {
+    Box(modifier = Modifier.fillMaxWidth()) {
+        reviewActionRevealRow(
+            isHintShown = isHintShown,
+            isInteractive = isInteractive,
+            buttonScale = buttonScale,
+            buttonSpacing = buttonSpacing,
+            revealButtonMinHeight = revealButtonMinHeight,
+            onShowHint = onShowHint,
+            onShowContent = onShowContent,
+            modifier = Modifier.alpha(if (isContentShown) 0f else 1f)
+        )
+
+        if (usesWideAnswerStack) {
+            TabletReviewActions(
+                viewModel = viewModel,
+                buttonScale = buttonScale,
+                buttonMinHeight = answerButtonHeight,
+                buttonSpacing = answerButtonSpacing,
+                isInteractive = isInteractive,
+                modifier = Modifier
+                    .alpha(if (isContentShown) 1f else 0f)
+            )
+        } else {
+            ReviewBottomActionBar(
+                viewModel = viewModel,
+                buttonScale = buttonScale,
+                buttonMinHeight = answerButtonHeight,
+                buttonSpacing = answerButtonSpacing,
+                usesWideAnswerStack = false,
+                modifier = Modifier
+                    .alpha(if (isContentShown) 1f else 0f),
+                isInteractive = isInteractive
+            )
+        }
+    }
+}
+
 @Composable
 private fun ReviewActionButton(
     text: String,
     tone: ActionTone = ActionTone.Blue,
     isPrimary: Boolean = true,
+    isEnabled: Boolean = true,
     verticalContent: Boolean = false,
+    iconImage: ImageVector? = null,
     icon: String? = null,
     buttonScale: Float = 1f,
     onClick: () -> Unit,
+    minHeight: Dp? = null,
     modifier: Modifier = Modifier
 ) {
     val isDark = isSystemInDarkTheme()
     val colors = toneColors(tone, isDark, isPrimary)
     val scale = maxOf(buttonScale, 1f)
-    val cornerRadius = 26.dp
+    val isExpanded = buttonScale > 1f
+    val cornerRadius = ((if (isExpanded) 28f else 26f) * scale).dp
     val shape = RoundedCornerShape(cornerRadius)
 
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .alpha(if (isEnabled) 1f else 0.82f)
             .shadow(16.dp, shape,
                 ambientColor = colors.shadowColor.copy(alpha = colors.shadowOpacity),
                 spotColor = colors.shadowColor.copy(alpha = colors.shadowOpacity))
             .clip(shape)
             .background(if (isPrimary) colors.primaryFill else colors.secondaryFill)
-            .clickable { onClick() }
-            .padding(vertical = ((if (verticalContent && icon != null) 16f else 19f) * scale).dp),
+            .clickable(enabled = isEnabled) { if (isEnabled) onClick() }
+            .padding(vertical = ((if (isExpanded) 22f else 19f) * scale).dp)
+        .heightIn(min = minHeight ?: 0.dp),
         contentAlignment = Alignment.Center
     ) {
-        if (verticalContent && icon != null) {
+        if (verticalContent && (iconImage != null || icon != null)) {
+            val iconSize = ((if (isExpanded) 28f else 20f) * scale).dp
+            val iconTextSize = ((if (isExpanded) 22f else 20f) * scale).sp
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(icon, fontSize = (22 * scale).sp, fontWeight = FontWeight.Normal, color = colors.foreground)
-                Spacer(Modifier.height((6 * scale).dp))
-                Text(text, fontSize = (15 * scale).sp, fontWeight = FontWeight.SemiBold, color = colors.foreground)
+                if (iconImage != null) {
+                    Icon(
+                        imageVector = iconImage,
+                        contentDescription = text,
+                        modifier = Modifier.size(iconSize),
+                        tint = colors.foreground
+                    )
+                } else {
+                    Text(
+                        text = icon.orEmpty(),
+                        fontSize = iconTextSize,
+                        fontWeight = FontWeight.Normal,
+                        color = colors.foreground
+                    )
+                }
+                Spacer(Modifier.height(((if (isExpanded) 10f else 8f) * scale).dp))
+                Text(
+                    text,
+                    fontSize = ((if (isExpanded) 18f else 17f) * scale).sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.foreground,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center
+                )
             }
-        } else if (icon != null) {
+        } else if (iconImage != null || icon != null) {
+            val iconSize = ((if (isExpanded) 18f else 17f) * scale).dp
+            val iconTextSize = ((if (isExpanded) 18f else 17f) * scale).sp
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(icon, fontSize = (18 * scale).sp, color = colors.foreground)
+                if (iconImage != null) {
+                    Icon(
+                        imageVector = iconImage,
+                        contentDescription = text,
+                        modifier = Modifier.size(iconSize),
+                        tint = colors.foreground
+                    )
+                } else {
+                    Text(
+                        text = icon.orEmpty(),
+                        fontSize = iconTextSize,
+                        color = colors.foreground
+                    )
+                }
                 Spacer(Modifier.width((8 * scale).dp))
-                Text(text, fontSize = (17 * scale).sp, fontWeight = FontWeight.SemiBold, color = colors.foreground)
+                Text(
+                    text,
+                    fontSize = ((if (isExpanded) 18f else 17f) * scale).sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.foreground,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         } else {
-            Text(text, fontSize = (17 * scale).sp, fontWeight = FontWeight.SemiBold, color = colors.foreground)
+            Text(
+                text,
+                fontSize = ((if (isExpanded) 18f else 17f) * scale).sp,
+                fontWeight = FontWeight.SemiBold,
+                color = colors.foreground,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
@@ -214,6 +426,8 @@ fun ReviewScreen(
     val metrics = rememberKikariaPhoneMetrics()
     val point = viewModel.currentPoint
     val isDark = isSystemInDarkTheme()
+    val isExpanded = metrics.isTablet
+    val usesWideAnswerStack = metrics.reviewUsesTwoColumnLayout
     val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
     val tertiaryText = if (isDark) KikariaColors.TertiaryTextDark else KikariaColors.TertiaryText
@@ -234,11 +448,19 @@ fun ReviewScreen(
                         fontWeight = FontWeight.Medium
                     )
                 }
-                KikariaBackButton(
-                    onClick = onBack,
-                    metrics = metrics,
-                    modifier = Modifier.align(Alignment.TopStart)
-                )
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.TopStart
+                ) {
+                    KikariaBackButton(
+                        onClick = onBack,
+                        metrics = metrics,
+                        modifier = Modifier.padding(
+                            top = metrics.backButtonTopPadding,
+                            start = metrics.horizontalPadding
+                        )
+                    )
+                }
             }
         }
         return
@@ -388,6 +610,28 @@ fun ReviewScreen(
             }
         )
     }
+    val actionRegionMinHeight = reviewActionRegionMinHeight(
+        isExpanded = isExpanded,
+        buttonScale = metrics.reviewButtonScale,
+        isContentShown = viewModel.isContentShown,
+        usesWideAnswerStack = usesWideAnswerStack
+    )
+    val actionButtonSpacing = reviewActionRevealSpacing(
+        isExpanded = isExpanded,
+        buttonScale = metrics.reviewButtonScale
+    )
+    val actionButtonMinHeight = reviewActionRevealButtonMinHeight(
+        isExpanded = isExpanded,
+        buttonScale = metrics.reviewButtonScale
+    )
+    val answerActionButtonHeight = reviewActionAnsweredButtonHeight(
+        isExpanded = isExpanded,
+        buttonScale = metrics.reviewButtonScale
+    )
+    val answerActionButtonSpacing = reviewActionAnsweredSpacing(
+        isExpanded = isExpanded,
+        buttonScale = metrics.reviewButtonScale
+    )
 
     KikariaPageShell {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -411,76 +655,94 @@ fun ReviewScreen(
                 Spacer(Modifier.height(metrics.backButtonTopPadding + 16.dp))
 
                 if (metrics.reviewUsesTwoColumnLayout) {
+                    val reviewLandscapeLeftWidth = metrics.reviewLandscapeLeftWidth
+                    val reviewLandscapeRightWidth = metrics.reviewLandscapeRightWidth
+                    val reviewLandscapeSpacing = metrics.reviewLandscapeColumnSpacing
+
                     // ── Tablet two-column layout (iOS reviewLandscapeContent lines 8056-8078) ──
                     Row(
                         modifier = Modifier
                             .weight(1f)
                             .padding(horizontal = metrics.horizontalPadding)
-                            .padding(vertical = 28.dp),
-                        horizontalArrangement = Arrangement.spacedBy(48.dp),
+                            .padding(vertical = 28.dp)
+                            .widthIn(max = metrics.reviewLandscapeMaxWidth),
+                        horizontalArrangement = Arrangement.spacedBy(reviewLandscapeSpacing),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // Left column: scrollable reading content (iOS: reviewLandscapeReadingColumn)
                         Column(
                             modifier = Modifier
-                                .weight(1f)
+                                .width(reviewLandscapeLeftWidth)
                                 .fillMaxHeight()
+                                .padding(vertical = 24.dp)
                                 .verticalScroll(rememberScrollState())
                         ) {
                             ReviewContentCards(
                                 point = point, viewModel = viewModel,
                                 deepText = deepText
                             )
-                            Spacer(Modifier.height(24.dp))
                         }
 
                         // Right column: action panel (iOS: reviewLandscapeActionPanel)
                         // Fixed min width for action column matching iOS 340-380dp range
                         Column(
                             modifier = Modifier
-                                .widthIn(min = 340.dp)
-                                .weight(0.56f, fill = false)
-                                .padding(bottom = metrics.reviewActionBottomPadding),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .width(reviewLandscapeRightWidth)
+                                .fillMaxHeight()
+                                .padding(bottom = 0.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
+                            Spacer(modifier = Modifier.weight(1f))
+
                             if (!viewModel.isContentShown) {
-                                if (!viewModel.isHintShown) {
-                                    // Apple: both hint + answer buttons visible simultaneously
-                                    ReviewActionButton(
-                                        text = "查看提示",
-                                        icon = "✦",
-                                        tone = ActionTone.Blue,
-                                        isPrimary = false,
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(actionRegionMinHeight),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    ReviewActionContent(
+                                        isContentShown = false,
+                                        isHintShown = viewModel.isHintShown,
+                                        isInteractive = true,
                                         buttonScale = metrics.reviewButtonScale,
-                                        onClick = { viewModel.showHint() }
+                                        buttonSpacing = actionButtonSpacing,
+                                        revealButtonMinHeight = actionButtonMinHeight,
+                                        answerButtonHeight = answerActionButtonHeight,
+                                        answerButtonSpacing = answerActionButtonSpacing,
+                                        usesWideAnswerStack = false,
+                                        viewModel = viewModel,
+                                        onShowHint = { viewModel.showHint() },
+                                        onShowContent = { viewModel.showContent() }
                                     )
-                                    ReviewActionButton(
-                                        text = "查看答案",
-                                        icon = "▣",
-                                        tone = ActionTone.Blue,
-                                        isPrimary = true,
+                                }
+                            }
+                            if (viewModel.isContentShown) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(actionRegionMinHeight),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    ReviewActionContent(
+                                        isContentShown = true,
+                                        isHintShown = viewModel.isHintShown,
+                                        isInteractive = true,
                                         buttonScale = metrics.reviewButtonScale,
-                                        onClick = { viewModel.showContent() }
-                                    )
-                                } else {
-                                    ReviewActionButton(
-                                        text = "查看答案",
-                                        icon = "▣",
-                                        tone = ActionTone.Blue,
-                                        isPrimary = true,
-                                        buttonScale = metrics.reviewButtonScale,
-                                        onClick = { viewModel.showContent() }
+                                        buttonSpacing = actionButtonSpacing,
+                                        revealButtonMinHeight = actionButtonMinHeight,
+                                        answerButtonHeight = answerActionButtonHeight,
+                                        answerButtonSpacing = answerActionButtonSpacing,
+                                        usesWideAnswerStack = true,
+                                        viewModel = viewModel,
+                                        onShowHint = { viewModel.showHint() },
+                                        onShowContent = { viewModel.showContent() }
                                     )
                                 }
                             }
 
-                            if (viewModel.isContentShown) {
-                                TabletReviewActions(
-                                    viewModel = viewModel,
-                                    buttonScale = metrics.reviewButtonScale
-                                )
-                            }
+                            Spacer(modifier = Modifier.weight(1f))
                         }
                     }
                 } else {
@@ -490,12 +752,12 @@ fun ReviewScreen(
                             .weight(1f)
                             .verticalScroll(rememberScrollState())
                             .padding(horizontal = metrics.horizontalPadding)
+                            .padding(vertical = metrics.reviewContentVerticalPadding)
                     ) {
                         ReviewContentCards(
                             point = point, viewModel = viewModel,
                             deepText = deepText
                         )
-                        Spacer(Modifier.height(16.dp))
                     }
 
                     // Fixed-height bottom action region with swipe gestures
@@ -504,53 +766,25 @@ fun ReviewScreen(
                             .fillMaxWidth()
                             .padding(horizontal = metrics.horizontalPadding)
                             .padding(bottom = metrics.reviewActionBottomPadding)
-                            .heightIn(min = 138.dp, max = 220.dp)
-                            .then(swipeModifier)
+                            .padding(top = 12.dp)
+                            .height(actionRegionMinHeight)
+                            .then(swipeModifier),
+                        contentAlignment = Alignment.BottomCenter
                     ) {
-                        if (!viewModel.isContentShown) {
-                            if (!viewModel.isHintShown) {
-                                // Apple: both hint + answer buttons visible simultaneously
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    ReviewActionButton(
-                                        text = "查看提示",
-                                        icon = "✦",
-                                        tone = ActionTone.Blue,
-                                        isPrimary = false,
-                                        buttonScale = metrics.reviewButtonScale,
-                                        onClick = { viewModel.showHint() }
-                                    )
-                                    ReviewActionButton(
-                                        text = "查看答案",
-                                        icon = "▣",
-                                        tone = ActionTone.Blue,
-                                        isPrimary = true,
-                                        buttonScale = metrics.reviewButtonScale,
-                                        onClick = { viewModel.showContent() }
-                                    )
-                                }
-                            } else {
-                                ReviewActionButton(
-                                    text = "查看答案",
-                                    icon = "▣",
-                                    tone = ActionTone.Blue,
-                                    isPrimary = true,
-                                    buttonScale = metrics.reviewButtonScale,
-                                    onClick = { viewModel.showContent() },
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
-                        }
-
-                        if (viewModel.isContentShown) {
-                            ReviewBottomActionBar(
-                                viewModel = viewModel,
-                                buttonScale = metrics.reviewButtonScale,
-                                modifier = Modifier.padding(vertical = 12.dp)
-                            )
-                        }
+                        ReviewActionContent(
+                            isContentShown = viewModel.isContentShown,
+                            isHintShown = viewModel.isHintShown,
+                            isInteractive = true,
+                            buttonScale = metrics.reviewButtonScale,
+                            buttonSpacing = actionButtonSpacing,
+                            revealButtonMinHeight = actionButtonMinHeight,
+                            answerButtonHeight = answerActionButtonHeight,
+                            answerButtonSpacing = answerActionButtonSpacing,
+                            usesWideAnswerStack = usesWideAnswerStack,
+                            viewModel = viewModel,
+                            onShowHint = { viewModel.showHint() },
+                            onShowContent = { viewModel.showContent() }
+                        )
                     }
                 }
             }
@@ -559,7 +793,10 @@ fun ReviewScreen(
             KikariaBackButton(
                 onClick = onBack,
                 metrics = metrics,
-                modifier = Modifier.align(Alignment.TopStart)
+                modifier = Modifier.padding(
+                    top = metrics.backButtonTopPadding,
+                    start = metrics.horizontalPadding
+                )
             )
 
             // ── Scope panel overlay (iOS: in-review scope selection, slides from left) ──
@@ -578,36 +815,28 @@ fun ReviewScreen(
 
                 // Scope panel card — slides in from left
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .fillMaxHeight()
-                        .widthIn(max = 340.dp)
-                        .fillMaxWidth(0.72f)
-                        .background(
-                            if (isDark) KikariaColors.PageGradientDark
-                            else KikariaColors.PageGradientLight
-                        )
-                        .clickable(enabled = false) { /* consume clicks */ }
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.CenterStart
                 ) {
-                    Column(
+                    Box(
                         modifier = Modifier
-                            .padding(start = metrics.horizontalPadding, top = metrics.backButtonTopPadding + 48.dp, end = metrics.horizontalPadding, bottom = metrics.bottomSafePadding + 32.dp)
+                            .fillMaxHeight()
+                            .widthIn(max = 340.dp)
+                            .fillMaxWidth(0.72f)
+                            .background(
+                                if (isDark) KikariaColors.PageGradientDark
+                                else KikariaColors.PageGradientLight
+                            )
+                            .clickable(enabled = false) { /* consume clicks */ }
                     ) {
-                        // Close button row
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier
+                                .padding(start = metrics.horizontalPadding, top = metrics.backButtonTopPadding + 48.dp, end = metrics.horizontalPadding, bottom = metrics.bottomSafePadding + 32.dp)
                         ) {
                             Text(
                                 text = KikariaTypography.mixedText("选择范围", size = 20, weight = FontWeight.Bold),
                                 color = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
                             )
-                            KikariaBackButton(
-                                onClick = { showScopePanel = false },
-                                metrics = metrics
-                            )
-                        }
 
                         Spacer(Modifier.height(16.dp))
 
@@ -637,7 +866,7 @@ fun ReviewScreen(
                                     Box {
                                         if (scopeSearchText.isEmpty()) {
                                             Text(
-                                                "搜索标签",
+                                                "搜索标签或知识点",
                                                 fontSize = 15.sp,
                                                 fontWeight = FontWeight.Medium,
                                                 color = (if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText).copy(alpha = 0.6f)
@@ -652,12 +881,26 @@ fun ReviewScreen(
                         Spacer(Modifier.height(12.dp))
 
                         // Tag chips for scope selection
-                        val filteredTags = if (scopeSearchText.isBlank()) viewModel.allTags
-                            else viewModel.allTags.filter { scopeSearchText.trim() in it }
+                        val query = scopeSearchText.trim()
+                        val filteredTags = if (query.isBlank()) {
+                            viewModel.allTags
+                        } else {
+                            val relevantTags = viewModel.knowledgePoints
+                                .filter {
+                                    it.title.contains(query, ignoreCase = true) ||
+                                            it.tags.any { tag -> tag.contains(query, ignoreCase = true) }
+                                }
+                                .flatMap { it.tags }
+                                .toSet()
+
+                            viewModel.allTags.filter {
+                                it.contains(query, ignoreCase = true) || relevantTags.contains(it)
+                            }
+                        }
 
                         if (filteredTags.isEmpty()) {
                             Text(
-                                if (scopeSearchText.isNotBlank()) "无匹配标签" else "暂无标签",
+                                if (query.isNotBlank()) "没有找到相关标签" else "暂无标签",
                                 color = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText,
                                 fontSize = 15.sp
                             )
@@ -704,20 +947,33 @@ fun ReviewScreen(
 
                             }
 
-                            Spacer(Modifier.height(8.dp))
+                        }
 
-                            // Clear all
-                            if (viewModel.selectedTags.isNotEmpty()) {
-                                Text(
-                                    "清除所有",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky,
-                                    modifier = Modifier
-                                        .clickable { viewModel.selectedTags.clear() }
-                                        .padding(vertical = 6.dp)
+                        Spacer(Modifier.height(8.dp))
+
+                        // Done button
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(
+                                            if (isDark) KikariaColors.NextAmberDark else KikariaColors.NextAmber,
+                                            if (isDark) KikariaColors.NextAmberDark.copy(alpha = 0.85f) else KikariaColors.NextAmber.copy(alpha = 0.90f)
+                                        )
+                                    )
                                 )
-                            }
+                                .clickable { showScopePanel = false }
+                                .padding(vertical = 14.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "完成",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
                         }
                     }
                 }
@@ -851,27 +1107,35 @@ private fun ReviewContentCards(
 @Composable
 private fun TabletReviewActions(
     viewModel: KikariaViewModel,
-    buttonScale: Float = 1f
+    buttonScale: Float = 1f,
+    buttonMinHeight: Dp = 0.dp,
+    buttonSpacing: Dp = 0.dp
 ) {
     val point = viewModel.currentPoint
+    val nextButtonHeight = if (buttonMinHeight > 0.dp) buttonMinHeight else reviewActionAnsweredButtonHeight(
+        isExpanded = maxOf(buttonScale, 1f) > 1f,
+        buttonScale = buttonScale
+    )
 
     when (viewModel.reviewMode) {
         ReviewMode.NORMAL -> {
-            ReviewActionButton(
-                text = if (point?.isReinforced == true)
-                    "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
-                icon = "+",
+        ReviewActionButton(
+                            text = if (point?.isReinforced == true)
+                                "再次加入 ${point.reinforcementCount}次" else "加入重点集锦",
+                iconImage = KikariaIcons.addCircle,
                 tone = ActionTone.Blue,
                 isPrimary = true,
+                minHeight = nextButtonHeight,
                 buttonScale = buttonScale,
                 onClick = { viewModel.toggleReinforcement() }
             )
             ReviewActionButton(
                 text = if (point?.isMastered == true)
                     "已设定为掌握" else "加入已掌握",
-                icon = if (point?.isMastered == true) null else "✓",
+                iconImage = if (point?.isMastered == true) KikariaIcons.checkCircle else KikariaIcons.mastered,
                 tone = ActionTone.Green,
                 isPrimary = point?.isMastered != true,
+                minHeight = nextButtonHeight,
                 buttonScale = buttonScale,
                 onClick = { viewModel.toggleMastered() }
             )
@@ -879,18 +1143,20 @@ private fun TabletReviewActions(
         ReviewMode.REINFORCEMENT -> {
             ReviewActionButton(
                 text = "移出重点集锦",
-                icon = "−",
+                iconImage = KikariaIcons.removeCircle,
                 tone = ActionTone.Red,
                 isPrimary = true,
+                minHeight = nextButtonHeight,
                 buttonScale = buttonScale,
                 onClick = { viewModel.toggleReinforcement() }
             )
             ReviewActionButton(
                 text = if (point?.isMastered == true)
                     "已设定为掌握" else "加入已掌握",
-                icon = if (point?.isMastered == true) null else "✓",
+                iconImage = if (point?.isMastered == true) KikariaIcons.checkCircle else KikariaIcons.mastered,
                 tone = ActionTone.Green,
                 isPrimary = point?.isMastered != true,
+                minHeight = nextButtonHeight,
                 buttonScale = buttonScale,
                 onClick = { viewModel.toggleMastered() }
             )
@@ -898,31 +1164,34 @@ private fun TabletReviewActions(
         ReviewMode.MASTERED -> {
             ReviewActionButton(
                 text = if (point?.isReinforced == true)
-                    "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
-                icon = "+",
+                    "再次加入 ${point.reinforcementCount}次" else "加入重点集锦",
+                iconImage = KikariaIcons.addCircle,
                 tone = ActionTone.Blue,
                 isPrimary = true,
+                minHeight = nextButtonHeight,
                 buttonScale = buttonScale,
                 onClick = { viewModel.toggleReinforcement() }
             )
             ReviewActionButton(
                 text = "移出已掌握",
-                icon = "−",
+                iconImage = KikariaIcons.removeCircle,
                 tone = ActionTone.Red,
                 isPrimary = true,
+                minHeight = nextButtonHeight,
                 buttonScale = buttonScale,
                 onClick = { viewModel.toggleMastered() }
             )
         }
     }
 
-    Spacer(Modifier.height(8.dp))
+    Spacer(Modifier.height(buttonSpacing))
 
     ReviewActionButton(
         text = "下一个",
-        icon = "↬",
+        iconImage = KikariaIcons.shuffle,
         tone = ActionTone.Amber,
         isPrimary = false,
+        minHeight = nextButtonHeight,
         buttonScale = buttonScale,
         onClick = { viewModel.nextPoint() },
         modifier = Modifier.fillMaxWidth()
@@ -935,37 +1204,55 @@ private fun TabletReviewActions(
 private fun ReviewBottomActionBar(
     viewModel: KikariaViewModel,
     buttonScale: Float = 1f,
+    buttonMinHeight: Dp = 0.dp,
+    buttonSpacing: Dp = 0.dp,
+    usesWideAnswerStack: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val point = viewModel.currentPoint
+    val isExpanded = maxOf(buttonScale, 1f) > 1f
+    val actionButtonHeight = if (buttonMinHeight > 0.dp) buttonMinHeight else reviewActionAnsweredButtonHeight(
+        isExpanded = isExpanded,
+        buttonScale = buttonScale
+    )
+    val nextButtonHeight = if (usesWideAnswerStack) {
+        actionButtonHeight
+    } else {
+        reviewActionCompactGridNextButtonHeight(
+            isExpanded = isExpanded,
+            buttonScale = buttonScale
+        )
+    }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(buttonSpacing),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(buttonSpacing)
             ) {
                 when (viewModel.reviewMode) {
                     ReviewMode.NORMAL -> {
                         ReviewActionButton(
                             text = if (point?.isReinforced == true)
-                                "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
-                            icon = "+",
+                                "再次加入 ${point.reinforcementCount}次" else "加入重点集锦",
+                            iconImage = KikariaIcons.addCircle,
                             tone = ActionTone.Blue,
                             isPrimary = true,
+                            minHeight = actionButtonHeight,
                             buttonScale = buttonScale,
                             onClick = { viewModel.toggleReinforcement() }
                         )
                         ReviewActionButton(
                             text = if (point?.isMastered == true)
                                 "已设定为掌握" else "加入已掌握",
-                            icon = if (point?.isMastered == true) null else "✓",
+                            iconImage = if (point?.isMastered == true) KikariaIcons.checkCircle else KikariaIcons.mastered,
                             tone = ActionTone.Green,
                             isPrimary = point?.isMastered != true,
+                            minHeight = actionButtonHeight,
                             buttonScale = buttonScale,
                             onClick = { viewModel.toggleMastered() }
                         )
@@ -973,18 +1260,20 @@ private fun ReviewBottomActionBar(
                     ReviewMode.REINFORCEMENT -> {
                         ReviewActionButton(
                             text = "移出重点集锦",
-                            icon = "−",
+                            iconImage = KikariaIcons.removeCircle,
                             tone = ActionTone.Red,
                             isPrimary = true,
+                            minHeight = actionButtonHeight,
                             buttonScale = buttonScale,
                             onClick = { viewModel.toggleReinforcement() }
                         )
                         ReviewActionButton(
                             text = if (point?.isMastered == true)
                                 "已设定为掌握" else "加入已掌握",
-                            icon = if (point?.isMastered == true) null else "✓",
+                            iconImage = if (point?.isMastered == true) KikariaIcons.checkCircle else KikariaIcons.mastered,
                             tone = ActionTone.Green,
                             isPrimary = point?.isMastered != true,
+                            minHeight = actionButtonHeight,
                             buttonScale = buttonScale,
                             onClick = { viewModel.toggleMastered() }
                         )
@@ -992,18 +1281,20 @@ private fun ReviewBottomActionBar(
                     ReviewMode.MASTERED -> {
                         ReviewActionButton(
                             text = if (point?.isReinforced == true)
-                                "再次加入 ×${point.reinforcementCount}" else "加入重点集锦",
-                            icon = "+",
+                                "再次加入 ${point.reinforcementCount}次" else "加入重点集锦",
+                            iconImage = KikariaIcons.addCircle,
                             tone = ActionTone.Blue,
                             isPrimary = true,
+                            minHeight = actionButtonHeight,
                             buttonScale = buttonScale,
                             onClick = { viewModel.toggleReinforcement() }
                         )
                         ReviewActionButton(
                             text = "移出已掌握",
-                            icon = "−",
+                            iconImage = KikariaIcons.removeCircle,
                             tone = ActionTone.Red,
                             isPrimary = true,
+                            minHeight = actionButtonHeight,
                             buttonScale = buttonScale,
                             onClick = { viewModel.toggleMastered() }
                         )
@@ -1013,10 +1304,11 @@ private fun ReviewBottomActionBar(
 
             ReviewActionButton(
                 text = "下一个",
-                icon = "↬",
+                iconImage = KikariaIcons.shuffle,
                 tone = ActionTone.Amber,
                 isPrimary = false,
                 verticalContent = true,
+                minHeight = nextButtonHeight,
                 buttonScale = buttonScale,
                 onClick = { viewModel.nextPoint() },
                 modifier = Modifier.weight(0.54f)
@@ -1049,12 +1341,13 @@ private fun ReinforcementCompletionView(
         verticalArrangement = Arrangement.spacedBy(28.dp)
     ) {
         // Checkmark — iOS uses Image(systemName: "checkmark.circle.fill") at 86pt
-        Text(
-            text = "✓",
-            fontSize = 86.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = masteredGreen,
-            modifier = Modifier.shadow(16.dp, RoundedCornerShape(50), spotColor = Color.Green.copy(alpha = 0.16f))
+        Icon(
+            imageVector = KikariaIcons.checkCircle,
+            contentDescription = "完成",
+            modifier = Modifier
+                .size(86.dp)
+                .shadow(16.dp, RoundedCornerShape(50), spotColor = Color.Green.copy(alpha = 0.16f)),
+            tint = masteredGreen
         )
 
         // Return home button — iOS uses Capsule with actionGradient

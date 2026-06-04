@@ -1,192 +1,159 @@
-# Kikaria & Rokurics Android — 首页像素级布局审计
+# Kikaria Android — 首页像素级布局偏差（仅 Compact 布局）
 
-**日期**: 2026-05-31 | **方法**: iOS 源代码逐值对比 Android 实现 | **范围**: 首页的间距、尺寸、字体、定位
+**日期**: 2026-05-31 | **范围**: 位置、尺寸、间距 | **排除**: 颜色、质感、iPad/横屏布局
 
 ---
 
-## 一、Rokurics Android HomePage
+## 一、气泡区 (StartReviewButton)
 
-### 基准: iOS `RokuricsHomeView` (第 22-52 行)
+### 1.1 容器尺寸错误 — 272×272 vs 272×260（Critical）
+
+| 方向 | iOS | Android | 偏差 |
+|------|-----|---------|------|
+| 宽度 | `272 * scale` | `272 * scale` | ✓ |
+| 高度 | `260 * scale` | `272 * scale` | **+12dp (+4.6%)** |
+
+iOS 的 `StartReviewButton` 定义在 `.frame(width: 272*scale, height: 260*scale)`——不是正方形。Android 的 `Modifier.size(272*scale)` 创建正方形。容器多出 12dp 高度，导致气泡下方比上方多出空间。
+
+### 1.2 四颗卫星气泡位置全部为四正方向而非对角线方向（Critical）
+
+| 气泡 | iOS 偏移 (x, y) | Android 偏移 (x, y) |
+|------|----------------|---------------------|
+| Bubble 1 (cyan+mint) | **(-96, -68)** — 左上对角线 | (0, -98) — 正上方 |
+| Bubble 2 (lavender+mist) | **(102, -56)** — 右上对角线 | (100, 0) — 正右方 |
+| Bubble 3 (green+cyan) | **(92, 80)** — 右下对角线 | (0, 98) — 正下方 |
+| Bubble 4 (sky+white) | **(-106, 78)** — 左下对角线 | (-100, 0) — 正左方 |
+
+iOS 的四颗气泡沿公转轨道分布在对角线方位，视觉上构成一个倾斜旋转环。Android 的四颗气泡在正上下左右四个方向，构成一个十字形。**轨道视觉完全不同**。
+
+### 1.3 中心圆呼吸幅度不同（High）
+
+| 参数 | iOS | Android | 偏差 |
+|------|-----|---------|------|
+| 呼吸缩放范围 | `1.012 ↔ 0.996`（摆幅 0.016） | `0.992 ↔ 1.018`（摆幅 0.026） | **+63%** |
+| 起始值 | 1.012（先胀大） | 0.992（先缩小） | **相位相反** |
+| 垂直呼吸偏移 | `y: 2 ↔ -5` | `y: 2 ↔ -5` | ✓ 一致 |
+
+Android 的中心圆呼吸幅度是 iOS 的 1.6 倍，且初始相位相反——iOS 打开时圆向内收，Android 向外胀。
+
+### 1.4 卫星气泡呼吸幅度远小于 iOS（High）
+
+| 气泡 | iOS 缩放范围 | Android 缩放范围 | 比例 |
+|------|------------|----------------|------|
+| Bubble 1 | `1.035 ↔ 0.985`（摆幅 0.05） | `0.992 ↔ 1.018`（摆幅 0.026） | **-48%** |
+| Bubble 2 | `0.985 ↔ 1.04`（摆幅 0.055） | `1/0.992 ↔ 1/1.018` ≈ 1.008↔0.982（摆幅 0.026） | **-53%** |
+
+iOS 的卫星气泡呼吸幅度约 5-5.5%，有明确的胀缩节奏感。Android 统一使用 `breathe` 值，幅度仅 2.6%，几乎看不出缩放。
+
+### 1.5 中心箭头文字有额外 shadow / 符号差异（Medium）
+
+| | iOS | Android |
+|---|-----|---------|
+| 中心符号 | `Image(systemName: "arrow.right")` — SF Symbol 箭头 | `"→"` (U+2192) — Unicode 文本箭头 |
+| 字号 | `70 * scale` `.font(.system(...))` | `(70 * scale).sp` |
+| shadow | `color: deepText.opacity(0.10)`, radius: 8, y: 4 | 无 |
+
+SF Symbol `arrow.right` 有美术设计的粗细渐变和不规则箭头头。"→" 是等宽字符，箭头头小、线条细。视觉效果完全不同。
+
+### 1.6 多余的光晕环 — Android 有，iOS 没有（High）
+
+Android 在公转气泡和中心圆之间插入了一个 `glowSize = (210*scale).dp` 的光晕圆（第 661-677 行）——它位于 Z 序的气泡和中心圆之间，`graphicsLayer { scale = breathe }` 随呼吸同步缩放。
+
+iOS `StartReviewButton` 的 Z 序是：公转气泡 → 中心圆 → overlay 高光 → overlay 描边。**没有光晕环**。
+
+这个额外元素的存在让 Android 气泡整体看起来"大了一圈"——公转环和中心圆之间多了 10dp 的发光过渡。
+
+### 1.7 容器在屏幕上的呼吸偏移方向错误（Low）
+
+| | iOS | Android |
+|---|-----|---------|
+| 起始 Y 偏移 | `+2 * scale`（向下） | `+2f * scale`（向下） |
+| 呼吸振幅 | `2 → -5`（向上移动 7dp） | `2 → -5`（向上移动 7dp） |
+| 起始相位 | 向下 2dp | 向下 2dp ✓ 一致 |
+
+---
+
+## 二、卡片区
+
+### 2.1 Progress 卡片 HStack 间距缺失（High）
 
 ```swift
-VStack(spacing: 0) {
-    homeHeader                    .padding(.top, metrics.homeTopPadding)
-    Spacer(minLength: isPadWidth ? 34 : 22)      // ① header → orb
-    RecordingOrb
-    Spacer(minLength: isPadWidth ? 32 : 20)      // ② orb → nav card
-    HomeNavigationCard            .padding(.bottom, metrics.homeBottomPadding)
-}
-.padding(.horizontal, metrics.horizontalPadding)
-.frame(maxWidth: metrics.homeMaxWidth)
-.frame(maxWidth: .infinity, minHeight: metrics.height, alignment: .top)
-```
+// iOS
+HStack(alignment: .center, spacing: 14 * scale) { ... }
+//                                  ↑ 最小 14dp 间距
 
-### Android `HomeContent` 实现 (第 568-678 行)
-
-对比：
-
-| 元素 | iOS 值 | Android 值 | 偏差 |
-|------|--------|-----------|------|
-| header topPadding | compact=18, pad=24 | isWide?24:18（来自 metrics） | ✓ 正确 |
-| ① header→Orb 间距 | compact=22, pad=34 | isWide?34:22 | ✓ 正确 |
-| ② Orb→导航卡 间距 | compact=20, pad=32 | **无** | ✗ 完全缺失 |
-| ③ 导航卡→底部 | compact=26(760+)/18(<760), pad=34 | isWide?34:26/18 | ✓ 正确 |
-| ④ 水平 padding | compact=24(<360:20), pad=32 | 使用 metrics.horizontalPadding | ✓ 正确 |
-| ⑤ 最大宽度 | compact=infinity, pad=680/760 | 使用 metrics.contentMaxWidth | ✓ 正确 |
-| ⑥ VStack minHeight | 使用 metrics.height | 无（靠 verticalScroll） | ⚠ 无 minHeight |
-
-**缺失 ② 的视觉效果：** iOS 在 Orb(底部边缘 190dp) 和导航卡(顶部边缘)之间有 20-32dp 的呼吸空间。Android 版本 Orb 和导航卡紧贴在一起。在暗色模式下，Orb 的环形阴影直接压在导航卡的描边上，产生视觉冲突。
-
----
-
-### 导航卡描边叠加顺序问题
-
-```kotlin
-// Android: HomeNavigationCard (第 1306-1328 行)
+// Android (HomeInfoCards 第 772 行)
 Row(
-    modifier = Modifier
-        .fillMaxWidth()
-        .height((104 * scale).dp)
-        .shadow(elevation = (20 * scale).dp, ...)
-        .clip(RoundedCornerShape((30 * scale).dp))
-        .background(navCardFill)                               // 层1: 填充
-        .background(Color.White.copy(alpha = 0.12f), ...)     // 层2: 白色覆盖
-        .background(                                            // 层3: 渐变描边→实际是填充
-            Brush.linearGradient(...),
-            RoundedCornerShape((30 * scale).dp)
-        )
-)
-```
-
-`background(Brush, shape)` 在 Compose 中是**形状内的渐变填充**，不是描边。iOS 的做法是 `overlay { RoundedRectangle().stroke(LinearGradient(...), lineWidth: 1) }`——这是一个 1px 描边。Android 版的三层 `background` 叠加会在导航卡内部产生一个渐变矩形填充，视觉上卡片内部出现一个多余的渐变色块。
-
-**正确实现**应当是对比度：使用 `Modifier.drawBehind { drawRoundRect(..., style = Stroke(width = 1.dp.toPx())) }` 只画边框，而非 `background(Brush, shape)`。
-
----
-
-### 底部胶囊 blur 污染文字
-
-```kotlin
-// 第 164-175 行
-Box(
-    modifier = Modifier
-        .fillMaxWidth()
-        .height(54.dp)
-        .blur(radius = 0.5.dp)   // ← blur 作用于整个 Box
-        ...
-        .clip(RoundedCornerShape(50))
-        .background(capsuleFill)
-        ...
-)
-```
-
-`blur(0.5.dp)` 的效果是：顶部 0.5dp 被轻微模糊，**包括 Box 内部的 Row 中的文字和图标**。0.5dp 的模糊量太小不足以产生毛玻璃背景效果，但足以对文字的可读性产生负面影响。文字看起来像"失焦"了一点点。
-
----
-
-## 二、Kikaria Android HomePage
-
-### Compact 布局（手机）
-
-| 元素 | iOS 值 | Android 值 | 偏差 |
-|------|--------|-----------|------|
-| 标题上边距 | 14（`.padding(.top, 14)`） | 18（`metrics.titleTopPadding`） | **+4dp (+29%)** |
-| 标题→气泡间距 | `Spacer(minLength: 32)` | `Spacer(32.dp)` | ✓ 正确 |
-| 气泡→卡片间距 | `Spacer(minLength: 30)` | `Spacer(30.dp)` | ✓ 正确 |
-| 卡片底部间距 | `.padding(.bottom, 12)` | `Spacer(12.dp)` | ✓ 正确 |
-| 卡片内 VStack 间距 | `spacing: 12` | `spacedBy(12.dp)` | ✓ 正确 |
-| 标题字号 | `39 * headerScale` | `(39 * headerScale).toInt()` | ✓ 正确 |
-| 头像大小 | `44 * headerScale` | `(44 * headerScale).dp` | ✓ 正确 |
-| VStack alignment | `alignment: .center`（整帧居中） | `contentAlignment = TopCenter` | **不一致** |
-
-**标题上边距偏差**：iOS 用 `.padding(.top, 14)` 硬编码（非 metrics 驱动），Android 使用 `metrics.titleTopPadding = 18.dp`。标题向下偏移了 4dp，在 390dp 宽的屏幕上约占垂直空间的 1%。
-
-**VStack alignment**：iOS 在 `padPortrait` 以外使用 `alignment: .center`，让内容在 minHeight 帧内垂直居中。Android 使用 `TopCenter`，内容贴在顶部。如果内容总高度小于屏幕高度（常见于大屏手机），iOS 标题 + 气泡会显示在视口中央偏上区域，Android 则全部置顶。
-
-### PadPortrait 布局（iPad 竖屏）
-
-| 元素 | iOS 值 | Android 值 | 偏差 |
-|------|--------|-----------|------|
-| 页面顶部 padding | `isLargePortrait ? 58 : 48` | 同（来自 metrics） | ✓ 正确 |
-| 标题字号 | `isLargePortrait ? 58 : 54` | 同 | ✓ 正确 |
-| 头像大小 | `isLargePortrait ? 66 : 62` | 同 | ✓ 正确 |
-| 气泡上方间距 | `Spacer(minLength: bubbleSafeSpacing)` | **无 Spacer** | ✗ 缺失 |
-| 气泡下方间距 | `Spacer(minLength: bubbleSafeSpacing)` | `Spacer(32.dp)` | **硬编码 32 vs 36/30** |
-| 气泡容器 | `.frame(maxWidth:.infinity, maxHeight:.infinity)` | 无高度约束 Column | ✗ 结构不同 |
-| 卡片区域间距 | `VStack(spacing: 18)` | `spacedBy(18.dp)` | ✓ 正确 |
-
-iOS PadPortrait 的气泡区域结构：
-```swift
-VStack(spacing: 0) {
-    Spacer(minLength: bubbleSafeSpacing)    // 36 or 30
-    StartReviewButton(...)
-    Spacer(minLength: bubbleSafeSpacing)    // 36 or 30
+    modifier = Modifier.padding(...),
+    verticalAlignment = Alignment.CenterVertically
+    // ← 没有 horizontalArrangement 参数，默认 Start + 0 间距
+) {
+    Column(Modifier.weight(1f)) { ... }   // 吞掉所有剩余空间
+    progressText
+    Spacer(8*scale)
+    chevron
 }
-.frame(maxWidth: .infinity, maxHeight: .infinity)
 ```
 
-这是一个 `maxHeight: .infinity` 的 VStack，气泡在其内部通过上下两个等长 Spacer 完美居中。下方的卡片区域在气泡 VStack 之后直接排列。
+iOS 保证日期栏和进度数字之间最少 14dp。Android 用 `weight(1f)` 把剩余空间全吞了——如果日期文本较短（如 "May 31st"），间距可以到 100+dp；如果日期文本很长，会 0dp 紧贴。两种都不对。
 
-Android 的实现：
-```kotlin
-Column(modifier = Modifier.fillMaxWidth(),
-       horizontalAlignment = Alignment.CenterHorizontally) {
-    KikariaStartBubble(onClick = onStartReview, homeScale = bubbleScale)
-}
-Spacer(modifier = Modifier.height(32.dp))
-```
+**正确实现**: `Row(horizontalArrangement = Arrangement.SpaceBetween)` 或使用 `Arrangement.spacedBy(14.dp)`。
 
-气泡没有上方 Spacer→不居中。下方不是 `bubbleSafeSpacing`（36 或 30）而是固定 32→与 iOS 不一致。气泡的 "maxHeight: infinity + 双 Spacer 居中" 机制被简化为 "一个固定高度 Spacer + 无上方空间"。在大屏 iPad (1366×1024) 上，气泡被挤在 header 下方约 20dp 处，而非在整个可用垂直空间的中心。
+### 2.2 Progress 卡片内日期和 Days Left 间距 4dp vs 5dp（Low）
 
-### 气泡视觉效果
+| | iOS | Android |
+|---|-----|---------|
+| dateTitle ↔ daysLeftText 间距 | `VStack(spacing: 5)` | `Spacer(4.dp)` |
 
-| 元素 | iOS 值 | Android 值 | 偏差 |
-|------|--------|-----------|------|
-| Bubble 1 透明度 | 0.42 | 0.62 | **+48%** |
-| Bubble 2 透明度 | 0.32 | 0.56 | **+75%** |
-| Bubble 3 透明度 | 0.30 | 0.52 | **+73%** |
-| Bubble 4 透明度 | 0.34 | 0.50 | **+47%** |
-| 气泡尺寸(px) | 92/80/78/74 | 92/80/78/74 | ✓ 正确 |
-| 呼吸动画周期 | 5.4s | 5.4s | ✓ 正确 |
-| 公转周期 | 150s | 150s | ✓ 正确 |
+差 1dp。
 
-四颗卫星气泡在 iOS 中呈现为柔和半透明的材质球，Android 中由于 alpha 被抬高 50-75% 显得更"实心"。
+### 2.3 Dashboard Metric 列无 minHeight（Medium）
 
-### Landscape 布局
+| | iOS | Android |
+|---|-----|---------|
+| Metric 列最小高度 | `minHeight: 82 * scale` | 无 |
 
-| 元素 | iOS 值 | Android 值 | 偏差 |
-|------|--------|-----------|------|
-| 左栏宽度 | `metrics.homeLandscapeLeftWidth` | 同 | ✓ |
-| 右栏宽度 | `metrics.homeLandscapeRightWidth` | 同 | ✓ |
-| 栏间距 | `metrics.homeLandscapeColumnSpacing` | 硬编码 `56.dp` | **不一致** |
-| 标题→气泡间距 | `Spacer(minLength: 34)` | `Spacer(34.dp)` | ✓ 正确 |
-| 气泡下方间距 | `Spacer(minLength: 34)` | `Spacer(34.dp)` | ✓ 正确 |
-| 卡片间距 | `(14 * cardScale).dp` | `(14 * cardScale).dp` | ✓ 正确 |
-| Avatar 位置 | `ZStack(alignment: .topTrailing)` 在 ScrollView 外部 | `Box.align(TopEnd)` 在 **ScrollView 内部** | **会随滚动消失** |
+Android 的 `DashboardMetricColumn` 没有最小高度。当标签文本很短、数值很短时（如 "已掌握" / "0"），列的高度会塌缩，在三列之间产生不均匀的高度。
 
-iOS landscape 的 avatar 使用了 `ZStack(alignment: .topTrailing)`——avatar 是 fixed overlay，不随 ScrollView 滚动。Android 将 avatar 放在 scrollable Box 内部，滚动时消失。
+### 2.4 Dashboard 分隔线高度不缩放（Low）
+
+| | iOS | Android |
+|---|-----|---------|
+| 分隔线高度 | `42 * scale` | 固定 `42.dp` |
+
+在 PadPortrait 模式下 `scale > 1`（实际 1.05-1.24），iOS 的分隔线会按比例缩放而 Android 不。但按用户要求只审计 Compact 布局，此时 scale=1，这个偏差不触发。
+
+### 2.5 Preset 行 chevron 字号 14sp vs 12sp（Low）
+
+| | iOS | Android |
+|---|-----|---------|
+| Preset 行 chevron | `12 * scale` 通过 `.font(.system(...))` | `14.sp` 硬编码 |
+
+差 2sp。按用户要求只审计位置和大小。
+
+### 2.6 Preset 行无 minHeight（Medium）
+
+| | iOS | Android |
+|---|-----|---------|
+| Preset 行最小高度 | `minHeight: 56 * scale` | 无 `.heightIn(min = ...)` |
+
+与 Metric 列相同的问题——当预设名为空或很短时，该行高度塌缩。
 
 ---
 
 ## 三、汇总
 
-### Rokurics Android — 3 个位置/大小偏差
+按位置/大小影响的优先级排序：
 
-| # | 等级 | 描述 |
+| # | 等级 | 问题 |
 |---|------|------|
-| 1 | **Critical** | Orb 和导航卡之间缺少 `Spacer(minLength: 20-32)`，两元素紧贴 |
-| 2 | High | 导航卡三层 `background` 叠加导致描边变成渐变填充 |
-| 3 | Low | 底部胶囊 `blur(0.5.dp)` 污染文字可读性 |
-
-### Kikaria Android — 8 个位置/大小偏差
-
-| # | 等级 | 描述 |
-|---|------|------|
-| 1 | **Critical** | PadPortrait 气泡无上方 Spacer，不居中。下方 Spacer 固定 32 而非 36/30 |
-| 2 | High | 紧凑模式标题上边距 18dp（iOS=14dp），偏移 +29% |
-| 3 | High | 紧凑模式 contentAlignment 为 TopCenter（iOS=Center），内容置顶不居中 |
-| 4 | High | 四个卫星气泡透明度整体偏高 50-75% |
-| 5 | Medium | Landscape avatar 在 ScrollView 内部而非 overlay，滚动后消失 |
-| 6 | Medium | Landscape columnSpacing 硬编码 56.dp 而非使用 `metrics.homeLandscapeColumnSpacing` |
-| 7 | Medium | 公转动画 (`orbitAngle`) 使用 `LaunchedEffect` + `withFrameMillis` 而非 `animateFloat`，每次更新触发重组 |
-| 8 | Low | 径向高光固定在气泡左上角，不随公转位置调整 |
+| P0 | **布局错误** | 四颗卫星气泡在四正方向（十字形）而非 iOS 的对角线位置 |
+| P1 | **尺寸错误** | 气泡容器 272×272 应为 272×260 |
+| P2 | **多余元素** | 公转环和中心圆之间有光晕环（iOS 没有） |
+| P3 | **振幅错误** | 卫星气泡呼吸幅度仅为 iOS 的 48-53% |
+| P4 | **振幅+相位错误** | 中心圆呼吸幅度 1.6 倍于 iOS，且相位相反 |
+| P5 | **间距缺失** | Progress 卡片日期区与数字之间无 min 间距 |
+| P6 | **符号差异** | "→" vs SF Symbol arrow.right — 视觉宽度和粗细不同 |
+| P7 | **minHeight 缺失** | Dashboard Metric 列和 Preset 行缺少 minHeight |
+| P8 | **字号差异** | Preset 行 chevron 14sp vs 12sp |
+| P9 | **间距差异** | Progress 卡片 inner VStack spacing 4dp vs 5dp |

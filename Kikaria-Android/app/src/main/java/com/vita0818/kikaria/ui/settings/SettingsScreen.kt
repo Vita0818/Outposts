@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -181,7 +182,12 @@ private fun SettingsRow(title: String, value: String, showChevron: Boolean = tru
     Row(Modifier.fillMaxWidth().clickable { onClick() }.padding(horizontal = (18 * scale).dp, vertical = (16 * scale).dp), verticalAlignment = Alignment.CenterVertically) {
         Text(KikariaTypography.mixedText(title, size = (17 * scale).toInt(), weight = FontWeight.Medium), color = deepText, modifier = Modifier.weight(1f))
         if (value.isNotEmpty()) Text(value, fontSize = (15 * scale).sp, fontWeight = FontWeight.Medium, color = softText, modifier = Modifier.padding(end = (8 * scale).dp))
-        if (showChevron) Text("›", fontSize = (18 * scale).sp, fontWeight = FontWeight.SemiBold, color = (if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray).copy(alpha = 0.52f))
+        if (showChevron) Icon(
+            imageVector = KikariaIcons.forward,
+            contentDescription = "打开",
+            modifier = Modifier.size((18 * scale).dp),
+            tint = (if (isDark) KikariaColors.BlueGrayDark else KikariaColors.BlueGray).copy(alpha = 0.52f)
+        )
     }
 }
 @Composable
@@ -220,7 +226,7 @@ private fun PickerDialog(title: String, valueText: String, isDark: Boolean, onDi
     Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.35f)).clickable { onDismiss() }, contentAlignment = Alignment.Center) {
         KikariaGlassCard(Modifier.padding(horizontal = 34.dp).fillMaxWidth(), cornerRadius = 28.dp, fillOpacity = 0.50f) {
             Column(Modifier.padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = deepText)
                     Text(valueText, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky)
                 }
@@ -240,7 +246,14 @@ private fun PickerWheel(values: List<Int>, selected: Int, formatLabel: (Int) -> 
     var textValue by remember(selected) { mutableStateOf(formatLabel(selected).replace(Regex("[^0-9]"), "")) }
     Box(Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(16.dp)).background((if (isDark) KikariaColors.MistDark else KikariaColors.Mist).copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.clip(RoundedCornerShape(12.dp)).clickable { val idx = values.indexOf(selected); if (idx > 0) onSelected(values[idx - 1]) }.padding(12.dp)) { Text("‹", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = deepText) }
+            Box(Modifier.clip(RoundedCornerShape(12.dp)).clickable { val idx = values.indexOf(selected); if (idx > 0) onSelected(values[idx - 1]) }.padding(12.dp)) {
+                Icon(
+                    imageVector = KikariaIcons.back,
+                    contentDescription = "减1",
+                    modifier = Modifier.size(22.dp),
+                    tint = deepText
+                )
+            }
             Spacer(Modifier.width(16.dp))
             androidx.compose.foundation.text.BasicTextField(
                 value = textValue,
@@ -266,7 +279,14 @@ private fun PickerWheel(values: List<Int>, selected: Int, formatLabel: (Int) -> 
                 modifier = Modifier.widthIn(min = 60.dp, max = 100.dp)
             )
             Spacer(Modifier.width(16.dp))
-            Box(Modifier.clip(RoundedCornerShape(12.dp)).clickable { val idx = values.indexOf(selected); if (idx < values.size - 1) onSelected(values[idx + 1]) }.padding(12.dp)) { Text("›", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = deepText) }
+            Box(Modifier.clip(RoundedCornerShape(12.dp)).clickable { val idx = values.indexOf(selected); if (idx < values.size - 1) onSelected(values[idx + 1]) }.padding(12.dp)) {
+                Icon(
+                    imageVector = KikariaIcons.forward,
+                    contentDescription = "加1",
+                    modifier = Modifier.size(22.dp),
+                    tint = deepText
+                )
+            }
         }
     }
 }
@@ -284,9 +304,23 @@ private fun DateField(label: String, date: Date, onDateChanged: (Date) -> Unit, 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { cal.add(Calendar.MONTH, -1); onDateChanged(cal.time) }.padding(8.dp)) { Text("‹", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = deepText) }
+            Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { cal.add(Calendar.MONTH, -1); onDateChanged(cal.time) }.padding(8.dp)) {
+                Icon(
+                    imageVector = KikariaIcons.back,
+                    contentDescription = "上月",
+                    modifier = Modifier.size(16.dp),
+                    tint = deepText
+                )
+            }
             Text(KikariaTypography.mixedText("${cal.get(Calendar.YEAR)}年${cal.get(Calendar.MONTH)+1}月${cal.get(Calendar.DAY_OF_MONTH)}日", size = 14, weight = FontWeight.Medium), color = deepText)
-            Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { cal.add(Calendar.MONTH, 1); onDateChanged(cal.time) }.padding(8.dp)) { Text("›", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = deepText) }
+            Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { cal.add(Calendar.MONTH, 1); onDateChanged(cal.time) }.padding(8.dp)) {
+                Icon(
+                    imageVector = KikariaIcons.forward,
+                    contentDescription = "下月",
+                    modifier = Modifier.size(16.dp),
+                    tint = deepText
+                )
+            }
         }
     }
 }
@@ -294,12 +328,40 @@ private fun DateField(label: String, date: Date, onDateChanged: (Date) -> Unit, 
 private fun TimePicker(hour: Int, minute: Int, onHourChanged: (Int) -> Unit, onMinuteChanged: (Int) -> Unit, isDark: Boolean) {
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { onHourChanged(if (hour > 0) hour - 1 else 23) }.padding(8.dp)) { Text("‹", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = deepText) }
+        Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { onHourChanged(if (hour > 0) hour - 1 else 23) }.padding(8.dp)) {
+            Icon(
+                imageVector = KikariaIcons.back,
+                contentDescription = "小时减1",
+                modifier = Modifier.size(16.dp),
+                tint = deepText
+            )
+        }
         Text(KikariaTypography.mixedText(String.format("%02d", hour), size = 28, weight = FontWeight.Bold), color = deepText, modifier = Modifier.padding(horizontal = 12.dp))
-        Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { onHourChanged(if (hour < 23) hour + 1 else 0) }.padding(8.dp)) { Text("›", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = deepText) }
+        Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { onHourChanged(if (hour < 23) hour + 1 else 0) }.padding(8.dp)) {
+            Icon(
+                imageVector = KikariaIcons.forward,
+                contentDescription = "小时加1",
+                modifier = Modifier.size(16.dp),
+                tint = deepText
+            )
+        }
         Text(":", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText)
-        Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { onMinuteChanged(if (minute > 0) minute - 1 else 59) }.padding(8.dp)) { Text("‹", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = deepText) }
+        Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { onMinuteChanged(if (minute > 0) minute - 1 else 59) }.padding(8.dp)) {
+            Icon(
+                imageVector = KikariaIcons.back,
+                contentDescription = "分钟减1",
+                modifier = Modifier.size(16.dp),
+                tint = deepText
+            )
+        }
         Text(KikariaTypography.mixedText(String.format("%02d", minute), size = 28, weight = FontWeight.Bold), color = deepText, modifier = Modifier.padding(horizontal = 12.dp))
-        Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { onMinuteChanged(if (minute < 59) minute + 1 else 0) }.padding(8.dp)) { Text("›", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = deepText) }
+        Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { onMinuteChanged(if (minute < 59) minute + 1 else 0) }.padding(8.dp)) {
+            Icon(
+                imageVector = KikariaIcons.forward,
+                contentDescription = "分钟加1",
+                modifier = Modifier.size(16.dp),
+                tint = deepText
+            )
+        }
     }
 }

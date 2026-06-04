@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.vita0818.kikaria.data.KnowledgePoint
 import com.vita0818.kikaria.ui.components.KikariaEmptyState
 import com.vita0818.kikaria.ui.components.KikariaGlassCard
+import com.vita0818.kikaria.ui.components.KikariaIcons
 import com.vita0818.kikaria.ui.components.KikariaMathText
 import com.vita0818.kikaria.ui.components.KikariaPageTitle
 import com.vita0818.kikaria.ui.components.KikariaScrollPageShell
@@ -77,7 +80,12 @@ private fun ReinforcementStartButton(count: Int, onClick: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(KikariaTypography.mixedText("$count", size = 20, weight = FontWeight.Bold), color = Color.White)
                 Spacer(Modifier.padding(start = 12.dp))
-                Text("›", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color.White.copy(alpha = 0.72f))
+                Icon(
+                    imageVector = KikariaIcons.forward,
+                    contentDescription = "开始重点背诵",
+                    modifier = Modifier.size(18.dp),
+                    tint = Color.White.copy(alpha = 0.72f)
+                )
             }
         }
     }
@@ -94,7 +102,7 @@ private fun ReinforcementItem(point: KnowledgePoint, onRemove: () -> Unit) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(KikariaTypography.mixedText(point.title, size = 22, weight = FontWeight.SemiBold), color = deepText)
-                    if (point.reinforcementCount > 0) Text(KikariaTypography.mixedText("×${point.reinforcementCount}", size = 14, weight = FontWeight.Bold), color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky)
+                if (point.reinforcementCount > 0) Text(KikariaTypography.mixedText("${point.reinforcementCount}次", size = 14, weight = FontWeight.Bold), color = if (isDark) KikariaColors.SkyDark else KikariaColors.Sky)
                 }
                 if (point.tags.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { point.tags.take(3).forEach { tag -> KikariaTagChip(tag = tag, fontSize = 11) } }
             }

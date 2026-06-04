@@ -18,6 +18,23 @@ Outposts 根目录：
 
 ## Codex Agent 本体边界
 
+### Spark 模式边界
+
+- 允许：在 `/Users/vita/Vitemis/Outposts` 下当前目标项目内，Codex 本体可读写代码与资源文件。
+- 允许：在该目标项目范围内运行构建、测试、lint、截图与最小诊断命令。
+- 禁止：修改 `/Users/vita/Vitemis/Vela`。
+- 禁止：写入参考图目录。
+- 禁止：执行危险 Git 操作（`git reset --hard`、`git clean -fd`、`git checkout .`、`git restore .`）。
+- 禁止：读取或发送敏感文件（密钥、token、`.env`、证书、ssh key 等）。
+- 禁止：访问无关目录。
+
+### Agent 模式边界
+
+- Codex 本体不写业务源码，业务代码操作由 Claude Code 在当前任务授权下完成。
+- Claude Code 可按任务要求读取 Apple 源项目（只读）与目标项目。
+- Codex 本体只做调度、监测和报告汇总。
+- 参考图目录、`/Users/vita/Vitemis/Vela`、Apple 源项目均保持只读边界（除读取外不得写）。
+
 Codex Agent 本体不得：
 
 - 读取业务源码。
