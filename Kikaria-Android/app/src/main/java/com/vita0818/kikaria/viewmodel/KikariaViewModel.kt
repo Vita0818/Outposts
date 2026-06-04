@@ -464,6 +464,40 @@ class KikariaViewModel(application: Application) : AndroidViewModel(application)
         saveState()
     }
 
+    fun addCurrentPointReinforcement(point: KnowledgePoint? = null, shouldShowToast: Boolean = true) {
+        val target = point ?: currentPoint ?: return
+        val index = knowledgePoints.indexOfFirst { it.id == target.id }
+        if (index == -1) return
+
+        val updated = target.addReinforcement()
+        knowledgePoints[index] = updated
+        recordActivity(StudyActivityType.ADDED_REINFORCEMENT, target)
+        if (shouldShowToast) {
+            toastMessage = "已加入重点集锦 (第${updated.reinforcementCount}次)"
+        }
+
+        syncReviewQueue(updated)
+        saveState()
+    }
+
+    fun removeCurrentPointReinforcement(point: KnowledgePoint? = null, shouldShowToast: Boolean = true) {
+        val target = point ?: currentPoint ?: return
+        if (!target.isReinforced) return
+
+        val index = knowledgePoints.indexOfFirst { it.id == target.id }
+        if (index == -1) return
+
+        val updated = target.clearReinforcement()
+        knowledgePoints[index] = updated
+        recordActivity(StudyActivityType.REMOVED_REINFORCEMENT, target)
+        if (shouldShowToast) {
+            toastMessage = "已移出重点集锦"
+        }
+
+        syncReviewQueue(updated)
+        saveState()
+    }
+
     // --- Mastered ---
 
     fun toggleMastered(point: KnowledgePoint? = null) {

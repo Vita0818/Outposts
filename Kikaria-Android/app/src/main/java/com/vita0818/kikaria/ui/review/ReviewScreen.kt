@@ -267,7 +267,10 @@ private fun ReviewActionContent(
     usesWideAnswerStack: Boolean,
     viewModel: KikariaViewModel,
     onShowHint: () -> Unit,
-    onShowContent: () -> Unit
+    onShowContent: () -> Unit,
+    onReinforcementAction: () -> Unit,
+    onMasteredAction: () -> Unit,
+    onNextAction: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxWidth()) {
         reviewActionRevealRow(
@@ -288,6 +291,9 @@ private fun ReviewActionContent(
                 buttonMinHeight = answerButtonHeight,
                 buttonSpacing = answerButtonSpacing,
                 isInteractive = isInteractive,
+                onReinforcementAction = onReinforcementAction,
+                onMasteredAction = onMasteredAction,
+                onNextAction = onNextAction,
                 modifier = Modifier
                     .alpha(if (isContentShown) 1f else 0f)
             )
@@ -298,6 +304,9 @@ private fun ReviewActionContent(
                 buttonMinHeight = answerButtonHeight,
                 buttonSpacing = answerButtonSpacing,
                 usesWideAnswerStack = false,
+                onReinforcementAction = onReinforcementAction,
+                onMasteredAction = onMasteredAction,
+                onNextAction = onNextAction,
                 modifier = Modifier
                     .alpha(if (isContentShown) 1f else 0f),
                 isInteractive = isInteractive
@@ -497,6 +506,7 @@ fun ReviewScreen(
         animationSpec = tween(300),
         label = "scopePanel"
     )
+    var isReviewPointTransitioning by remember { mutableStateOf(false) }
 
     // ── Local gesture handler functions (must be defined before pointerInput block) ──
 
@@ -504,31 +514,67 @@ fun ReviewScreen(
         gestureFlash = 1f
     }
 
-    fun handleSwipeRight(vm: KikariaViewModel) {
-        // iOS reference: right swipe from left edge in normal mode opens scope panel;
-        // otherwise progressive reveal: hint → content → reinforcement.
-        if (vm.reviewMode == ReviewMode.NORMAL && !vm.isHintShown && !vm.isContentShown) {
-            showScopePanel = true
-        } else {
-            when {
-                vm.isContentShown -> vm.toggleReinforcement()
-                vm.isHintShown -> vm.showContent()
-                vm.currentPoint != null -> vm.showHint()
+    fun runReviewAction(action: () -> Unit) {
+        if (isReviewPointTransitioning) return
+        isReviewPointTransitioning = true
+        action()
+    }
+
+    fun performReinforcementAction(vm: KikariaViewModel) {
+        when (vm.reviewMode) {
+            ReviewMode.NORMAL, ReviewMode.MASTERED -> vm.addCurrentPointReinforcement()
+            ReviewMode.REINFORCEMENT -> vm.removeCurrentPointReinforcement()
+        }
+        vm.nextPoint()
+    }
+
+    fun performMasteredAction(vm: KikariaViewModel): Boolean {
+        val isCurrentMastered = vm.currentPoint?.isMastered == true
+        return when (vm.reviewMode) {
+            ReviewMode.NORMAL, ReviewMode.REINFORCEMENT -> {
+                if (isCurrentMastered) {
+                    false
+                } else {
+                    vm.toggleMastered()
+                    vm.nextPoint()
+                    true
+                }
+            }
+            ReviewMode.MASTERED -> {
+                vm.toggleMastered()
+                vm.nextPoint()
+                true
             }
         }
     }
 
+    val onReinforcementAction = {
+        runReviewAction { performReinforcementAction(viewModel) }
+    }
+    val onMasteredAction = {
+        runReviewAction { performMasteredAction(viewModel) }
+    }
+
+    fun handleSwipeRight(vm: KikariaViewModel) {
+        if (isReviewPointTransitioning) return
+        // iOS reference: right swipe from left edge in normal mode opens scope panel;
+        if (vm.reviewMode == ReviewMode.NORMAL) {
+            showScopePanel = true
+        }
+    }
+
     fun handleSwipeLeft(vm: KikariaViewModel) {
+        if (isReviewPointTransitioning) return
         // iOS reference: handleNormalSwipeLeft / handleReinforcementSwipeLeft / handleMasteredSwipeLeft
         when (vm.reviewMode) {
             ReviewMode.NORMAL -> {
-                // Reveal content + add to reinforcement (matches iOS)
+                // Reveal content + add to reinforcement (iOS normal swipe left behavior)
                 vm.showContent()
-                vm.toggleReinforcement()
+                vm.addCurrentPointReinforcement()
             }
             ReviewMode.REINFORCEMENT -> {
                 // Remove from reinforcement + next (matches iOS)
-                vm.toggleReinforcement()
+                vm.removeCurrentPointReinforcement()
                 vm.nextPoint()
             }
             ReviewMode.MASTERED -> {
@@ -540,6 +586,7 @@ fun ReviewScreen(
     }
 
     fun handleSwipeUp(vm: KikariaViewModel) {
+        if (isReviewPointTransitioning) return
         // iOS reference: up = reveal content (if hidden) OR next point (if content shown)
         if (vm.isContentShown) {
             if (vm.hasNextPoint) vm.nextPoint()
@@ -549,6 +596,7 @@ fun ReviewScreen(
     }
 
     fun handleSwipeDown(vm: KikariaViewModel) {
+        if (isReviewPointTransitioning) return
         // iOS reference: down = previous point (unless in card area with visible content)
         if (vm.isContentShown) {
             vm.previousPoint()
@@ -573,6 +621,14 @@ fun ReviewScreen(
         }
     }
 
+    LaunchedEffect(isReviewPointTransitioning) {
+        if (!isReviewPointTransitioning) {
+            return@LaunchedEffect
+        }
+        delay(220)
+        isReviewPointTransitioning = false
+    }
+
     // ── Swipe gesture for the action bar area ──
     val swipeModifier = Modifier.pointerInput(viewModel.isContentShown, viewModel.isHintShown, viewModel.reviewMode) {
         val horizontalThreshold = 80f
@@ -589,15 +645,22 @@ fun ReviewScreen(
                 val dy = swipeTargetY
                 val horizontal = abs(dx)
                 val vertical = abs(dy)
+                val swipeDominance = 1.4f
 
-                if (horizontal > horizontalThreshold && horizontal > vertical) {
+                if (horizontal > horizontalThreshold && horizontal > vertical * swipeDominance) {
                     triggerGestureFlash()
-                    if (dx > 0) handleSwipeRight(viewModel)
-                    else handleSwipeLeft(viewModel)
-                } else if (vertical > verticalThreshold && vertical > horizontal) {
+                    if (dx > 0) {
+                        runReviewAction { handleSwipeRight(viewModel) }
+                    } else {
+                        runReviewAction { handleSwipeLeft(viewModel) }
+                    }
+                } else if (vertical > verticalThreshold && vertical > horizontal * swipeDominance) {
                     triggerGestureFlash()
-                    if (dy < 0) handleSwipeUp(viewModel)
-                    else handleSwipeDown(viewModel)
+                    if (dy < 0) {
+                        runReviewAction { handleSwipeUp(viewModel) }
+                    } else {
+                        runReviewAction { handleSwipeDown(viewModel) }
+                    }
                 }
                 swipeTargetX = 0f
                 swipeTargetY = 0f
@@ -651,9 +714,6 @@ fun ReviewScreen(
             }
 
             Column(modifier = Modifier.fillMaxSize().offset { IntOffset(swipeDisplayX.roundToInt(), swipeDisplayY.roundToInt()) }) {
-                // Top spacer for back button clearance (matches metrics.backButtonTopPadding)
-                Spacer(Modifier.height(metrics.backButtonTopPadding + 16.dp))
-
                 if (metrics.reviewUsesTwoColumnLayout) {
                     val reviewLandscapeLeftWidth = metrics.reviewLandscapeLeftWidth
                     val reviewLandscapeRightWidth = metrics.reviewLandscapeRightWidth
@@ -705,19 +765,23 @@ fun ReviewScreen(
                                     ReviewActionContent(
                                         isContentShown = false,
                                         isHintShown = viewModel.isHintShown,
-                                        isInteractive = true,
+                                        isInteractive = !isReviewPointTransitioning,
                                         buttonScale = metrics.reviewButtonScale,
                                         buttonSpacing = actionButtonSpacing,
                                         revealButtonMinHeight = actionButtonMinHeight,
                                         answerButtonHeight = answerActionButtonHeight,
                                         answerButtonSpacing = answerActionButtonSpacing,
-                                        usesWideAnswerStack = false,
+                                        usesWideAnswerStack = true,
                                         viewModel = viewModel,
-                                        onShowHint = { viewModel.showHint() },
-                                        onShowContent = { viewModel.showContent() }
+                                        onShowHint = { runReviewAction { viewModel.showHint() } },
+                                        onShowContent = { runReviewAction { viewModel.showContent() } },
+                                        onReinforcementAction = onReinforcementAction,
+                                        onMasteredAction = onMasteredAction,
+                                        onNextAction = { runReviewAction { viewModel.nextPoint() } }
                                     )
                                 }
                             }
+
                             if (viewModel.isContentShown) {
                                 Box(
                                     modifier = Modifier
@@ -728,7 +792,7 @@ fun ReviewScreen(
                                     ReviewActionContent(
                                         isContentShown = true,
                                         isHintShown = viewModel.isHintShown,
-                                        isInteractive = true,
+                                        isInteractive = !isReviewPointTransitioning,
                                         buttonScale = metrics.reviewButtonScale,
                                         buttonSpacing = actionButtonSpacing,
                                         revealButtonMinHeight = actionButtonMinHeight,
@@ -736,8 +800,11 @@ fun ReviewScreen(
                                         answerButtonSpacing = answerActionButtonSpacing,
                                         usesWideAnswerStack = true,
                                         viewModel = viewModel,
-                                        onShowHint = { viewModel.showHint() },
-                                        onShowContent = { viewModel.showContent() }
+                                        onShowHint = { runReviewAction { viewModel.showHint() } },
+                                        onShowContent = { runReviewAction { viewModel.showContent() } },
+                                        onReinforcementAction = onReinforcementAction,
+                                        onMasteredAction = onMasteredAction,
+                                        onNextAction = { runReviewAction { viewModel.nextPoint() } }
                                     )
                                 }
                             }
@@ -751,6 +818,7 @@ fun ReviewScreen(
                         modifier = Modifier
                             .weight(1f)
                             .verticalScroll(rememberScrollState())
+                            .widthIn(max = metrics.reviewMaxWidth)
                             .padding(horizontal = metrics.horizontalPadding)
                             .padding(vertical = metrics.reviewContentVerticalPadding)
                     ) {
@@ -764,6 +832,7 @@ fun ReviewScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .widthIn(max = metrics.reviewMaxWidth)
                             .padding(horizontal = metrics.horizontalPadding)
                             .padding(bottom = metrics.reviewActionBottomPadding)
                             .padding(top = 12.dp)
@@ -774,7 +843,7 @@ fun ReviewScreen(
                         ReviewActionContent(
                             isContentShown = viewModel.isContentShown,
                             isHintShown = viewModel.isHintShown,
-                            isInteractive = true,
+                            isInteractive = !isReviewPointTransitioning,
                             buttonScale = metrics.reviewButtonScale,
                             buttonSpacing = actionButtonSpacing,
                             revealButtonMinHeight = actionButtonMinHeight,
@@ -782,8 +851,11 @@ fun ReviewScreen(
                             answerButtonSpacing = answerActionButtonSpacing,
                             usesWideAnswerStack = usesWideAnswerStack,
                             viewModel = viewModel,
-                            onShowHint = { viewModel.showHint() },
-                            onShowContent = { viewModel.showContent() }
+                            onShowHint = { runReviewAction { viewModel.showHint() } },
+                            onShowContent = { runReviewAction { viewModel.showContent() } },
+                            onReinforcementAction = onReinforcementAction,
+                            onMasteredAction = onMasteredAction,
+                            onNextAction = { runReviewAction { viewModel.nextPoint() } }
                         )
                     }
                 }
@@ -980,7 +1052,6 @@ fun ReviewScreen(
             }
         }
     }
-}
 
 // ─── Shared content cards (used by both phone and tablet layouts) ───
 
@@ -1109,7 +1180,12 @@ private fun TabletReviewActions(
     viewModel: KikariaViewModel,
     buttonScale: Float = 1f,
     buttonMinHeight: Dp = 0.dp,
-    buttonSpacing: Dp = 0.dp
+    buttonSpacing: Dp = 0.dp,
+    onReinforcementAction: () -> Unit,
+    onMasteredAction: () -> Unit,
+    onNextAction: () -> Unit,
+    isInteractive: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
     val point = viewModel.currentPoint
     val nextButtonHeight = if (buttonMinHeight > 0.dp) buttonMinHeight else reviewActionAnsweredButtonHeight(
@@ -1117,85 +1193,97 @@ private fun TabletReviewActions(
         buttonScale = buttonScale
     )
 
-    when (viewModel.reviewMode) {
-        ReviewMode.NORMAL -> {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(buttonSpacing)
+    ) {
+        when (viewModel.reviewMode) {
+            ReviewMode.NORMAL -> {
+                ReviewActionButton(
+                    text = if (point?.isReinforced == true)
+                        "再次加入 ${point.reinforcementCount}次" else "加入重点集锦",
+                    iconImage = KikariaIcons.addCircle,
+                    tone = ActionTone.Blue,
+                    isPrimary = true,
+                    isEnabled = isInteractive,
+                    minHeight = nextButtonHeight,
+                    buttonScale = buttonScale,
+                    onClick = onReinforcementAction
+                )
+                ReviewActionButton(
+                    text = if (point?.isMastered == true)
+                        "已设定为掌握" else "加入已掌握",
+                    iconImage = if (point?.isMastered == true) KikariaIcons.checkCircle else KikariaIcons.mastered,
+                    tone = ActionTone.Green,
+                    isPrimary = point?.isMastered != true,
+                    isEnabled = isInteractive,
+                    minHeight = nextButtonHeight,
+                    buttonScale = buttonScale,
+                    onClick = onMasteredAction
+                )
+            }
+            ReviewMode.REINFORCEMENT -> {
+                ReviewActionButton(
+                    text = "移出重点集锦",
+                    iconImage = KikariaIcons.removeCircle,
+                    tone = ActionTone.Red,
+                    isPrimary = true,
+                    isEnabled = isInteractive,
+                    minHeight = nextButtonHeight,
+                    buttonScale = buttonScale,
+                    onClick = onReinforcementAction
+                )
+                ReviewActionButton(
+                    text = if (point?.isMastered == true)
+                        "已设定为掌握" else "加入已掌握",
+                    iconImage = if (point?.isMastered == true) KikariaIcons.checkCircle else KikariaIcons.mastered,
+                    tone = ActionTone.Green,
+                    isPrimary = point?.isMastered != true,
+                    isEnabled = isInteractive,
+                    minHeight = nextButtonHeight,
+                    buttonScale = buttonScale,
+                    onClick = onMasteredAction
+                )
+            }
+            ReviewMode.MASTERED -> {
+                ReviewActionButton(
+                    text = if (point?.isReinforced == true)
+                        "再次加入 ${point.reinforcementCount}次" else "加入重点集锦",
+                    iconImage = KikariaIcons.addCircle,
+                    tone = ActionTone.Blue,
+                    isPrimary = true,
+                    isEnabled = isInteractive,
+                    minHeight = nextButtonHeight,
+                    buttonScale = buttonScale,
+                    onClick = onReinforcementAction
+                )
+                ReviewActionButton(
+                    text = "移出已掌握",
+                    iconImage = KikariaIcons.removeCircle,
+                    tone = ActionTone.Red,
+                    isPrimary = true,
+                    isEnabled = isInteractive,
+                    minHeight = nextButtonHeight,
+                    buttonScale = buttonScale,
+                    onClick = onMasteredAction
+                )
+            }
+        }
+
+        Spacer(Modifier.height(buttonSpacing))
+
         ReviewActionButton(
-                            text = if (point?.isReinforced == true)
-                                "再次加入 ${point.reinforcementCount}次" else "加入重点集锦",
-                iconImage = KikariaIcons.addCircle,
-                tone = ActionTone.Blue,
-                isPrimary = true,
-                minHeight = nextButtonHeight,
-                buttonScale = buttonScale,
-                onClick = { viewModel.toggleReinforcement() }
-            )
-            ReviewActionButton(
-                text = if (point?.isMastered == true)
-                    "已设定为掌握" else "加入已掌握",
-                iconImage = if (point?.isMastered == true) KikariaIcons.checkCircle else KikariaIcons.mastered,
-                tone = ActionTone.Green,
-                isPrimary = point?.isMastered != true,
-                minHeight = nextButtonHeight,
-                buttonScale = buttonScale,
-                onClick = { viewModel.toggleMastered() }
-            )
-        }
-        ReviewMode.REINFORCEMENT -> {
-            ReviewActionButton(
-                text = "移出重点集锦",
-                iconImage = KikariaIcons.removeCircle,
-                tone = ActionTone.Red,
-                isPrimary = true,
-                minHeight = nextButtonHeight,
-                buttonScale = buttonScale,
-                onClick = { viewModel.toggleReinforcement() }
-            )
-            ReviewActionButton(
-                text = if (point?.isMastered == true)
-                    "已设定为掌握" else "加入已掌握",
-                iconImage = if (point?.isMastered == true) KikariaIcons.checkCircle else KikariaIcons.mastered,
-                tone = ActionTone.Green,
-                isPrimary = point?.isMastered != true,
-                minHeight = nextButtonHeight,
-                buttonScale = buttonScale,
-                onClick = { viewModel.toggleMastered() }
-            )
-        }
-        ReviewMode.MASTERED -> {
-            ReviewActionButton(
-                text = if (point?.isReinforced == true)
-                    "再次加入 ${point.reinforcementCount}次" else "加入重点集锦",
-                iconImage = KikariaIcons.addCircle,
-                tone = ActionTone.Blue,
-                isPrimary = true,
-                minHeight = nextButtonHeight,
-                buttonScale = buttonScale,
-                onClick = { viewModel.toggleReinforcement() }
-            )
-            ReviewActionButton(
-                text = "移出已掌握",
-                iconImage = KikariaIcons.removeCircle,
-                tone = ActionTone.Red,
-                isPrimary = true,
-                minHeight = nextButtonHeight,
-                buttonScale = buttonScale,
-                onClick = { viewModel.toggleMastered() }
-            )
-        }
+            text = "下一个",
+            iconImage = KikariaIcons.shuffle,
+            tone = ActionTone.Amber,
+            isPrimary = false,
+            isEnabled = isInteractive,
+            minHeight = nextButtonHeight,
+            buttonScale = buttonScale,
+            onClick = onNextAction,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
-
-    Spacer(Modifier.height(buttonSpacing))
-
-    ReviewActionButton(
-        text = "下一个",
-        iconImage = KikariaIcons.shuffle,
-        tone = ActionTone.Amber,
-        isPrimary = false,
-        minHeight = nextButtonHeight,
-        buttonScale = buttonScale,
-        onClick = { viewModel.nextPoint() },
-        modifier = Modifier.fillMaxWidth()
-    )
 }
 
 // ─── ReviewBottomActionBar ───
@@ -1207,7 +1295,11 @@ private fun ReviewBottomActionBar(
     buttonMinHeight: Dp = 0.dp,
     buttonSpacing: Dp = 0.dp,
     usesWideAnswerStack: Boolean = true,
-    modifier: Modifier = Modifier
+    onReinforcementAction: () -> Unit,
+    onMasteredAction: () -> Unit,
+    onNextAction: () -> Unit,
+    modifier: Modifier = Modifier,
+    isInteractive: Boolean = true
 ) {
     val point = viewModel.currentPoint
     val isExpanded = maxOf(buttonScale, 1f) > 1f
@@ -1235,71 +1327,77 @@ private fun ReviewBottomActionBar(
                 verticalArrangement = Arrangement.spacedBy(buttonSpacing)
             ) {
                 when (viewModel.reviewMode) {
-                    ReviewMode.NORMAL -> {
-                        ReviewActionButton(
-                            text = if (point?.isReinforced == true)
-                                "再次加入 ${point.reinforcementCount}次" else "加入重点集锦",
-                            iconImage = KikariaIcons.addCircle,
-                            tone = ActionTone.Blue,
-                            isPrimary = true,
-                            minHeight = actionButtonHeight,
-                            buttonScale = buttonScale,
-                            onClick = { viewModel.toggleReinforcement() }
-                        )
-                        ReviewActionButton(
-                            text = if (point?.isMastered == true)
-                                "已设定为掌握" else "加入已掌握",
-                            iconImage = if (point?.isMastered == true) KikariaIcons.checkCircle else KikariaIcons.mastered,
-                            tone = ActionTone.Green,
-                            isPrimary = point?.isMastered != true,
-                            minHeight = actionButtonHeight,
-                            buttonScale = buttonScale,
-                            onClick = { viewModel.toggleMastered() }
-                        )
-                    }
-                    ReviewMode.REINFORCEMENT -> {
-                        ReviewActionButton(
-                            text = "移出重点集锦",
-                            iconImage = KikariaIcons.removeCircle,
-                            tone = ActionTone.Red,
-                            isPrimary = true,
-                            minHeight = actionButtonHeight,
-                            buttonScale = buttonScale,
-                            onClick = { viewModel.toggleReinforcement() }
-                        )
+                ReviewMode.NORMAL -> {
+                    ReviewActionButton(
+                        text = if (point?.isReinforced == true)
+                            "再次加入 ${point.reinforcementCount}次" else "加入重点集锦",
+                        iconImage = KikariaIcons.addCircle,
+                        tone = ActionTone.Blue,
+                    isPrimary = true,
+                    isEnabled = isInteractive,
+                    minHeight = actionButtonHeight,
+                    buttonScale = buttonScale,
+                    onClick = onReinforcementAction
+                )
                         ReviewActionButton(
                             text = if (point?.isMastered == true)
                                 "已设定为掌握" else "加入已掌握",
                             iconImage = if (point?.isMastered == true) KikariaIcons.checkCircle else KikariaIcons.mastered,
-                            tone = ActionTone.Green,
-                            isPrimary = point?.isMastered != true,
-                            minHeight = actionButtonHeight,
-                            buttonScale = buttonScale,
-                            onClick = { viewModel.toggleMastered() }
-                        )
-                    }
-                    ReviewMode.MASTERED -> {
-                        ReviewActionButton(
-                            text = if (point?.isReinforced == true)
-                                "再次加入 ${point.reinforcementCount}次" else "加入重点集锦",
-                            iconImage = KikariaIcons.addCircle,
-                            tone = ActionTone.Blue,
-                            isPrimary = true,
-                            minHeight = actionButtonHeight,
-                            buttonScale = buttonScale,
-                            onClick = { viewModel.toggleReinforcement() }
-                        )
-                        ReviewActionButton(
-                            text = "移出已掌握",
-                            iconImage = KikariaIcons.removeCircle,
-                            tone = ActionTone.Red,
-                            isPrimary = true,
-                            minHeight = actionButtonHeight,
-                            buttonScale = buttonScale,
-                            onClick = { viewModel.toggleMastered() }
-                        )
-                    }
+                        tone = ActionTone.Green,
+                        isPrimary = point?.isMastered != true,
+                        isEnabled = isInteractive,
+                        minHeight = actionButtonHeight,
+                        buttonScale = buttonScale,
+                        onClick = onMasteredAction
+                    )
                 }
+                ReviewMode.REINFORCEMENT -> {
+                    ReviewActionButton(
+                            text = "移出重点集锦",
+                        iconImage = KikariaIcons.removeCircle,
+                        tone = ActionTone.Red,
+                        isPrimary = true,
+                        isEnabled = isInteractive,
+                        minHeight = actionButtonHeight,
+                        buttonScale = buttonScale,
+                        onClick = onReinforcementAction
+                    )
+                    ReviewActionButton(
+                            text = if (point?.isMastered == true)
+                                "已设定为掌握" else "加入已掌握",
+                            iconImage = if (point?.isMastered == true) KikariaIcons.checkCircle else KikariaIcons.mastered,
+                        tone = ActionTone.Green,
+                        isPrimary = point?.isMastered != true,
+                        isEnabled = isInteractive,
+                        minHeight = actionButtonHeight,
+                        buttonScale = buttonScale,
+                        onClick = onMasteredAction
+                    )
+                }
+                ReviewMode.MASTERED -> {
+                        ReviewActionButton(
+                            text = if (point?.isReinforced == true)
+                                "再次加入 ${point.reinforcementCount}次" else "加入重点集锦",
+                        iconImage = KikariaIcons.addCircle,
+                        tone = ActionTone.Blue,
+                        isPrimary = true,
+                        isEnabled = isInteractive,
+                        minHeight = actionButtonHeight,
+                        buttonScale = buttonScale,
+                        onClick = onReinforcementAction
+                    )
+                    ReviewActionButton(
+                            text = "移出已掌握",
+                        iconImage = KikariaIcons.removeCircle,
+                        tone = ActionTone.Red,
+                        isPrimary = true,
+                        isEnabled = isInteractive,
+                        minHeight = actionButtonHeight,
+                        buttonScale = buttonScale,
+                        onClick = onMasteredAction
+                    )
+                }
+            }
             }
 
             ReviewActionButton(
@@ -1308,9 +1406,10 @@ private fun ReviewBottomActionBar(
                 tone = ActionTone.Amber,
                 isPrimary = false,
                 verticalContent = true,
+                isEnabled = isInteractive,
                 minHeight = nextButtonHeight,
                 buttonScale = buttonScale,
-                onClick = { viewModel.nextPoint() },
+                onClick = onNextAction,
                 modifier = Modifier.weight(0.54f)
             )
         }

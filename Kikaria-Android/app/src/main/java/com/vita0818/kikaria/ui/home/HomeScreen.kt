@@ -341,7 +341,7 @@ private fun HomeLandscapeLayout(
                     modifier = Modifier
                         .width(leftWidth)
                         .heightIn(min = leftColumnHeight),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.Start
                 ) {
                     Text(
                         text = KikariaTypography.mixedText(
@@ -350,6 +350,7 @@ private fun HomeLandscapeLayout(
                             weight = FontWeight.SemiBold
                         ),
                         color = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText,
+                        textAlign = TextAlign.Start,
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -492,16 +493,16 @@ private fun HomeLandscapeLayout(
             }
         }
 
-        // Avatar overlay — fixed at top-right outside scroll, matches iOS
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 26.dp, end = metrics.horizontalPadding)
-                .clickable { onOpenSettings() }
-        ) {
-            KikariaProfileAvatar(
-                size = 48.dp,
-                displayName = viewModel.userDisplayName
+    // Avatar overlay — fixed at top-right outside scroll, matches iOS
+    Box(
+        modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(top = 26.dp, end = metrics.horizontalPadding)
+            .clickable { onOpenSettings() }
+    ) {
+        KikariaProfileAvatar(
+            size = (48 * cardScale).dp,
+            displayName = viewModel.userDisplayName
             )
         }
     }
