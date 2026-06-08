@@ -73,6 +73,7 @@ data class StudyLibrarySyncManifest(
     val generatedAt: Long = System.currentTimeMillis(),
     val libraryVersion: Int = 1,
     val items: List<StudyItemMetadata> = emptyList(),
+    val recordings: List<LocalNetworkSyncRecordingEntry> = emptyList(),
     val folders: List<StudyFolderMetadata> = emptyList(),
     val tombstones: List<StudyLibrarySyncTombstone> = emptyList(),
     val pendingUploads: List<PendingRecordingUpload> = emptyList(),
@@ -92,6 +93,7 @@ data class StudyLibrarySyncManifest(
     fun computeChecksum(): String {
         val gson = GsonBuilder().disableHtmlEscaping().create()
         val itemsSorted = items.sortedBy { it.itemID }
+        val recordingsSorted = recordings.sortedBy { it.recordingID }
         val foldersSorted = folders.sortedBy { it.folderID }
         val tombstonesSorted = tombstones.sortedBy { it.id }
         val uploadsSorted = pendingUploads.sortedBy { it.id }
@@ -102,6 +104,9 @@ data class StudyLibrarySyncManifest(
             put("libraryVersion", libraryVersion)
             put("items", JSONArray().apply {
                 itemsSorted.forEach { put(JSONObject(gson.toJson(it))) }
+            })
+            put("recordings", JSONArray().apply {
+                recordingsSorted.forEach { put(JSONObject(gson.toJson(it))) }
             })
             put("folders", JSONArray().apply {
                 foldersSorted.forEach { put(JSONObject(gson.toJson(it))) }

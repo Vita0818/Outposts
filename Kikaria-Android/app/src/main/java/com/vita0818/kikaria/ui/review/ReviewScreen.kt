@@ -1053,6 +1053,10 @@ fun ReviewScreen(
         }
     }
 
+}
+
+}
+
 // ─── Shared content cards (used by both phone and tablet layouts) ───
 
 @Composable

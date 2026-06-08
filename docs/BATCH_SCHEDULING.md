@@ -15,13 +15,16 @@ AUTO_CONTINUE_WITHIN_BUDGET
 NO_NEW_ROUNDS_AFTER_TIME_BUDGET
 WAIT_RUNNING_ROUNDS_TO_FINISH
 VISION_VALIDATION_MAX_ROUNDS
+
+（必要时）
+MODE: `SPARK` / `SPARK_QWEN` / `AGENT`
 ```
 
 ## 双轨批次必填字段
 
 在每个批次状态里需额外记录：
 
-- `MODE: SPARK|AGENT`
+- `MODE: SPARK|SPARK_QWEN|AGENT`
 - `MODEL_CHECK_RESULT: <模型校验结果>`
 - `EXECUTOR: <Codex | Claude Code>`
 - `DIRECT_CODE_MODIFICATION_ALLOWED: YES|NO`
@@ -29,6 +32,7 @@ VISION_VALIDATION_MAX_ROUNDS
 规则：
 
 - Spark 执行轮次由 Codex 本体直接完成，不应记入“正式 Claude Code 轮次”。
+- Spark_QWEN 执行轮次同 Spark，由 Codex 本体直接完成，不计入“正式 Claude Code 轮次”。
 - Agent 执行轮次按 Claude Code 的一次完整报告计入 `ROUNDS_COMPLETED`。
 - 禁止把 Spark 的直接修改记录为 Claude 报告轮次，反之也不应把 Agent 运行直接记作 Codex 一人完成。
 
@@ -44,7 +48,9 @@ VISION_VALIDATION_MAX_ROUNDS
 - `WAIT_RUNNING_ROUNDS_TO_FINISH`：时间到达后是否等待运行中轮次自然结束，通常为 `YES`。
 - `VISION_VALIDATION_MAX_ROUNDS`：涉及 UI 复刻或视觉验收时，每项目默认最多进行 `2` 轮 qwen-vision 视觉对比微调。
 
-如果批次目标包含 UI 复刻、Apple UI parity、视觉验收、截图对比、界面布局、颜色、字体、间距、圆角、阴影、组件位置、设计稿、真机截图或模拟器截图，Codex Agent 应在给 Claude Code 的正式任务 prompt 中加入 `CLAUDE_CODE_VISUAL_MCP_PROTOCOL.md` 规定的 qwen-vision 使用提醒。
+如果批次目标包含 UI 复刻、Apple UI parity、视觉验收、截图对比、界面布局、颜色、字体、间距、圆角、阴影、组件位置、设计稿、真机截图或模拟器截图：
+- 当任务由 Spark 执行且 Spark 能获取 visual evidence 与 qwen 报告时，设定 `MODE=SPARK_QWEN`，并把 qwen 视觉提醒写入该轮 Spark 执行计划。
+- 否则以 `AGENT` 执行，并在 prompt 中加入 `CLAUDE_CODE_VISUAL_MCP_PROTOCOL.md` 规定的 qwen-vision 使用提醒。
 
 视觉验收批次还必须设置固定证据目录：
 

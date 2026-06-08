@@ -12,6 +12,15 @@
 - 不得把 `qwen-vision` 当主 Agent。
 - 不得让 `qwen-vision` 修改文件。
 
+## Spark + Qwen 禁区
+
+- 不得在视觉任务中让 Spark 自行判读截图内容。
+- 不得在无 Qwen 图片识别/对比报告下宣称视觉验收完成。
+- 不得把 Qwen 当代码修改者。
+- 不得将源码、密钥、token、`.env`、证书或私密配置传给 Qwen。
+- 不得把 qwen API Key 写入仓库文件或 `.env`。
+- 不得因为网络受限或 helper 不可用就跳过 Qwen 报告要求并直接收口。
+
 ## 双轨模式禁区
 
 - 不得在未确认 Spark 模式时让 Codex 本体直接改业务代码。

@@ -28,6 +28,21 @@ Outposts 根目录：
 - 禁止：读取或发送敏感文件（密钥、token、`.env`、证书、ssh key 等）。
 - 禁止：访问无关目录。
 
+### Spark + Qwen 视觉辅助边界
+
+- 允许在 `Spark` 权限范围内执行代码修复，但视觉闭环必须依赖 Qwen 报告。
+- 不允许在 Spark + Qwen 任务中凭文本推断图片内容。
+- 不允许把 `reference` 或 `actual` 截图直接用于非可视化目的后删除；应保存在 `.outposts-supervisor/visual-evidence/...`。
+
+### 网络与 Qwen 调用边界
+
+如需 Spark + Qwen 直接调用外部 Qwen3.7Plus API，必须满足：
+
+- 用户已明确允许该 helper 的网络访问。
+- 仅通过环境变量读取 API Key（如 `DASHSCOPE_API_KEY`、`QWEN_API_KEY`）。
+- 不得将 key 写入 `.codex/config.toml`、`AGENTS.md`、`docs`、源码或报告。
+- 若网络被配置为禁止（如 `network_access = false`）且无可复用 qwen-helper，则 Spark + Qwen 模式应报告 `QWEN_HELPER_NETWORK_NOT_AVAILABLE` 并停止本轮，建议改用 Agent 模式。
+
 ### Agent 模式边界
 
 - Codex 本体不写业务源码，业务代码操作由 Claude Code 在当前任务授权下完成。

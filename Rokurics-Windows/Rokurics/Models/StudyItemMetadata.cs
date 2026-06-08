@@ -31,6 +31,8 @@ public sealed class StudyItemMetadata
     public string? TranscriptRelativePath { get; set; }
     public string? TranscriptMarkdownRelativePath { get; set; }
     public string? NoteRelativePath { get; set; }
+    public string? SummaryMarkdownRelativePath { get; set; }
+    public string? SummaryJSONRelativePath { get; set; }
     public string? TranscriptionStatus { get; set; }
     public string? NoteStatus { get; set; }
     public List<RecordingNoteSectionRecord>? NoteSections { get; set; }
@@ -79,7 +81,8 @@ public sealed class StudyItemMetadata
         Dictionary<string, string> customProperties, string? recordingId, string? sanitizedRecordingId,
         TimeSpan? duration, string? audioRelativePath, string? receiveRelativePath,
         string? transcriptRelativePath, string? transcriptMarkdownRelativePath,
-        string? noteRelativePath, string? transcriptionStatus, string? noteStatus,
+        string? noteRelativePath, string? summaryMarkdownRelativePath, string? summaryJSONRelativePath,
+        string? transcriptionStatus, string? noteStatus,
         List<RecordingNoteSectionRecord>? noteSections, string? sourceDescription,
         bool isTrashed, DateTime? trashedAt, string? modifiedByDeviceId, string? syncConflictStatus)
     {
@@ -100,6 +103,8 @@ public sealed class StudyItemMetadata
         TranscriptRelativePath = transcriptRelativePath;
         TranscriptMarkdownRelativePath = transcriptMarkdownRelativePath;
         NoteRelativePath = noteRelativePath;
+        SummaryMarkdownRelativePath = summaryMarkdownRelativePath;
+        SummaryJSONRelativePath = summaryJSONRelativePath;
         TranscriptionStatus = transcriptionStatus;
         NoteStatus = noteStatus;
         NoteSections = noteSections;
@@ -157,6 +162,8 @@ public sealed class StudyItemMetadata
             TranscriptRelativePath = TranscriptRelativePath,
             TranscriptMarkdownRelativePath = TranscriptMarkdownRelativePath,
             NoteRelativePath = NoteRelativePath,
+            SummaryMarkdownRelativePath = SummaryMarkdownRelativePath,
+            SummaryJSONRelativePath = SummaryJSONRelativePath,
             TranscriptionStatus = recording.TranscriptionStatus,
             NoteStatus = recording.NoteStatus,
             NoteSections = NoteSections,
@@ -205,7 +212,10 @@ public sealed class StudyItemMetadata
             Duration = Duration, AudioRelativePath = AudioRelativePath,
             ReceiveRelativePath = ReceiveRelativePath, TranscriptRelativePath = TranscriptRelativePath,
             TranscriptMarkdownRelativePath = TranscriptMarkdownRelativePath,
-            NoteRelativePath = NoteRelativePath, TranscriptionStatus = TranscriptionStatus,
+            NoteRelativePath = NoteRelativePath,
+            SummaryMarkdownRelativePath = SummaryMarkdownRelativePath,
+            SummaryJSONRelativePath = SummaryJSONRelativePath,
+            TranscriptionStatus = TranscriptionStatus,
             NoteStatus = NoteStatus, NoteSections = NoteSections, SourceDescription = SourceDescription,
             IsTrashed = IsTrashed, TrashedAt = TrashedAt,
             ModifiedByDeviceId = modifiedByDeviceId, SyncConflictStatus = SyncConflictStatus

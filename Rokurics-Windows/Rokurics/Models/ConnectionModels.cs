@@ -61,21 +61,58 @@ public sealed class StudyLibrarySyncState
 public sealed class LocalNetworkSyncState
 {
     public int Version { get; set; }
+    public string? LocalDeviceID { get; set; }
+    public string? PeerDeviceID { get; set; }
+    public DateTime? LastSyncStartedAt { get; set; }
+    public DateTime? LastSyncCompletedAt { get; set; }
     public DateTime? LastSyncAt { get; set; }
     public DateTime? LastSuccessfulSyncAt { get; set; }
+    public string? LastPeerDeviceID { get; set; }
     public string? LastPeerDeviceId { get; set; }
     public string? LastLocalInventoryHash { get; set; }
     public string? LastPeerInventoryHash { get; set; }
     public string? LastAppliedPeerRevision { get; set; }
+    public int? LastConflictCount { get; set; }
     public int ConsecutiveFailureCount { get; set; }
     public DateTime? NextAllowedSyncAt { get; set; }
     public string? LastErrorCode { get; set; }
     public string? LastErrorMessage { get; set; }
+    public string? LastPlanSummary { get; set; }
     public int PendingUploadCount { get; set; }
     public int PendingDownloadCount { get; set; }
+    public List<LocalNetworkSyncTransferProgress> ActiveTransfers { get; set; } = new();
+    public string? ActiveSyncRunID { get; set; }
+    public string? ControlPlaneState { get; set; }
+    public DateTime? LastControlPlaneUpdatedAt { get; set; }
 
     public static readonly LocalNetworkSyncState Empty = new();
     public const int CurrentVersion = 1;
+}
+
+public sealed class LocalNetworkSyncTransferProgress
+{
+    public string ObjectID { get; set; } = "";
+    public string ObjectKind { get; set; } = "";
+    public string State { get; set; } = nameof(LocalNetworkSyncTransferState.Pending);
+    public double? ProgressFraction { get; set; }
+    public long? ReceivedBytes { get; set; }
+    public long? TotalBytes { get; set; }
+    public string? SourceDeviceID { get; set; }
+    public string? StatusText { get; set; }
+}
+
+public enum LocalNetworkSyncTransferState
+{
+    Pending = 0,
+    Transferring = 1,
+    Paused = 2,
+    PausedDisconnected = 3,
+    RetryPending = 4,
+    Resuming = 5,
+    Verifying = 6,
+    Complete = 7,
+    Failed = 8,
+    Conflict = 9
 }
 
 public sealed class StudyBrowserPath : IEquatable<StudyBrowserPath>
@@ -176,24 +213,38 @@ public sealed class StudyLibrarySyncManifest
 {
     public string DeviceId { get; set; }
     public DateTime GeneratedAt { get; set; }
+    public int LibraryVersion { get; set; } = 1;
     public List<StudyItemMetadata> Items { get; set; }
+    public List<SyncRecordingEntry> Recordings { get; set; }
     public List<StudyFolderMetadata> Folders { get; set; }
     public List<StudyLibrarySyncTombstone> Tombstones { get; set; }
+    public List<PendingRecordingUpload> PendingUploads { get; set; }
     public string Checksum { get; set; }
 
-    public bool HasValidChecksum => !string.IsNullOrWhiteSpace(Checksum);
+    public bool HasValidChecksum
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(Checksum)) return false;
+            return string.Equals(Checksum, ComputeChecksum(this), StringComparison.OrdinalIgnoreCase)
+                || string.Equals(Checksum, LegacyComputeChecksum(this), StringComparison.OrdinalIgnoreCase);
+        }
+    }
 
     public StudyLibrarySyncManifest()
     {
         DeviceId = "";
         Items = new List<StudyItemMetadata>();
+        Recordings = new List<SyncRecordingEntry>();
         Folders = new List<StudyFolderMetadata>();
         Tombstones = new List<StudyLibrarySyncTombstone>();
+        PendingUploads = new List<PendingRecordingUpload>();
         Checksum = "";
     }
 
     public static StudyLibrarySyncManifest Make(string deviceId, DateTime generatedAt,
         List<StudyItemMetadata> items, List<StudyFolderMetadata> folders,
+        List<SyncRecordingEntry> recordings,
         List<StudyLibrarySyncTombstone> tombstones, List<PendingRecordingUpload> pendingUploads)
     {
         var manifest = new StudyLibrarySyncManifest
@@ -201,14 +252,40 @@ public sealed class StudyLibrarySyncManifest
             DeviceId = deviceId,
             GeneratedAt = generatedAt,
             Items = items,
+            Recordings = recordings,
             Folders = folders,
-            Tombstones = tombstones
+            Tombstones = tombstones,
+            PendingUploads = pendingUploads
         };
         manifest.Checksum = ComputeChecksum(manifest);
         return manifest;
     }
 
     public static string ComputeChecksum(StudyLibrarySyncManifest manifest)
+    {
+        var payload = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            deviceId = manifest.DeviceId,
+            generatedAt = manifest.GeneratedAt,
+            libraryVersion = manifest.LibraryVersion,
+            items = manifest.Items.OrderBy(i => i.ItemId).ToList(),
+            recordings = manifest.Recordings.OrderBy(r => r.RecordingId).ToList(),
+            folders = manifest.Folders.OrderBy(f => f.FolderId).ToList(),
+            tombstones = manifest.Tombstones.OrderBy(t => t.Id).ToList(),
+            pendingUploads = manifest.PendingUploads.OrderBy(u => u.ItemId).ToList()
+        }, new System.Text.Json.JsonSerializerOptions
+        {
+            WriteIndented = false,
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+        });
+
+        var raw = System.Text.Encoding.UTF8.GetBytes(payload);
+        var hash = System.Security.Cryptography.SHA256.HashData(
+            raw);
+        return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    private static string LegacyComputeChecksum(StudyLibrarySyncManifest manifest)
     {
         var raw = $"{manifest.DeviceId}|{manifest.Items.Count}|{manifest.Folders.Count}|{manifest.Tombstones.Count}";
         var hash = System.Security.Cryptography.SHA256.HashData(

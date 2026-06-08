@@ -5,17 +5,25 @@ namespace Rokurics.Services;
 /// Mirrors SecureReceiverService route registration from Apple source.
 ///
 /// Endpoint layout (matching Apple source receiver):
-///   GET  /health              — health check (always 200)
-///   POST /pairing/begin       — start pairing, returns 6-digit code + fingerprint
-///   POST /pairing/verify      — verify pairing code from device
-///   POST /pairing/complete    — complete pairing, exchange shared secret
-///   GET  /pairing/status      — current pairing state
-///   POST /upload              — receive recording file upload
-///   GET  /sync/manifest       — get local study library manifest
-///   POST /sync/apply          — apply remote sync changes
-///   GET  /sync/status         — sync state summary
-///   GET  /devices             — list paired devices
-///   POST /devices/disconnect  — disconnect a paired device
+///   GET  /health                — health check (always 200)
+///   POST /pairing/begin         — start pairing, returns 6-digit code + fingerprint
+///   POST /pairing/verify        — verify pairing code from device
+///   POST /pairing/complete      — complete pairing, exchange shared secret
+///   GET  /pairing/status        — current pairing state
+///   POST /upload                — receive recording file upload
+///   POST /sync/device-status     — canonical sync status endpoint (alias to /sync/status on legacy clients)
+///   POST /sync/start            — start canonical sync control plane
+///   POST /sync/start-ack        — acknowledge canonical sync control plane
+///   POST /sync/inventory        — sync inventory exchange
+///   POST /sync/apply-metadata   — apply metadata manifest in canonical protocol
+///   POST /sync/artifact-status  — query artifact transfer state
+///   POST /sync/artifact-request — request artifact chunk
+///   POST /sync/artifact-put     — upload artifact chunk
+///   POST /sync/status           — compatibility legacy route for sync status
+///   GET  /sync/manifest         — compatibility legacy route for sync manifest
+///   POST /sync/apply            — compatibility legacy route for sync apply
+///   GET  /devices               — list paired devices
+///   POST /devices/disconnect    — disconnect a paired device
 ///
 /// REQUIRES: .NET 8+, Microsoft.AspNetCore.App, Kestrel server.
 /// VALIDATION GAP: Cannot run on macOS without .NET SDK.
@@ -74,6 +82,170 @@ public sealed class UploadResponse
 {
     public bool Accepted { get; init; }
     public string? RecordingId { get; init; }
+    public string? Error { get; init; }
+}
+
+public sealed class SyncStatusSummary
+{
+    public DateTime? LastSyncAt { get; init; }
+    public string? StatusText { get; init; }
+    public int? PendingLocalChanges { get; init; }
+    public int? PendingUploads { get; init; }
+}
+
+public sealed class SyncStatusRequest
+{
+    public string DeviceId { get; init; } = "";
+    public string ClientState { get; init; } = "";
+    public long GeneratedAt { get; init; } = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+    public SyncStatusSummary? SyncSummary { get; init; }
+}
+
+public sealed class SyncStatusResponse
+{
+    public bool Ok { get; init; }
+    public DeviceConnectionStatus? Status { get; init; }
+    public LocalNetworkSyncState? SyncState { get; init; }
+    public string? Error { get; init; }
+}
+
+public sealed class SyncStartRequest
+{
+    public string SyncRunID { get; init; } = "";
+    public string DeviceId { get; init; } = "";
+    public string Platform { get; init; } = "Android";
+    public long RequestedAt { get; init; } = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+    public string Reason { get; init; } = "manual";
+}
+
+public sealed class SyncStartResponse
+{
+    public bool Ok { get; init; }
+    public string? SyncRunID { get; init; }
+    public string? PeerDeviceID { get; init; }
+    public long? AckAt { get; init; }
+    public string? Disposition { get; init; }
+    public string? Error { get; init; }
+}
+
+public sealed class SyncStartAckRequest
+{
+    public string SyncRunID { get; init; } = "";
+    public string DeviceId { get; init; } = "";
+    public string Platform { get; init; } = "Android";
+    public long AcknowledgedAt { get; init; } = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+    public string Disposition { get; init; } = "ok";
+}
+
+public sealed class SyncStartAckResponse
+{
+    public bool Ok { get; init; }
+    public string? SyncRunID { get; init; }
+    public string? PeerDeviceID { get; init; }
+    public long? AckReceivedAt { get; init; }
+    public string? Error { get; init; }
+}
+
+public sealed class SyncInventoryRequest
+{
+    public string DeviceId { get; init; } = "";
+    public long GeneratedAt { get; init; } = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+    public string? LocalInventoryHash { get; init; }
+    public string? SyncRunID { get; init; }
+}
+
+public sealed class SyncInventoryResponse
+{
+    public bool Ok { get; init; }
+    public object? Inventory { get; init; }
+    public string? Error { get; init; }
+}
+
+public sealed class SyncApplyMetadataRequest
+{
+    public StudyLibrarySyncManifest Manifest { get; init; } = new();
+}
+
+public sealed class SyncApplyMetadataResponse
+{
+    public bool Ok { get; init; }
+    public StudyLibrarySyncManifest? Manifest { get; init; }
+    public string? BaseCommitId { get; init; }
+    public string? NewCommitId { get; init; }
+    public string? Error { get; init; }
+}
+
+public sealed class SyncArtifactRequest
+{
+    public string ArtifactID { get; init; } = "";
+    public long? Offset { get; init; }
+    public int? Length { get; init; }
+    public string? SyncRunID { get; init; }
+}
+
+public sealed class SyncArtifactResponse
+{
+    public bool Ok { get; init; }
+    public string? ArtifactID { get; init; }
+    public string? Kind { get; init; }
+    public string? Checksum { get; init; }
+    public long? Size { get; init; }
+    public string? LogicalPathToken { get; init; }
+    public string? DataBase64 { get; init; }
+    public long? Offset { get; init; }
+    public long? NextOffset { get; init; }
+    public long? TotalSize { get; init; }
+    public bool? IsFinalChunk { get; init; }
+    public string? Error { get; init; }
+}
+
+public sealed class SyncArtifactStatusRequest
+{
+    public string ArtifactID { get; init; } = "";
+    public string? Kind { get; init; }
+    public string? OwnerID { get; init; }
+    public string? LogicalPathToken { get; init; }
+    public string? Checksum { get; init; }
+    public long? Size { get; init; }
+    public string? SyncRunID { get; init; }
+}
+
+public sealed class SyncArtifactStatusResponse
+{
+    public bool Ok { get; init; }
+    public string? ArtifactID { get; init; }
+    public string? Checksum { get; init; }
+    public long? Size { get; init; }
+    public long? ConfirmedBytes { get; init; }
+    public string? State { get; init; }
+    public string? Error { get; init; }
+}
+
+public sealed class SyncArtifactPutRequest
+{
+    public string ArtifactID { get; init; } = "";
+    public string Kind { get; init; } = "audio";
+    public string OwnerID { get; init; } = "";
+    public string Checksum { get; init; } = "";
+    public long Size { get; init; }
+    public long UpdatedAt { get; init; } = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+    public string LogicalPathToken { get; init; } = "";
+    public string DataBase64 { get; init; } = "";
+    public long? Offset { get; init; }
+    public int? ChunkSize { get; init; }
+    public long? TotalSize { get; init; }
+    public bool? IsFinalChunk { get; init; }
+    public string? SyncRunID { get; init; }
+}
+
+public sealed class SyncArtifactPutResponse
+{
+    public bool Ok { get; init; }
+    public string? ArtifactID { get; init; }
+    public string? Disposition { get; init; }
+    public string? Checksum { get; init; }
+    public long? Size { get; init; }
+    public long? ConfirmedBytes { get; init; }
     public string? Error { get; init; }
 }
 
@@ -180,9 +352,17 @@ public sealed class KestrelRouteHandler : IKestrelRouteHandler
         "POST /pairing/complete",
         "GET  /pairing/status",
         "POST /upload",
+        "POST /sync/device-status",
+        "POST /sync/start",
+        "POST /sync/start-ack",
+        "POST /sync/inventory",
+        "POST /sync/apply-metadata",
+        "POST /sync/artifact-status",
+        "POST /sync/artifact-request",
+        "POST /sync/artifact-put",
+        "POST /sync/status",
         "GET  /sync/manifest",
         "POST /sync/apply",
-        "GET  /sync/status",
         "GET  /devices",
         "POST /devices/disconnect",
     };
@@ -197,9 +377,17 @@ public sealed class KestrelRouteHandler : IKestrelRouteHandler
         // webApp.MapPost("/pairing/complete", HandleCompletePairing);
         // webApp.MapGet("/pairing/status", HandlePairingStatus);
         // webApp.MapPost("/upload", HandleUpload);
+        // webApp.MapPost("/sync/device-status", HandleSyncStatus);
+        // webApp.MapPost("/sync/start", HandleSyncStart);
+        // webApp.MapPost("/sync/start-ack", HandleSyncStartAck);
+        // webApp.MapPost("/sync/inventory", HandleSyncInventory);
+        // webApp.MapPost("/sync/apply-metadata", HandleSyncApplyMetadata);
+        // webApp.MapPost("/sync/artifact-status", HandleSyncArtifactStatus);
+        // webApp.MapPost("/sync/artifact-request", HandleSyncArtifactRequest);
+        // webApp.MapPost("/sync/artifact-put", HandleSyncArtifactPut);
         // webApp.MapGet("/sync/manifest", HandleGetManifest);
         // webApp.MapPost("/sync/apply", HandleApplySync);
-        // webApp.MapGet("/sync/status", HandleSyncStatus);
+        // webApp.MapPost("/sync/status", HandleSyncStatus);
         // webApp.MapGet("/devices", HandleListDevices);
         // webApp.MapPost("/devices/disconnect", HandleDisconnect);
         throw new NotImplementedException("Kestrel route mapping requires ASP.NET Core runtime");

@@ -101,19 +101,24 @@ class LocalNetworkSyncDiffPlanner {
             } else {
                 actions.add(diffAction(LocalNetworkSyncDiffActionKind.DOWNLOAD_METADATA, "recording", recID, "peer_recording_newer"))
             }
-            // Audio check: if local has audio and peer doesn't
-            if (local.audioAvailable && (peer.audioChecksum == null || !peer.audioAvailable)) {
-                actions.add(diffAction(LocalNetworkSyncDiffActionKind.UPLOAD_RECORDING_AUDIO, "recording", recID, "peer_missing_audio_use_existing_upload"))
+
+            if (local.audioAvailable && !peer.audioAvailable) {
+                actions.add(
+                    diffAction(
+                        LocalNetworkSyncDiffActionKind.UPLOAD_RECORDING_AUDIO,
+                        "recording",
+                        recID,
+                        "peer_missing_audio_use_existing_upload"
+                    )
+                )
             }
+
             return actions
         }
 
         // Local only
         if (local != null) {
             actions.add(diffAction(LocalNetworkSyncDiffActionKind.UPLOAD_METADATA, "recording", recID, "peer_missing_recording"))
-            if (local.audioAvailable) {
-                actions.add(diffAction(LocalNetworkSyncDiffActionKind.UPLOAD_RECORDING_AUDIO, "recording", recID, "peer_missing_audio"))
-            }
             return actions
         }
 
@@ -236,7 +241,7 @@ class LocalNetworkSyncDiffPlanner {
             if (local.kind != LocalNetworkSyncArtifactKind.AUDIO) {
                 return diffAction(LocalNetworkSyncDiffActionKind.UPLOAD_ARTIFACT, "artifact", aID, "peer_missing_artifact")
             }
-            return diffAction(LocalNetworkSyncDiffActionKind.NO_OP, "artifact", aID, "audio_auto_download_disabled")
+            return diffAction(LocalNetworkSyncDiffActionKind.NO_OP, "artifact", aID, "audio_uses_recording_upload")
         }
 
         // Peer only

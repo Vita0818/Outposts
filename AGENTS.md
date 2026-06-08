@@ -6,9 +6,9 @@
 
 Claude Code Desktop / Claude Code 主 Agent 的共享入口是 `CLAUDE.md`。Codex Agent 每轮必须先读 `CLAUDE.md`，再读本文件和 `docs/` 下的细则。Codex Agent 可以把这些规则压缩成当前项目、当前轮次、当前目标所需的精简 prompt，但不得把整套文档粗暴粘给 Claude Code。
 
-## Outposts 双轨工作流
+## Outposts 三轨工作流
 
-Outposts 当前支持两种互斥模式：**Spark** 与 **Agent**。在用户明确声明之前不得默认任意一种模式，必须按模式边界执行。
+Outposts 当前支持四种互斥执行子模式：**Spark**、**Spark + Qwen 视觉辅助**、**OpenCode** 与 **Agent**。在用户明确声明之前不得默认任意一种模式，必须按模式边界执行。
 
 ### Spark 模式
 
@@ -43,6 +43,34 @@ Spark 模式禁止：
 - 不得无依据大规模重构（除用户明确要求）。
 - 不得伪装为 Agent 模式执行。
 
+### Spark + Qwen 视觉辅助模式
+
+触发条件（任一满足）：
+
+- 用户命令中出现“Spark 模式”且包含以下任一语义：UI、截图、视觉、qwen、像素级、reference、actual、UI_AUDIT 视觉对比。
+- 用户明确写“Spark + Qwen”。
+
+执行前强制：
+
+1. 必须输出 `MODEL_CHECK_RESULT`。
+2. 当前模型必须是 `GPT-5.3-Codex-Spark`，否则停止本轮。
+3. 任务涉及截图、视觉或像素级差异时，必须使用 Qwen3.7Plus（或已存在 qwen helper）读取 `reference` / `actual` 并生成视觉差异报告；不得由 Spark 自己判读图片。
+4. 如果 `actual` 不可用，只能走 `REFERENCE_ONLY`，不得声称完成视觉验收闭环。
+
+Spark + Qwen 视觉辅助允许：
+
+- Spark 原有权限范围内的源码读写、截图、构建/测试执行。
+- 生成/读取 `reference`、`actual` 截图并调用或读取 Qwen 报告。
+- 将 Qwen 输出转化为修改计划与补丁实施。
+
+Spark + Qwen 视觉辅助禁止：
+
+- Spark 主观判定图片内容并据此宣布验收完成。
+- 在没有 Qwen 视觉报告时声称已完成像素级视觉任务。
+- 让 Qwen 直接改代码。
+- 把 API Key、token、`.env`、证书、密钥写入仓库文档或源码。
+- 把截图写入子项目源码目录；视觉证据必须写入 `.outposts-supervisor/visual-evidence/...`。
+
 ### Agent 模式
 
 触发条件（任一满足）：
@@ -71,6 +99,12 @@ Agent 模式使用：
 模式未声明：
 
 如果用户未明确写出“Spark 模式”或“Agent 模式”，不得猜测，必须先向用户确认。
+
+### OpenCode 模式
+
+不要使用上面几种模式的工作流程，同时在读取/docs下的文档时也注意不要把其余几种模式的限制当成OpenCode模式下的限制。
+
+依旧采用“Apple项目只读作参考，构建Android、HarmonyOS和Windows”的策略。
 
 ## 启动前检查
 
@@ -217,3 +251,18 @@ Codex Agent 本体不得读写业务代码。Claude Code 可以在当前对话�
 - `NEXT_RECOMMENDED_ACTION`
 
 若本轮是并行调度结束，使用 `docs/REPORTING_FORMATS.md` 中的并行调度结束摘要格式。
+
+如果本轮是 Spark + Qwen 视觉辅助模式，最终报告还需补充：
+
+- `SPARK_MODE`
+- `SPARK_MODEL_CONFIRMED`
+- `QWEN_MODEL`
+- `QWEN_AVAILABLE`
+- `QWEN_CALL_METHOD`
+- `REFERENCE_SCREENSHOTS`
+- `ACTUAL_SCREENSHOTS`
+- `QWEN_INSPECT_REFERENCE_RESULT`
+- `QWEN_INSPECT_ACTUAL_RESULT`
+- `QWEN_COMPARE_RESULT`
+- `CODE_CHANGES_FROM_QWEN`
+- `REMAINING_VISUAL_DIFFERENCES`

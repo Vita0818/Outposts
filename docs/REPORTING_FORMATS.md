@@ -16,6 +16,30 @@ NEXT_ACTION:
 SCOPE_CONFIRMATION:
 ```
 
+## Spark + Qwen 模式报告模板
+
+```text
+MODE: SPARK_QWEN
+MODEL_CHECK_RESULT:
+PATH_CHECK_RESULT:
+SPARK_MODEL_CONFIRMED:
+QWEN_MODEL:
+QWEN_AVAILABLE:
+QWEN_CALL_METHOD:
+REFERENCE_SCREENSHOTS:
+ACTUAL_SCREENSHOTS:
+QWEN_INSPECT_REFERENCE_RESULT:
+QWEN_INSPECT_ACTUAL_RESULT:
+QWEN_COMPARE_RESULT:
+CODE_CHANGES_FROM_QWEN:
+BUILD_RESULT:
+TEST_RESULT:
+VALIDATION_RESULT:
+RISKS:
+NEXT_ACTION:
+SCOPE_CONFIRMATION:
+```
+
 ## Agent 模式报告模板
 
 ```text
@@ -149,6 +173,17 @@ UNCERTAINTIES
 用户只需要看主管摘要。不得把 Claude Code 长报告整段贴给用户。必要时只摘取关键结论、阻塞、验证结果和下一步。
 
 当目标涉及 UI 复刻时，Codex 主管摘要应简要保留：是否使用 `qwen-vision`、是否有参考图、是否有实际渲染图、主要视觉差异、是否已根据视觉差异修正、剩余视觉验收阻塞。
+
+若目标为 Spark + Qwen 视觉任务，摘要还应保留：
+
+- `QWEN_MODEL`
+- `QWEN_AVAILABLE`
+- `QWEN_CALL_METHOD`
+- `REFERENCE_SCREENSHOTS`
+- `ACTUAL_SCREENSHOTS`
+- `QWEN_COMPARE_RESULT`
+- `CODE_CHANGES_FROM_QWEN`
+- `REMAINING_VISUAL_DIFFERENCES`
 
 当目标涉及截图闭环时，Codex 主管摘要还应保留固定证据目录、截图文件是否生成、qwen 输出是否落盘、以及无法生成截图的具体原因。
 

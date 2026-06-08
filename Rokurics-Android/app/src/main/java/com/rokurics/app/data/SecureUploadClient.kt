@@ -3,6 +3,8 @@ package com.rokurics.app.data
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.rokurics.app.domain.model.LocalNetworkSyncInventory
+import com.rokurics.app.domain.model.CanonicalManifest
+import com.rokurics.app.domain.model.CanonicalManifestNode
 import com.rokurics.app.domain.model.SecureMacConnectionSnapshot
 import com.rokurics.app.domain.model.SecurePairingResult
 import com.rokurics.app.domain.model.SecureUploadServerResponse
@@ -150,7 +152,41 @@ class SecureUploadClient {
     data class SyncInventoryRequest(
         val deviceID: String,
         val generatedAt: Long = System.currentTimeMillis(),
-        val localInventoryHash: String? = null
+        val localInventoryHash: String? = null,
+        val syncRunID: String? = null
+    )
+
+    data class SyncStartRequest(
+        val syncRunID: String,
+        val deviceID: String,
+        val platform: String,
+        val requestedAt: Long = System.currentTimeMillis(),
+        val reason: String = "manual"
+    )
+
+    data class SyncStartResponse(
+        val ok: Boolean = false,
+        val syncRunID: String? = null,
+        val peerDeviceID: String? = null,
+        val ackAt: Long? = null,
+        val disposition: String? = null,
+        val error: String? = null
+    )
+
+    data class SyncStartAckRequest(
+        val syncRunID: String,
+        val deviceID: String,
+        val platform: String,
+        val acknowledgedAt: Long = System.currentTimeMillis(),
+        val disposition: String = "ok"
+    )
+
+    data class SyncStartAckResponse(
+        val ok: Boolean = false,
+        val syncRunID: String? = null,
+        val peerDeviceID: String? = null,
+        val ackReceivedAt: Long? = null,
+        val error: String? = null
     )
 
     data class SyncInventoryResponse(
@@ -171,7 +207,10 @@ class SecureUploadClient {
     )
 
     data class SyncArtifactRequest(
-        val artifactID: String
+        val artifactID: String,
+        val offset: Long? = null,
+        val length: Int? = null,
+        val syncRunID: String? = null
     )
 
     data class SyncArtifactResponse(
@@ -182,18 +221,108 @@ class SecureUploadClient {
         val size: Long? = null,
         val logicalPathToken: String? = null,
         val dataBase64: String? = null,
+        val offset: Long? = null,
+        val nextOffset: Long? = null,
+        val totalSize: Long? = null,
+        val isFinalChunk: Boolean? = null,
         val error: String? = null
     )
 
+    data class SyncArtifactStatusRequest(
+        val artifactID: String,
+        val kind: String? = null,
+        val ownerID: String? = null,
+        val logicalPathToken: String? = null,
+        val checksum: String? = null,
+        val size: Long? = null,
+        val syncRunID: String? = null
+    )
+
+    data class SyncArtifactStatusResponse(
+        val ok: Boolean = false,
+        val artifactID: String? = null,
+        val checksum: String? = null,
+        val size: Long? = null,
+        val confirmedBytes: Long? = null,
+        val nextOffset: Long? = null,
+        val state: String? = null,
+        val error: String? = null
+    )
+
+    data class SyncArtifactPutRequest(
+        val artifactID: String,
+        val kind: String,
+        val ownerID: String,
+        val checksum: String,
+        val size: Long,
+        val updatedAt: Long,
+        val logicalPathToken: String,
+        val dataBase64: String,
+        val offset: Long? = null,
+        val chunkSize: Int? = null,
+        val totalSize: Long? = null,
+        val isFinalChunk: Boolean? = null,
+        val syncRunID: String? = null
+    )
+
+    data class SyncArtifactPutResponse(
+        val ok: Boolean = false,
+        val artifactID: String? = null,
+        val disposition: String? = null,
+        val checksum: String? = null,
+        val size: Long? = null,
+        val confirmedBytes: Long? = null,
+        val error: String? = null
+    )
+
+    suspend fun sendLocalNetworkSyncStart(
+        settings: SecureMacConnectionSnapshot,
+        request: SyncStartRequest
+    ): Result<SyncStartResponse> = withContext(Dispatchers.IO) {
+        try {
+            val json = postSignedJSON(settings, "/sync/start", request, 5_000, 8_000)
+            Result.success(SyncStartResponse(
+                ok = json.optBoolean("ok", false),
+                syncRunID = json.optString("syncRunID", "").ifEmpty { null },
+                peerDeviceID = json.optString("peerDeviceID", "").ifEmpty { null },
+                ackAt = if (json.has("ackAt")) json.optLong("ackAt") else null,
+                disposition = json.optString("disposition", "").ifEmpty { null },
+                error = json.optString("error", "").ifEmpty { null }
+            ))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun sendLocalNetworkSyncStartAck(
+        settings: SecureMacConnectionSnapshot,
+        request: SyncStartAckRequest
+    ): Result<SyncStartAckResponse> = withContext(Dispatchers.IO) {
+        try {
+            val json = postSignedJSON(settings, "/sync/start-ack", request, 5_000, 8_000)
+            Result.success(SyncStartAckResponse(
+                ok = json.optBoolean("ok", false),
+                syncRunID = json.optString("syncRunID", "").ifEmpty { null },
+                peerDeviceID = json.optString("peerDeviceID", "").ifEmpty { null },
+                ackReceivedAt = if (json.has("ackReceivedAt")) json.optLong("ackReceivedAt") else null,
+                error = json.optString("error", "").ifEmpty { null }
+            ))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun fetchLocalNetworkSyncInventory(
         settings: SecureMacConnectionSnapshot,
-        localInventoryHash: String?
+        localInventoryHash: String?,
+        syncRunID: String? = null
     ): Result<SyncInventoryResponse> = withContext(Dispatchers.IO) {
         try {
             val body = SyncInventoryRequest(
                 deviceID = settings.deviceID,
                 generatedAt = System.currentTimeMillis(),
-                localInventoryHash = localInventoryHash
+                localInventoryHash = localInventoryHash,
+                syncRunID = syncRunID
             )
             val json = postSignedJSON(settings, "/sync/inventory", body, 10_000, 20_000)
             val inventory = if (json.has("inventory") && !json.isNull("inventory")) {
@@ -202,6 +331,47 @@ class SecureUploadClient {
             Result.success(SyncInventoryResponse(
                 ok = json.optBoolean("ok", false),
                 inventory = inventory,
+                error = json.optString("error", "").ifEmpty { null }
+            ))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun fetchLocalNetworkSyncArtifactStatus(
+        settings: SecureMacConnectionSnapshot,
+        request: SyncArtifactStatusRequest
+    ): Result<SyncArtifactStatusResponse> = withContext(Dispatchers.IO) {
+        try {
+            val json = postSignedJSON(settings, "/sync/artifact-status", request, 10_000, 20_000)
+            Result.success(SyncArtifactStatusResponse(
+                ok = json.optBoolean("ok", false),
+                artifactID = json.optString("artifactID", "").ifEmpty { null },
+                checksum = json.optString("checksum", "").ifEmpty { null },
+                size = if (json.has("size")) json.optLong("size") else null,
+                confirmedBytes = if (json.has("confirmedBytes")) json.optLong("confirmedBytes") else null,
+                nextOffset = if (json.has("nextOffset")) json.optLong("nextOffset") else null,
+                state = json.optString("state", "").ifEmpty { null },
+                error = json.optString("error", "").ifEmpty { null }
+            ))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun putLocalNetworkSyncArtifact(
+        settings: SecureMacConnectionSnapshot,
+        request: SyncArtifactPutRequest
+    ): Result<SyncArtifactPutResponse> = withContext(Dispatchers.IO) {
+        try {
+            val json = postSignedJSON(settings, "/sync/artifact-put", request, 15_000, 30_000)
+            Result.success(SyncArtifactPutResponse(
+                ok = json.optBoolean("ok", false),
+                artifactID = json.optString("artifactID", "").ifEmpty { null },
+                disposition = json.optString("disposition", "").ifEmpty { null },
+                checksum = json.optString("checksum", "").ifEmpty { null },
+                size = if (json.has("size")) json.optLong("size") else null,
+                confirmedBytes = if (json.has("confirmedBytes")) json.optLong("confirmedBytes") else null,
                 error = json.optString("error", "").ifEmpty { null }
             ))
         } catch (e: Exception) {
@@ -255,7 +425,36 @@ class SecureUploadClient {
                 checksum = json.optString("checksum", "").ifEmpty { null },
                 size = if (json.has("size")) json.optLong("size") else null,
                 logicalPathToken = json.optString("logicalPathToken", "").ifEmpty { null },
+                offset = if (json.has("offset")) json.optLong("offset") else null,
+                totalSize = if (json.has("totalSize")) json.optLong("totalSize") else null,
+                isFinalChunk = json.optBoolean("isFinalChunk", false).takeIf { json.has("isFinalChunk") },
+                nextOffset = if (json.has("nextOffset")) json.optLong("nextOffset") else null,
                 dataBase64 = json.optString("dataBase64", "").ifEmpty { null },
+                error = json.optString("error", "").ifEmpty { null }
+            ))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun requestLocalNetworkSyncArtifact(
+        settings: SecureMacConnectionSnapshot,
+        request: SyncArtifactRequest
+    ): Result<SyncArtifactResponse> = withContext(Dispatchers.IO) {
+        try {
+            val json = postSignedJSON(settings, "/sync/artifact-request", request, 10_000, 30_000)
+            Result.success(SyncArtifactResponse(
+                ok = json.optBoolean("ok", false),
+                artifactID = json.optString("artifactID", "").ifEmpty { null },
+                kind = json.optString("kind", "").ifEmpty { null },
+                checksum = json.optString("checksum", "").ifEmpty { null },
+                size = if (json.has("size")) json.optLong("size") else null,
+                logicalPathToken = json.optString("logicalPathToken", "").ifEmpty { null },
+                dataBase64 = json.optString("dataBase64", "").ifEmpty { null },
+                offset = if (json.has("offset")) json.optLong("offset") else null,
+                nextOffset = if (json.has("nextOffset")) json.optLong("nextOffset") else null,
+                totalSize = if (json.has("totalSize")) json.optLong("totalSize") else null,
+                isFinalChunk = json.optBoolean("isFinalChunk", false).takeIf { json.has("isFinalChunk") },
                 error = json.optString("error", "").ifEmpty { null }
             ))
         } catch (e: Exception) {
@@ -303,18 +502,16 @@ class SecureUploadClient {
     private fun parseInventory(json: JSONObject): LocalNetworkSyncInventory {
         val gson = Gson()
         val deviceJson = json.getJSONObject("device")
-        val device = com.rokurics.app.domain.model.LocalNetworkSyncDeviceSection(
-            deviceID = deviceJson.optString("deviceID", ""),
-            deviceName = deviceJson.optString("deviceName", ""),
-            platform = try {
-                com.rokurics.app.domain.model.LocalNetworkSyncPlatform.valueOf(
-                    deviceJson.optString("platform", "Mac").uppercase()
-                )
-            } catch (_: Exception) { com.rokurics.app.domain.model.LocalNetworkSyncPlatform.MAC },
-            generatedAt = deviceJson.optLong("generatedAt", 0),
-            lastKnownPeerRevision = deviceJson.optString("lastKnownPeerRevision", "").ifEmpty { null },
-            appSchemaVersion = deviceJson.optInt("appSchemaVersion", 1)
-        )
+            val device = com.rokurics.app.domain.model.LocalNetworkSyncDeviceSection(
+                deviceID = deviceJson.optString("deviceID", ""),
+                deviceName = deviceJson.optString("deviceName", ""),
+                platform = com.rokurics.app.domain.model.LocalNetworkSyncPlatform.from(
+                    deviceJson.optString("platform", "Mac")
+                ),
+                generatedAt = deviceJson.optLong("generatedAt", 0),
+                lastKnownPeerRevision = deviceJson.optString("lastKnownPeerRevision", "").ifEmpty { null },
+                appSchemaVersion = deviceJson.optInt("appSchemaVersion", 1)
+            )
 
         fun parseRecordings(arr: org.json.JSONArray?): List<com.rokurics.app.domain.model.LocalNetworkSyncRecordingEntry> {
             if (arr == null) return emptyList()
@@ -381,11 +578,9 @@ class SecureUploadClient {
                 val a = arr.getJSONObject(i)
                 com.rokurics.app.domain.model.LocalNetworkSyncArtifactEntry(
                     artifactID = a.optString("artifactID", ""),
-                    kind = try {
-                        com.rokurics.app.domain.model.LocalNetworkSyncArtifactKind.valueOf(
-                            a.optString("kind", "audio").uppercase()
-                        )
-                    } catch (_: Exception) { com.rokurics.app.domain.model.LocalNetworkSyncArtifactKind.AUDIO },
+                    kind = com.rokurics.app.domain.model.LocalNetworkSyncArtifactKind.from(
+                        a.optString("kind", "audio")
+                    ),
                     ownerID = a.optString("ownerID", ""),
                     checksum = a.optString("checksum", "").ifEmpty { null },
                     size = if (a.has("size") && !a.isNull("size")) a.optLong("size") else null,
@@ -400,6 +595,30 @@ class SecureUploadClient {
             }
         }
 
+        fun parseCanonicalManifest(obj: org.json.JSONObject?): com.rokurics.app.domain.model.CanonicalManifest? {
+            if (obj == null) return null
+            val schemaVersion = obj.optInt("schemaVersion", 1)
+            val generatedAt = if (obj.has("generatedAt") && !obj.isNull("generatedAt")) {
+                obj.optLong("generatedAt", 0L)
+            } else null
+            val manifestHash = obj.optString("manifestHash", "").ifEmpty { null }
+            val node = if (obj.has("node") && obj.optJSONObject("node") != null) {
+                val nodeObj = obj.getJSONObject("node")
+                com.rokurics.app.domain.model.CanonicalManifestNode(
+                    nodeID = nodeObj.optString("nodeID", "").ifEmpty { null },
+                    platform = nodeObj.optString("platform", "").ifEmpty { null },
+                    displayName = nodeObj.optString("displayName", "").ifEmpty { null }
+                )
+            } else null
+            return com.rokurics.app.domain.model.CanonicalManifest(
+                node = node,
+                payload = jsonToMap(obj),
+                schemaVersion = schemaVersion,
+                generatedAt = generatedAt,
+                manifestHash = manifestHash
+            )
+        }
+
         return LocalNetworkSyncInventory(
             device = device,
             recordings = parseRecordings(json.optJSONArray("recordings")),
@@ -408,7 +627,16 @@ class SecureUploadClient {
             artifacts = parseArtifacts(json.optJSONArray("artifacts")),
             studyManifest = if (json.has("studyManifest") && !json.isNull("studyManifest")) {
                 parseManifest(json.getJSONObject("studyManifest"))
-            } else null
+            } else null,
+            canonicalManifest = parseCanonicalManifest(
+                if (json.has("canonicalManifest") && !json.isNull("canonicalManifest")) {
+                    if (json.get("canonicalManifest") is String) {
+                        org.json.JSONObject(json.getString("canonicalManifest"))
+                    } else {
+                        json.getJSONObject("canonicalManifest")
+                    }
+                } else null
+            )
         )
     }
 
@@ -466,11 +694,31 @@ class SecureUploadClient {
             }
         }
 
+        fun parseRecordings(arr: org.json.JSONArray?): List<com.rokurics.app.domain.model.LocalNetworkSyncRecordingEntry> {
+            if (arr == null) return emptyList()
+            return (0 until arr.length()).map { i ->
+                val r = arr.getJSONObject(i)
+                com.rokurics.app.domain.model.LocalNetworkSyncRecordingEntry(
+                    recordingID = r.optString("recordingID", ""),
+                    metadataHash = r.optString("metadataHash", "").ifEmpty { null },
+                    audioAvailable = r.optBoolean("audioAvailable", false),
+                    audioChecksum = r.optString("audioChecksum", "").ifEmpty { null },
+                    audioSize = if (r.has("audioSize") && !r.isNull("audioSize")) r.optLong("audioSize") else null,
+                    uploadLedgerState = r.optString("uploadLedgerState", "").ifEmpty { null },
+                    receiveStatus = r.optString("receiveStatus", "").ifEmpty { null },
+                    processingStatus = r.optString("processingStatus", "").ifEmpty { null },
+                    updatedAt = r.optLong("updatedAt", 0),
+                    deleted = r.optBoolean("deleted", false)
+                )
+            }
+        }
+
         return com.rokurics.app.domain.model.StudyLibrarySyncManifest(
             deviceID = json.optString("deviceID", ""),
             generatedAt = json.optLong("generatedAt", 0),
             libraryVersion = json.optInt("libraryVersion", 1),
             items = parseItems(json.optJSONArray("items")),
+            recordings = parseRecordings(json.optJSONArray("recordings")),
             folders = parseFolders(json.optJSONArray("folders")),
             tombstones = parseTombstones(json.optJSONArray("tombstones")),
             pendingUploads = parsePendingUploads(json.optJSONArray("pendingUploads")),
@@ -478,6 +726,29 @@ class SecureUploadClient {
             commitID = json.optString("commitID", "").ifEmpty { null },
             localManifestHash = json.optString("localManifestHash", "").ifEmpty { null }
         )
+    }
+
+    private fun jsonToMap(jsonObject: org.json.JSONObject): Map<String, Any?> {
+        val iterator = jsonObject.keys()
+        val entries = mutableMapOf<String, Any?>()
+        while (iterator.hasNext()) {
+            val key = iterator.next()
+            entries[key] = toKotlinValue(jsonObject.get(key))
+        }
+        val sortedEntries = entries.toList().sortedBy { it.first }.toMap(LinkedHashMap())
+        return sortedEntries
+    }
+
+    private fun toKotlinValue(value: Any?): Any? {
+        return when (value) {
+            is org.json.JSONObject -> jsonToMap(value)
+            is org.json.JSONArray -> {
+                val list = (0 until value.length()).map { idx -> toKotlinValue(value.get(idx)) }
+                list
+            }
+            is JSONObject.NULL -> null
+            else -> value
+        }
     }
 
     // ── Resumable Upload Session Endpoints ────────────────────────────

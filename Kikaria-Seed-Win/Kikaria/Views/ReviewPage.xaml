@@ -1,0 +1,56 @@
+<Page
+    x:Class="Kikaria.Views.ReviewPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{Binding Source={StaticResource KikariaTheme}, Path=PageGradient}">
+        <Grid Padding="40" MaxWidth="900" HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
+                <Button Style="{StaticResource LiquidGlassButton}" Content="← Back" Click="BackButton_Click" />
+                <TextBlock Text="Review Mode" Style="{StaticResource CardTitleText}" FontSize="32" />
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="20,0,0,0">
+                    <TextBlock x:Name="ProgressText" Style="{StaticResource CardSubtitleText}" />
+                </StackPanel>
+            </StackPanel>
+
+            <ScrollViewer Grid.Row="1" Margin="0,40,0,40" VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="30">
+                    <Border Style="{StaticResource LiquidGlassCard}">
+                        <TextBlock x:Name="TitleTextBlock" Style="{StaticResource CardTitleText}" FontSize="36" TextWrapping="Wrap" HorizontalAlignment="Center" />
+                    </Border>
+                    
+                    <Border x:Name="HintBorder" Style="{StaticResource LiquidGlassCard}" Visibility="Collapsed">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Hint" Style="{StaticResource CardSubtitleText}" FontWeight="SemiBold" />
+                            <TextBlock x:Name="HintTextBlock" Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap" FontSize="16" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border x:Name="ContentBorder" Style="{StaticResource LiquidGlassCard}" Visibility="Collapsed">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Content" Style="{StaticResource CardSubtitleText}" FontWeight="SemiBold" Foreground="{StaticResource KikariaTheme.MasteredGreen}" />
+                            <TextBlock x:Name="ContentTextBlock" Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap" FontSize="16" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
+                <Button x:Name="ShowHintButton" Style="{StaticResource LiquidGlassButton}" Content="Show Hint" Click="ShowHintButton_Click" />
+                <Button x:Name="ShowContentButton" Style="{StaticResource LiquidGlassButton}" Content="Show Content" Click="ShowContentButton_Click" />
+                <Button x:Name="MarkMasteredButton" Style="{StaticResource LiquidGlassButton}" Background="{Binding Source={StaticResource KikariaTheme}, Path=MasteredGradient}" Content="Mark as Mastered" Click="MarkMasteredButton_Click" IsEnabled="False" />
+                <Button x:Name="AddToReinforcementButton" Style="{StaticResource LiquidGlassButton}" Background="{Binding Source={StaticResource KikariaTheme}, Path=NextGradient}" Content="Add to Reinforcement" Click="AddToReinforcementButton_Click" IsEnabled="False" />
+                <Button x:Name="NextButton" Style="{StaticResource LiquidGlassButton}" Background="{Binding Source={StaticResource KikariaTheme}, Path=ActionGradient}" Content="Next Point" Click="NextButton_Click" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Page>

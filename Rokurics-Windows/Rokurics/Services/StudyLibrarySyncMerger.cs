@@ -319,6 +319,12 @@ public static class SyncChecksum
         return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
+    public static string Compute(byte[] bytes)
+    {
+        var hash = System.Security.Cryptography.SHA256.HashData(bytes);
+        return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
     public static string ComputeFromJson<T>(T value) where T : notnull
     {
         var json = System.Text.Json.JsonSerializer.Serialize(value,
@@ -379,7 +385,18 @@ public enum SyncDiffActionKind
     UploadRecordingAudio, Conflict
 }
 
-public enum SyncArtifactKind { TranscriptMarkdown, TranscriptJson, NoteMarkdown, NoteJson, Audio }
+public enum SyncArtifactKind
+{
+    TranscriptMarkdown,
+    TranscriptJson,
+    NoteMarkdown,
+    NoteJson,
+    MetadataJson,
+    ReceiveJson,
+    SummaryMarkdown,
+    SummaryJson,
+    Audio
+}
 
 public sealed class SyncInventory
 {
@@ -391,6 +408,7 @@ public sealed class SyncInventory
     public List<SyncStudyItemEntry> StudyItems { get; init; } = new();
     public List<SyncArtifactEntry> Artifacts { get; init; } = new();
     public StudyLibrarySyncManifest? StudyManifest { get; init; }
+    public CanonicalManifest? CanonicalManifest { get; init; }
 
     public string InventoryHash
     {
@@ -404,7 +422,9 @@ public sealed class SyncInventory
                 recordings = Recordings.OrderBy(r => r.RecordingId).ToList(),
                 folders = Folders.OrderBy(f => f.FolderId).ToList(),
                 studyItems = StudyItems.OrderBy(s => s.ItemId).ToList(),
-                artifacts = Artifacts.OrderBy(a => a.ArtifactId).ToList()
+                artifacts = Artifacts.OrderBy(a => a.ArtifactId).ToList(),
+                studyManifest = StudyManifest,
+                canonicalManifest = CanonicalManifest
             }, new System.Text.Json.JsonSerializerOptions
             {
                 PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
@@ -421,6 +441,19 @@ public sealed class SyncRecordingEntry
     public bool AudioAvailable { get; init; }
     public string? AudioChecksum { get; init; }
     public long? AudioSize { get; init; }
+    public string? UploadLedgerState { get; init; }
+    public string? ReceiveStatus { get; init; }
+    public string? ProcessingStatus { get; init; }
+    public string? Title { get; init; }
+    public DateTime? CreatedAt { get; init; }
+    public bool? Tombstone { get; init; }
+    public string? AudioAvailability { get; init; }
+    public string? UploadStatus { get; init; }
+    public string? TranscriptionStatus { get; init; }
+    public string? NoteStatus { get; init; }
+    public string? SourceDeviceID { get; init; }
+    public List<string>? ArtifactRefs { get; init; }
+    public string? AudioLogicalPathToken { get; init; }
     public DateTime UpdatedAt { get; init; }
     public bool Deleted { get; init; }
 }
@@ -447,6 +480,22 @@ public sealed class SyncStudyItemEntry
     public bool Deleted { get; init; }
 }
 
+public sealed class CanonicalManifestNode
+{
+    public string? NodeID { get; init; }
+    public string? Platform { get; init; }
+    public string? DisplayName { get; init; }
+}
+
+public sealed class CanonicalManifest
+{
+    public CanonicalManifestNode? Node { get; init; }
+    public Dictionary<string, object?> Payload { get; init; } = new();
+    public int SchemaVersion { get; init; } = 1;
+    public DateTime? GeneratedAt { get; init; }
+    public string? ManifestHash { get; init; }
+}
+
 public sealed class SyncArtifactEntry
 {
     public string ArtifactId { get; init; } = "";
@@ -459,7 +508,8 @@ public sealed class SyncArtifactEntry
 
     public static string MakeArtifactId(SyncArtifactKind kind, string ownerId, string logicalPath)
     {
-        var payload = $"{kind}|{ownerId}|{logicalPath}";
+        var canonicalKind = CanonicalArtifactKind(kind);
+        var payload = $"{canonicalKind}|{ownerId}|{logicalPath}";
         return $"artifact_{SyncChecksum.Compute(payload)}";
     }
 }
@@ -523,23 +573,25 @@ public sealed class SyncDiffPlanner
                 if (lr.MetadataHash == pr.MetadataHash)
                     plan.NoOps.Add(Action(SyncDiffActionKind.NoOp, "recording", id, "metadata_equal"));
                 else if (BothChangedAfterSync(lr.UpdatedAt, pr.UpdatedAt, lastSync))
-                    plan.Conflicts.Add(Action(SyncDiffActionKind.Conflict, "recording", id, "both_changed_after_sync"));
+                    plan.Conflicts.Add(Action(SyncDiffActionKind.Conflict, "recording", id, "both_changed_after_last_sync"));
                 else if (pr.Deleted && pr.UpdatedAt >= lr.UpdatedAt)
                     plan.DownloadMetadata.Add(Action(SyncDiffActionKind.DownloadMetadata, "recording", id, "peer_tombstone_wins"));
                 else if (lr.Deleted && lr.UpdatedAt >= pr.UpdatedAt)
                     plan.UploadMetadata.Add(Action(SyncDiffActionKind.UploadMetadata, "recording", id, "local_tombstone_wins"));
                 else if (lr.UpdatedAt > pr.UpdatedAt)
-                    plan.UploadMetadata.Add(Action(SyncDiffActionKind.UploadMetadata, "recording", id, "local_newer"));
+                    plan.UploadMetadata.Add(Action(SyncDiffActionKind.UploadMetadata, "recording", id, "local_recording_newer"));
                 else
-                    plan.DownloadMetadata.Add(Action(SyncDiffActionKind.DownloadMetadata, "recording", id, "peer_newer"));
+                    plan.DownloadMetadata.Add(Action(SyncDiffActionKind.DownloadMetadata, "recording", id, "peer_recording_newer"));
 
                 if (lr.AudioAvailable && !pr.AudioAvailable)
-                    plan.UploadRecordingAudio.Add(Action(SyncDiffActionKind.UploadRecordingAudio, "recording", id, "peer_missing_audio"));
+                    plan.UploadRecordingAudio.Add(
+                        Action(SyncDiffActionKind.UploadRecordingAudio, "recording", id, "peer_missing_audio_use_existing_upload")
+                    );
             }
             else if (hasLocal && lr is not null)
-                plan.UploadMetadata.Add(Action(SyncDiffActionKind.UploadMetadata, "recording", id, "peer_missing"));
+                plan.UploadMetadata.Add(Action(SyncDiffActionKind.UploadMetadata, "recording", id, "peer_missing_recording"));
             else if (hasPeer && pr is not null)
-                plan.DownloadMetadata.Add(Action(SyncDiffActionKind.DownloadMetadata, "recording", id, "local_missing"));
+                plan.DownloadMetadata.Add(Action(SyncDiffActionKind.DownloadMetadata, "recording", id, "local_missing_recording_metadata"));
         }
     }
 
@@ -605,7 +657,7 @@ public sealed class SyncDiffPlanner
             var peerDate = peerUpdated ?? DateTime.MinValue;
 
             if (BothChangedAfterSync(localDate, peerDate, lastSync))
-                plan.Conflicts.Add(Action(SyncDiffActionKind.Conflict, entityKind, entityId, "both_changed_after_sync"));
+                plan.Conflicts.Add(Action(SyncDiffActionKind.Conflict, entityKind, entityId, "both_changed_after_last_sync"));
             else if (peerDeleted && peerDate >= localDate)
                 plan.DownloadMetadata.Add(Action(SyncDiffActionKind.DownloadMetadata, entityKind, entityId, "peer_tombstone_wins"));
             else if (localDeleted && localDate >= peerDate)
@@ -634,25 +686,25 @@ public sealed class SyncDiffPlanner
                 if (la.Checksum == pa.Checksum)
                     plan.NoOps.Add(Action(SyncDiffActionKind.NoOp, "artifact", id, "checksum_equal"));
                 else if (pa.UpdatedAt > la.UpdatedAt && AutoDownloadAllowed(pa.Kind))
-                    plan.DownloadArtifacts.Add(Action(SyncDiffActionKind.DownloadArtifact, "artifact", id, "peer_newer"));
+                    plan.DownloadArtifacts.Add(Action(SyncDiffActionKind.DownloadArtifact, "artifact", id, "peer_artifact_newer"));
                 else if (la.UpdatedAt > pa.UpdatedAt && la.Kind != SyncArtifactKind.Audio)
-                    plan.UploadArtifacts.Add(Action(SyncDiffActionKind.UploadArtifact, "artifact", id, "local_newer"));
+                    plan.UploadArtifacts.Add(Action(SyncDiffActionKind.UploadArtifact, "artifact", id, "local_artifact_newer"));
                 else if (la.Kind == SyncArtifactKind.Audio || pa.Kind == SyncArtifactKind.Audio)
                     plan.NoOps.Add(Action(SyncDiffActionKind.NoOp, "artifact", id, "audio_uses_recording_upload"));
                 else
-                    plan.Conflicts.Add(Action(SyncDiffActionKind.Conflict, "artifact", id, "checksum_mismatch"));
+                    plan.Conflicts.Add(Action(SyncDiffActionKind.Conflict, "artifact", id, "artifact_checksum_conflict"));
             }
             else if (hasLocal && la is not null)
             {
                 if (la.Kind == SyncArtifactKind.Audio)
                     plan.NoOps.Add(Action(SyncDiffActionKind.NoOp, "artifact", id, "audio_uses_recording_upload"));
                 else
-                    plan.UploadArtifacts.Add(Action(SyncDiffActionKind.UploadArtifact, "artifact", id, "peer_missing"));
+                    plan.UploadArtifacts.Add(Action(SyncDiffActionKind.UploadArtifact, "artifact", id, "peer_missing_artifact"));
             }
             else if (hasPeer && pa is not null)
             {
                 if (AutoDownloadAllowed(pa.Kind))
-                    plan.DownloadArtifacts.Add(Action(SyncDiffActionKind.DownloadArtifact, "artifact", id, "local_missing"));
+                    plan.DownloadArtifacts.Add(Action(SyncDiffActionKind.DownloadArtifact, "artifact", id, "local_missing_artifact"));
                 else
                     plan.NoOps.Add(Action(SyncDiffActionKind.NoOp, "artifact", id, "audio_auto_download_disabled"));
             }
@@ -665,6 +717,10 @@ public sealed class SyncDiffPlanner
         SyncArtifactKind.TranscriptJson => true,
         SyncArtifactKind.NoteMarkdown => true,
         SyncArtifactKind.NoteJson => true,
+        SyncArtifactKind.MetadataJson => true,
+        SyncArtifactKind.ReceiveJson => true,
+        SyncArtifactKind.SummaryMarkdown => true,
+        SyncArtifactKind.SummaryJson => true,
         SyncArtifactKind.Audio => false,
         _ => false
     };
@@ -707,28 +763,9 @@ public sealed class SyncInventoryBuilder
         _studyStore.Refresh();
 
         var manifest = _studyStore.MakeSyncManifest(deviceId);
-        var recordings = _studyStore.AllStudyItems
-            .Where(i => i.RecordingId is not null && !i.IsTrashed)
+        var recordings = _audioStore.LoadAllMetadata(includeDeleted: true)
             .ToList();
-
-        var recordingEntries = recordings.Select(r =>
-        {
-            var audioPath = r.AudioRelativePath is not null
-                ? _audioStore.AbsolutePath(r.AudioRelativePath) : null;
-            var audioExists = audioPath is not null && File.Exists(audioPath);
-            var audioSize = audioExists && audioPath is not null
-                ? new FileInfo(audioPath).Length : (long?)null;
-
-            return new SyncRecordingEntry
-            {
-                RecordingId = r.RecordingId!,
-                MetadataHash = SyncChecksum.ComputeFromJson(r),
-                AudioAvailable = audioExists,
-                AudioSize = audioSize,
-                UpdatedAt = r.UpdatedAt,
-                Deleted = r.IsTrashed
-            };
-        }).ToList();
+        var recordingEntries = recordings.Select(r => BuildRecordingEntry(r, deviceId)).ToList();
 
         var folderEntries = manifest.Folders.Select(f =>
             new SyncFolderEntry
@@ -765,8 +802,240 @@ public sealed class SyncInventoryBuilder
             Folders = folderEntries,
             StudyItems = studyItemEntries,
             Artifacts = artifactEntries,
-            StudyManifest = manifest
+            StudyManifest = manifest,
+            CanonicalManifest = BuildCanonicalManifest(
+                deviceId,
+                recordingEntries,
+                folderEntries,
+                studyItemEntries,
+                artifactEntries,
+                manifest
+            )
         };
+    }
+
+    private SyncRecordingEntry BuildRecordingEntry(RecordingMetadata recording, string sourceDeviceId)
+    {
+        var audioPath = ResolveAudioPath(recording);
+        var audioExists = !string.IsNullOrWhiteSpace(audioPath) && File.Exists(audioPath);
+        var audioSize = audioExists && audioPath is not null
+            ? new FileInfo(audioPath).Length : (long?)null;
+        var audioChecksum = audioExists && audioPath is not null
+            ? SyncChecksum.Compute(File.ReadAllBytes(audioPath))
+            : null;
+
+        return new SyncRecordingEntry
+        {
+            RecordingId = recording.Id,
+            MetadataHash = SyncChecksum.ComputeFromJson(recording),
+            AudioAvailable = audioExists,
+            AudioChecksum = audioChecksum,
+            AudioSize = audioSize,
+            UploadLedgerState = null,
+            ReceiveStatus = null,
+            ProcessingStatus = null,
+            Title = recording.Title,
+            CreatedAt = recording.CreatedAt,
+            Tombstone = recording.IsDeleted,
+            AudioAvailability = audioExists ? "local" : "missing",
+            UploadStatus = recording.UploadStatus,
+            TranscriptionStatus = recording.TranscriptionStatus,
+            NoteStatus = recording.NoteStatus,
+            SourceDeviceID = sourceDeviceId,
+            ArtifactRefs = string.IsNullOrWhiteSpace(recording.RelativeMetadataPath)
+                ? new List<string>()
+                : new List<string> { recording.RelativeMetadataPath },
+            AudioLogicalPathToken = recording.RelativeAudioPath,
+            UpdatedAt = recording.DeletedAt ?? recording.CreatedAt,
+            Deleted = recording.IsDeleted
+        };
+    }
+
+    private string? ResolveAudioPath(RecordingMetadata recording)
+    {
+        if (string.IsNullOrWhiteSpace(recording.RelativeAudioPath)) return null;
+
+        try
+        {
+            return _audioStore.AbsolutePath(recording.RelativeAudioPath);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private CanonicalManifest BuildCanonicalManifest(
+        string deviceId,
+        List<SyncRecordingEntry> recordingEntries,
+        List<SyncFolderEntry> folderEntries,
+        List<SyncStudyItemEntry> studyItemEntries,
+        List<SyncArtifactEntry> artifactEntries,
+        StudyLibrarySyncManifest manifest
+    )
+    {
+        var objects = new List<Dictionary<string, object?>>();
+
+        foreach (var rec in recordingEntries.OrderBy(r => r.RecordingId))
+        {
+            objects.Add(new Dictionary<string, object?>
+            {
+                ["objectID"] = $"recordingMetadata:{rec.RecordingId}",
+                ["objectKind"] = "recordingMetadata",
+                ["ownerID"] = rec.RecordingId,
+                ["displayTitle"] = rec.Title,
+                ["sha256"] = rec.MetadataHash,
+                ["updatedAt"] = rec.UpdatedAt,
+                ["deleted"] = rec.Deleted,
+                ["tombstone"] = rec.Tombstone,
+                ["sourceDeviceID"] = rec.SourceDeviceID,
+                ["autoDownloadAllowed"] = true,
+                ["conflictStatus"] = null
+            });
+
+            objects.Add(new Dictionary<string, object?>
+            {
+                ["objectID"] = $"recordingAudio:{rec.RecordingId}",
+                ["objectKind"] = "recordingAudio",
+                ["ownerID"] = rec.RecordingId,
+                ["displayTitle"] = rec.Title,
+                ["sha256"] = rec.AudioChecksum,
+                ["size"] = rec.AudioSize,
+                ["updatedAt"] = rec.UpdatedAt,
+                ["deleted"] = rec.Deleted,
+                ["tombstone"] = rec.Tombstone,
+                ["sourceDeviceID"] = rec.SourceDeviceID,
+                ["logicalPathToken"] = rec.AudioLogicalPathToken,
+                ["autoDownloadAllowed"] = false,
+                ["conflictStatus"] = null
+            });
+        }
+
+        foreach (var folder in folderEntries.OrderBy(f => f.FolderId))
+        {
+            objects.Add(new Dictionary<string, object?>
+            {
+                ["objectID"] = $"studyFolder:{folder.FolderId}",
+                ["objectKind"] = "studyFolder",
+                ["ownerID"] = folder.FolderId,
+                ["displayTitle"] = folder.Name,
+                ["sha256"] = folder.RevisionHash,
+                ["updatedAt"] = folder.UpdatedAt,
+                ["deleted"] = folder.Deleted,
+                ["tombstone"] = folder.Deleted,
+                ["sourceDeviceID"] = null,
+                ["logicalPathToken"] = folder.Path,
+                ["autoDownloadAllowed"] = true,
+                ["conflictStatus"] = null
+            });
+        }
+
+        foreach (var item in studyItemEntries.OrderBy(i => i.ItemId))
+        {
+            objects.Add(new Dictionary<string, object?>
+            {
+                ["objectID"] = $"studyItem:{item.ItemId}",
+                ["objectKind"] = "studyItem",
+                ["ownerID"] = item.RecordingId ?? item.ItemId,
+                ["displayTitle"] = item.Title,
+                ["sha256"] = item.RevisionHash,
+                ["updatedAt"] = item.UpdatedAt,
+                ["deleted"] = item.Deleted,
+                ["tombstone"] = item.Deleted,
+                ["sourceDeviceID"] = null,
+                ["logicalPathToken"] = item.ItemId,
+                ["autoDownloadAllowed"] = true,
+                ["conflictStatus"] = null
+            });
+        }
+
+        foreach (var artifact in artifactEntries.OrderBy(a => a.ArtifactId))
+        {
+            objects.Add(new Dictionary<string, object?>
+            {
+                ["objectID"] = artifact.ArtifactId,
+                ["objectKind"] = CanonicalArtifactKind(artifact.Kind),
+                ["ownerID"] = artifact.OwnerId,
+                ["displayTitle"] = artifact.OwnerId,
+                ["sha256"] = artifact.Checksum,
+                ["size"] = artifact.Size,
+                ["updatedAt"] = artifact.UpdatedAt,
+                ["deleted"] = false,
+                ["tombstone"] = false,
+                ["sourceDeviceID"] = null,
+                ["logicalPathToken"] = artifact.LogicalPathToken,
+                ["autoDownloadAllowed"] = artifact.Kind != SyncArtifactKind.Audio
+            });
+        }
+
+        var generatedAt = DateTime.UtcNow;
+        var payload = new Dictionary<string, object?>
+        {
+            ["schemaVersion"] = 1,
+            ["node"] = new Dictionary<string, object?>
+            {
+                ["nodeID"] = deviceId,
+                ["platform"] = "Windows",
+                ["displayName"] = "Windows"
+            },
+            ["generatedAt"] = generatedAt,
+            ["objects"] = objects,
+            ["objectCount"] = objects.Count,
+            ["studyManifestRecordCount"] = manifest.Items.Count,
+            ["studyManifestFolderCount"] = manifest.Folders.Count,
+            ["tombstoneCount"] = manifest.Tombstones.Count,
+            ["pendingUploadCount"] = manifest.PendingUploads.Count,
+            ["artifacts"] = artifactEntries.Select(a => new Dictionary<string, object?>
+            {
+                ["artifactID"] = a.ArtifactId,
+                ["kind"] = CanonicalArtifactKind(a.Kind),
+                ["ownerID"] = a.OwnerId,
+                ["sha256"] = a.Checksum,
+                ["size"] = a.Size,
+                ["updatedAt"] = a.UpdatedAt,
+                ["logicalPathToken"] = a.LogicalPathToken
+            }).ToList()
+        };
+
+        var manifestHash = BuildCanonicalManifestHash(payload);
+        payload["manifestHash"] = manifestHash;
+
+        return new CanonicalManifest
+        {
+            Node = new CanonicalManifestNode
+            {
+                NodeID = deviceId,
+                Platform = "Windows",
+                DisplayName = "Windows"
+            },
+            Payload = payload,
+            SchemaVersion = 1,
+            GeneratedAt = generatedAt,
+            ManifestHash = manifestHash
+        };
+    }
+
+    private static string CanonicalArtifactKind(SyncArtifactKind kind) => kind switch
+    {
+        SyncArtifactKind.TranscriptMarkdown => "transcriptMarkdown",
+        SyncArtifactKind.TranscriptJson => "transcriptJSON",
+        SyncArtifactKind.NoteMarkdown => "noteMarkdown",
+        SyncArtifactKind.NoteJson => "noteJSON",
+        SyncArtifactKind.MetadataJson => "metadataJSON",
+        SyncArtifactKind.ReceiveJson => "receiveJSON",
+        SyncArtifactKind.SummaryMarkdown => "summaryMarkdown",
+        SyncArtifactKind.SummaryJson => "summaryJSON",
+        SyncArtifactKind.Audio => "recordingAudio",
+        _ => kind.ToString()
+    };
+
+    private string BuildCanonicalManifestHash(Dictionary<string, object?> payload)
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(payload, new System.Text.Json.JsonSerializerOptions
+        {
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+        });
+        return SyncChecksum.Compute(json);
     }
 
     private List<SyncArtifactEntry> BuildArtifacts(StudyLibrarySyncManifest manifest)
@@ -779,10 +1048,16 @@ public sealed class SyncInventoryBuilder
                 SyncArtifactKind.TranscriptMarkdown, ownerId, artifacts);
             AddArtifact(item.TranscriptRelativePath,
                 SyncArtifactKind.TranscriptJson, ownerId, artifacts);
+            AddArtifact(item.ReceiveRelativePath,
+                SyncArtifactKind.ReceiveJson, ownerId, artifacts);
             AddArtifact(item.NoteRelativePath,
                 item.NoteRelativePath?.EndsWith(".json") == true
                     ? SyncArtifactKind.NoteJson : SyncArtifactKind.NoteMarkdown,
                 ownerId, artifacts);
+            AddArtifact(item.SummaryMarkdownRelativePath,
+                SyncArtifactKind.SummaryMarkdown, ownerId, artifacts);
+            AddArtifact(item.SummaryJSONRelativePath,
+                SyncArtifactKind.SummaryJson, ownerId, artifacts);
             AddArtifact(item.AudioRelativePath,
                 SyncArtifactKind.Audio, ownerId, artifacts, includeChecksum: false);
         }

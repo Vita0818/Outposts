@@ -14,6 +14,37 @@ qwen-vision · connected · 3 tools
 
 Codex Agent 本体不直接调用 `qwen-vision`。Codex Agent 只负责在适当的 Claude Code 正式任务 prompt 中要求 Claude Code 使用 `qwen-vision`。
 
+## Spark + Qwen 视觉流程
+
+当本轮为 Spark + Qwen 视觉辅助模式时执行固定闭环：
+
+1. Spark 读取任务与相关代码。
+2. 生成或定位 reference 截图。
+3. 生成 actual 截图。
+4. 调用 Qwen3.7Plus 进行 `inspect_screenshot(reference)`、`inspect_screenshot(actual)`，并在两图都可得时执行 `compare_screenshots(reference, actual)`。
+5. Spark 根据 Qwen 输出拆解视觉差异并修改代码。
+6. Spark 运行构建/测试并按需要重拍截图。
+7. 以新截图复跑 compare，直至达到任务停止条件或达到每批可视化轮次上限。
+
+若实际截图缺失：
+
+- 可先只做 reference inspect，进入 `REFERENCE_ONLY`。
+- Spark 不得因此宣告视觉闭环完成。
+
+## Spark + Qwen 视觉接入规则（可选 helper）
+
+若当前环境已有 Qwen helper / MCP / API wrapper，优先复用，不要临时接新链路。  
+若没有现有工具，不要硬编码 API Key，不要把 Key 写入仓库。
+
+1. API Key 只允许从环境变量读取（如 `DASHSCOPE_API_KEY`、`QWEN_API_KEY`）。
+2. 图像输入仅限截图路径（reference/actual）。
+3. 输出报告建议落盘：
+
+```text
+/Users/vita/Vitemis/Outposts/.outposts-supervisor/visual-evidence/<BATCH_NAME>/<RUN_ID>/<PROJECT>/qwen/
+```
+4. Spark 只读取 Qwen 报告，不得将源码、token、`.env`、证书或私密配置传给 Qwen。
+
 ## 工具清单
 
 ### `inspect_screenshot(image_path, goal="")`
@@ -57,7 +88,8 @@ Codex Agent 本体不直接调用 `qwen-vision`。Codex Agent 只负责在适当
 6. 文件修改、代码调整、构建、测试、总结都由 Claude Code 主 Agent 完成。
 7. Codex Agent 本体不直接调用 `qwen-vision`；Codex 只负责在适当任务 prompt 中要求 Claude Code 使用 `qwen-vision`。
 8. 如果没有可用截图路径，不得假装已经做了视觉识别；应要求 Claude Code 先生成或截取实际页面截图，或报告缺少视觉材料。
-9. 默认视觉验收最多重复 2 轮，避免无限微调。
+9. Spark + Qwen 模式下，Spark 不得自行判读截图，必须以 Qwen 输出作为唯一视觉证据。
+10. 默认视觉验收最多重复 2 轮，避免无限微调。
 10. 如果用户明确要求“完美复刻 Apple UI”，Claude Code 应优先尝试建立 reference screenshot 和 actual screenshot 的视觉对比闭环。
 
 ## 单张截图识别标准提示词
@@ -451,6 +483,19 @@ Codex 主管摘要中也应简要保留：
 - 主要视觉差异。
 - 是否已根据视觉差异修正。
 - 剩余视觉验收阻塞。
+
+## Spark + Qwen 任务补充字段（供规则一致性复用）
+
+- `MODE=SPARK_QWEN`
+- `QWEN_MODEL`
+- `QWEN_AVAILABLE`
+- `QWEN_CALL_METHOD`
+- `REFERENCE_SCREENSHOTS`
+- `ACTUAL_SCREENSHOTS`
+- `QWEN_INSPECT_REFERENCE_RESULT`
+- `QWEN_INSPECT_ACTUAL_RESULT`
+- `QWEN_COMPARE_RESULT`
+- `CODE_CHANGES_FROM_QWEN`
 
 ## 禁止事项
 

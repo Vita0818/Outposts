@@ -4,6 +4,8 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.rokurics.app.RokuricsApp
+import com.rokurics.app.domain.model.LocalNetworkSyncControlPlaneState
+import com.rokurics.app.domain.model.LocalNetworkTransferProgress
 import com.rokurics.app.domain.model.LocalNetworkSyncState
 import com.rokurics.app.domain.model.StudyLibrarySyncState
 import java.io.File
@@ -34,21 +36,31 @@ class LocalNetworkSyncStateStore(
     }
 
     fun recordAttempt(
+        localDeviceID: String? = null,
         peerDeviceID: String,
         localInventoryHash: String,
         peerInventoryHash: String,
         pendingUploadCount: Int,
         pendingDownloadCount: Int,
+        planSummary: String? = null,
+        conflictCount: Int? = null,
         at: Long = System.currentTimeMillis()
     ) {
         val current = load()
         save(current.copy(
+            localDeviceID = localDeviceID ?: current.localDeviceID,
+            peerDeviceID = peerDeviceID,
+            lastSyncStartedAt = at,
             lastSyncAt = at,
             lastPeerDeviceID = peerDeviceID,
             lastLocalInventoryHash = localInventoryHash,
             lastPeerInventoryHash = peerInventoryHash,
+            lastPlanSummary = planSummary,
+            lastConflictCount = conflictCount,
             pendingUploadCount = pendingUploadCount,
-            pendingDownloadCount = pendingDownloadCount
+            pendingDownloadCount = pendingDownloadCount,
+            lastErrorCode = null,
+            lastErrorMessage = null
         ))
     }
 
@@ -63,6 +75,9 @@ class LocalNetworkSyncStateStore(
     ) {
         val current = load()
         save(current.copy(
+            version = LocalNetworkSyncState.CURRENT_VERSION,
+            peerDeviceID = peerDeviceID,
+            lastSyncCompletedAt = at,
             lastSyncAt = at,
             lastSuccessfulSyncAt = at,
             lastPeerDeviceID = peerDeviceID,
@@ -74,22 +89,66 @@ class LocalNetworkSyncStateStore(
             lastErrorCode = null,
             lastErrorMessage = null,
             pendingUploadCount = pendingUploadCount,
-            pendingDownloadCount = pendingDownloadCount
+            pendingDownloadCount = pendingDownloadCount,
+            activeTransfers = if (pendingUploadCount == 0 && pendingDownloadCount == 0) {
+                emptyList()
+            } else {
+                current.activeTransfers
+            }
+        ))
+    }
+
+    fun recordActiveTransfers(transfers: List<LocalNetworkTransferProgress>) {
+        val current = load()
+        save(current.copy(activeTransfers = transfers))
+    }
+
+    fun recordControlPlane(
+        syncRunID: String,
+        state: LocalNetworkSyncControlPlaneState,
+        at: Long = System.currentTimeMillis()
+    ) {
+        val current = load()
+        val nextSuccessAt = when (state) {
+            LocalNetworkSyncControlPlaneState.COMPLETED -> at
+            else -> current.lastSuccessfulSyncAt
+        }
+        val nextSyncCompletedAt = when (state) {
+            LocalNetworkSyncControlPlaneState.COMPLETED,
+            LocalNetworkSyncControlPlaneState.FAILED -> at
+            else -> current.lastSyncCompletedAt
+        }
+        val nextLastSyncAt = if (state == LocalNetworkSyncControlPlaneState.SYNC_START_ACKED ||
+            state == LocalNetworkSyncControlPlaneState.INVENTORY_EXCHANGING
+        ) {
+            current.lastSyncAt ?: at
+        } else {
+            current.lastSyncAt
+        }
+        save(current.copy(
+            activeSyncRunID = syncRunID,
+            controlPlaneState = state,
+            lastControlPlaneUpdatedAt = at,
+            lastSyncCompletedAt = nextSyncCompletedAt,
+            lastSuccessfulSyncAt = nextSuccessAt,
+            lastSyncAt = nextLastSyncAt
         ))
     }
 
     fun recordFailure(
         code: String?,
         message: String?,
-        at: Long = System.currentTimeMillis()
+        at: Long = System.currentTimeMillis(),
+        minimumBackoff: Long = LocalNetworkSyncState.BASE_BACKOFF_SECONDS,
+        maximumBackoff: Long = LocalNetworkSyncState.MAX_BACKOFF_SECONDS
     ) {
         val current = load()
         val failures = current.consecutiveFailureCount + 1
-        val delaySeconds = minOf(
-            LocalNetworkSyncState.BASE_BACKOFF_SECONDS * (1L shl (failures - 1)),
-            LocalNetworkSyncState.MAX_BACKOFF_SECONDS
-        )
+        val exponent = kotlin.math.max(0, failures - 1)
+        val delaySeconds = kotlin.math.min(minimumBackoff * (1L shl exponent), maximumBackoff)
         save(current.copy(
+            version = LocalNetworkSyncState.CURRENT_VERSION,
+            lastSyncCompletedAt = at,
             lastSyncAt = at,
             consecutiveFailureCount = failures,
             nextAllowedSyncAt = System.currentTimeMillis() + delaySeconds * 1000,

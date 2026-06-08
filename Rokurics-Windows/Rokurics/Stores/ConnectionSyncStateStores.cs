@@ -293,39 +293,161 @@ public class LocalNetworkSyncStateStore
         Load();
     }
 
-    public void RecordAttempt(DateTime? date = null)
-    {
-        State.LastSyncAt = date ?? DateTime.UtcNow;
-        State.ConsecutiveFailureCount = 0;
-        State.LastErrorMessage = null;
-        Save();
-    }
-
-    public void RecordSuccess(DateTime? date = null)
+    public void RecordAttempt(
+        string peerDeviceID,
+        string localInventoryHash,
+        string peerInventoryHash,
+        int pendingUploadCount,
+        int pendingDownloadCount,
+        string? localDeviceID = null,
+        string? planSummary = null,
+        int? conflictCount = null,
+        DateTime? date = null
+    )
     {
         var d = date ?? DateTime.UtcNow;
-        State.LastSuccessfulSyncAt = d;
+        State.Version = Math.Max(State.Version, CurrentVersion);
+        State.LocalDeviceID = localDeviceID ?? State.LocalDeviceID;
+        State.PeerDeviceID = peerDeviceID;
+        State.LastSyncStartedAt = d;
         State.LastSyncAt = d;
+        State.LastPeerDeviceID = peerDeviceID;
+        State.LastLocalInventoryHash = localInventoryHash;
+        State.LastPeerInventoryHash = peerInventoryHash;
+        State.PendingUploadCount = pendingUploadCount;
+        State.PendingDownloadCount = pendingDownloadCount;
+        State.LastPlanSummary = planSummary;
+        State.LastConflictCount = conflictCount;
         State.ConsecutiveFailureCount = 0;
+        State.LastErrorCode = null;
         State.LastErrorMessage = null;
         Save();
     }
 
-    public void RecordFailure(string error, DateTime? date = null)
+    public void RecordSuccess(
+        string peerDeviceID,
+        string localInventoryHash,
+        string peerInventoryHash,
+        string? appliedPeerRevision = null,
+        int pendingUploadCount = 0,
+        int pendingDownloadCount = 0,
+        DateTime? date = null
+    )
     {
-        State.LastSyncAt = date ?? DateTime.UtcNow;
-        State.ConsecutiveFailureCount++;
-        State.LastErrorMessage = error;
+        var d = date ?? DateTime.UtcNow;
+        State.Version = CurrentVersion;
+        State.PeerDeviceID = peerDeviceID;
+        State.LastSyncCompletedAt = d;
+        State.LastSyncAt = d;
+        State.LastSuccessfulSyncAt = d;
+        State.LastPeerDeviceID = peerDeviceID;
+        State.LastLocalInventoryHash = localInventoryHash;
+        State.LastPeerInventoryHash = peerInventoryHash;
+        State.LastAppliedPeerRevision = appliedPeerRevision;
+        State.ConsecutiveFailureCount = 0;
+        State.NextAllowedSyncAt = null;
+        State.LastErrorCode = null;
+        State.LastErrorMessage = null;
+        State.PendingUploadCount = pendingUploadCount;
+        State.PendingDownloadCount = pendingDownloadCount;
+        if (pendingUploadCount == 0 && pendingDownloadCount == 0)
+        {
+            State.ActiveTransfers = new List<LocalNetworkSyncTransferProgress>();
+        }
+        Save();
+    }
+
+    public void RecordFailure(
+        string? code,
+        string? message,
+        DateTime? date = null,
+        long minimumBackoff = 30L,
+        long maximumBackoff = 600L
+    )
+    {
+        var d = date ?? DateTime.UtcNow;
+        State.Version = CurrentVersion;
+        var failures = State.ConsecutiveFailureCount + 1;
+        var exponent = Math.Max(0, failures - 1);
+        var delaySeconds = Math.Min(minimumBackoff * (1L << exponent), maximumBackoff);
+
+        State.LastSyncAt = d;
+        State.LastSyncCompletedAt = d;
+        State.ConsecutiveFailureCount = failures;
+        State.NextAllowedSyncAt = d.AddSeconds(delaySeconds);
+        State.LastErrorCode = code;
+        State.LastErrorMessage = message;
+        Save();
+    }
+
+    public void RecordControlPlane(string syncRunID, string state, DateTime? date = null)
+    {
+        var d = date ?? DateTime.UtcNow;
+        State.Version = CurrentVersion;
+        State.ActiveSyncRunID = syncRunID;
+        State.ControlPlaneState = state;
+        State.LastControlPlaneUpdatedAt = d;
+
+        if (state.Equals("completed", StringComparison.OrdinalIgnoreCase))
+        {
+            State.LastSyncCompletedAt = d;
+            State.LastSuccessfulSyncAt = d;
+            State.NextAllowedSyncAt = null;
+            State.ConsecutiveFailureCount = 0;
+            State.LastErrorCode = null;
+            State.LastErrorMessage = null;
+        }
+        else if (state.Equals("failed", StringComparison.OrdinalIgnoreCase))
+        {
+            State.LastSyncCompletedAt = d;
+        }
+        else if (state.Equals("syncStartAcked", StringComparison.OrdinalIgnoreCase) ||
+                 state.Equals("inventoryExchanging", StringComparison.OrdinalIgnoreCase))
+        {
+            State.LastSyncStartedAt = State.LastSyncStartedAt ?? d;
+            State.LastSyncAt = d;
+        }
+        Save();
+    }
+
+    public void RecordActiveTransfers(List<LocalNetworkSyncTransferProgress> transfers)
+    {
+        State.ActiveTransfers = transfers;
         Save();
     }
 
     public void ResetBackoff()
     {
         State.ConsecutiveFailureCount = 0;
+        State.LastErrorCode = null;
         State.LastErrorMessage = null;
         State.NextAllowedSyncAt = null;
         Save();
     }
+
+    /// <summary>Compatibility overload retained for older calls.</summary>
+    public void RecordAttempt(DateTime? date = null) =>
+        RecordAttempt(
+            peerDeviceID: State.PeerDeviceID ?? string.Empty,
+            localInventoryHash: State.LastLocalInventoryHash ?? string.Empty,
+            peerInventoryHash: State.LastPeerInventoryHash ?? string.Empty,
+            pendingUploadCount: 0,
+            pendingDownloadCount: 0,
+            date: date
+        );
+
+    /// <summary>Compatibility overload retained for older calls.</summary>
+    public void RecordSuccess(DateTime? date = null) =>
+        RecordSuccess(
+            peerDeviceID: State.PeerDeviceID ?? string.Empty,
+            localInventoryHash: State.LastLocalInventoryHash ?? string.Empty,
+            peerInventoryHash: State.LastPeerInventoryHash ?? string.Empty,
+            date: date
+        );
+
+    /// <summary>Compatibility overload retained for older calls.</summary>
+    public void RecordFailure(string error, DateTime? date = null) =>
+        RecordFailure(code: "sync_error", message: error, date: date);
 
     private void Load()
     {

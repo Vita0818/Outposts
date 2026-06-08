@@ -150,6 +150,10 @@ public class StudyLibraryStore
         Refresh();
         var items = AllStudyItems.Select(i => i.SyncSanitized(deviceId)).ToList();
         var folders = AllStudyFolders.Select(f => f.SyncSanitized(deviceId)).ToList();
+        var recordings = _audioFileStore.LoadAllMetadata(includeDeleted: true);
+        var itemsById = items.ToDictionary(i => i.ItemId, i => i);
+        var recordingEntries = makeSyncRecordings(recordings);
+        var pendingUploads = makePendingRecordingUploads(recordings, itemsById, deviceId);
         var tombstones = new List<StudyLibrarySyncTombstone>();
 
         foreach (var item in AllStudyItems.Where(i => i.IsTrashed))
@@ -175,7 +179,83 @@ public class StudyLibraryStore
             });
 
         return StudyLibrarySyncManifest.Make(deviceId, generatedAt ?? DateTime.UtcNow,
-            items, folders, tombstones, new List<PendingRecordingUpload>());
+            items, folders, recordingEntries, tombstones, pendingUploads);
+    }
+
+    private List<PendingRecordingUpload> makePendingRecordingUploads(
+        List<RecordingMetadata> recordings,
+        Dictionary<string, StudyItemMetadata> itemsById,
+        string targetDeviceID)
+    {
+        return recordings
+            .Where(r => !r.IsDeleted && !RecordingUploadStatus.FromMetadata(r.UploadStatus).IsUploaded)
+            .Select(r =>
+            {
+                var fallbackItemID = StudyItemMetadata.RecordingBundleItemId(r.Id);
+                var item = itemsById.TryGetValue(fallbackItemID, out var matched)
+                    ? matched
+                    : StudyItemMetadata.DefaultForRecording(r);
+
+                return new PendingRecordingUpload
+                {
+                    ItemId = item.ItemId,
+                    RecordingId = r.Id,
+                    LocalAudioRelativePath = r.RelativeAudioPath,
+                    TargetDeviceId = targetDeviceID,
+                    Status = r.UploadStatus,
+                    CreatedAt = r.CreatedAt,
+                    UpdatedAt = item.UpdatedAt
+                };
+            })
+            .OrderBy(u => u.ItemId)
+            .ToList();
+    }
+
+    private List<SyncRecordingEntry> makeSyncRecordings(List<RecordingMetadata> recordings)
+    {
+        return recordings
+            .Select(r =>
+            {
+                var audioPath = string.IsNullOrWhiteSpace(r.RelativeAudioPath)
+                    ? null
+                    : TryResolveAudioPath(r.RelativeAudioPath);
+                var audioAvailable = !string.IsNullOrWhiteSpace(audioPath) && File.Exists(audioPath);
+                var audioSize = audioAvailable
+                    ? new FileInfo(audioPath!).Length
+                    : (long?)null;
+
+                return new SyncRecordingEntry
+                {
+                    RecordingId = r.Id,
+                    MetadataHash = computeRecordingFingerprint(r),
+                    AudioAvailable = audioAvailable,
+                    AudioChecksum = audioAvailable
+                        ? SyncChecksum.Compute(File.ReadAllBytes(audioPath!))
+                        : null,
+                    AudioSize = audioSize,
+                    UpdatedAt = r.DeletedAt ?? r.CreatedAt,
+                    Deleted = r.IsDeleted
+                };
+            })
+            .OrderBy(r => r.RecordingId)
+            .ToList();
+    }
+
+    private string computeRecordingFingerprint(RecordingMetadata recording)
+    {
+        return SyncChecksum.ComputeFromJson(recording);
+    }
+
+    private string? TryResolveAudioPath(string relativeAudioPath)
+    {
+        try
+        {
+            return _audioFileStore.AbsolutePath(relativeAudioPath);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private void EnsureDirectories()

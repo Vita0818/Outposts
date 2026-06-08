@@ -459,6 +459,8 @@ data class StudyItemMetadata(
     val transcriptRelativePath: String? = null,
     val transcriptMarkdownRelativePath: String? = null,
     val noteRelativePath: String? = null,
+    val summaryMarkdownRelativePath: String? = null,
+    val summaryJSONRelativePath: String? = null,
     val transcriptionStatus: String? = null,
     val noteStatus: String? = null,
     val noteSections: List<RecordingNoteSectionRecord>? = null,

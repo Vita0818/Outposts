@@ -4,10 +4,12 @@ import android.content.Context
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
 import com.rokurics.app.RokuricsApp
+import com.rokurics.app.data.SecureUploadUtilities
 import com.rokurics.app.domain.model.PendingRecordingUpload
 import com.rokurics.app.domain.model.PendingRecordingUploadStatus
 import com.rokurics.app.domain.model.RecordingMetadata
 import com.rokurics.app.domain.model.RecordingReceiveRecord
+import com.rokurics.app.domain.model.LocalNetworkSyncRecordingEntry
 import com.rokurics.app.domain.model.StudyBrowsePath
 import com.rokurics.app.domain.model.StudyFilingCandidates
 import com.rokurics.app.domain.model.StudyFilingPath
@@ -181,12 +183,14 @@ class StudyLibraryStore(
         val folders = foldersByID.values.map { it.syncSanitized(deviceID) }
         val tombstones = makeSyncTombstones(items, folders, deviceID)
         val pendingUploads = makePendingRecordingUploads(recordings, itemsByID, deviceID)
+        val recordingEntries = makeSyncRecordings(recordings)
 
         return makeManifestWithChecksum(
             deviceID = deviceID,
             generatedAt = generatedAt,
             items = items,
             folders = folders,
+            recordings = recordingEntries,
             tombstones = tombstones,
             pendingUploads = pendingUploads
         )
@@ -630,6 +634,29 @@ class StudyLibraryStore(
             )
         }
 
+    private fun makeSyncRecordings(recordings: List<RecordingMetadata>): List<LocalNetworkSyncRecordingEntry> {
+        return recordings.map { recording ->
+            val audioFile = resolvedAudioFileStore.audioFileFor(recording)
+            val audioExists = audioFile.exists()
+
+            LocalNetworkSyncRecordingEntry(
+                recordingID = recording.id,
+                metadataHash = recordingFingerprint(recording),
+                audioAvailable = audioExists,
+                audioChecksum = if (audioExists) SecureUploadUtilities.sha256Hex(audioFile) else null,
+                audioSize = if (audioExists) audioFile.length() else null,
+                updatedAt = recording.endedAt?.time ?: recording.createdAt.time,
+                deleted = recording.isDeleted
+            )
+        }.sortedBy { it.recordingID }
+    }
+
+    private fun recordingFingerprint(recording: RecordingMetadata): String {
+        return SecureUploadUtilities.sha256Hex(
+            recording.toJson().toString().toByteArray(Charsets.UTF_8)
+        )
+    }
+
     // ── Private: manifest checksum ────────────────────────────────────────
 
     private fun makeManifestWithChecksum(
@@ -638,6 +665,7 @@ class StudyLibraryStore(
         libraryVersion: Int = 1,
         items: List<StudyItemMetadata>,
         folders: List<StudyFolderMetadata>,
+        recordings: List<LocalNetworkSyncRecordingEntry>,
         tombstones: List<StudyLibrarySyncTombstone>,
         pendingUploads: List<PendingRecordingUpload>,
         baseCommitID: String? = null,
@@ -647,7 +675,7 @@ class StudyLibraryStore(
         // Compute checksum matching iOS: sorted JSON payload then SHA256 hex
         val checksum = computeManifestChecksum(
             deviceID, generatedAt, libraryVersion,
-            items, folders, tombstones, pendingUploads
+            items, folders, recordings, tombstones, pendingUploads
         )
         return StudyLibrarySyncManifest(
             deviceID = deviceID,
@@ -655,6 +683,7 @@ class StudyLibraryStore(
             libraryVersion = libraryVersion,
             items = items.sortedBy { it.itemID },
             folders = folders.sortedBy { it.folderID },
+            recordings = recordings.sortedBy { it.recordingID },
             tombstones = tombstones.sortedBy { it.id },
             pendingUploads = pendingUploads.sortedBy { it.id },
             baseCommitID = baseCommitID,
@@ -667,12 +696,13 @@ class StudyLibraryStore(
     private fun computeManifestChecksum(
         deviceID: String, generatedAt: Long, libraryVersion: Int,
         items: List<StudyItemMetadata>, folders: List<StudyFolderMetadata>,
+        recordings: List<LocalNetworkSyncRecordingEntry>,
         tombstones: List<StudyLibrarySyncTombstone>,
         pendingUploads: List<PendingRecordingUpload>
     ): String {
         val json = sortedChecksumJSON(
             deviceID, generatedAt, libraryVersion,
-            items, folders, tombstones, pendingUploads
+            items, folders, recordings, tombstones, pendingUploads
         )
         return sha256Hex(json.toByteArray(Charsets.UTF_8))
     }
@@ -680,6 +710,7 @@ class StudyLibraryStore(
     private fun sortedChecksumJSON(
         deviceID: String, generatedAt: Long, libraryVersion: Int,
         items: List<StudyItemMetadata>, folders: List<StudyFolderMetadata>,
+        recordings: List<LocalNetworkSyncRecordingEntry>,
         tombstones: List<StudyLibrarySyncTombstone>,
         pendingUploads: List<PendingRecordingUpload>
     ): String {
@@ -706,6 +737,15 @@ class StudyLibraryStore(
         sortedFolders.forEachIndexed { i, folder ->
             if (i > 0) sb.append(",")
             sb.append(jsonEncoder.toJson(folder))
+        }
+        sb.append("],")
+
+        // recordings sorted by recordingID
+        sb.append("\"recordings\":[")
+        val sortedRecordings = recordings.sortedBy { it.recordingID }
+        sortedRecordings.forEachIndexed { i, recording ->
+            if (i > 0) sb.append(",")
+            sb.append(jsonEncoder.toJson(recording))
         }
         sb.append("],")
 
@@ -795,7 +835,8 @@ class StudyLibraryStore(
     private fun hasValidChecksum(manifest: StudyLibrarySyncManifest): Boolean {
         val computed = computeManifestChecksum(
             manifest.deviceID, manifest.generatedAt, manifest.libraryVersion,
-            manifest.items, manifest.folders, manifest.tombstones, manifest.pendingUploads
+            manifest.items, manifest.folders, manifest.recordings,
+            manifest.tombstones, manifest.pendingUploads
         )
         val legacy = legacyComputeManifestChecksum(
             manifest.deviceID, manifest.generatedAt, manifest.libraryVersion,
