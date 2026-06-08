@@ -11,12 +11,12 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("Rokurics.Tests")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("Kikaria")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+be40e89142f9a74228f4a748a4679f3d17295cb0")]
-[assembly: System.Reflection.AssemblyProductAttribute("Rokurics.Tests")]
-[assembly: System.Reflection.AssemblyTitleAttribute("Rokurics.Tests")]
+[assembly: System.Reflection.AssemblyProductAttribute("Kikaria")]
+[assembly: System.Reflection.AssemblyTitleAttribute("Kikaria")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
 [assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows10.0.19041.0")]
 [assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows10.0.19041.0")]
