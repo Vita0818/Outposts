@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.UI.Notifications;
 using Microsoft.Toolkit.Uwp.Notifications;
+using Kikaria.Models;
 
 namespace Kikaria.Services
 {
@@ -34,8 +35,8 @@ namespace Kikaria.Services
         {
             try
             {
-                var settings = Windows.UI.Notifications.ToastNotificationManagerCompat.Setting;
-                return settings != NotificationSetting.Disabled;
+                var settings = _notifier.Setting;
+                return settings == NotificationSetting.Enabled;
             }
             catch (Exception ex)
             {
@@ -184,12 +185,12 @@ namespace Kikaria.Services
         {
             var warning = new StudyProgressWarning();
 
-            if (state.TargetEndDate == null || state.DailyGoal <= 0 || state.TotalCount <= 0)
+            if (state.CountdownEndDate == null || state.DailyGoal <= 0 || state.TotalCount <= 0)
                 return warning;
 
             DateTime now = DateTime.Now;
-            DateTime startDate = state.StartDate;
-            DateTime endDate = state.TargetEndDate.Value;
+            DateTime startDate = state.CountdownStartDate ?? DateTime.Today;
+            DateTime endDate = state.CountdownEndDate.Value;
 
             if (now >= endDate)
                 return warning;

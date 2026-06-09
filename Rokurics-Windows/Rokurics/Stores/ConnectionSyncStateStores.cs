@@ -306,7 +306,7 @@ public class LocalNetworkSyncStateStore
     )
     {
         var d = date ?? DateTime.UtcNow;
-        State.Version = Math.Max(State.Version, CurrentVersion);
+        State.Version = Math.Max(State.Version, LocalNetworkSyncState.CurrentVersion);
         State.LocalDeviceID = localDeviceID ?? State.LocalDeviceID;
         State.PeerDeviceID = peerDeviceID;
         State.LastSyncStartedAt = d;
@@ -335,7 +335,7 @@ public class LocalNetworkSyncStateStore
     )
     {
         var d = date ?? DateTime.UtcNow;
-        State.Version = CurrentVersion;
+        State.Version = LocalNetworkSyncState.CurrentVersion;
         State.PeerDeviceID = peerDeviceID;
         State.LastSyncCompletedAt = d;
         State.LastSyncAt = d;
@@ -366,7 +366,7 @@ public class LocalNetworkSyncStateStore
     )
     {
         var d = date ?? DateTime.UtcNow;
-        State.Version = CurrentVersion;
+        State.Version = LocalNetworkSyncState.CurrentVersion;
         var failures = State.ConsecutiveFailureCount + 1;
         var exponent = Math.Max(0, failures - 1);
         var delaySeconds = Math.Min(minimumBackoff * (1L << exponent), maximumBackoff);
@@ -383,7 +383,7 @@ public class LocalNetworkSyncStateStore
     public void RecordControlPlane(string syncRunID, string state, DateTime? date = null)
     {
         var d = date ?? DateTime.UtcNow;
-        State.Version = CurrentVersion;
+        State.Version = LocalNetworkSyncState.CurrentVersion;
         State.ActiveSyncRunID = syncRunID;
         State.ControlPlaneState = state;
         State.LastControlPlaneUpdatedAt = d;

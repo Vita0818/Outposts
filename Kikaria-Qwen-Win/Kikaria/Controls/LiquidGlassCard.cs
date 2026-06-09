@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using Windows.UI;
 using Kikaria.Helpers;
+using Windows.Foundation;
 
 namespace Kikaria.Controls
 {

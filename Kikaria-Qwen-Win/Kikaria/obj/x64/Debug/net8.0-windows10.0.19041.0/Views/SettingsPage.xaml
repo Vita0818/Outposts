@@ -1,0 +1,364 @@
+﻿<Page x:ConnectionId='1'
+    x:Class="Kikaria.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:conv="using:Kikaria.Converters"
+    mc:Ignorable="d"
+                                  >
+
+    <Page.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+
+        <LinearGradientBrush x:Key="PageBg" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#FFF0F4FC" Offset="0.0"/>
+            <GradientStop Color="#FFE8F0FC" Offset="0.5"/>
+            <GradientStop Color="#FFF4F8FF" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="GlassStroke" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#503898EC" Offset="0.0"/>
+            <GradientStop Color="#3091E1E8" Offset="0.5"/>
+            <GradientStop Color="#503898EC" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#FF3898EC" Offset="0.0"/>
+            <GradientStop Color="#FF30C4D8" Offset="1.0"/>
+        </LinearGradientBrush>
+
+        <Style x:Key="GlassCard" TargetType="Border">
+            <Setter Property="Background" Value="#B4FFFFFF"/>
+            <Setter Property="BorderBrush" Value="{StaticResource GlassStroke}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="28"/>
+            <Setter Property="Padding" Value="24"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#FF949CAC"/>
+            <Setter Property="FontFamily" Value="Microsoft YaHei, PingFang SC, sans-serif"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="SettingRow" TargetType="Grid">
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+    </Page.Resources>
+
+    <Grid Background="{StaticResource PageBg}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Height="56" Padding="16,0">
+            <TextBlock Text="设置" FontSize="22" FontWeight="Bold" Foreground="#FF1C2028"
+                       FontFamily="Microsoft YaHei, PingFang SC, sans-serif"
+                       VerticalAlignment="Center"/>
+            <Button x:ConnectionId='25'                           HorizontalAlignment="Right" VerticalAlignment="Center"
+                    Background="Transparent" BorderThickness="0" Padding="8">
+                <FontIcon Glyph="&#xE711;" FontSize="18" Foreground="#FF646E80"/>
+            </Button>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid x:ConnectionId='2' x:Name="ContentRoot" MaxWidth="700" Margin="24,0,24,40">
+                <Grid x:ConnectionId='3' x:Name="SettingsLayout">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition x:ConnectionId='4' x:Name="ProfileCol" Width="*"/>
+                        <ColumnDefinition x:ConnectionId='5' x:Name="SettingsCol" Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel x:ConnectionId='6' x:Name="ProfileColumn" Grid.Column="0" Spacing="0" Margin="0,0,8,0">
+
+                        <Border Style="{StaticResource GlassCard}">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="个人资料" Style="{StaticResource SectionTitle}"/>
+
+                                <Grid ColumnSpacing="16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid Grid.Column="0" Width="64" Height="64" CornerRadius="32">
+                                        <Grid.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                <GradientStop Color="#FF3898EC" Offset="0.0"/>
+                                                <GradientStop Color="#FF30C4D8" Offset="1.0"/>
+                                            </LinearGradientBrush>
+                                        </Grid.Background>
+                                        <FontIcon Glyph="&#xE77B;" FontSize="30" Foreground="White"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                        <TextBlock x:ConnectionId='23' x:Name="DisplayNameText" FontSize="18" FontWeight="SemiBold"
+                                                   Foreground="#FF1C2028"
+                                                   FontFamily="Microsoft YaHei, PingFang SC, sans-serif"/>
+                                        <TextBlock x:ConnectionId='24' x:Name="UserHandleText" FontSize="14" Foreground="#FF949CAC"
+                                                   FontFamily="Microsoft YaHei, PingFang SC, sans-serif"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Button x:ConnectionId='22'                           HorizontalAlignment="Stretch"
+                                        Padding="0,12" CornerRadius="14" BorderThickness="1"
+                                        BorderBrush="#303898EC" Background="#B4FFFFFF">
+                                    <TextBlock Text="编辑个人资料" FontSize="15" Foreground="#FF3898EC"
+                                               FontFamily="Microsoft YaHei, PingFang SC, sans-serif"
+                                               FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource GlassCard}">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="当前预设" Style="{StaticResource SectionTitle}"/>
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Grid.Column="0" Glyph="&#xE8FD;" FontSize="20" Foreground="#FF3898EC"/>
+                                    <TextBlock x:ConnectionId='21' x:Name="PresetNameText" Grid.Column="1" FontSize="16" Foreground="#FF1C2028"
+                                               FontFamily="Microsoft YaHei, PingFang SC, sans-serif"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="14" Foreground="#FF949CAC"
+                                              VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel x:ConnectionId='7' x:Name="SettingsColumn" Grid.Column="1" Spacing="0" Margin="8,0,0,0">
+
+                        <Border Style="{StaticResource GlassCard}">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="学习" Style="{StaticResource SectionTitle}"/>
+
+                                <Grid Style="{StaticResource SettingRow}" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="每日目标" FontSize="15" Foreground="#FF1C2028"
+                                                   FontFamily="Microsoft YaHei, PingFang SC, sans-serif"/>
+                                        <TextBlock Text="每天需要掌握的知识点数量" FontSize="12" Foreground="#FF949CAC"
+                                                   FontFamily="Microsoft YaHei, PingFang SC, sans-serif"/>
+                                    </StackPanel>
+                                    <NumberBox x:ConnectionId='20' x:Name="DailyGoalPicker" Grid.Column="1"
+                                               Minimum="1" Maximum="100" Value="5"
+                                               SmallChange="1" LargeChange="5"
+                                               Width="100" VerticalAlignment="Center"
+                                                                                          
+                                               SpinButtonPlacementMode="Compact"/>
+                                </Grid>
+
+                                <Border Height="1" Background="#153898EC"/>
+
+                                <Grid Style="{StaticResource SettingRow}" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="倒计时日期" FontSize="15" Foreground="#FF1C2028"
+                                                   FontFamily="Microsoft YaHei, PingFang SC, sans-serif"/>
+                                        <TextBlock Text="设置学习的起止日期" FontSize="12" Foreground="#FF949CAC"
+                                                   FontFamily="Microsoft YaHei, PingFang SC, sans-serif"/>
+                                    </StackPanel>
+                                    <Button x:ConnectionId='16' Grid.Column="1"                         Padding="12,6" CornerRadius="10"
+                                            BorderThickness="1" BorderBrush="#303898EC" Background="#B4FFFFFF">
+                                        <TextBlock x:ConnectionId='19' x:Name="StartDateText" FontSize="13" Foreground="#FF3898EC"
+                                                   FontFamily="Cascadia Code, Consolas, monospace"/>
+                                    </Button>
+                                    <Button x:ConnectionId='17' Grid.Column="2"                       Padding="12,6" CornerRadius="10"
+                                            BorderThickness="1" BorderBrush="#303898EC" Background="#B4FFFFFF">
+                                        <TextBlock x:ConnectionId='18' x:Name="EndDateText" FontSize="13" Foreground="#FF3898EC"
+                                                   FontFamily="Cascadia Code, Consolas, monospace"/>
+                                    </Button>
+                                </Grid>
+
+                                <Border Height="1" Background="#153898EC"/>
+
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="危险阈值" FontSize="15" Foreground="#FF1C2028"
+                                                   FontFamily="Microsoft YaHei, PingFang SC, sans-serif"/>
+                                        <TextBlock Text="进度落后多少时发出警告" FontSize="12" Foreground="#FF949CAC"
+                                                   FontFamily="Microsoft YaHei, PingFang SC, sans-serif"/>
+                                    </StackPanel>
+                                    <NumberBox x:ConnectionId='15' x:Name="DangerPicker" Grid.Column="1"
+                                               Minimum="0" Maximum="100" Value="0"
+                                               SmallChange="5" LargeChange="10"
+                                               Width="100" VerticalAlignment="Center"
+                                                                                       
+                                               SpinButtonPlacementMode="Compact"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource GlassCard}">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="通知" Style="{StaticResource SectionTitle}"/>
+
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="学习提醒" FontSize="15" Foreground="#FF1C2028"
+                                                   FontFamily="Microsoft YaHei, PingFang SC, sans-serif"/>
+                                        <TextBlock Text="每日定时提醒学习" FontSize="12" Foreground="#FF949CAC"
+                                                   FontFamily="Microsoft YaHei, PingFang SC, sans-serif"/>
+                                    </StackPanel>
+                                    <ToggleSwitch x:ConnectionId='14' x:Name="NotificationToggle" Grid.Column="1"
+                                                                                      
+                                                  OffContent="" OnContent=""/>
+                                </Grid>
+
+                                <Border Height="1" Background="#153898EC"/>
+
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="提醒时间" FontSize="15" Foreground="#FF1C2028"
+                                               FontFamily="Microsoft YaHei, PingFang SC, sans-serif"
+                                               VerticalAlignment="Center"/>
+                                    <TimePicker x:ConnectionId='13' x:Name="NotificationTimePicker" Grid.Column="1"
+                                                ClockIdentifier="24HourClock"
+                                                                                                
+                                                MinuteIncrement="5"/>
+                                </Grid>
+
+                                <Border Height="1" Background="#153898EC"/>
+
+                                <Button x:ConnectionId='12' x:Name="TestNotifButton"                         HorizontalAlignment="Stretch"
+                                        Padding="0,12" CornerRadius="14" BorderThickness="1"
+                                        BorderBrush="#30FF9F0A" Background="#20FF9F0A">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                        <FontIcon Glyph="&#xEA8F;" FontSize="16" Foreground="#FFFF9F0A"/>
+                                        <TextBlock Text="发送测试通知 (DEBUG)" FontSize="14" Foreground="#FFFF9F0A"
+                                                   FontFamily="Microsoft YaHei, PingFang SC, sans-serif"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource GlassCard}">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="帮助" Style="{StaticResource SectionTitle}"/>
+
+                                <Button x:ConnectionId='10'                          HorizontalAlignment="Stretch"
+                                        Padding="0,10" Background="Transparent" BorderThickness="0">
+                                    <Grid HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <FontIcon Grid.Column="0" Glyph="&#xE897;" FontSize="18" Foreground="#FF3898EC" Margin="0,0,12,0"/>
+                                        <TextBlock Grid.Column="1" Text="重新观看引导" FontSize="15" Foreground="#FF1C2028"
+                                                   FontFamily="Microsoft YaHei, PingFang SC, sans-serif" VerticalAlignment="Center"/>
+                                        <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="14" Foreground="#FF949CAC" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Button>
+
+                                <Border Height="1" Background="#153898EC"/>
+
+                                <Button x:ConnectionId='11'                             HorizontalAlignment="Stretch"
+                                        Padding="0,10" Background="Transparent" BorderThickness="0">
+                                    <Grid HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <FontIcon Grid.Column="0" Glyph="&#xE8A5;" FontSize="18" Foreground="#FF30C4D8" Margin="0,0,12,0"/>
+                                        <TextBlock Grid.Column="1" Text="Markdown 格式指南" FontSize="15" Foreground="#FF1C2028"
+                                                   FontFamily="Microsoft YaHei, PingFang SC, sans-serif" VerticalAlignment="Center"/>
+                                        <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="14" Foreground="#FF949CAC" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource GlassCard}">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="关于" Style="{StaticResource SectionTitle}"/>
+
+                                <Button x:ConnectionId='8'                       HorizontalAlignment="Stretch"
+                                        Padding="0,10" Background="Transparent" BorderThickness="0">
+                                    <Grid HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <FontIcon Grid.Column="0" Glyph="&#xE72E;" FontSize="18" Foreground="#FF646E80" Margin="0,0,12,0"/>
+                                        <TextBlock Grid.Column="1" Text="隐私政策" FontSize="15" Foreground="#FF1C2028"
+                                                   FontFamily="Microsoft YaHei, PingFang SC, sans-serif" VerticalAlignment="Center"/>
+                                        <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="14" Foreground="#FF949CAC" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Button>
+
+                                <Border Height="1" Background="#153898EC"/>
+
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="版权声明" FontSize="15" Foreground="#FF1C2028"
+                                               FontFamily="Microsoft YaHei, PingFang SC, sans-serif" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="© 2026 Vita" FontSize="14" Foreground="#FF949CAC"
+                                               FontFamily="Microsoft YaHei, PingFang SC, sans-serif" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <Border Height="1" Background="#153898EC"/>
+
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="版本" FontSize="15" Foreground="#FF1C2028"
+                                               FontFamily="Microsoft YaHei, PingFang SC, sans-serif" VerticalAlignment="Center"/>
+                                    <TextBlock x:ConnectionId='9' x:Name="VersionText" Grid.Column="1" FontSize="14" Foreground="#FF949CAC"
+                                               FontFamily="Cascadia Code, Consolas, monospace" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <Border Height="1" Background="#153898EC"/>
+
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="浙ICP备2026034004号" FontSize="13" Foreground="#FF949CAC"
+                                               FontFamily="Microsoft YaHei, PingFang SC, sans-serif" VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</Page>
+

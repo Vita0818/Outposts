@@ -860,16 +860,17 @@ namespace Kikaria.ViewModels
             }
         }
 
-        private Services.PresetStudyState BuildServicesPresetStudyState()
+        private PresetStudyState BuildServicesPresetStudyState()
         {
-            return new Services.PresetStudyState
+            if (PresetStates.TryGetValue(CurrentPresetID, out var state))
+                return state;
+
+            return new PresetStudyState
             {
                 PresetId = CurrentPresetID,
-                MasteredCount = MasteredCount,
-                TotalCount = KnowledgePoints.Count,
-                StartDate = CountdownStartDate ?? DateTime.Today,
-                TargetEndDate = CountdownEndDate,
-                DailyGoal = DailyGoal
+                DailyGoal = DailyGoal,
+                CountdownStartDate = CountdownStartDate,
+                CountdownEndDate = CountdownEndDate
             };
         }
 

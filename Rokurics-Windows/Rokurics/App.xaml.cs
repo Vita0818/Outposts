@@ -17,7 +17,23 @@ public partial class App : Application
 
     public App()
     {
-        TryEnablePerMonitorDpiAwareness();
+        // Get the DispatcherQueue early - this is critical for the message pump
+        var logPath = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Rokurics", "crash.log");
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(logPath)!);
+        System.IO.File.AppendAllText(logPath, $"[App] CWD: {Environment.CurrentDirectory}\n");
+        System.IO.File.AppendAllText(logPath, $"[App] Exe: {Environment.ProcessPath}\n");
+        System.IO.File.AppendAllText(logPath, $"[App] BaseDir: {AppContext.BaseDirectory}\n");
+
+        InitializeComponent();
+
+        System.IO.File.AppendAllText(logPath, "[App] InitializeComponent done\n");
+
+        // Test native DLL loading
+        var testDll = System.IO.Path.Combine(AppContext.BaseDirectory, "Microsoft.ui.xaml.dll");
+        System.IO.File.AppendAllText(logPath, $"[App] Test DLL exists: {System.IO.File.Exists(testDll)}\n");
+        System.IO.File.AppendAllText(logPath, $"[App] Test DLL path: {testDll}\n");
 
         var settings = AppSettings.Load();
 
@@ -44,24 +60,16 @@ public partial class App : Application
         _services.AddSingleton<StudyLibraryViewModel>(sp =>
             new StudyLibraryViewModel(sp.GetRequiredService<StudyLibraryStore>()));
 
-        InitializeComponent();
+        System.IO.File.AppendAllText(logPath, "[App] InitializeComponent done, services registered\n");
     }
-
-    private static void TryEnablePerMonitorDpiAwareness()
-    {
-        if (!OperatingSystem.IsWindowsVersionAtLeast(10))
-            return;
-
-        const long DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = -4;
-        SetThreadDpiAwarenessContext((IntPtr)DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-    }
-
-    [DllImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.SysInt)]
-    private static extern IntPtr SetThreadDpiAwarenessContext(IntPtr dpiContext);
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        File.AppendAllText(
+            System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Rokurics", "crash.log"),
+            "[OnLaunched] Entered!\n");
         _mainWindow = new MainWindow();
         _mainWindow.Activate();
     }
@@ -125,3 +133,4 @@ public static class ServiceProviderExtensions
                 $"Service '{typeof(TService).FullName}' has not been registered.");
     }
 }
+

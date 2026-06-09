@@ -23,22 +23,6 @@ namespace Kikaria.Models
         public Guid PointId { get; set; }
         public string PointTitle { get; set; } = string.Empty;
 
-        public StudyActivityRecord(
-            Guid id,
-            string presetId,
-            DateTimeOffset date,
-            StudyActivityType type,
-            Guid pointId,
-            string pointTitle)
-        {
-            Id = id;
-            PresetId = presetId;
-            Date = date;
-            Type = type;
-            PointId = pointId;
-            PointTitle = pointTitle;
-        }
-
         [JsonConstructor]
         public StudyActivityRecord(
             Guid id,
@@ -71,12 +55,6 @@ namespace Kikaria.Models
         public string Title { get; set; } = string.Empty;
         public string? Tag { get; set; }
 
-        public WidgetKnowledgePointPreview(string title, string? tag = null)
-        {
-            Title = title;
-            Tag = tag;
-        }
-
         [JsonConstructor]
         public WidgetKnowledgePointPreview(string title, string? tag)
         {
@@ -96,28 +74,6 @@ namespace Kikaria.Models
         public int TodayHintCount { get; set; }
         public List<WidgetKnowledgePointPreview> RandomKnowledgePoints { get; set; } = new();
         public DateTimeOffset LastUpdated { get; set; }
-
-        public WidgetSnapshot(
-            string presetName,
-            int todayMasteredCount,
-            int masteredCount,
-            int dailyGoal,
-            int? countdownDays,
-            int todayReviewCount,
-            int todayHintCount,
-            List<WidgetKnowledgePointPreview> randomKnowledgePoints,
-            DateTimeOffset lastUpdated)
-        {
-            PresetName = presetName;
-            TodayMasteredCount = todayMasteredCount;
-            MasteredCount = masteredCount;
-            DailyGoal = dailyGoal;
-            CountdownDays = countdownDays;
-            TodayReviewCount = todayReviewCount;
-            TodayHintCount = todayHintCount;
-            RandomKnowledgePoints = randomKnowledgePoints;
-            LastUpdated = lastUpdated;
-        }
 
         [JsonConstructor]
         public WidgetSnapshot(

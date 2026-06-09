@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Rokurics")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0ca9299280faf01d22b946974004f18b12177486")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+99e69416719deeb2c3176967881c896c5a148808")]
 [assembly: System.Reflection.AssemblyProductAttribute("Rokurics")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Rokurics")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

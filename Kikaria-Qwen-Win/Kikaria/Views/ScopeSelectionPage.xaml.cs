@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Kikaria.ViewModels;
+using Windows.UI;
 
 namespace Kikaria.Views;
 

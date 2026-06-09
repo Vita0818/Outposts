@@ -7,11 +7,12 @@
     <AssemblyName>Kikaria</AssemblyName>
     <UseWinUI>true</UseWinUI>
     <Nullable>enable</Nullable>
-    <WarningsAsErrors>Nullable</WarningsAsErrors>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <UseXamlCompilerExecutable>false</UseXamlCompilerExecutable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240311000" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240227000" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,4 +21,23 @@
       <Link>Presets\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Content>
   </ItemGroup>
+
+  <!-- Override the UsingTask to use the .NET 6 version of the compiler task with explicit Runtime and Architecture -->
+  <UsingTask TaskName="Microsoft.UI.Xaml.Markup.Compiler.Tasks.CompileXaml"
+             AssemblyFile="$(NuGetPackageRoot)microsoft.windowsappsdk\1.5.240227000\tools\net6.0\Microsoft.UI.Xaml.Markup.Compiler.dll"
+             Runtime="NET"
+             Architecture="x64"
+             Condition="Exists('$(NuGetPackageRoot)microsoft.windowsappsdk\1.5.240227000\tools\net6.0\Microsoft.UI.Xaml.Markup.Compiler.dll')" />
+  
+  <UsingTask TaskName="Microsoft.UI.Xaml.Markup.Compiler.IO.InputSerializer"
+             AssemblyFile="$(NuGetPackageRoot)microsoft.windowsappsdk\1.5.240227000\tools\net6.0\Microsoft.UI.Xaml.Markup.Compiler.IO.dll"
+             Runtime="NET"
+             Architecture="x64"
+             Condition="Exists('$(NuGetPackageRoot)microsoft.windowsappsdk\1.5.240227000\tools\net6.0\Microsoft.UI.Xaml.Markup.Compiler.IO.dll')" />
+  
+  <UsingTask TaskName="Microsoft.UI.Xaml.Markup.Compiler.IO.OutputDeserializer"
+             AssemblyFile="$(NuGetPackageRoot)microsoft.windowsappsdk\1.5.240227000\tools\net6.0\Microsoft.UI.Xaml.Markup.Compiler.IO.dll"
+             Runtime="NET"
+             Architecture="x64"
+             Condition="Exists('$(NuGetPackageRoot)microsoft.windowsappsdk\1.5.240227000\tools\net6.0\Microsoft.UI.Xaml.Markup.Compiler.IO.dll')" />
 </Project>

@@ -39,7 +39,6 @@ public sealed partial class MainWindow : Window
     {
         if (args.SelectedItem is NavigationViewItem item && item.Tag is string tag)
         {
-            // Settings navigates without menu highlight; deselect all menu items
             if (tag == "settings")
             {
                 sender.SelectedItem = null;
@@ -80,7 +79,6 @@ public sealed partial class MainWindow : Window
             _ => new MacStudyLibraryPage()
         };
 
-        // Don't cache provider detail pages (they have per-instance configuration)
         if (!page.StartsWith("providerDetail"))
             _pageCache[page] = newPage;
 
@@ -106,14 +104,12 @@ public sealed partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(args.QueryText))
             return;
 
-        // Navigate to study library with search context
         if (_currentSelection != "studyLibrary")
         {
             _currentSelection = "studyLibrary";
             StudyLibraryNavItem.IsSelected = true;
             NavigateTo("studyLibrary");
         }
-        // TODO: propagate search query to MacStudyLibraryPage for filtering
     }
 
     private void OnSearchTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)

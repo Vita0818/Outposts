@@ -467,6 +467,7 @@ public sealed class SyncFolderEntry
     public DateTime UpdatedAt { get; init; }
     public string RevisionHash { get; init; } = "";
     public bool Deleted { get; init; }
+    public string Path { get; init; } = "";
 }
 
 public sealed class SyncStudyItemEntry
@@ -505,6 +506,20 @@ public sealed class SyncArtifactEntry
     public long? Size { get; init; }
     public DateTime UpdatedAt { get; init; }
     public string LogicalPathToken { get; init; } = "";
+
+    private static string CanonicalArtifactKind(SyncArtifactKind kind) => kind switch
+    {
+        SyncArtifactKind.TranscriptMarkdown => "transcriptMarkdown",
+        SyncArtifactKind.TranscriptJson => "transcriptJson",
+        SyncArtifactKind.NoteMarkdown => "noteMarkdown",
+        SyncArtifactKind.NoteJson => "noteJson",
+        SyncArtifactKind.MetadataJson => "metadataJson",
+        SyncArtifactKind.ReceiveJson => "receiveJson",
+        SyncArtifactKind.SummaryMarkdown => "summaryMarkdown",
+        SyncArtifactKind.SummaryJson => "summaryJson",
+        SyncArtifactKind.Audio => "audio",
+        _ => "unknown"
+    };
 
     public static string MakeArtifactId(SyncArtifactKind kind, string ownerId, string logicalPath)
     {

@@ -11,6 +11,7 @@ using Kikaria.Helpers;
 using Kikaria.Models;
 using Kikaria.ViewModels;
 using Windows.Graphics;
+using Windows.UI;
 using WinRT.Interop;
 
 namespace Kikaria
@@ -196,8 +197,8 @@ namespace Kikaria
                 case Windows.System.VirtualKey.M:
                     break;
                 case Windows.System.VirtualKey.L:
-                case Windows.System.VirtualKey.Oem1:
-                case Windows.System.VirtualKey.Oem7:
+                case (Windows.System.VirtualKey)186:
+                case (Windows.System.VirtualKey)222:
                     break;
             }
         }

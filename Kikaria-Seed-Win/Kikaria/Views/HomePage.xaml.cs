@@ -1,6 +1,7 @@
 using Kikaria.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -44,9 +45,9 @@ namespace Kikaria.Views
                     Content = tag,
                     Padding = new Thickness(12, 8, 12, 8),
                     CornerRadius = new CornerRadius(16),
-                    Background = KikariaTheme.Mist,
-                    Foreground = KikariaTheme.DeepText,
-                    BorderBrush = KikariaTheme.GlassStrokeAccent,
+                    Background = KikariaTheme.Instance.Mist,
+                    Foreground = KikariaTheme.Instance.DeepText,
+                    BorderBrush = KikariaTheme.Instance.GlassStrokeAccent,
                     IsChecked = currentState.SelectedTags.Contains(tag)
                 };
                 _tagCheckboxes.Add(checkBox);
@@ -60,7 +61,7 @@ namespace Kikaria.Views
         {
             var picker = new FileOpenPicker();
             picker.FileTypeFilter.Add(".md");
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.Current.Windows.FirstOrDefault());
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
             WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
 
             var file = await picker.PickSingleFileAsync();

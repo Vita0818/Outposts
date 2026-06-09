@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
+using Kikaria.Models;
 using Kikaria.ViewModels;
 
 namespace Kikaria

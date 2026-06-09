@@ -75,7 +75,7 @@ namespace Kikaria.Views
                     Height = 8,
                     Fill = i == _currentPage
                         ? KikariaTheme.GetBrush(KikariaThemeColor.Sky, isDark)
-                        : new SolidColorBrush(Microsoft.UI.Color.FromArgb(80, 128, 128, 128))
+                        : new SolidColorBrush(Windows.UI.Color.FromArgb(80, 128, 128, 128))
                 };
                 PageIndicators.Children.Add(dot);
             }

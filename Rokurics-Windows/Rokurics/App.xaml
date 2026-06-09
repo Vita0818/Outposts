@@ -10,45 +10,18 @@
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
 
-            <ResourceDictionary.ThemeDictionaries>
-                <ResourceDictionary x:Key="Default">
-                    <LinearGradientBrush x:Key="RokuricsPageGradientBrush"
-                                         StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#F2FFF8" Offset="0" />
-                        <GradientStop Color="#E0F7F0" Offset="0.5" />
-                        <GradientStop Color="#F5FCFA" Offset="1" />
-                    </LinearGradientBrush>
-                </ResourceDictionary>
-                <ResourceDictionary x:Key="Light">
-                    <LinearGradientBrush x:Key="RokuricsPageGradientBrush"
-                                         StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#F2FFF8" Offset="0" />
-                        <GradientStop Color="#E0F7F0" Offset="0.5" />
-                        <GradientStop Color="#F5FCFA" Offset="1" />
-                    </LinearGradientBrush>
-                </ResourceDictionary>
-                <ResourceDictionary x:Key="Dark">
-                    <LinearGradientBrush x:Key="RokuricsPageGradientBrush"
-                                         StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#09181C" Offset="0" />
-                        <GradientStop Color="#0E292B" Offset="0.5" />
-                        <GradientStop Color="#131F29" Offset="1" />
-                    </LinearGradientBrush>
-                </ResourceDictionary>
-            </ResourceDictionary.ThemeDictionaries>
-
             <!-- Value Converters -->
             <converters:InvertBoolConverter x:Key="InvertBoolConverter" />
             <converters:NullToCollapsedConverter x:Key="NullToCollapsedConverter" />
             <converters:ChatRoleToAlignmentConverter x:Key="ChatRoleToAlignmentConverter" />
             <converters:ChatRoleToBackgroundConverter x:Key="ChatRoleToBackgroundConverter" />
 
-            <!-- Typography — Mac style: serif for English, system default for CJK, mono for technical -->
+            <!-- Typography -->
             <FontFamily x:Key="RokuricsFontFamily">Microsoft YaHei UI</FontFamily>
             <FontFamily x:Key="RokuricsSerifFont">Georgia, Times New Roman, serif</FontFamily>
             <FontFamily x:Key="RokuricsMonoFont">Cascadia Code, Consolas</FontFamily>
 
-            <!-- Custom Rokurics theme brushes — mirrors MacTheme.swift palette -->
+            <!-- Theme brushes -->
             <SolidColorBrush x:Key="RokuricsAquaBrush" Color="#4FBEBA" />
             <SolidColorBrush x:Key="RokuricsMintBrush" Color="#94E6C2" />
             <SolidColorBrush x:Key="RokuricsPaleCyanBrush" Color="#C7F2F0" />
@@ -56,288 +29,93 @@
             <SolidColorBrush x:Key="RokuricsLeafBrush" Color="#5CA88A" />
             <SolidColorBrush x:Key="RokuricsAmberBrush" Color="#E0A852" />
 
-            <!-- Action gradient brush (aqua -> mint, topLeft -> bottomRight) -->
+            <!-- Page gradient -->
+            <LinearGradientBrush x:Key="RokuricsPageGradientBrush"
+                                 StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#F2FFF8" Offset="0" />
+                <GradientStop Color="#E0F7F0" Offset="0.5" />
+                <GradientStop Color="#F5FCFA" Offset="1" />
+            </LinearGradientBrush>
+
+            <!-- Action gradient -->
             <LinearGradientBrush x:Key="RokuricsActionGradientBrush"
                                  StartPoint="0,0" EndPoint="1,1">
                 <GradientStop Color="#4FBEBA" Offset="0" />
                 <GradientStop Color="#94E6C2" Offset="1" />
             </LinearGradientBrush>
 
-            <!-- Sidebar selected accent gradient (mint -> aqua, diagonal topLeading->bottomTrailing matching Mac) -->
             <LinearGradientBrush x:Key="RokuricsSidebarSelectedBrush"
                                  StartPoint="0,0" EndPoint="1,1">
                 <GradientStop Color="#94E6C2" Offset="0" />
                 <GradientStop Color="#4FBEBA" Offset="1" />
             </LinearGradientBrush>
 
-            <!-- Typography — matching MacTypography system -->
-            <!-- Page title (Mac: chineseTitle 32pt bold) -->
+            <!-- Text styles -->
             <Style x:Key="PageTitleStyle" TargetType="TextBlock">
                 <Setter Property="FontFamily" Value="{StaticResource RokuricsFontFamily}" />
                 <Setter Property="FontSize" Value="32" />
                 <Setter Property="FontWeight" Value="Bold" />
                 <Setter Property="TextWrapping" Value="Wrap" />
-                <Setter Property="LineHeight" Value="40" />
             </Style>
-
-            <!-- English brand (Mac: englishBrand 42pt semibold serif) -->
-            <Style x:Key="EnglishBrandStyle" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="{StaticResource RokuricsSerifFont}" />
-                <Setter Property="FontSize" Value="42" />
-                <Setter Property="FontWeight" Value="SemiBold" />
-            </Style>
-
-            <!-- English large title (Mac: englishLargeTitle 40pt semibold serif) -->
-            <Style x:Key="EnglishLargeTitleStyle" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="{StaticResource RokuricsSerifFont}" />
-                <Setter Property="FontSize" Value="40" />
-                <Setter Property="FontWeight" Value="SemiBold" />
-            </Style>
-
-            <!-- English headline (Mac: englishHeadline 17pt semibold serif) -->
-            <Style x:Key="EnglishHeadlineStyle" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="{StaticResource RokuricsSerifFont}" />
-                <Setter Property="FontSize" Value="17" />
-                <Setter Property="FontWeight" Value="SemiBold" />
-            </Style>
-
-            <!-- Chinese headline (Mac: chineseHeadline 17pt semibold default) -->
-            <Style x:Key="ChineseHeadlineStyle" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="{StaticResource RokuricsFontFamily}" />
-                <Setter Property="FontSize" Value="17" />
-                <Setter Property="FontWeight" Value="SemiBold" />
-            </Style>
-
-            <!-- Section title style — matching chineseHeadline -->
             <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
                 <Setter Property="FontFamily" Value="{StaticResource RokuricsFontFamily}" />
                 <Setter Property="FontSize" Value="17" />
                 <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="LineHeight" Value="24" />
             </Style>
-
-            <!-- Body text style (Mac: chineseBody 14pt regular) -->
-            <Style x:Key="BodyTextStyle" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="{StaticResource RokuricsFontFamily}" />
-                <Setter Property="FontSize" Value="14" />
-                <Setter Property="FontWeight" Value="Normal" />
-                <Setter Property="LineHeight" Value="22" />
-                <Setter Property="TextWrapping" Value="Wrap" />
-            </Style>
-
-            <!-- Caption/Secondary (Mac: chineseCaption 12pt medium) -->
             <Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
                 <Setter Property="FontFamily" Value="{StaticResource RokuricsFontFamily}" />
                 <Setter Property="FontSize" Value="12" />
                 <Setter Property="FontWeight" Value="Medium" />
-                <Setter Property="LineHeight" Value="18" />
             </Style>
-
-            <!-- Card title (Mac: chineseHeadline 16pt semibold for cards) -->
             <Style x:Key="CardTitleStyle" TargetType="TextBlock">
                 <Setter Property="FontFamily" Value="{StaticResource RokuricsFontFamily}" />
                 <Setter Property="FontSize" Value="16" />
                 <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="LineHeight" Value="22" />
             </Style>
-
-            <!-- Technical/mono text (Mac: technical 13pt semibold monospaced) -->
-            <Style x:Key="TechnicalTextStyle" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="{StaticResource RokuricsMonoFont}" />
-                <Setter Property="FontSize" Value="13" />
-                <Setter Property="FontWeight" Value="SemiBold" />
-            </Style>
-
-            <!-- Fingerprint text (Mac: fingerprint 15pt semibold monospaced) -->
-            <Style x:Key="FingerprintTextStyle" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="{StaticResource RokuricsMonoFont}" />
-                <Setter Property="FontSize" Value="15" />
-                <Setter Property="FontWeight" Value="SemiBold" />
-            </Style>
-
-            <!-- Chat greeting (Mac: 24pt semibold) -->
-            <Style x:Key="ChatGreetingStyle" TargetType="TextBlock">
+            <Style x:Key="BodyTextStyle" TargetType="TextBlock">
                 <Setter Property="FontFamily" Value="{StaticResource RokuricsFontFamily}" />
-                <Setter Property="FontSize" Value="24" />
-                <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
-                <Setter Property="TextAlignment" Value="Center" />
-            </Style>
-
-            <!-- Chat message (Mac: 15pt regular) -->
-            <Style x:Key="ChatMessageStyle" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="{StaticResource RokuricsFontFamily}" />
-                <Setter Property="FontSize" Value="15" />
+                <Setter Property="FontSize" Value="14" />
                 <Setter Property="FontWeight" Value="Normal" />
                 <Setter Property="TextWrapping" Value="Wrap" />
-                <Setter Property="LineHeight" Value="22" />
             </Style>
 
-            <!-- Minimalist glass card style (standard) — Mac: cornerRadius 18-24, .thinMaterial -->
+            <!-- Card styles -->
             <Style x:Key="RokuricsCardStyle" TargetType="Border">
-                <Setter Property="Background" Value="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource RokuricsAquaBrush}" />
-                <Setter Property="BorderThickness" Value="0.5" />
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
                 <Setter Property="CornerRadius" Value="12" />
                 <Setter Property="Padding" Value="16" />
             </Style>
-
-            <!-- Acrylic glass card style — mirrors rokuricsLiquidGlassCard (Mac: cornerRadius 24, .ultraThinMaterial) -->
             <Style x:Key="RokuricsGlassCardStyle" TargetType="Border">
-                <Setter Property="Background" Value="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}" />
-                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-                <Setter Property="BorderThickness" Value="0.5" />
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
                 <Setter Property="CornerRadius" Value="24" />
                 <Setter Property="Padding" Value="20" />
             </Style>
 
-            <!-- Large glass card — matching connection/settings card (Mac: cornerRadius 24, padding 22-24) -->
-            <Style x:Key="RokuricsLargeGlassCardStyle" TargetType="Border">
-                <Setter Property="Background" Value="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}" />
-                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-                <Setter Property="BorderThickness" Value="0.5" />
-                <Setter Property="CornerRadius" Value="24" />
-                <Setter Property="Padding" Value="22" />
-            </Style>
-
-            <!-- Glass capsule style — mirrors rokuricsGlassCapsule (Mac: cornerRadius 16, padding 14,8) -->
-            <Style x:Key="RokuricsGlassCapsuleStyle" TargetType="Button">
-                <Setter Property="Background" Value="{ThemeResource AccentAcrylicBackgroundFillColorDefaultBrush}" />
-                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-                <Setter Property="BorderThickness" Value="0.5" />
-                <Setter Property="CornerRadius" Value="16" />
-                <Setter Property="Padding" Value="14,8" />
-            </Style>
-
-            <!-- Glass circle style — mirrors rokuricsGlassCircle (36x36 icon button circle) -->
-            <Style x:Key="RokuricsGlassCircleStyle" TargetType="Border">
-                <Setter Property="Background" Value="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}" />
-                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-                <Setter Property="BorderThickness" Value="0.5" />
-                <Setter Property="CornerRadius" Value="18" />
-                <Setter Property="Width" Value="36" />
-                <Setter Property="Height" Value="36" />
-            </Style>
-
-            <!-- Large circle — for device bubble (Mac: 286x286, accent gradient) -->
-            <Style x:Key="RokuricsDeviceBubbleStyle" TargetType="Border">
-                <Setter Property="Background" Value="{StaticResource RokuricsActionGradientBrush}" />
-                <Setter Property="CornerRadius" Value="143" />
-                <Setter Property="Width" Value="286" />
-                <Setter Property="Height" Value="286" />
-            </Style>
-
-            <!-- Sidebar background style — acrylic material matching Mac sidebar glassSurface -->
-            <Style x:Key="RokuricsSidebarStyle" TargetType="Grid">
-                <Setter Property="Background" Value="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}" />
-            </Style>
-
-            <!-- Profile avatar ring — accent gradient circle matching Mac -->
-            <Style x:Key="RokuricsProfileAvatarStyle" TargetType="Border">
-                <Setter Property="Background" Value="{StaticResource RokuricsActionGradientBrush}" />
-                <Setter Property="CornerRadius" Value="48" />
-                <Setter Property="Width" Value="96" />
-                <Setter Property="Height" Value="96" />
-            </Style>
-
-            <!-- Minimalist button -->
+            <!-- Button style -->
             <Style x:Key="RokuricsButtonStyle" TargetType="Button">
                 <Setter Property="FontFamily" Value="{StaticResource RokuricsFontFamily}" />
                 <Setter Property="FontSize" Value="14" />
                 <Setter Property="FontWeight" Value="SemiBold" />
                 <Setter Property="CornerRadius" Value="8" />
                 <Setter Property="Padding" Value="16,10" />
-                <Setter Property="MinWidth" Value="80" />
             </Style>
-
-            <!-- Accent button — Mac primary button: white text on accentGradient, cornerRadius 14 -->
             <Style x:Key="RokuricsAccentButtonStyle" TargetType="Button" BasedOn="{StaticResource RokuricsButtonStyle}">
                 <Setter Property="Background" Value="{StaticResource RokuricsActionGradientBrush}" />
                 <Setter Property="Foreground" Value="White" />
                 <Setter Property="CornerRadius" Value="14" />
             </Style>
-
-            <!-- Destructive button — Mac: coral background, cornerRadius 14 -->
-            <Style x:Key="RokuricsDestructiveButtonStyle" TargetType="Button" BasedOn="{StaticResource RokuricsButtonStyle}">
-                <Setter Property="Background" Value="{StaticResource RokuricsCoralBrush}" />
-                <Setter Property="Foreground" Value="White" />
-                <Setter Property="CornerRadius" Value="14" />
-            </Style>
-
-            <!-- Input text box — Mac: cornerRadius 12, padding 12,9 -->
-            <Style x:Key="RokuricsTextBoxStyle" TargetType="TextBox">
-                <Setter Property="FontFamily" Value="{StaticResource RokuricsFontFamily}" />
-                <Setter Property="FontSize" Value="14" />
-                <Setter Property="Padding" Value="12,9" />
-                <Setter Property="CornerRadius" Value="12" />
-            </Style>
-
-            <!-- Navigation icon button — Mac RokuricsCircleIconButton: 36x36, cornerRadius 18, hover scale 1.025 -->
             <Style x:Key="RokuricsIconButtonStyle" TargetType="Button">
                 <Setter Property="Width" Value="36" />
                 <Setter Property="Height" Value="36" />
                 <Setter Property="Padding" Value="6" />
                 <Setter Property="CornerRadius" Value="18" />
                 <Setter Property="Background" Value="Transparent" />
-                <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="Button">
-                            <Grid x:Name="RootGrid"
-                                  Background="{TemplateBinding Background}"
-                                  CornerRadius="{TemplateBinding CornerRadius}"
-                                  RenderTransformOrigin="0.5,0.5">
-                                <Grid.RenderTransform>
-                                    <ScaleTransform x:Name="ButtonScale" />
-                                </Grid.RenderTransform>
-                                <ContentPresenter x:Name="ContentPresenter"
-                                                  Content="{TemplateBinding Content}"
-                                                  Padding="{TemplateBinding Padding}"
-                                                  HorizontalAlignment="Center"
-                                                  VerticalAlignment="Center" />
-                                <VisualStateManager.VisualStateGroups>
-                                    <VisualStateGroup x:Name="CommonStates">
-                                        <VisualStateGroup.Transitions>
-                                            <VisualTransition From="Pressed" To="Normal" GeneratedDuration="0:0:0.15">
-                                                <VisualTransition.GeneratedEasingFunction>
-                                                    <CubicEase EasingMode="EaseOut" />
-                                                </VisualTransition.GeneratedEasingFunction>
-                                            </VisualTransition>
-                                            <VisualTransition From="Pressed" To="PointerOver" GeneratedDuration="0:0:0.1">
-                                                <VisualTransition.GeneratedEasingFunction>
-                                                    <CubicEase EasingMode="EaseOut" />
-                                                </VisualTransition.GeneratedEasingFunction>
-                                            </VisualTransition>
-                                            <VisualTransition From="Normal" To="PointerOver" GeneratedDuration="0:0:0.1">
-                                                <VisualTransition.GeneratedEasingFunction>
-                                                    <CubicEase EasingMode="EaseOut" />
-                                                </VisualTransition.GeneratedEasingFunction>
-                                            </VisualTransition>
-                                        </VisualStateGroup.Transitions>
-                                        <VisualState x:Name="Normal" />
-                                        <VisualState x:Name="PointerOver">
-                                            <VisualState.Setters>
-                                                <Setter Target="ButtonScale.ScaleX" Value="1.025" />
-                                                <Setter Target="ButtonScale.ScaleY" Value="1.025" />
-                                            </VisualState.Setters>
-                                        </VisualState>
-                                        <VisualState x:Name="Pressed">
-                                            <VisualState.Setters>
-                                                <Setter Target="ButtonScale.ScaleX" Value="0.985" />
-                                                <Setter Target="ButtonScale.ScaleY" Value="0.985" />
-                                            </VisualState.Setters>
-                                        </VisualState>
-                                        <VisualState x:Name="Disabled">
-                                            <VisualState.Setters>
-                                                <Setter Target="RootGrid.Opacity" Value="0.46" />
-                                            </VisualState.Setters>
-                                        </VisualState>
-                                    </VisualStateGroup>
-                                </VisualStateManager.VisualStateGroups>
-                            </Grid>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
+            </Style>
+            <Style x:Key="RokuricsTextBoxStyle" TargetType="TextBox">
+                <Setter Property="FontFamily" Value="{StaticResource RokuricsFontFamily}" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="Padding" Value="12,9" />
+                <Setter Property="CornerRadius" Value="12" />
             </Style>
         </ResourceDictionary>
     </Application.Resources>

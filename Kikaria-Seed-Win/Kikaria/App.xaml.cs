@@ -9,6 +9,7 @@ namespace Kikaria
     {
         public static StorageService StorageService { get; } = new StorageService();
         public static KikariaAppState AppState { get; private set; } = null!;
+        public static Window MainWindow { get; private set; } = null!;
 
         public App()
         {
@@ -19,6 +20,7 @@ namespace Kikaria
         protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
             m_window = new MainWindow();
+            MainWindow = m_window;
             m_window.Activate();
         }
 

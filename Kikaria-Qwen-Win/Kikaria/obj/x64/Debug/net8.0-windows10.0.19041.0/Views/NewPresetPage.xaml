@@ -1,0 +1,145 @@
+﻿<Page
+    x:Class="Kikaria.Views.NewPresetPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:Kikaria.Controls"
+    mc:Ignorable="d">
+
+    <Grid x:ConnectionId='2' x:Name="RootGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Padding="16,12,16,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button x:ConnectionId='18' x:Name="BackButton"
+                    Grid.Column="0"
+                    Content="&#xE72B;"
+                    FontFamily="Segoe MDL2 Assets"
+                    FontSize="16"
+                    Background="Transparent"
+                                             />
+
+            <TextBlock x:ConnectionId='19' Grid.Column="1"
+                       Text="上传新预设"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       FontFamily="Microsoft YaHei, PingFang SC"
+                       x:Name="PageTitle" />
+
+            <Button x:ConnectionId='20' x:Name="SaveButton"
+                    Grid.Column="2"
+                    Content="保存"
+                    Height="36"
+                    CornerRadius="12"
+                    FontSize="14"
+                    FontWeight="SemiBold"
+                                            
+                    FontFamily="Microsoft YaHei, PingFang SC" />
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16" Padding="24,16,24,32" MaxWidth="700" HorizontalAlignment="Center">
+
+                <controls:LiquidGlassCard x:ConnectionId='3' x:Name="NameCard"
+                                          CardCornerRadius="16"
+                                          Padding="20,16,20,16">
+                    <StackPanel Spacing="8">
+                        <TextBlock x:ConnectionId='16' Text="预设名称"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   FontFamily="Microsoft YaHei, PingFang SC"
+                                   x:Name="NameLabel" />
+                        <TextBox x:ConnectionId='17' x:Name="PresetNameBox"
+                                 PlaceholderText="输入预设名称"
+                                 FontSize="15"
+                                 FontFamily="Microsoft YaHei, PingFang SC" />
+                    </StackPanel>
+                </controls:LiquidGlassCard>
+
+                <controls:LiquidGlassCard x:ConnectionId='4' x:Name="CategoryCard"
+                                          CardCornerRadius="16"
+                                          Padding="20,16,20,16">
+                    <StackPanel Spacing="8">
+                        <TextBlock x:ConnectionId='14' Text="分类"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   FontFamily="Microsoft YaHei, PingFang SC"
+                                   x:Name="CategoryLabel" />
+                        <TextBox x:ConnectionId='15' x:Name="CategoryBox"
+                                 PlaceholderText="输入分类（可选）"
+                                 FontSize="15"
+                                 FontFamily="Microsoft YaHei, PingFang SC" />
+                    </StackPanel>
+                </controls:LiquidGlassCard>
+
+                <controls:LiquidGlassCard x:ConnectionId='5' x:Name="ImportCard"
+                                          CardCornerRadius="16"
+                                          Padding="20,16,20,16">
+                    <StackPanel Spacing="10">
+                        <TextBlock x:ConnectionId='11' Text="导入 Markdown 文件"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   FontFamily="Microsoft YaHei, PingFang SC"
+                                   x:Name="ImportLabel" />
+                        <Button x:ConnectionId='12' x:Name="ImportFileButton"
+                                Content="选择文件 (.md / .txt)"
+                                Height="40"
+                                CornerRadius="12"
+                                FontSize="14"
+                                                        
+                                FontFamily="Microsoft YaHei, PingFang SC" />
+                        <TextBlock x:ConnectionId='13' x:Name="ImportedFileName"
+                                   Text=""
+                                   FontSize="13"
+                                   Opacity="0.5"
+                                   FontFamily="Microsoft YaHei, PingFang SC" />
+                    </StackPanel>
+                </controls:LiquidGlassCard>
+
+                <controls:LiquidGlassCard x:ConnectionId='6' x:Name="EditorCard"
+                                          CardCornerRadius="16"
+                                          Padding="20,16,20,16">
+                    <StackPanel Spacing="8">
+                        <TextBlock x:ConnectionId='9' Text="Markdown 内容"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   FontFamily="Microsoft YaHei, PingFang SC"
+                                   x:Name="EditorLabel" />
+                        <TextBox x:ConnectionId='10' x:Name="MarkdownEditor"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 MinHeight="300"
+                                 FontFamily="Cascadia Code, Consolas"
+                                 FontSize="14"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 PlaceholderText="# 知识点标题&#x0a;&#x0a;tags: tag1, tag2&#x0a;&#x0a;hint:&#x0a;提示内容&#x0a;&#x0a;content:&#x0a;答案内容&#x0a;&#x0a;---" />
+                    </StackPanel>
+                </controls:LiquidGlassCard>
+
+                <HyperlinkButton x:ConnectionId='7' x:Name="FormatGuideLink"
+                                 Content="查看 Markdown 格式说明 →"
+                                 FontSize="14"
+                                                          
+                                 FontFamily="Microsoft YaHei, PingFang SC" />
+
+                <InfoBar x:ConnectionId='8' x:Name="ErrorBar"
+                         IsOpen="False"
+                         Severity="Error"
+                         FontFamily="Microsoft YaHei, PingFang SC" />
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>
+

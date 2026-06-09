@@ -58,7 +58,7 @@ public partial class PresetStudyState : ObservableObject
     private int dangerPercent;
 
     [JsonPropertyName("countdownDate")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWriting)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateTime? LegacyCountdownDate
     {
         get => CountdownEndDate;

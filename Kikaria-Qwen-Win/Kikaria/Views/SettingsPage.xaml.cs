@@ -166,10 +166,7 @@ public sealed partial class SettingsPage : Page
 
     private void NotificationTimePicker_TimeChanged(object sender, TimePickerValueChangedEventArgs e)
     {
-        if (e.NewTime.HasValue)
-        {
-            VM.UpdateNotificationTime(DateTime.Today.Add(e.NewTime.Value));
-        }
+        VM.UpdateNotificationTime(DateTime.Today.Add(e.NewTime));
     }
 
     private void TestNotif_Click(object sender, RoutedEventArgs e)

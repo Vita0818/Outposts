@@ -1,3 +1,5 @@
+using Rokurics.Models;
+
 namespace Rokurics.Services;
 
 /// <summary>

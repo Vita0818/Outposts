@@ -33,10 +33,10 @@ namespace Kikaria.Models
             List<string> tags,
             string hint,
             string content,
-            bool isReinforced = false,
-            bool isMastered = false,
             DateTimeOffset createdAt,
             DateTimeOffset updatedAt,
+            bool isReinforced = false,
+            bool isMastered = false,
             int? reinforcementCount = null,
             DateTimeOffset? lastReinforcedAt = null)
         {
@@ -76,7 +76,7 @@ namespace Kikaria.Models
             Content = content;
             _isReinforced = isReinforced;
             
-            ReinforcementCount = Math.Max(0, reinforcementCount ?? (isReinforced ? 1 : 0));
+            ReinforcementCount = Math.Max(0, reinforcementCount);
             IsReinforced = ReinforcementCount > 0;
             LastReinforcedAt = lastReinforcedAt;
             if (ReinforcementCount == 0)
@@ -225,8 +225,6 @@ namespace Kikaria.Models
                 tags: tags,
                 hint: hint,
                 content: content,
-                isReinforced: false,
-                isMastered: false,
                 createdAt: date,
                 updatedAt: date
             );
@@ -260,25 +258,6 @@ namespace Kikaria.Models
         public string MarkdownText { get; set; } = string.Empty;
         public bool IsBuiltIn { get; set; }
 
-        public KnowledgePreset(
-            string id,
-            string name,
-            string subtitle,
-            string description,
-            string category,
-            string markdownText,
-            bool isBuiltIn)
-        {
-            Id = id;
-            Name = name;
-            Subtitle = subtitle;
-            Description = description;
-            Category = category;
-            MarkdownText = markdownText;
-            IsBuiltIn = isBuiltIn;
-        }
-
-        [JsonConstructor]
         public KnowledgePreset(
             string id,
             string name,
