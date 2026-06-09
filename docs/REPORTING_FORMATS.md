@@ -1,5 +1,7 @@
 # Reporting Formats
 
+本文只适用于 Codex 模式：Agent 与 Spark。OpenCode 模式不读取本文。
+
 ## Spark 模式报告模板
 
 ```text
@@ -8,45 +10,46 @@ MODEL_CHECK_RESULT:
 PATH_CHECK_RESULT:
 PROJECT:
 FILES_CHANGED:
+COMMANDS_RUN:
 BUILD_RESULT:
 TEST_RESULT:
 VALIDATION_RESULT:
+QWEN_VISUAL_ASSIST: YES/NO
 RISKS:
 NEXT_ACTION:
 SCOPE_CONFIRMATION:
 ```
 
-## Spark + Qwen 模式报告模板
+## Spark 视觉辅助报告字段
+
+当 `QWEN_VISUAL_ASSIST=YES` 时，在 Spark 报告中追加：
 
 ```text
-MODE: SPARK_QWEN
-MODEL_CHECK_RESULT:
-PATH_CHECK_RESULT:
-SPARK_MODEL_CONFIRMED:
 QWEN_MODEL:
 QWEN_AVAILABLE:
 QWEN_CALL_METHOD:
+QWEN_CALLED:
+QWEN_VALID_VISUAL_EVIDENCE:
+QWEN_COMPARE_SCREENSHOTS_COMPLETED:
 REFERENCE_SCREENSHOTS:
 ACTUAL_SCREENSHOTS:
 QWEN_INSPECT_REFERENCE_RESULT:
 QWEN_INSPECT_ACTUAL_RESULT:
 QWEN_COMPARE_RESULT:
 CODE_CHANGES_FROM_QWEN:
-BUILD_RESULT:
-TEST_RESULT:
-VALIDATION_RESULT:
-RISKS:
-NEXT_ACTION:
-SCOPE_CONFIRMATION:
+REMAINING_VISUAL_DIFFERENCES:
+VISUAL_VALIDATION_LIMITATIONS:
 ```
 
 ## Agent 模式报告模板
 
 ```text
 MODE: AGENT
+EXECUTOR: DeepCode CLI
+DEEPCODE_CLI_COMMAND:
 MODEL_CHECK_RESULT:
 PATH_CHECK_RESULT:
-CLAUDE_TERMINALS:
+DEEPCODE_SESSIONS:
 PROJECT_REPORTS:
 ROUNDS_COMPLETED:
 BLOCKERS:
@@ -55,15 +58,16 @@ SCOPE_CONFIRMATION:
 NEXT_ACTION:
 ```
 
-## Claude Code 每轮报告字段
+## DeepCode CLI 每轮报告字段
 
-要求 Claude Code 每轮返回结构化报告，字段应包含：
+要求 DeepCode CLI 每轮返回结构化报告，字段应包含：
 
 ```text
+MODEL_CHECK_RESULT
+PATH_CHECK_RESULT
+SOURCE_READONLY_CHECK
 PROJECT_NAME
-ROUND_ID
-MODEL
-PWD
+ROUND_INDEX
 TASK_RECEIVED
 FILES_READ_SUMMARY
 FILES_CHANGED
@@ -71,30 +75,46 @@ COMMANDS_RUN
 BUILD_RESULT
 TEST_RESULT
 USER_FEEDBACK_ADDRESSED
-COMPLETED_WORK
+IMPLEMENTED_THIS_ROUND
 REMAINING_WORK
 BLOCKERS
-RISKS
-NEXT_RECOMMENDED_ACTION
+REGRESSION_RISKS
+NEXT_RECOMMENDATION
 READY_FOR_USER_REVIEW
 ```
 
-`FILES_READ_SUMMARY` 只能摘要范围，不要求贴源码。`COMMANDS_RUN` 应列命令和结果摘要。`BUILD_RESULT`、`TEST_RESULT` 必须区分未运行、无法运行、失败、通过。
+字段规则：
 
-当批次目标涉及 UI 复刻、截图对比或视觉验收时，每轮 Claude Code 报告还必须包含：
+- `FILES_READ_SUMMARY` 只能摘要范围，不贴源码。
+- `COMMANDS_RUN` 应列命令和结果摘要。
+- `BUILD_RESULT`、`TEST_RESULT` 必须区分 `PASS`、`FAIL`、`NOT_RUN`、`NOT_ATTEMPTED`、`BLOCKED`。
+- 不得省略未运行的构建或测试。
+
+## UI / 视觉任务报告字段
+
+当目标涉及 UI 复刻、截图对比或视觉验收时，每轮报告必须额外包含：
 
 ```text
-QWEN_VISION_USED:
-REFERENCE_SCREENSHOTS:
-ACTUAL_SCREENSHOTS:
-VISION_COMPARISON_RESULT:
-MAJOR_VISUAL_DIFFERENCES:
-FIXES_FROM_VISUAL_REVIEW:
-REMAINING_VISUAL_DIFFERENCES:
-VISUAL_VALIDATION_LIMITATIONS:
+QWEN_VISUAL_ASSIST
+QWEN_MODEL
+QWEN_AVAILABLE
+QWEN_CALL_METHOD
+QWEN_CALLED
+QWEN_VALID_VISUAL_EVIDENCE
+QWEN_COMPARE_SCREENSHOTS_COMPLETED
+REFERENCE_SCREENSHOTS_USED
+ACTUAL_SCREENSHOTS
+VISION_TOOLS_CALLED
+VISION_RESULT_SUMMARY
+MAJOR_VISUAL_DIFFERENCES
+FIXES_FROM_VISUAL_REVIEW
+CODE_CHANGES_FROM_QWEN
+REMAINING_VISUAL_DIFFERENCES
+ACTUAL_SCREENSHOT_BLOCKER
+VISUAL_VALIDATION_LIMITATIONS
 ```
 
-当批次目标涉及视觉验收环境或截图闭环时，每轮 Claude Code 报告还必须包含：
+当批次目标涉及视觉验收环境或截图闭环时，还必须包含：
 
 ```text
 VISUAL_ENVIRONMENT:
@@ -111,19 +131,9 @@ SCREENSHOT_EVIDENCE:
 - QWEN_OUTPUT_DIR:
 - SCREENSHOTS_GENERATED:
 - SCREENSHOTS_MISSING_REASON:
-
-QWEN_VISION_RESULT:
-- QWEN_VISION_AVAILABLE:
-- QWEN_VISION_USED:
-- INSPECT_SCREENSHOT_CALLED:
-- COMPARE_SCREENSHOTS_CALLED:
-- MAJOR_VISUAL_DIFFERENCES:
-- REMAINING_VISUAL_BLOCKERS:
 ```
 
-Android 报告必须给出 `ANDROID_DEVICE_SERIALS` 和实际截图路径。共享 Emulator 场景下，还必须说明 `ANDROID_EMULATOR_LOCK`、`APPLICATION_ID_SOURCE`、`APPLICATION_ID`、安装/启动/前台包名校验结果。HarmonyOS 报告必须说明截图是完整 IDE 截图还是裁剪后的 Preview 图。Windows 报告必须明确 `WINDOWS_UI_ENV_STATUS`，不能在 macOS host 无 Windows/.NET UI 环境时假装完成视觉验收。
-
-Android screenshot preflight 报告字段：
+## Android screenshot preflight 报告字段
 
 ```text
 ANDROID_EMULATOR_LOCK:
@@ -150,15 +160,18 @@ INVALID_SCREENSHOTS:
 - `INSTALL_NEEDED_FOR_SCREENSHOT=YES` 表示为了截图链在当前项目内执行了最小安装流程，不等于普通功能开发。
 - `INSTALL_FOR_SCREENSHOT_FAILED` 时不得继续 UI 修改。
 - `FOREGROUND_PACKAGE` 必须等于目标 `APPLICATION_ID` 后，`ACTUAL_SCREENSHOT_PATH` 才能计为有效 actual screenshot。
-- 截到另一个项目 App 时，必须列入 `INVALID_SCREENSHOTS`，不得作为 qwen 有效验收或 compare 依据。
-- `ANDROID_WAITING_FOR_USER_APP_SWITCH` 不是常规报告状态；只有真实需要用户处理设备、授权、系统弹窗或无法项目内修复的安装失败时，才报告 `USER_DEVICE_INTERVENTION_REQUIRED`。
+- 截到另一个项目 App 时，必须列入 `INVALID_SCREENSHOTS`，不得作为 Qwen 有效验收或 compare 依据。
 
 ## Codex 主管摘要字段
 
-Codex Agent 给用户的摘要应包含：
+Codex 输出给用户的是主管摘要，不是 DeepCode CLI 长报告。
+
+摘要应包含：
 
 ```text
 BATCH_NAME
+MODE
+EXECUTOR
 MODEL_CHECK_RESULT
 PATH_CHECK_RESULT
 SCOPE_CONFIRMATION
@@ -170,22 +183,15 @@ NEXT_RECOMMENDED_ACTION
 UNCERTAINTIES
 ```
 
-用户只需要看主管摘要。不得把 Claude Code 长报告整段贴给用户。必要时只摘取关键结论、阻塞、验证结果和下一步。
+当目标涉及 UI 复刻时，Codex 主管摘要应保留：
 
-当目标涉及 UI 复刻时，Codex 主管摘要应简要保留：是否使用 `qwen-vision`、是否有参考图、是否有实际渲染图、主要视觉差异、是否已根据视觉差异修正、剩余视觉验收阻塞。
-
-若目标为 Spark + Qwen 视觉任务，摘要还应保留：
-
-- `QWEN_MODEL`
-- `QWEN_AVAILABLE`
-- `QWEN_CALL_METHOD`
-- `REFERENCE_SCREENSHOTS`
-- `ACTUAL_SCREENSHOTS`
-- `QWEN_COMPARE_RESULT`
-- `CODE_CHANGES_FROM_QWEN`
-- `REMAINING_VISUAL_DIFFERENCES`
-
-当目标涉及截图闭环时，Codex 主管摘要还应保留固定证据目录、截图文件是否生成、qwen 输出是否落盘、以及无法生成截图的具体原因。
+- 是否使用 Qwen。
+- 是否有 reference 图。
+- 是否有 actual 图。
+- 是否完成 compare。
+- 主要视觉差异。
+- 是否已根据视觉差异修正。
+- 剩余视觉验收阻塞。
 
 ## 项目状态字段
 
@@ -221,15 +227,9 @@ RUNNING_ROUNDS_WAITED_TO_FINISH
 STOP_REASON
 ```
 
-如果批次在时间预算和轮次预算尚未耗尽前结束，主管摘要必须明确解释提前结束原因：
+如果批次在时间预算和轮次预算尚未耗尽前结束，主管摘要必须明确解释提前结束原因。
 
-- 所有项目均达到硬终止状态。
-- 用户明确要求暂停。
-- 调度器发生误判并已记录修正。
-
-不得把 `READY_FOR_USER_REVIEW`、`REFERENCE_ONLY`、`WINDOWS_HOST_VALIDATION_PENDING` 或 actual screenshot unavailable 单独写成最终停止理由。此类软状态必须结合 remaining gaps、next recommendation、预算和轮次判断是否继续。
-
-当 `AUTO_CONTINUE_WITHIN_BUDGET=YES` 且项目仍有可执行下一步时，Codex 主管摘要应把项目标记为 `ROUND_COMPLETE_CONTINUE_ELIGIBLE`，而不是直接标记为终止态。
+不得把 `READY_FOR_USER_REVIEW`、`REFERENCE_ONLY`、`WINDOWS_HOST_VALIDATION_PENDING` 或 actual screenshot unavailable 单独写成最终停止理由。
 
 ## 阻塞字段
 
@@ -245,17 +245,20 @@ SAFE_TO_CONTINUE_OTHER_PROJECTS
 
 常见 `BLOCKER_TYPE`：
 
-- `MODEL_MISMATCH`
-- `WORKDIR_MISMATCH`
-- `SOURCE_READONLY_FAILED`
-- `POLICY_BLOCKED`
-- `API_402`
-- `TOOLCHAIN_MISSING`
-- `PROMPT_DELIVERY_UNKNOWN`
-- `STATE_UNKNOWN`
-- `USER_REVIEW_REQUIRED`
+```text
+MODEL_MISMATCH
+WORKDIR_MISMATCH
+SOURCE_READONLY_FAILED
+POLICY_BLOCKED
+API_402
+TOOLCHAIN_MISSING
+PROMPT_DELIVERY_UNKNOWN
+STATE_UNKNOWN
+USER_REVIEW_REQUIRED
+QWEN_UNAVAILABLE_IN_SESSION
+```
 
-软状态不得混入硬阻塞字段。`REFERENCE_ONLY`、`QWEN_COMPARE_SCREENSHOTS_COMPLETED=NO`、`WINDOWS_HOST_VALIDATION_PENDING`、缺 actual screenshot、还有 remaining UI differences，都应进入 `NEXT_ACTION` 或 `REMAINING_WORK`，除非同时存在真实硬阻塞。
+软状态不得混入硬阻塞字段。`REFERENCE_ONLY`、`QWEN_COMPARE_SCREENSHOTS_COMPLETED=NO`、`WINDOWS_HOST_VALIDATION_PENDING`、缺 actual screenshot、还有 remaining UI differences，应进入 `NEXT_ACTION` 或 `REMAINING_WORK`，除非同时存在真实硬阻塞。
 
 ## crash recovery 摘要格式
 
@@ -305,67 +308,12 @@ PROJECT_NAME=<PROJECT_NAME>
 SOURCE=<user/manual review/screenshot/build log>
 FEEDBACK_SUMMARY=<concise summary>
 ACCEPTANCE_GAP=<what is not acceptable yet>
-NEXT_ROUND_OBJECTIVE=<what Claude Code must address>
+NEXT_ROUND_OBJECTIVE=<what DeepCode CLI or Spark must address>
 MUST_VERIFY=<build/test/manual check expected>
 DO_NOT_REPEAT=<previous failed approach or prompt>
 ```
 
 用户验收反馈不得被降级为普通建议。它应进入下一轮正式任务的目标和验收条件。
-
-## 禁止报告方式
-
-不得：
-
-- 粘贴 Claude Code 长报告全文。
-- 用“Claude 说完成了”代替主管判断。
-- 省略未运行的构建或测试。
-- 隐藏模型、路径、授权、预算异常。
-- 把子项目源码内容写入主管摘要。
-- 把敏感信息写入摘要、checkpoint 或 report。
-
-## Claude Code 标准报告字段
-
-每轮正式任务报告必须包含：
-
-```text
-MODEL_CHECK_RESULT
-PATH_CHECK_RESULT
-SOURCE_READONLY_CHECK
-PROJECT_NAME
-ROUND_INDEX
-TASK_RECEIVED
-FILES_READ_SUMMARY
-FILES_CHANGED
-COMMANDS_RUN
-BUILD_RESULT
-TEST_RESULT
-IMPLEMENTED_THIS_ROUND
-REMAINING_UI_DIFFERENCES
-REMAINING_FUNCTIONAL_GAPS
-BLOCKERS
-REGRESSION_RISKS
-NEXT_RECOMMENDATION
-READY_FOR_USER_REVIEW
-```
-
-不得省略未运行的构建或测试；必须写 `NOT_RUN`、`NOT_ATTEMPTED` 或具体阻塞原因。
-
-## qwen 视觉批次字段
-
-```text
-QWEN_REQUIRED
-QWEN_CALLED
-QWEN_VALID_VISUAL_EVIDENCE
-QWEN_COMPARE_SCREENSHOTS_COMPLETED
-REFERENCE_SCREENSHOTS_USED
-ACTUAL_SCREENSHOTS
-VISION_TOOLS_CALLED
-VISION_RESULT_SUMMARY
-ACTUAL_SCREENSHOT_BLOCKER
-VISUAL_VALIDATION_LIMITATIONS
-```
-
-`QWEN_CALLED=YES` 不等于有效验收。无效桌面截图必须报告 `QWEN_VALID_VISUAL_EVIDENCE=NO`。reference-only 必须明确写 `QWEN_VALID_VISUAL_EVIDENCE=REFERENCE_ONLY`。
 
 ## WinUI 3 批次字段
 
@@ -403,10 +351,13 @@ USER_MANUAL_CHECK_REQUIRED
 NEXT_RECOMMENDATION
 ```
 
-边界事故后不得贴长日志；主管摘要只保留事实、风险、是否安全继续和人工检查清单。
+## 禁止报告方式
 
-## 主管摘要纪律
+不得：
 
-Codex Agent 输出给用户的是主管摘要，不是 Claude Code 长报告。摘要必须说明模型、路径、预算、轮次、qwen 使用、构建测试结果、阻塞、剩余问题和下一步。
-
-如果批次提前结束，必须解释是所有项目达到硬终止、用户要求暂停，还是调度器误判并已修正。不得把 `READY_FOR_USER_REVIEW`、`REFERENCE_ONLY`、actual screenshot unavailable 或 `WINDOWS_HOST_VALIDATION_PENDING` 单独作为停止理由。
+- 粘贴 DeepCode CLI 长报告全文。
+- 用“DeepCode 说完成了”代替主管判断。
+- 省略未运行的构建或测试。
+- 隐藏模型、路径、授权、预算异常。
+- 把子项目源码内容写入主管摘要。
+- 把敏感信息写入摘要、checkpoint 或 report。

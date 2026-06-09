@@ -1,206 +1,184 @@
-# Outposts Dual Track Execution
+# Outposts Three Mode Execution
 
-本文定义 Outposts 调度的三轨规则：Spark（Codex 直接执行）、Spark + Qwen 视觉辅助（Codex 直接执行 + Qwen 视觉辅助）与 Agent（Codex 调度、Claude Code 主执行）。
+本文替代旧“双轨”规则。Outposts 当前只有三种互斥工作模式：**Agent**、**Spark**、**OpenCode**。
 
-## 双轨模式总览
+旧的 Spark + Qwen 不再是独立模式，而是 Spark 或 Agent 模式中的视觉辅助能力：`QWEN_VISUAL_ASSIST=YES`。
 
-三种模式职责完全不同且互斥：
+## 三模式总览
 
-- Spark：适合小范围、高频、边界清晰的任务，Codex 本体直接修改 Outposts 目标项目。
-- Agent：适合复杂、长程、大范围任务，由 Claude Code 在真实可见窗口执行，Codex 做调度与汇总。
+| 模式 | 启动入口 | 执行主体 | Codex 是否参与 | 典型任务 |
+| --- | --- | --- | --- | --- |
+| Agent | Codex 对话 | DeepCode CLI | 是，Codex 只做主管 | 多项目并行、复杂迁移、长程任务 |
+| Spark | Codex 对话 | GPT-5.3-Codex-Spark | 是，Codex/Spark 本体直接执行 | 小范围修复、明确构建错误、单文件补丁、局部 UI 修正 |
+| OpenCode | 用户直接启动 OpenCode | OpenCode | 否 | 完全独立的项目实现、调试、构建 |
 
-除非用户明确声明，否则禁止默认采用任何模式；必须先问清。
-
-## Spark 模式定义
-
-用户在命令中明确包含“Spark 模式”时启动。
-
-- 前置要求：先确认当前模型为 `GPT-5.3-Codex-Spark`。
-- 若无法确认模型、模型不匹配或确认失败，立即停止本轮。
-- 目标是明确可验证的小范围改动，避免长流程和多轮复杂依赖推导。
-
-## Spark + Qwen 视觉辅助定义
-
-用户在命令中明确包含“Spark 模式”且任务包含截图、视觉、UI 复刻、reference/actual 或像素级差异修复时启动。
-
-- 前置要求：先确认当前模型为 `GPT-5.3-Codex-Spark`。
-- Spark 不能凭文本推断图片内容。
-- 任务必须先拿到 Qwen3.7Plus（或已接入 helper）视觉差异报告，再进行代码修正。
-- 当 actual unavailable 时可走 reference-only 线，但不得声称视觉闭环完成。
+三种模式不可混用。未声明模式时停止执行并要求用户明确。
 
 ## Agent 模式定义
 
 用户在命令中明确包含“Agent 模式”时启动。
 
-- Codex 本体只做调度：管理真实可见的 Claude Code 终端、握手、任务 prompt、报告聚合。
-- 实际源码读取、修改、构建、测试由 Claude Code 执行。
-- 启动前必须进行标准握手和模型确认。
+Agent 模式从 Codex 对话启动，但 Codex 不直接开发。Codex 的职责是：
+
+- 检查 Outposts 根目录、Git root、工作区状态。
+- 为每个目标项目启动或接管真实可见 DeepCode CLI 会话。
+- 发送短握手，确认模型/后端、路径和 READY 状态。
+- 向 DeepCode CLI 发送当前项目、当前轮次、当前目标所需的精简任务 prompt。
+- 监测可观察输出，读取结构化报告。
+- 维护 `.outposts-supervisor/` 下的 checkpoint、batch state、report、summary。
+- 输出主管摘要。
+
+DeepCode CLI 的职责是：
+
+- 读取 Apple 源项目作为只读参考。
+- 读取和修改当前 Outposts 目标项目。
+- 运行构建、测试、截图、诊断命令。
+- 在视觉任务中使用已配置的 Qwen helper（若可用）。
+- 输出结构化项目报告。
+
+Agent 模式禁止：
+
+- 调用 Claude Code。
+- 使用 `claude`、`claude -p`、Claude Desktop 或 CC 窗口。
+- Codex 本体读写业务源码或运行构建测试。
+- DeepCode CLI 修改 Apple 源项目或参考图目录。
+
+## Spark 模式定义
+
+用户在命令中明确包含“Spark 模式”时启动。
+
+Spark 模式由 `GPT-5.3-Codex-Spark` 本体直接执行。执行前必须确认当前模型：
+
+```text
+MODEL_CHECK_RESULT:
+- Expected: GPT-5.3-Codex-Spark
+- Actual: <当前模型>
+- Result: PASS/FAIL
+```
+
+无法确认或不匹配时停止。
+
+Spark 允许：
+
+- 在目标项目内读取和修改源码。
+- 在目标项目内运行构建、测试、lint、截图、最小诊断命令。
+- 写调度记录、patch summary、验证报告。
+
+Spark 禁止：
+
+- 修改 `/Users/vita/Vitemis/Vela`。
+- 修改参考图目录。
+- 读取或发送敏感文件。
+- 执行破坏性 Git 操作。
+- 清理 build/cache/用户级工具链。
+- 在模型不匹配时继续。
+
+## Spark 视觉辅助
+
+Spark 任务若涉及 UI、截图、视觉、reference、actual、像素级差异、设计稿或视觉验收，设置：
+
+```text
+MODE=SPARK
+QWEN_VISUAL_ASSIST=YES
+```
+
+规则：
+
+- Qwen 只负责看图、识别截图、比较截图。
+- Spark 负责代码修改、构建、测试和总结。
+- 没有 Qwen 报告时，不得声称完成视觉验收。
+- 只有 reference 无 actual 时，报告 `REFERENCE_ONLY`。
+- actual 和 reference 都有效时，才可报告 `QWEN_COMPARE_SCREENSHOTS_COMPLETED=YES`。
+
+## Agent 视觉辅助
+
+Agent 模式的视觉辅助由 DeepCode CLI 发起。Codex 只在任务 prompt 中要求 DeepCode CLI 使用已配置的 Qwen helper。
+
+```text
+MODE=AGENT
+EXECUTOR=DeepCode CLI
+QWEN_VISUAL_ASSIST=YES/NO
+```
+
+DeepCode CLI 不得把源码、密钥、`.env`、证书或完整私密配置传给 Qwen。
+
+如果 DeepCode CLI 无可用 Qwen helper：
+
+- 纯代码任务可继续。
+- 视觉验收任务不得宣称视觉闭环完成。
+- 报告 `QWEN_UNAVAILABLE_IN_SESSION` 或 `QWEN_HELPER_NOT_CONFIGURED`。
+
+## OpenCode 模式定义
+
+OpenCode 模式完全与 Codex 无关。用户直接在目标项目启动 OpenCode。
+
+OpenCode 模式只读取：
+
+- `OPENCODE_MODE.md`
+- 当前目标项目自己的项目文档
+
+OpenCode 模式不得读取：
+
+- `AGENTS.md`
+- `docs/OUTPOSTS_CODEX_SUPERVISOR.md`
+- `docs/DUAL_TRACK_EXECUTION.md`
+- `docs/BATCH_SCHEDULING.md`
+- `docs/DEEPCODE_CLI_TERMINAL_PROTOCOL.md`
+- `docs/DEEPCODE_CLI_VISUAL_QWEN_PROTOCOL.md`
+- `docs/RECOVERY_PLAYBOOK.md`
+- `docs/REPORTING_FORMATS.md`
+- `docs/DO_NOT_BREAK.md`
+- 任何 Codex/Spark/Agent 调度状态、checkpoint、report、summary
+
+OpenCode 模式仍遵守：Apple 项目只读作参考；构建 Android、HarmonyOS、Windows 目标项目；不得修改 `/Users/vita/Vitemis/Vela`；不得读取敏感信息；不得执行破坏性 Git 操作。
 
 ## 触发词
-
-Spark 触发词：
-
-- Spark 模式
-- 使用 Spark
-- 由 GPT-5.3-Codex-Spark 执行
-- Codex 本体直接改
 
 Agent 触发词：
 
 - Agent 模式
 - 主管模式
-- 调度 Claude Code
-- CC 窗口
-- DeepSeek + Qwen
+- 调度 DeepCode
+- DeepCode CLI
+- Codex 主管
 
-Spark + Qwen 触发词：
+Spark 触发词：
 
-- Spark 模式 + UI
-- Spark 模式 + 截图
-- Spark 模式 + 视觉
-- Spark 模式 + qwen
-- Spark 模式 + 像素级
-- Spark 模式 + reference/actual
+- Spark 模式
+- 使用 Spark
+- GPT-5.3-Codex-Spark
+- Codex 本体直接改
 
-## 三种模式权限差异
+OpenCode 触发词：
 
-Spark：
+- OpenCode 模式
+- 用 OpenCode
+- 直接让 OpenCode 做
+- 不走 Codex
 
-- 模型检查：必须为 `GPT-5.3-Codex-Spark`。
-- 直接读写权限在目标项目内由 Codex 本体承担。
-- 可直接运行项目命令（构建/测试等）。
-- 不运行多窗口多项目协作机制。
+旧触发词处理：
 
-Spark + Qwen：
-
-- 模型要求同 Spark，本体执行代码修复。
-- 仅当任务涉及视觉时触发。
-- 代码修改必须基于 Qwen 报告（inspect/compare）而非主观猜测。
-- 可在目标项目内获取/读取截图与 qwen 输出。
-- 不运行多窗口多项目协作机制。
-
-Agent：
-
-- 模型是 DeepSeek（主任务由 Claude Code 执行）。
-- Codex 本体不读写业务源码，不运行构建测试。
-- 业务改动仅由 Claude Code 在批准上下文中执行。
-
-## 三种模式执行边界
-
-Spark 允许：
-
-- 业务源码最小改动
-- 精准修复单文件/单模块问题
-- 小范围构建报错修复
-- 明确的差异截图修补
-
-Spark 禁止：
-
-- 修改 `/Users/vita/Vitemis/Vela`
-- 修改参考图目录
-- 改动无关目录
-- 启动复杂迁移批次
-- 无模型确认直接执行
-
-Spark + Qwen 禁止：
-
-- 没有视觉报告直接给出像素级完成结论
-- 在实际截图缺失却声明 compare 已完成
-- 修改 reference 目录或 Apple 源码
-- 在本轮写入 API Key、token、`.env`
-
-Agent 允许：
-
-- 大范围迁移、架构级重构协作
-- 多项目并行调度
-- 依赖 Claude Code 自主长流程执行和报告
-
-Agent 限制：
-
-- Codex 不直接改业务源码
-- 不替代 Claude Code 进行源码判断
-- 不进行深层本地 diff 逐段审查决策
-
-## 典型任务
-
-- Spark：UI_AUDIT 项目清单修复、单文件修正、明确构建/测试错误、单元测试补丁。
-- Agent：多项目并行、深度迁移、跨文件/跨平台任务、长期执行任务、需持续状态监控批次。
+- “调度 Claude Code”“CC 窗口”“Claude Code 主 Agent”属于旧协议用语；不得实际调用 Claude Code。
+- 若用户只说旧触发词且没有明确 DeepCode，回复说明当前 Agent 模式已迁移到 DeepCode CLI，并要求确认或按 DeepCode CLI 执行。
 
 ## 模式选择表
 
 | 任务类型 | 推荐模式 |
 | --- | --- |
 | 单文件小修 | Spark |
-| UI_AUDIT 明确项 | Spark |
-| 构建错误小修 | Spark |
-| 单元测试修复 | Spark |
-| Android 首页像素修正 | Spark + Qwen |
-| 多图视觉对比 | Spark + Qwen |
-| 多项目并行调度 | Agent |
+| 明确构建错误小修 | Spark |
+| 单元测试补丁 | Spark |
+| 小范围 UI 修正 | Spark + Qwen 视觉辅助 |
+| 多项目并行 | Agent |
 | 跨平台迁移 | Agent |
-| 深度阅读 iOS/macOS 架构 | Agent |
-| qwen 多图视觉批次 | Agent 或 Spark + Qwen，取决于用户指定 |
 | 长时间自主执行 | Agent |
+| 需要外部 CLI 深读项目 | Agent |
+| 完全脱离 Codex 的项目实现 | OpenCode |
+| 不希望 OpenCode 看到 Codex/Spark 规则 | OpenCode |
 
-## 模式不明确时行为
+## 报告模板索引
 
-如果用户未写明模式：
-
-1. 停止当前任务执行。
-2. 先向用户回复“请明确本轮使用 Spark 模式还是 Agent 模式”。
-3. 仅在用户确认后继续。
-
-## 报告格式
-
-Spark 报告模板：`MODE: SPARK`
-
-- MODEL_CHECK_RESULT
-- PATH_CHECK_RESULT
-- PROJECT
-- FILES_CHANGED
-- BUILD_RESULT
-- TEST_RESULT
-- VALIDATION_RESULT
-- RISKS
-- NEXT_ACTION
-- SCOPE_CONFIRMATION
-
-Spark + Qwen 报告模板：`MODE: SPARK_QWEN`
-
-- MODEL_CHECK_RESULT
-- PATH_CHECK_RESULT
-- SPARK_MODEL_CONFIRMED
-- QWEN_MODEL
-- QWEN_AVAILABLE
-- QWEN_CALL_METHOD
-- REFERENCE_SCREENSHOTS
-- ACTUAL_SCREENSHOTS
-- QWEN_INSPECT_REFERENCE_RESULT
-- QWEN_INSPECT_ACTUAL_RESULT
-- QWEN_COMPARE_RESULT
-- CODE_CHANGES_FROM_QWEN
-- BUILD_RESULT
-- TEST_RESULT
-- VALIDATION_RESULT
-- RISKS
-- NEXT_ACTION
-- SCOPE_CONFIRMATION
-
-Agent 报告模板：`MODE: AGENT`
-
-- MODEL_CHECK_RESULT
-- PATH_CHECK_RESULT
-- CLAUDE_TERMINALS
-- PROJECT_REPORTS
-- ROUNDS_COMPLETED
-- BLOCKERS
-- SUPERVISOR_SUMMARY
-- SCOPE_CONFIRMATION
-- NEXT_ACTION
-
-## 错误模式处理
-
-- 模型确认失败 → 立即停机并要求确认。
-- 模型错误、路径不符、不可逆授权缺失 → 切换或回退到 `BLOCKED`。
-- Spark 中发现超范围改动风险 → 升级为 Agent 前先通知用户。
-- Agent 中发现 Claude 任务越界 → 记录 incident 后阻止后续。
+- Spark：见 `REPORTING_FORMATS.md` 的 `MODE: SPARK`。
+- Spark 视觉：仍为 `MODE: SPARK`，增加 `QWEN_VISUAL_ASSIST=YES` 字段。
+- Agent：见 `REPORTING_FORMATS.md` 的 `MODE: AGENT`，执行器字段为 DeepCode CLI。
+- OpenCode：见 `OPENCODE_MODE.md`，不走 Codex 主管摘要。
