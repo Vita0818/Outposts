@@ -90,7 +90,7 @@ NEXT_ACTION
 1. 不计入有效轮次。
 2. 不假设 DeepCode CLI 已执行。
 3. 记录 `PROMPT_DELIVERY_UNKNOWN`。
-4. 若会话仍可用，先用短握手重新确认模型与路径。
+4. 若会话仍可用，先用预填充首段重新确认模型与路径。
 5. 只有确认旧 prompt 没有执行且用户允许，才生成新的当前轮 prompt。
 
 ## API 402 Insufficient Balance
@@ -106,7 +106,7 @@ NEXT_ACTION
 
 ## 模型不匹配
 
-如果短握手显示非预期模型：
+如果首段校验显示非预期模型：
 
 1. 不发送正式任务 prompt。
 2. 标记 `MODEL_MISMATCH`。

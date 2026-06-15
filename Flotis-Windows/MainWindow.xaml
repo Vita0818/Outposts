@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="Flotis.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Flotis"
+    x:Name="MainWindowRoot"
+    Title="Flotis"
+    Width="420"
+    Height="320">
+
+    <Grid Padding="12" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            Text="Flotis"
+            FontSize="16"
+            FontWeight="SemiBold"
+            Grid.Row="0"
+            Margin="0,0,0,4" />
+
+        <Border
+            Grid.Row="1"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="8"
+            Padding="10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <Grid x:Name="CommandGrid" ColumnSpacing="8" RowSpacing="8" />
+            </ScrollViewer>
+        </Border>
+
+        <StackPanel
+            x:Name="StatusPanel"
+            Grid.Row="2"
+            Orientation="Horizontal"
+            Spacing="8"
+            Visibility="Collapsed">
+            <TextBlock
+                x:Name="StatusText"
+                FontSize="12"
+                TextWrapping="Wrap"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                VerticalAlignment="Center" />
+            <Button
+                x:Name="OpenSettingsButton"
+                Content="打开设置"
+                Click="OnOpenSettingsClick"
+                Visibility="Collapsed" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="3" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button x:Name="VoiceButton" Width="92" Click="OnVoiceButtonClick" />
+                <ComboBox x:Name="ModeCombo" Width="155" SelectionChanged="OnModeSelectionChanged" />
+                <ComboBox x:Name="LocaleCombo" Width="110" SelectionChanged="OnLocaleSelectionChanged">
+                    <ComboBoxItem Content="中文 zh-CN" Tag="zh-CN" />
+                    <ComboBoxItem Content="English en-US" Tag="en-US" />
+                </ComboBox>
+                <Button x:Name="SettingsButton" Content="设置" Click="OnSettingsClick" />
+            </StackPanel>
+
+            <TextBlock
+                x:Name="TranscriptText"
+                FontSize="11"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="转写预览文本……"
+                TextWrapping="Wrap"
+                MinHeight="42" />
+        </StackPanel>
+    </Grid>
+</Window>

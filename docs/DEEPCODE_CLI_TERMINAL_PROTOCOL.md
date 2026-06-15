@@ -4,9 +4,9 @@
 
 ## 正式通道要求
 
-DeepCode CLI 正式任务必须通过真实可见或可观察的交互式终端运行。可接受形式包括：
+DeepCode CLI 正式任务必须通过真实可见或可观察的交互式终端运行。推荐提交形式为“一条预填充命令”：
 
-- 用户可见的 Terminal 窗口。
+- 用户可见的 Terminal 窗口（每任务一次性窗口）。
 - 每项目独立 `screen` 会话。
 - 每项目独立 `tmux` 会话。
 - 能被用户观察、能被 supervisor 读取的 live log 会话。
@@ -17,7 +17,7 @@ DeepCode CLI 正式任务必须通过真实可见或可观察的交互式终端�
 
 ## 每项目独立会话
 
-每个目标项目必须有独立 DeepCode CLI 终端。会话命名建议包含项目名和批次名，例如：
+每轮任务在启动时使用独立 DeepCode CLI 终端（短生命周期），任务完成后即弃置。会话命名建议包含项目名和批次名，例如：
 
 ```text
 outposts-<BATCH_NAME>__Kikaria-Android
@@ -36,7 +36,7 @@ outposts-<BATCH_NAME>__Rokurics-Windows
 ```bash
 cd <PROJECT_PATH>
 pwd
-deepcode
+deepcode -p "<agent_prefill_payload>"
 ```
 
 `pwd` 必须在启动 DeepCode 前执行。`pwd` 输出必须与目标项目路径一致，否则不得进入正式任务。
@@ -49,19 +49,25 @@ DEEPCODE_CLI_COMMAND=<实际命令>
 
 不得在 Outposts 根目录直接启动用于子项目任务的 DeepCode。不得依赖 DeepCode 自己猜测工作目录。
 
-## DeepCode 内短握手
+## 预填充首段约定
 
-每轮正式任务前，Supervisor 必须先在 DeepCode CLI 内发送短握手：
+每轮正式任务使用一次 `deepcode -p "<payload>"` 预填充提交；不再使用独立的后续手工输入。
+
+payload 固定包含以下结构：
 
 ```text
 [H]
-只回一行，不读文件，不改文件，不构建，不测试：
+MODE=<AGENT|EXAGENT>
+INITIATOR=<Codex|OpenCode_THREAD>
+SUPERVISOR=<Codex|OpenCode_THREAD>
+EXECUTOR=DeepCode CLI
 MODEL=<当前模型或 DeepCode 当前后端>; PWD=<当前工作目录>; READY=<YES/NO>
+请把输出写入到DeepCode-output/*****.md中。
 ```
 
-短握手只允许 DeepCode 返回一行，不允许 DeepCode 读取文件、修改文件、运行构建或测试。
+执行任务正文应紧随输出约束语之后，以便 DeepCode 将其作为本轮唯一任务产出指令。末尾再次重复输出路径会导致模型误判。
 
-短握手不算正式任务轮次。短握手失败、模型不匹配、路径不匹配、READY=NO 都不计入已完成轮次，但必须记录状态和原因。
+其中 `[H]` 段与任务内容必须在同一条预填充 prompt 内一次发送。任务提交仅计为一轮，`[H]` 不再单独计入轮次。
 
 ## 模型检查规则
 
@@ -137,7 +143,7 @@ NEXT_ACTION
 
 ## Prompt 纪律
 
-Supervisor 给 DeepCode CLI 的正式任务 prompt 必须是当前项目、当前轮次、当前目标所需的精简 prompt。
+Supervisor 给 DeepCode CLI 的正式任务必须通过预填充一次性提交（`deepcode -p "..."`），不得再通过窗口后续输入补充。
 
 不得把整套调度文档粗暴粘给 DeepCode CLI。不得把 OpenCode 独立模式文档混入 DeepCode prompt。
 

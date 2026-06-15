@@ -78,7 +78,7 @@ OpenCode 独立模式不得修改 Apple 源项目、参考图目录或无关目�
 - 不得使用用户不可观察的后台通道作为正式任务主通道。
 - 不得忽略 `cd -> pwd -> deepcode`。
 - 不得在 `pwd` 未确认前发送正式任务 prompt。
-- 不得跳过 DeepCode 内短握手。
+- 不得跳过 DeepCode 首段校验（即预填充 payload 中的 MODEL/PWD/READY 校验）。
 - 不得把“进程还活着”当作进展。
 
 ## 调度禁区

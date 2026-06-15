@@ -20,10 +20,17 @@ Agent 模式从 Codex 对话发起。Codex 只做 supervisor，DeepCode CLI 是�
 Codex 负责：
 
 - 根目录检查。
-- DeepCode CLI 会话启动、握手、监测和恢复。
-- 生成当前项目、当前轮次、当前目标的精简 prompt。
+- 按预填充方式启动/监测/恢复 DeepCode CLI 会话。
+- 生成当前项目、当前轮次、当前目标的精简 prompt（每条 prompt 作为一次完整提交）。
 - 读取 DeepCode CLI 结构化报告。
 - 维护 supervisor 状态和主管摘要。
+
+固定约定：
+
+- 每条正式任务以预填充形式提交给 DeepCode（单条 prompt 完成）。
+- 每次只使用一个 DeepCode 窗口，任务结束后即弃置，不复用该窗口。
+- 每条 prompt 末尾必须包含：`请把输出写入到DeepCode-output/*****.md中。`
+- 读取 DeepCode CLI 结构化报告。
 
 Codex 不负责：
 

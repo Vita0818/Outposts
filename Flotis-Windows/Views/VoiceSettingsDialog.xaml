@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="Flotis.VoiceSettingsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="语音设置"
+    PrimaryButtonText="保存"
+    CloseButtonText="取消">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="10" Padding="2" MinWidth="420">
+            <TextBlock FontWeight="SemiBold" Text="模式" />
+            <ComboBox x:Name="ModeCombo" SelectionChanged="OnModeSelectionChanged">
+                <ComboBoxItem Content="Windows Speech" Tag="WindowsSpeech" IsSelected="True" />
+                <ComboBoxItem Content="External Provider" Tag="ExternalProvider" />
+            </ComboBox>
+
+            <TextBlock FontWeight="SemiBold" Text="语言" />
+            <ComboBox x:Name="LocaleCombo">
+                <ComboBoxItem Content="中文 zh-CN" Tag="zh-CN" IsSelected="True" />
+                <ComboBoxItem Content="English en-US" Tag="en-US" />
+            </ComboBox>
+
+            <StackPanel x:Name="ExternalPanel" Spacing="8">
+                <TextBlock FontWeight="SemiBold" Text="外部转写提供商配置" />
+                <TextBox x:Name="ProviderNameBox" Header="Provider Name" Text="OpenAI" />
+                <TextBox x:Name="BaseUrlBox" Header="Base URL" Text="https://api.openai.com" />
+                <TextBox x:Name="EndpointBox" Header="Endpoint Path" Text="/v1/audio/transcriptions" />
+                <TextBox x:Name="ModelBox" Header="Model" Text="whisper-1" />
+                <TextBox x:Name="LanguageBox" Header="Language (Optional)" Text="zh" />
+                <TextBox x:Name="TemperatureBox" Header="Temperature (Optional)" Text="0.0" />
+                <PasswordBox x:Name="ApiKeyBox" Header="API Key" />
+                <TextBlock
+                    FontSize="11"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    TextWrapping="Wrap"
+                    Text="当前迁移版在 Windows 下先使用系统语音作为本地识别入口，API Key 会在保存后使用 DPAPI 加密写入本地。"
+                    />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

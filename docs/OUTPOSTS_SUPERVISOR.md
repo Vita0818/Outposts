@@ -13,7 +13,7 @@ ExAgent: INITIATOR=OpenCode_THREAD
 
 ## 总体定位
 
-Supervisor 管理 DeepCode CLI 的启动、握手、任务分发、输出监测、报告读取、预算控制、状态恢复和主管摘要。
+Supervisor 管理 DeepCode CLI 的启动、任务分发、输出监测、报告读取、预算控制、状态恢复和主管摘要。
 
 Supervisor 不是业务实现者。实际阅读源码、修改目标项目、运行构建、运行测试、产出每轮项目报告的主体是 DeepCode CLI。
 
@@ -31,20 +31,25 @@ Supervisor 不是业务实现者。实际阅读源码、修改目标项目、运
 
 只允许在 supervisor 摘要中进行路径级别与状态级别描述；不得总结具体源码内容、业务实现或具体 diff。
 
-每个项目必须有独立 DeepCode CLI 会话、独立状态、独立轮次计数、独立时间预算、独立阻塞原因。一个项目阻塞时，不自动阻塞其他项目。
+每个项目每轮都使用独立、短生命周期 DeepCode CLI 会话（任务结束即弃置），并保持独立状态、独立轮次计数、独立时间预算、独立阻塞原因。一个项目阻塞时，不自动阻塞其他项目。
 
 ## 职责分界
 
 Supervisor 负责：
 
 - 执行 Outposts 根目录启动前检查。
-- 为每个项目启动或接管真实可观察 DeepCode CLI 终端。
-- 在正式任务前发送短握手并校验模型与路径。
+- 为每个项目启动或接管真实可观察 DeepCode CLI 终端（一次一窗口）。
+- 在预填充 prompt 中携带模型与路径校验并开始任务，不再依赖后续独立输入。
 - 生成当前项目、当前轮次、当前目标的精简 prompt。
 - 约每 30 秒读取终端输出或 live log。
 - 维护 `.outposts-supervisor/` 下的 batch state、checkpoint、summary、report，前提是当前任务允许写这些调度记录。
 - 把 DeepCode CLI 报告压缩为主管摘要。
 - 把用户验收反馈转换成下一轮 DeepCode CLI 任务。
+- 每条 DeepCode 正式任务 prompt 末尾必须包含：
+
+```text
+请把输出写入到DeepCode-output/*****.md中。
+```
 
 DeepCode CLI 负责：
 
@@ -98,10 +103,10 @@ MANUAL_DECISION_REQUIRED
 
 五项目并行调度采用异步事件循环：
 
-1. 为每个项目建立或恢复独立 DeepCode CLI 会话。
-2. 对每个项目执行 `cd -> pwd -> deepcode`。
-3. 对每个项目发送短握手并记录模型与路径。
-4. 对 READY 项目发送当前轮正式 prompt。
+1. 为每个项目建立或恢复独立 DeepCode CLI 会话（按每轮一窗口）。
+2. 对每个项目执行 `cd -> pwd`。
+3. 对每个项目通过一次预填充 prompt 同时提交任务元信息与正式任务内容（含模型与路径校验）。
+4. 对 READY 项目发送当前轮正式 prompt（在同一预填充任务内完成）。
 5. 每约 30 秒轮询所有运行中项目的可观察输出。
 6. 哪个项目先产出报告，就先处理哪个项目。
 7. 对已报告项目立即更新状态、预算、checkpoint 和主管摘要。

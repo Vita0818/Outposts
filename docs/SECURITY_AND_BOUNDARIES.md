@@ -162,7 +162,7 @@ Apple 源项目 `/Users/vita/Vitemis/Vela` 只能作为迁移参考源。
 
 - API 402 Insufficient Balance。
 - 外部后台计费模型与预期不一致。
-- DeepCode 短握手显示非预期模型。
+- DeepCode 预填充首段显示非预期模型。
 - DeepCode 无法确认当前模型且任务依赖模型能力或成本边界。
 - Spark 无法确认 `GPT-5.3-Codex-Spark`。
 

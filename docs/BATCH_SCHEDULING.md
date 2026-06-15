@@ -47,7 +47,7 @@ Agent / ExAgent：
 
 一轮 DeepCode CLI 正式任务只有在以下步骤全部完成后，才计入 `ROUNDS_COMPLETED`：
 
-1. 短握手通过。
+1. 预填充首段模型/路径校验通过。
 2. Supervisor 发送正式任务 prompt。
 3. DeepCode CLI 执行任务。
 4. DeepCode CLI 返回一次结构化报告。
@@ -68,7 +68,7 @@ Spark：
 
 - 仅启动终端。
 - 仅执行 `cd` 或 `pwd`。
-- 仅完成短握手。
+- 仅完成首段校验等同于仅提交模型/路径校验且不含业务任务，不计入任务轮次。
 - prompt 没送达。
 - DeepCode CLI 未返回报告。
 - 模型错误。
@@ -249,9 +249,9 @@ MANUAL_DECISION_REQUIRED
 
 1. 初始化批次参数和项目状态。
 2. 为每个项目建立独立真实可见 DeepCode CLI 终端。
-3. 执行 `cd -> pwd -> deepcode`。
-4. 发送短握手。
-5. 对 READY 项目发送正式任务。
+3. 执行 `cd -> pwd`，并在同一条 `deepcode -p` 预填充任务中启动正式任务。
+4. 对 READY 项目发送本轮预填充（含模型校验、路径校验与正式任务内容）。
+5. 仅在同条预填充内完成该轮任务，不再额外发送独立正式任务 prompt。
 6. 约每 30 秒读取所有运行中项目输出。
 7. 对最先返回报告的项目立即处理。
 8. 更新 `ROUNDS_COMPLETED`、预算、状态和 checkpoint。
