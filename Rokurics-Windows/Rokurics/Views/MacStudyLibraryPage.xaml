@@ -297,7 +297,7 @@
                     </StackPanel>
 
                     <!-- Browser view -->
-                    <StackPanel x:Name="BrowserPanel" Spacing="18">
+                    <StackPanel x:Name="BrowserPanel" x:Load="False" Spacing="18">
                         <!-- Empty state -->
                         <Border x:Name="EmptyState"
                                 Style="{StaticResource RokuricsCardStyle}"
@@ -314,24 +314,28 @@
                         </Border>
 
                         <!-- Folder tiles grid -->
-                        <ItemsControl x:Name="FoldersGrid">
-                            <ItemsControl.ItemsPanel>
+                        <ListView x:Name="FoldersGrid"
+                                  SelectionMode="None"
+                                  IsItemClickEnabled="False">
+                            <ListView.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <VariableSizedWrapGrid MaximumRowsOrColumns="6"
                                                           ItemWidth="160" ItemHeight="140"
                                                           Orientation="Horizontal" />
                                 </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
+                            </ListView.ItemsPanel>
+                        </ListView>
 
                         <!-- Recording cards list -->
-                        <ItemsControl x:Name="ItemsList">
-                            <ItemsControl.ItemsPanel>
+                        <ListView x:Name="ItemsList"
+                                  SelectionMode="None"
+                                  IsItemClickEnabled="False">
+                            <ListView.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <StackPanel Spacing="12" />
+                                    <ItemsStackPanel Orientation="Vertical" />
                                 </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
+                            </ListView.ItemsPanel>
+                        </ListView>
                     </StackPanel>
 
                     <!-- Transcript detail view (full-page) -->

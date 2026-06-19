@@ -10,7 +10,9 @@
 MODE: AGENT / EXAGENT / SPARK
 INITIATOR: Codex / OpenCode_THREAD
 SUPERVISOR: Codex / OpenCode_THREAD / NONE
-EXECUTOR: DeepCode CLI / GPT-5.3-Codex-Spark
+IMPLEMENTATION_WORKER: DeepCode_ONE_SHOT / GPT-5.3-Codex-Spark
+VISION_WORKER: QwenCode_ONE_SHOT / QWENCODE_VISUAL_ASSIST / NONE
+WORKER_INTERACTION: FORBIDDEN
 BATCH_NAME
 CONCURRENCY
 BATCH_TIME_BUDGET_MINUTES
@@ -26,9 +28,16 @@ Agent / ExAgent 还必须记录：
 
 ```text
 DEEPCODE_CLI_COMMAND
+DEEPCODE_ONE_SHOT_INVOCATION
 EXPECTED_DEEPCODE_MODEL
 DEEPCODE_MODEL_CHECK_REQUIRED=YES
+QWENCODE_CLI_COMMAND
+QWENCODE_ONE_SHOT_INVOCATION
+EXPECTED_QWENCODE_MODEL=Qwen3.7-Plus
+QWENCODE_MODEL_CHECK_REQUIRED=YES
 DIRECT_CODE_MODIFICATION_ALLOWED=NO_FOR_SUPERVISOR
+DEEPCODE_OUTPUT_ROOT=<PROJECT_PATH>/DeepCode-output/<BATCH_NAME>/
+QWENCODE_OUTPUT_ROOT=<PROJECT_PATH>/QwenCode-output/<BATCH_NAME>/
 ```
 
 Spark 还必须记录：
@@ -41,19 +50,20 @@ DIRECT_CODE_MODIFICATION_ALLOWED=YES_WITHIN_TARGET_PROJECT
 
 OpenCode 独立模式不进入上述批次状态，不写 supervisor batch state，不消费 supervisor 轮次预算。
 
-## 一轮如何计数
+## Agent / ExAgent 一轮如何计数
 
-Agent / ExAgent：
+一轮 DeepCode 实现任务只有在以下步骤全部完成后，才计入 `ROUNDS_COMPLETED`：
 
-一轮 DeepCode CLI 正式任务只有在以下步骤全部完成后，才计入 `ROUNDS_COMPLETED`：
-
-1. 预填充首段模型/路径校验通过。
-2. Supervisor 发送正式任务 prompt。
-3. DeepCode CLI 执行任务。
-4. DeepCode CLI 返回一次结构化报告。
+1. Supervisor 生成完整 DeepCode one-shot prompt。
+2. Prompt 中指定模型检查、路径检查、输入文件、输出文件和业务目标。
+3. DeepCode 执行任务。
+4. DeepCode 将结构化报告写入指定 `DeepCode-output/*.md`。
 5. Supervisor 读取报告并形成主管判断。
+6. 报告中 `REPORT_COMPLETE=YES`。
 
-Spark：
+QwenCode 视觉调用不计入 DeepCode 业务轮次，但计入视觉尝试次数，受 `VISION_VALIDATION_MAX_ROUNDS` 控制。
+
+## Spark 一轮如何计数
 
 一轮 Spark 执行只有在以下步骤全部完成后，才计入 Spark 轮次：
 
@@ -68,9 +78,11 @@ Spark：
 
 - 仅启动终端。
 - 仅执行 `cd` 或 `pwd`。
-- 仅完成首段校验等同于仅提交模型/路径校验且不含业务任务，不计入任务轮次。
-- prompt 没送达。
-- DeepCode CLI 未返回报告。
+- 仅完成模型/路径校验且不含业务任务。
+- one-shot prompt 没送达。
+- DeepCode 未写入指定输出文件。
+- QwenCode 未写入指定输出文件。
+- 输出文件缺少 `REPORT_COMPLETE=YES`。
 - 模型错误。
 - 路径错误。
 - 只读边界失败。
@@ -86,7 +98,7 @@ Spark：
 如果批次目标包含 UI 复刻、Apple UI parity、视觉验收、截图对比、界面布局、颜色、字体、间距、圆角、阴影、组件位置、设计稿、真机截图或模拟器截图：
 
 ```text
-QWEN_VISUAL_ASSIST=YES
+VISION_WORKER=QwenCode_ONE_SHOT
 VISION_VALIDATION_MAX_ROUNDS=2
 ```
 
@@ -104,11 +116,30 @@ actual/
 qwen/
 ```
 
-视觉证据是批次审计材料，不是临时垃圾文件。不得删除 `.outposts-supervisor/visual-evidence`、当前批次截图、Qwen 输出、state、checkpoint、report 或 batch state。需要重新截图时必须创建新的 `RUN_ID` 目录。
+QwenCode 结构化视觉报告写入：
+
+```text
+<PROJECT_PATH>/QwenCode-output/<BATCH_NAME>/
+```
+
+视觉证据和 QwenCode 报告是批次审计材料，不是临时垃圾文件。不得删除 `.outposts-supervisor/visual-evidence`、当前批次截图、QwenCode 输出、DeepCode 输出、state、checkpoint、report 或 batch state。需要重新截图时必须创建新的 `RUN_ID` 目录。
+
+## 视觉任务推荐轮次顺序
+
+```text
+1. QwenCode reference inspect。
+2. DeepCode implementation，输入 reference inspect 报告路径。
+3. DeepCode 生成或报告 actual screenshot 路径。
+4. QwenCode actual inspect / compare，输入 reference 与 actual screenshot 路径。
+5. DeepCode fix-from-qwen，输入 compare 报告路径。
+6. 如预算允许，继续 actual screenshot -> QwenCode compare -> DeepCode fix。
+```
+
+其中第 2、5 步计入 DeepCode 业务轮次；第 1、4、6 中的 QwenCode 调用计入视觉尝试次数。
 
 ## Android screenshot preflight
 
-Android 项目需要 actual screenshot 时，DeepCode CLI 或 Spark 必须自动完成截图链，不得要求用户在 Android Studio 手动切项目、手动 Build/Run 或回复 `READY`。
+Android 项目需要 actual screenshot 时，DeepCode 或 Spark 必须自动完成截图链，不得要求用户在 Android Studio 手动切项目、手动 Build/Run 或回复 `READY`。
 
 顺序固定：
 
@@ -121,7 +152,8 @@ Android 项目需要 actual screenshot 时，DeepCode CLI 或 Spark 必须自动
 7. adb 启动目标 App。
 8. 校验前台包名等于目标 `applicationId`。
 9. 截图到 visual-evidence 的 `actual/` 目录，文件名必须唯一。
-10. 释放 `ANDROID_EMULATOR_LOCK`。
+10. 在 DeepCode-output 报告中写明 screenshot path。
+11. 释放 `ANDROID_EMULATOR_LOCK`。
 
 `installDebug` 在此处只属于 `SCREENSHOT_PREFLIGHT`，不得伴随 UI 修改。报告必须包含 `INSTALL_NEEDED_FOR_SCREENSHOT`、`INSTALL_COMMAND`、`INSTALL_RESULT`。
 
@@ -161,7 +193,7 @@ BLOCKED_NEEDS_USER
 - `READY_FOR_USER_REVIEW`，但仍有 remaining gaps 或 next recommendation。
 - `REFERENCE_ONLY`。
 - 缺少 actual screenshot，但 reference screenshot 可用。
-- `QWEN_COMPARE_SCREENSHOTS_COMPLETED=NO`，但 qwen reference inspect 已完成。
+- `QWENCODE_COMPARE_COMPLETED=NO`，但 QwenCode reference inspect 已完成。
 - `WINDOWS_HOST_VALIDATION_PENDING`，但仍有 WinUI/XAML 静态修复可做。
 - UI 仍有剩余差异或执行器明确建议下一轮继续。
 
@@ -206,9 +238,11 @@ TOOLCHAIN_REPAIR_NEEDS_USER
 LOCAL_EXECUTION_POLICY_BLOCKED
 API_402_INSUFFICIENT_BALANCE
 BILLING_MODEL_MISMATCH
-QWEN_PERMISSION_GATED
-QWEN_UNAVAILABLE_IN_SESSION
-QWEN_INVALID_VISUAL_EVIDENCE
+DEEPCODE_OUTPUT_MISSING
+QWENCODE_OUTPUT_MISSING
+QWENCODE_MODEL_MISMATCH
+QWENCODE_UNAVAILABLE
+QWENCODE_INVALID_VISUAL_EVIDENCE
 INSTALL_FOR_SCREENSHOT_FAILED
 ANDROID_FOREGROUND_PACKAGE_MISMATCH
 USER_DEVICE_INTERVENTION_REQUIRED
@@ -228,6 +262,9 @@ MANUAL_DECISION_REQUIRED
 - `API_402_INSUFFICIENT_BALANCE`
 - `BILLING_MODEL_MISMATCH`
 - `LOCAL_EXECUTION_POLICY_BLOCKED`
+- `DEEPCODE_OUTPUT_MISSING`
+- `QWENCODE_OUTPUT_MISSING` 且视觉任务必须继续。
+- `QWENCODE_MODEL_MISMATCH`
 - `INSTALL_FOR_SCREENSHOT_FAILED`
 - `USER_DEVICE_INTERVENTION_REQUIRED`
 - 明确边界违规，例如破坏性 Git 操作、清理用户级工具链、删除 visual evidence、checkpoint 或 report。
@@ -239,24 +276,25 @@ MANUAL_DECISION_REQUIRED
 
 五项目并行时采用异步处理：
 
-- 哪个项目先完成报告，就先读取和处理哪个项目。
+- 哪个 worker 先完成报告，就先读取和处理哪个项目。
 - 不等所有项目统一完成。
 - 已完成项目若预算允许且无阻塞，可以先进入下一轮。
 - 阻塞项目记录原因并暂停，不阻塞其他项目。
-- 每个项目的下一轮 prompt 必须基于该项目自己的最新报告、checkpoint 和用户反馈。
+- 每个项目的下一轮 prompt 必须基于该项目自己的最新报告、checkpoint、用户反馈和 QwenCode 报告路径。
 
 ## 五项目并行调度循环
 
 1. 初始化批次参数和项目状态。
-2. 为每个项目建立独立真实可见 DeepCode CLI 终端。
-3. 执行 `cd -> pwd`，并在同一条 `deepcode -p` 预填充任务中启动正式任务。
-4. 对 READY 项目发送本轮预填充（含模型校验、路径校验与正式任务内容）。
-5. 仅在同条预填充内完成该轮任务，不再额外发送独立正式任务 prompt。
-6. 约每 30 秒读取所有运行中项目输出。
-7. 对最先返回报告的项目立即处理。
-8. 更新 `ROUNDS_COMPLETED`、预算、状态和 checkpoint。
-9. 若允许继续，启动该项目下一轮；否则进入终止状态。
-10. 所有项目终止后输出最终主管摘要。
+2. 为每个项目创建输出目录。
+3. 需要视觉时，先启动 QwenCode reference inspect one-shot。
+4. 启动 DeepCode implementation one-shot，并传入可用的 QwenCode reference report 路径。
+5. 对 DeepCode 产出的 actual screenshot 路径启动 QwenCode compare one-shot。
+6. 对需要继续的项目启动下一轮 DeepCode fix-from-qwen one-shot，并传入 QwenCode compare report 路径。
+7. 约每 30 秒读取所有运行中项目输出。
+8. 对最先返回报告的项目立即处理。
+9. 更新 `ROUNDS_COMPLETED`、视觉轮次、预算、状态和 checkpoint。
+10. 若允许继续，启动该项目下一轮；否则进入终止状态。
+11. 所有项目终止后输出最终主管摘要。
 
 ## 标准批次模板
 
@@ -264,7 +302,9 @@ MANUAL_DECISION_REQUIRED
 MODE:
 INITIATOR:
 SUPERVISOR:
-EXECUTOR:
+IMPLEMENTATION_WORKER:
+VISION_WORKER:
+WORKER_INTERACTION: FORBIDDEN
 BATCH_NAME:
 CONCURRENCY:
 BATCH_TIME_BUDGET_MINUTES:
@@ -274,4 +314,8 @@ AUTO_CONTINUE_WITHIN_BUDGET: YES/NO
 NO_NEW_ROUNDS_AFTER_TIME_BUDGET: YES
 WAIT_RUNNING_ROUNDS_TO_FINISH: YES
 VISION_VALIDATION_MAX_ROUNDS: 2
+DEEPCODE_CLI_COMMAND:
+DEEPCODE_ONE_SHOT_INVOCATION:
+QWENCODE_CLI_COMMAND:
+QWENCODE_ONE_SHOT_INVOCATION:
 ```

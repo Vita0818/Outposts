@@ -2,7 +2,7 @@
 
 本文件是 OpenCode 独立模式的唯一入口。
 
-OpenCode 独立模式不使用 supervisor 流程，不启动 DeepCode CLI 作为执行器，不读取 Agent、ExAgent 或 Spark 调度文档。OpenCode 本身在目标项目中直接执行读取、修改、构建和报告。
+OpenCode 独立模式不使用 supervisor 流程，不启动 DeepCode / QwenCode 调度链，不读取 Agent、ExAgent 或 Spark 调度文档。OpenCode 本身在目标项目中直接执行读取、修改、构建和报告。
 
 如果用户明确要求“ExAgent 模式”，不要使用本文；改用 `EXAGENT_MODE.md`。
 
@@ -29,8 +29,8 @@ OpenCode 独立模式不得读取：
 /Users/vita/Vitemis/Outposts/docs/OUTPOSTS_MODE_EXECUTION.md
 /Users/vita/Vitemis/Outposts/docs/OUTPOSTS_SUPERVISOR.md
 /Users/vita/Vitemis/Outposts/docs/BATCH_SCHEDULING.md
-/Users/vita/Vitemis/Outposts/docs/DEEPCODE_CLI_TERMINAL_PROTOCOL.md
-/Users/vita/Vitemis/Outposts/docs/DEEPCODE_CLI_VISUAL_QWEN_PROTOCOL.md
+/Users/vita/Vitemis/Outposts/docs/WORKER_ONE_SHOT_INVOCATION_PROTOCOL.md
+/Users/vita/Vitemis/Outposts/docs/SUPERVISOR_WORKER_VISUAL_PROTOCOL.md
 /Users/vita/Vitemis/Outposts/docs/RECOVERY_PLAYBOOK.md
 /Users/vita/Vitemis/Outposts/docs/REPORTING_FORMATS.md
 /Users/vita/Vitemis/Outposts/docs/SECURITY_AND_BOUNDARIES.md
@@ -42,6 +42,15 @@ OpenCode 独立模式也不得读取 supervisor 状态目录，除非用户明�
 ```text
 /Users/vita/Vitemis/Outposts/.outposts-supervisor/**
 ```
+
+OpenCode 独立模式不得读取或写入：
+
+```text
+<PROJECT_PATH>/DeepCode-output/**
+<PROJECT_PATH>/QwenCode-output/**
+```
+
+这些目录只服务于 Agent / ExAgent supervisor 的 worker 交接。
 
 ## 启动方式
 
@@ -100,6 +109,7 @@ Apple 项目只读参考；构建 Android、HarmonyOS 和 Windows 目标项目�
 - 清理工作区或用户级工具链。
 - 执行破坏性 Git 操作。
 - 把 OpenCode 独立任务写入 supervisor checkpoint 或 batch state。
+- 把 OpenCode 独立任务输出写入 `DeepCode-output/` 或 `QwenCode-output/`。
 
 ## 敏感信息禁区
 
@@ -142,9 +152,14 @@ HarmonyOS 项目不得删除、清理或修改：
 
 不得全局安装 `pnpm`、npm 包、ohpm 包或任何全局工具链依赖。若构建失败指向用户级工具链问题，只能报告需要用户处理。
 
+## 构建与工作区禁区
+
+- 不得创建 mock 系统目录（如 `tmp-home/`、`tmp_appdata/`、`AppData/`、`Roaming/`、`Local/` 等），不得通过修改 `HOME`、`APPDATA`、`USERPROFILE` 等环境变量指向临时目录来绕过构建权限错误。
+- 若 `dotnet restore/build` 因读取 `%APPDATA%\NuGet\NuGet.Config` 被拒绝而失败，应在 csproj 同级目录放置项目级 `nuget.config` 解决，而不是创建 mock 用户目录。
+
 ## 视觉任务
 
-OpenCode 独立模式如果需要视觉模型，必须由用户明确配置或授权。OpenCode 可以在当前目标项目内保存自己的视觉证据，但不得写入 supervisor 证据目录，除非用户明确要求。
+OpenCode 独立模式如果需要视觉模型，必须由用户明确配置或授权。OpenCode 可以在当前目标项目内保存自己的视觉证据，但不得写入 supervisor 证据目录、`DeepCode-output` 或 `QwenCode-output`，除非用户明确要求。
 
 ## 输出报告
 

@@ -31,6 +31,15 @@ public sealed partial class MacStudyLibraryPage : Page
 
     // Current create-new-value level (null = none active)
     private string? _createNewLevel;
+    private ActivePanel _activePanel = ActivePanel.Browser;
+
+    private enum ActivePanel
+    {
+        Browser,
+        Detail,
+        Transcript,
+        Note
+    }
 
     public MacStudyLibraryPage()
     {
@@ -41,6 +50,25 @@ public sealed partial class MacStudyLibraryPage : Page
             ?? new Stores.StudyLibrarySyncStateStore();
 
         Loaded += (_, _) => RefreshBrowser();
+    }
+
+    private void SetActivePanel(ActivePanel panel)
+    {
+        if (_activePanel == panel) return;
+        _activePanel = panel;
+        BrowserPanel.Visibility = panel == ActivePanel.Browser
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        DetailPanel.Visibility = panel == ActivePanel.Detail
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        TranscriptPanel.Visibility = panel == ActivePanel.Transcript
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        NotePanel.Visibility = panel == ActivePanel.Note
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        Bindings.Update();
     }
 
     // ── Browser ──────────────────────────────────────────────────
@@ -54,17 +82,17 @@ public sealed partial class MacStudyLibraryPage : Page
         if (_studyStore.AllStudyItems.Count == 0 && _studyStore.AllStudyFolders.Count == 0)
         {
             EmptyState.Visibility = Visibility.Visible;
-            BrowserPanel.Visibility = Visibility.Collapsed;
+            SetActivePanel(ActivePanel.Browser);
         }
         else if (content.Folders.Count == 0 && content.Items.Count == 0)
         {
             EmptyState.Visibility = Visibility.Collapsed;
-            BrowserPanel.Visibility = Visibility.Visible;
+            SetActivePanel(ActivePanel.Browser);
         }
         else
         {
             EmptyState.Visibility = Visibility.Collapsed;
-            BrowserPanel.Visibility = Visibility.Visible;
+            SetActivePanel(ActivePanel.Browser);
             RenderContent(content);
         }
 
@@ -519,8 +547,7 @@ public sealed partial class MacStudyLibraryPage : Page
         LoadSummaryPreview(item);
 
         this.FindName("DetailPanel");
-        BrowserPanel.Visibility = Visibility.Collapsed;
-        DetailPanel.Visibility = Visibility.Visible;
+        SetActivePanel(ActivePanel.Detail);
 
         // Load filing draft
         var filing = item.FilingPath;
@@ -617,8 +644,7 @@ public sealed partial class MacStudyLibraryPage : Page
     private void CloseDetail_Click(object sender, RoutedEventArgs e)
     {
         _selectedDetailId = null;
-        DetailPanel.Visibility = Visibility.Collapsed;
-        BrowserPanel.Visibility = Visibility.Visible;
+        SetActivePanel(ActivePanel.Browser);
         RefreshBrowser();
     }
 
@@ -776,9 +802,7 @@ public sealed partial class MacStudyLibraryPage : Page
     private void ShowTranscriptView(StudyItemMetadata item)
     {
         this.FindName("TranscriptPanel");
-        DetailPanel.Visibility = Visibility.Collapsed;
-        BrowserPanel.Visibility = Visibility.Collapsed;
-        TranscriptPanel.Visibility = Visibility.Visible;
+        SetActivePanel(ActivePanel.Transcript);
 
         TranscriptTitle.Text = item.Title;
         TranscriptSubtitle.Text = $"{item.CreatedAt:yyyy-MM-dd HH:mm} · 转写";
@@ -853,9 +877,7 @@ public sealed partial class MacStudyLibraryPage : Page
     private void ShowNoteView(StudyItemMetadata item)
     {
         this.FindName("NotePanel");
-        DetailPanel.Visibility = Visibility.Collapsed;
-        BrowserPanel.Visibility = Visibility.Collapsed;
-        NotePanel.Visibility = Visibility.Visible;
+        SetActivePanel(ActivePanel.Note);
 
         NoteTitle.Text = item.Title;
         NoteSubtitle.Text = $"{item.CreatedAt:yyyy-MM-dd HH:mm} · AI 总结";
@@ -904,14 +926,12 @@ public sealed partial class MacStudyLibraryPage : Page
 
     private void CloseTranscript_Click(object sender, RoutedEventArgs e)
     {
-        TranscriptPanel.Visibility = Visibility.Collapsed;
-        DetailPanel.Visibility = Visibility.Visible;
+        SetActivePanel(ActivePanel.Detail);
     }
 
     private void CloseNote_Click(object sender, RoutedEventArgs e)
     {
-        NotePanel.Visibility = Visibility.Collapsed;
-        DetailPanel.Visibility = Visibility.Visible;
+        SetActivePanel(ActivePanel.Detail);
     }
 
     /// <summary>

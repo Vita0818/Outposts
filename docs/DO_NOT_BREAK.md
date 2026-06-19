@@ -1,14 +1,14 @@
 # Do Not Break
 
-以下规则是 Outposts 四模式的禁区。任何未来 Codex、OpenCode 线程、DeepCode CLI、Spark 或 OpenCode 独立任务执行时都不得破坏。
+以下规则是 Outposts 四模式的禁区。任何未来 Codex、OpenCode 线程、DeepCode、QwenCode、Spark 或 OpenCode 独立任务执行时都不得破坏。
 
 ## 模式禁区
 
 - 不得混用 Agent、ExAgent、Spark、OpenCode 的权限边界。
 - 不得把 OpenCode 独立模式纳入 supervisor batch state、checkpoint 或恢复流程。
 - 不得让 OpenCode 独立模式读取 Agent、ExAgent、Spark 或 supervisor 调度文档。
-- 不得把 ExAgent 当成 OpenCode 独立模式；ExAgent 的执行器仍为 DeepCode CLI。
-- 不得把 OpenCode 独立模式当成 ExAgent；OpenCode 独立模式不启动 DeepCode CLI 执行器。
+- 不得把 ExAgent 当成 OpenCode 独立模式；ExAgent 的实现 worker 为 DeepCode one-shot，视觉 worker 为 QwenCode one-shot。
+- 不得把 OpenCode 独立模式当成 ExAgent；OpenCode 独立模式不启动 DeepCode / QwenCode 调度链。
 - 不得因为任务紧急而跳过模式声明确认。
 
 ## Agent / ExAgent supervisor 禁区
@@ -17,10 +17,23 @@
 - 不得让 Supervisor 自己读业务源码。
 - 不得让 Supervisor 自己跑构建测试。
 - 不得让 Supervisor 查看具体业务 diff。
-- 不得让 Supervisor 代替 DeepCode CLI 判断源码迁移细节。
-- 不得把 DeepCode CLI 自评当成用户验收。
+- 不得让 Supervisor 直接判读截图。
+- 不得让 Supervisor 代替 DeepCode 判断源码迁移细节。
+- 不得让 Supervisor 代替 QwenCode 判断视觉差异。
+- 不得把 DeepCode / QwenCode 自评当成用户验收。
 
-## DeepCode CLI 禁区
+## Worker 调度禁区
+
+- 不得把 DeepCode 或 QwenCode 当作可持续多次交互会话。
+- 不得进入 worker 窗口后再追加第二条业务 prompt。
+- 不得复用上一轮 DeepCode / QwenCode 窗口上下文。
+- 不得让 worker 依赖上一轮窗口记忆。
+- 不得省略 `OUTPUT_FILE`。
+- 不得覆盖旧 `DeepCode-output` 或 `QwenCode-output` 文件。
+- 不得省略上一轮 DeepCode / QwenCode 报告路径。
+- 不得让 DeepCode “记住上一轮视觉结论”；必须显式传入 QwenCode 报告路径。
+
+## DeepCode 禁区
 
 - 不得读取或发送敏感信息。
 - 不得修改 Apple 源项目。
@@ -28,7 +41,24 @@
 - 不得执行破坏性 Git 操作。
 - 不得清理工作区、缓存、构建产物或用户级工具链。
 - 不得把无效截图报告为有效视觉验收。
-- 不得把 Qwen 当成代码修改者。
+- 不得把 QwenCode 当成代码修改者。
+- 不得直接调用 QwenCode。
+- 不得调用任何视觉 helper。
+- 不得要求 QwenCode 回答问题。
+- 不得在未读取 supervisor 指定的 QwenCode 报告时声称已根据 Qwen 视觉结果修复。
+
+## QwenCode 视觉禁区
+
+- 不得把 QwenCode 当代码执行器。
+- 不得让 QwenCode 修改文件。
+- 不得让 QwenCode 读取源码。
+- 不得让 QwenCode 读取 DeepCode-output。
+- 不得让 QwenCode 运行构建或测试。
+- 不得让 QwenCode 接收 API Key、`.env`、token、密钥、证书、完整源码或私密配置。
+- 不得让 QwenCode 与 DeepCode 直接通信。
+- 不得在无 QwenCode 图片识别/对比报告下宣称像素级视觉任务完成。
+- 不得把 qwen API Key 写入仓库文件、配置文件或报告。
+- 不得因为网络受限或执行器不可用就跳过 QwenCode 报告要求并直接收口。
 
 ## Spark 禁区
 
@@ -40,17 +70,6 @@
 - 不得在 Spark 模式下执行破坏性 Git 操作。
 - 不得伪装为 Agent 或 ExAgent 执行。
 
-## Qwen 视觉禁区
-
-- 不得把 Qwen 当主执行器。
-- 不得让 Qwen 修改文件。
-- 不得在视觉任务中让 Spark 或 DeepCode 主观判读截图并宣称视觉验收完成。
-- 不得在无 Qwen 图片识别/对比报告下宣称像素级视觉任务完成。
-- 不得把 Qwen 当代码修改者。
-- 不得将源码、密钥、token、`.env`、证书或私密配置传给 Qwen。
-- 不得把 qwen API Key 写入仓库文件、配置文件或报告。
-- 不得因为网络受限或 helper 不可用就跳过 Qwen 报告要求并直接收口。
-
 ## OpenCode 独立模式禁区
 
 OpenCode 独立模式不得读取：
@@ -60,13 +79,15 @@ OpenCode 独立模式不得读取：
 - `docs/OUTPOSTS_MODE_EXECUTION.md`
 - `docs/OUTPOSTS_SUPERVISOR.md`
 - `docs/BATCH_SCHEDULING.md`
-- `docs/DEEPCODE_CLI_TERMINAL_PROTOCOL.md`
-- `docs/DEEPCODE_CLI_VISUAL_QWEN_PROTOCOL.md`
+- `docs/WORKER_ONE_SHOT_INVOCATION_PROTOCOL.md`
+- `docs/SUPERVISOR_WORKER_VISUAL_PROTOCOL.md`
 - `docs/RECOVERY_PLAYBOOK.md`
 - `docs/REPORTING_FORMATS.md`
 - `docs/SECURITY_AND_BOUNDARIES.md`
 - `docs/DO_NOT_BREAK.md`
 - `.outposts-supervisor/**`
+- `DeepCode-output/**`
+- `QwenCode-output/**`
 
 OpenCode 独立模式只读取 `OPENCODE_MODE.md` 与目标项目自己的项目文档。
 
@@ -76,9 +97,9 @@ OpenCode 独立模式不得修改 Apple 源项目、参考图目录或无关目�
 
 - 不得隐藏运行用户无法观察的正式任务。
 - 不得使用用户不可观察的后台通道作为正式任务主通道。
-- 不得忽略 `cd -> pwd -> deepcode`。
-- 不得在 `pwd` 未确认前发送正式任务 prompt。
-- 不得跳过 DeepCode 首段校验（即预填充 payload 中的 MODEL/PWD/READY 校验）。
+- 不得忽略 `cd -> pwd -> <one-shot invocation>`。
+- 不得在 `pwd` 未确认前启动正式任务。
+- 不得跳过 one-shot prompt 首段模型/路径校验。
 - 不得把“进程还活着”当作进展。
 
 ## 调度禁区
@@ -88,7 +109,7 @@ OpenCode 独立模式不得修改 Apple 源项目、参考图目录或无关目�
 - 不得在时间预算和轮次预算尚未耗尽、且项目无硬阻塞时，因为软状态提前收束批次。
 - 不得把 `READY_FOR_USER_REVIEW` 当成默认终止态；必须检查 remaining gaps、next recommendation 和可执行下一步。
 - 不得把 `REFERENCE_ONLY` 当成失败或终止态。
-- 不得因为缺 actual screenshot 就停止 reference-first 修正；只要 reference screenshot 可用，就应继续利用 Qwen reference 理解推进。
+- 不得因为缺 actual screenshot 就停止 reference-first 修正；只要 reference screenshot 可用，就应继续利用 QwenCode reference 理解推进。
 - 不得把 `WINDOWS_HOST_VALIDATION_PENDING` 当成默认终止态；若仍可做静态 WinUI/XAML 修复，应继续。
 - 不得在时间预算到达后启动新轮。
 - 不得强杀正在正常运行的任务来满足软时间预算。
@@ -103,11 +124,11 @@ OpenCode 独立模式不得修改 Apple 源项目、参考图目录或无关目�
 ## 用户反馈禁区
 
 - 不得把用户验收反馈降级。
-- 不得用工具报告覆盖用户手工观察。
+- 不得用 worker 报告覆盖用户手工观察。
 - 不得忽略用户要求暂停、停止、只汇报或等待确认。
 - 不得把用户指出的问题归为“已完成”而不安排下一轮处理。
-- 不得因为 Qwen 判断“相似”就跳过用户人工验收。
-- 用户人工视觉反馈优先级高于 Qwen 的匹配判断。
+- 不得因为 QwenCode 判断“相似”就跳过用户人工验收。
+- 用户人工视觉反馈优先级高于 QwenCode 的匹配判断。
 
 ## 迁移边界禁区
 
@@ -139,20 +160,22 @@ git restore .
 
 不得全局安装 `pnpm`、npm 包、ohpm 包或任何全局工具链依赖。
 
-不得删除 `.outposts-supervisor/visual-evidence`、当前批次截图、Qwen 输出、state、checkpoint、report 或 batch state。重新截图必须创建新的 `RUN_ID` 证据目录，而不是覆盖或删除旧证据。
+不得删除 `.outposts-supervisor/visual-evidence`、当前批次截图、QwenCode 输出、DeepCode 输出、state、checkpoint、report 或 batch state。重新截图必须创建新的 `RUN_ID` 证据目录，而不是覆盖或删除旧证据。
+
+不得创建 mock 系统目录（如 `tmp-home/`、`tmp_appdata/`、`AppData/`、`Roaming/`、`Local/` 等），不得通过修改 `HOME`、`APPDATA`、`USERPROFILE` 等环境变量指向临时目录来绕过构建权限错误。若 `dotnet restore/build` 因读取 `%APPDATA%\NuGet\NuGet.Config` 被拒绝而失败，应在 csproj 同级目录放置项目级 `nuget.config` 解决，而不是创建 mock 用户目录。
 
 ## 安全禁区
 
 - 不得访问无关目录。
 - 不得读取或发送敏感信息。
 - 不得读取 `.env`、token、私钥、证书、p12、provisioning profile、ssh key、API key、Keychain 内容。
-- 不得把源码、密钥、token、`.env`、证书或私密配置传给 Qwen。
+- 不得把源码、密钥、token、`.env`、证书或私密配置传给 QwenCode。
 - 不得把一次本地执行策略授权扩展为全局授权。
 - 不得在模型、计费或授权状态异常时继续正式迁移。
 
 ## 报告禁区
 
-- 不得把 DeepCode CLI 长报告全文贴给用户。
+- 不得把 DeepCode / QwenCode 长报告全文贴给用户。
 - 不得省略阻塞原因。
 - 不得省略构建或测试未运行的事实。
 - 不得把子项目源码细节写入主管摘要。
@@ -160,8 +183,8 @@ git restore .
 - 不得在没有截图的情况下假装完成视觉验收。
 - 不得把无效截图报告为有效视觉验收。
 - 全桌面截图不算有效 actual screenshot，除非明确裁剪出 App、Preview 或窗口区域。
-- Qwen 看过无效桌面截图，只能报告 `QWEN_CALLED=YES` 与 `QWEN_VALID_VISUAL_EVIDENCE=NO`，不得报告为有效验收。
-- 不得用 Qwen 替代构建和测试。
+- QwenCode 看过无效桌面截图，只能报告 `QWENCODE_CALLED=YES` 与 `QWENCODE_VALID_VISUAL_EVIDENCE=NO`，不得报告为有效验收。
+- 不得用 QwenCode 替代构建和测试。
 - 不得把视觉证据截图散落到子项目源码目录或 Apple 源项目；必须写入 `.outposts-supervisor/visual-evidence/<BATCH_NAME>/<RUN_ID>/<PROJECT_NAME>/`。
 - 不得把错误 Android device serial 的截图当成当前项目截图。
 - 不得把另一个 Android 项目的 App 截图当成当前项目截图；截图前必须校验前台包名等于目标 `applicationId`。
