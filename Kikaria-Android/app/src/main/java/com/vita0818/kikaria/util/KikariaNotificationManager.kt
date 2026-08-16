@@ -14,6 +14,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import java.util.Calendar
+import java.util.Date
+import kotlin.math.ceil
 
 object KikariaNotificationManager {
     const val CHANNEL_ID = "kikaria_study_reminder"
@@ -34,12 +36,14 @@ object KikariaNotificationManager {
         manager.createNotificationChannel(channel)
     }
 
-    fun scheduleReminder(context: Context, hour: Int, minute: Int) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED
-            ) return
-        }
+    fun canPostNotifications(context: Context): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+    }
+
+    fun scheduleReminder(context: Context, hour: Int, minute: Int): Boolean {
+        if (!canPostNotifications(context)) return false
 
         val calendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, hour)
@@ -66,6 +70,7 @@ object KikariaNotificationManager {
             AlarmManager.INTERVAL_DAY,
             pendingIntent
         )
+        return true
     }
 
     fun cancelReminder(context: Context) {
@@ -81,21 +86,73 @@ object KikariaNotificationManager {
     }
 
     fun sendNotification(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED
-            ) return
-        }
+        if (!canPostNotifications(context)) return
+
+        createChannel(context)
+        val body = studyProgressWarningBody(context) ?: return
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("Kikaria 学习提醒")
-            .setContentText("别忘了今天的复习计划")
+            .setContentTitle("Kikaria")
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .build()
 
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun studyProgressWarningBody(context: Context): String? {
+        val state = KikariaPersistence.load(context) ?: return null
+        if (!state.notificationsEnabled) return null
+
+        val points = state.knowledgePoints
+        val totalCount = points.size
+        val startDate = state.countdownStartDate ?: return null
+        val endDate = state.countdownEndDate ?: return null
+        if (totalCount <= 0) return null
+
+        val today = startOfDay(Date())
+        val start = startOfDay(startDate)
+        val end = startOfDay(endDate)
+        if (start.after(end) || today.before(start)) return null
+
+        val expectedProgress = if (!today.before(end)) {
+            1.0
+        } else {
+            val totalDays = maxOf(1, daysBetween(start, end) + 1)
+            val elapsedDays = maxOf(1, daysBetween(start, today) + 1)
+            elapsedDays.toDouble() / totalDays.toDouble()
+        }
+
+        val expectedMasteredCount = ceil(totalCount.toDouble() * expectedProgress).toInt()
+        if (expectedMasteredCount <= 0) return null
+
+        val masteredCount = points.count { it.isMastered }
+        val dangerPercent = state.dangerPercent.coerceIn(1, 100)
+        val actualProgressRatio = masteredCount.toDouble() / expectedMasteredCount.toDouble()
+        if (actualProgressRatio >= dangerPercent.toDouble() / 100.0) return null
+
+        val presetName = state.presets.firstOrNull { it.id == state.currentPresetId }?.name
+            ?: state.presets.firstOrNull()?.name
+            ?: "当前预设"
+        return "今天的「$presetName」学习量尚未达标哦，抓紧学习吧！"
+    }
+
+    private fun startOfDay(date: Date): Date {
+        return Calendar.getInstance().apply {
+            time = date
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.time
+    }
+
+    private fun daysBetween(start: Date, end: Date): Int {
+        val dayMs = 24L * 60L * 60L * 1000L
+        return ((end.time - start.time) / dayMs).toInt()
     }
 }
 

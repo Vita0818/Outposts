@@ -1,703 +1,0 @@
-Ôr@Ÿªassertions¤code´customTransformCache¬dependencies¢id¤meta±moduleSideEffects¬originalCode±originalSourcemap«resolvedIds®sourcemapChainµsyntheticNamedExportsµtransformDependencies®transformFiles¨cacheAstÔrAÚ@gif (!("finalizeConstruction" in ViewPU.prototype)) {
-    Reflect.set(ViewPU.prototype, "finalizeConstruction", () => { });
-}
-/**
- * MarkdownFormatGuidePage.ets - Documentation on Kikaria Markdown format.
- *
- * Translated from MarkdownFormatGuideView in source/Kikaria/ContentView.swift (line 5368)
- */
-import { KikariaColors } from '../components/KikariaTheme';
-import { isPadLandscape, pageHorizontalPadding } from '../components/KikariaAdaptiveLayout';
-import { navPathStack } from '../data/NavigationService';
-/**
- * NavDestination-compatible builder for NavPathStack migration.
- * Usage: navPathStack.pushPathByName('MarkdownFormatGuide', undefined)
- * Register in root Navigation's navDestination builder.
- */
-export function MarkdownFormatGuideBuilder(name, param, parent = null) {
-    {
-        (parent ? parent : this).observeComponentCreation2((elmtId, isInitialRender) => {
-            if (isInitialRender) {
-                let componentCall = new MarkdownFormatGuideContent(parent ? parent : this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/MarkdownFormatGuidePage.ets", line: 17, col: 3 });
-                ViewPU.create(componentCall);
-                let paramsLambda = () => {
-                    return {};
-                };
-                componentCall.paramsGenerator_ = paramsLambda;
-            }
-            else {
-                (parent ? parent : this).updateStateVarsOfChildByElmtId(elmtId, {});
-            }
-        }, { name: "MarkdownFormatGuideContent" });
-    }
-}
-export class MarkdownFormatGuideContent extends ViewPU {
-    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
-        super(parent, __localStorage, elmtId, extraInfo);
-        if (typeof paramsLambda === "function") {
-            this.paramsGenerator_ = paramsLambda;
-        }
-        this.__contentPadH = new ObservedPropertySimplePU(24, this, "contentPadH");
-        this.setInitiallyProvidedValue(params);
-        this.finalizeConstruction();
-    }
-    setInitiallyProvidedValue(params) {
-        if (params.contentPadH !== undefined) {
-            this.contentPadH = params.contentPadH;
-        }
-    }
-    updateStateVars(params) {
-    }
-    purgeVariableDependenciesOnElmtId(rmElmtId) {
-        this.__contentPadH.purgeDependencyOnElmtId(rmElmtId);
-    }
-    aboutToBeDeleted() {
-        this.__contentPadH.aboutToBeDeleted();
-        SubscriberManager.Get().delete(this.id__());
-        this.aboutToBeDeletedInternal();
-    }
-    get contentPadH() {
-        return this.__contentPadH.get();
-    }
-    set contentPadH(newValue) {
-        this.__contentPadH.set(newValue);
-    }
-    aboutToAppear() {
-        this.contentPadH = pageHorizontalPadding();
-    }
-    initialRender() {
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            NavDestination.create(() => {
-                this.pageContent.bind(this)();
-            }, { moduleName: "entry", pagePath: "entry/src/main/ets/pages/MarkdownFormatGuidePage" });
-            NavDestination.hideTitleBar(true);
-            NavDestination.width('100%');
-            NavDestination.height('100%');
-            NavDestination.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(32:5)", "entry");
-        }, NavDestination);
-        NavDestination.pop();
-    }
-    pageContent(parent = null) {
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Scroll.create();
-            Scroll.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(42:5)", "entry");
-            Scroll.width('100%');
-            Scroll.height('100%');
-            Scroll.backgroundColor(KikariaColors.PAGE_BG);
-            Scroll.scrollBar(BarState.Off);
-        }, Scroll);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 18 });
-            Column.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(43:7)", "entry");
-            Column.width('100%');
-            Column.constraintSize({ maxWidth: isPadLandscape() ? 760 : '100%' });
-            Column.padding({ left: this.contentPadH, right: this.contentPadH });
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create();
-            Row.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(44:9)", "entry");
-            Row.width('100%');
-            Row.padding({ left: 20, right: 20, top: 12, bottom: 12 });
-        }, Row);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Button.createWithChild();
-            Button.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(45:11)", "entry");
-            Button.backgroundColor(Color.Transparent);
-            Button.onClick(() => { navPathStack.pop(); });
-        }, Button);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('â† è¿”å›');
-            Text.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(46:13)", "entry");
-            Text.fontSize(17);
-            Text.fontColor(KikariaColors.SOFT_TEXT);
-        }, Text);
-        Text.pop();
-        Button.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Blank.create();
-            Blank.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(53:11)", "entry");
-        }, Blank);
-        Blank.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('Markdown æ ¼å¼æŒ‡å—');
-            Text.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(55:11)", "entry");
-            Text.fontSize(17);
-            Text.fontWeight(FontWeight.Medium);
-            Text.fontColor(KikariaColors.DEEP_TEXT);
-        }, Text);
-        Text.pop();
-        Row.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('Kikaria ä½¿ç”¨ Markdown æ ¼å¼å­˜å‚¨çŸ¥è¯†ç‚¹ã€‚æ¯ä¸ªçŸ¥è¯†ç‚¹ç”±ä»¥ä¸‹éƒ¨åˆ†ç»„æˆï¼š');
-            Text.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(63:9)", "entry");
-            Text.fontSize(15);
-            Text.fontColor(KikariaColors.DEEP_TEXT);
-            Text.width('100%');
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 8 });
-            Column.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(68:9)", "entry");
-            Column.width('100%');
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('åŸºæœ¬ç»“æ„');
-            Text.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(69:11)", "entry");
-            Text.fontSize(17);
-            Text.fontWeight(FontWeight.Bold);
-            Text.fontColor(KikariaColors.DEEP_TEXT);
-            Text.width('100%');
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(`# çŸ¥è¯†ç‚¹æ ‡é¢˜\n\ntags: æ ‡ç­¾1, æ ‡ç­¾2\n\nhint:\nè¿™é‡Œæ˜¯æç¤ºå†…å®¹ã€‚å¯ä»¥åŒ…å«å¤šè¡Œæ–‡å­—ï¼Œ\næ”¯æŒ Markdown åŸºæœ¬è¯­æ³•ã€‚\n\ncontent:\nè¿™é‡Œæ˜¯ç­”æ¡ˆå†…å®¹ã€‚åŒæ ·æ”¯æŒå¤šè¡Œæ–‡å­—ï¼Œ\nä»¥åŠ LaTeX æ•°å­¦å…¬å¼ï¼š$E = mc^2$ã€‚`);
-            Text.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(72:11)", "entry");
-            Text.fontSize(13);
-            Text.fontColor(KikariaColors.SOFT_TEXT);
-            Text.backgroundColor(KikariaColors.MIST);
-            Text.borderRadius(12);
-            Text.padding(16);
-            Text.width('100%');
-            Text.fontFamily('monospace');
-        }, Text);
-        Text.pop();
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 8 });
-            Column.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(78:9)", "entry");
-            Column.width('100%');
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('å¤šä¸ªçŸ¥è¯†ç‚¹');
-            Text.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(79:11)", "entry");
-            Text.fontSize(17);
-            Text.fontWeight(FontWeight.Bold);
-            Text.fontColor(KikariaColors.DEEP_TEXT);
-            Text.width('100%');
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('ä½¿ç”¨ä¸‰ä¸ªçŸ­æ¨ªçº¿ --- åˆ†éš”å¤šä¸ªçŸ¥è¯†ç‚¹ï¼š');
-            Text.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(82:11)", "entry");
-            Text.fontSize(15);
-            Text.fontColor(KikariaColors.DEEP_TEXT);
-            Text.width('100%');
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create(`# ç¬¬ä¸€ä¸ªçŸ¥è¯†ç‚¹\ntags: æ ‡ç­¾A\n\nhint:\næç¤ºA\n\ncontent:\nç­”æ¡ˆA\n\n---\n\n# ç¬¬äºŒä¸ªçŸ¥è¯†ç‚¹\ntags: æ ‡ç­¾B\n\nhint:\næç¤ºB\n\ncontent:\nç­”æ¡ˆB`);
-            Text.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(84:11)", "entry");
-            Text.fontSize(13);
-            Text.fontColor(KikariaColors.SOFT_TEXT);
-            Text.backgroundColor(KikariaColors.MIST);
-            Text.borderRadius(12);
-            Text.padding(16);
-            Text.width('100%');
-            Text.fontFamily('monospace');
-        }, Text);
-        Text.pop();
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 8 });
-            Column.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(90:9)", "entry");
-            Column.width('100%');
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('æ ‡ç­¾æ ¼å¼');
-            Text.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(91:11)", "entry");
-            Text.fontSize(17);
-            Text.fontWeight(FontWeight.Bold);
-            Text.fontColor(KikariaColors.DEEP_TEXT);
-            Text.width('100%');
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('tags: åè·Ÿé€—å·ï¼ˆä¸­è‹±æ–‡å‡å¯ï¼‰åˆ†éš”çš„æ ‡ç­¾åˆ—è¡¨ã€‚æ ‡ç­¾ç”¨äºç­›é€‰å’Œç»„ç»‡çŸ¥è¯†ç‚¹ã€‚');
-            Text.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(94:11)", "entry");
-            Text.fontSize(15);
-            Text.fontColor(KikariaColors.DEEP_TEXT);
-            Text.width('100%');
-        }, Text);
-        Text.pop();
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 8 });
-            Column.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(98:9)", "entry");
-            Column.width('100%');
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('æ•°å­¦å…¬å¼');
-            Text.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(99:11)", "entry");
-            Text.fontSize(17);
-            Text.fontWeight(FontWeight.Bold);
-            Text.fontColor(KikariaColors.DEEP_TEXT);
-            Text.width('100%');
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('Kikaria å†…åµŒæ”¯æŒ LaTeX æ•°å­¦å…¬å¼ï¼š\nè¡Œå†…å…¬å¼ï¼š$E = mc^2$\nå—çº§å…¬å¼ï¼š$$\\int_a^b f(x) dx$$\n\n(æ³¨ï¼šHarmonyOS ç‰ˆæœ¬ç›®å‰ä»¥æ–‡æœ¬å½¢å¼å±•ç¤ºå…¬å¼)');
-            Text.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(102:11)", "entry");
-            Text.fontSize(15);
-            Text.fontColor(KikariaColors.DEEP_TEXT);
-            Text.width('100%');
-        }, Text);
-        Text.pop();
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Column.create({ space: 8 });
-            Column.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(106:9)", "entry");
-            Column.width('100%');
-        }, Column);
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('å°è´´å£«');
-            Text.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(107:11)", "entry");
-            Text.fontSize(17);
-            Text.fontWeight(FontWeight.Bold);
-            Text.fontColor(KikariaColors.DEEP_TEXT);
-            Text.width('100%');
-        }, Text);
-        Text.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Text.create('â€¢ æ ‡é¢˜ä»¥ # å¼€å¤´ï¼Œåæ¥çŸ¥è¯†ç‚¹åç§°\nâ€¢ hint: å’Œ content: å¿…é¡»å„å ä¸€è¡Œï¼Œä»¥å†’å·ç»“å°¾\nâ€¢ æç¤ºå’Œç­”æ¡ˆçš„å†…å®¹ä»ä¸‹ä¸€è¡Œå¼€å§‹\nâ€¢ æ¯ä¸ªçŸ¥è¯†ç‚¹è‡³å°‘éœ€è¦æ ‡é¢˜ã€tagsã€hint å’Œ content\nâ€¢ æ ‡ç­¾æœ‰åŠ©äºåœ¨é¦–é¡µæŒ‰èŒƒå›´ç­›é€‰\nâ€¢ ä½¿ç”¨ --- åˆ†éš”ä¸åŒçš„çŸ¥è¯†ç‚¹');
-            Text.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(110:11)", "entry");
-            Text.fontSize(15);
-            Text.fontColor(KikariaColors.DEEP_TEXT);
-            Text.width('100%');
-        }, Text);
-        Text.pop();
-        Column.pop();
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Row.create();
-            Row.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(114:9)", "entry");
-            Row.height(40);
-        }, Row);
-        Row.pop();
-        Column.pop();
-        Scroll.pop();
-    }
-    rerender() {
-        this.updateDirtyElements();
-    }
-}
-class MarkdownFormatGuidePage extends ViewPU {
-    constructor(parent, params, __localStorage, elmtId = -1, paramsLambda = undefined, extraInfo) {
-        super(parent, __localStorage, elmtId, extraInfo);
-        if (typeof paramsLambda === "function") {
-            this.paramsGenerator_ = paramsLambda;
-        }
-        this.setInitiallyProvidedValue(params);
-        this.finalizeConstruction();
-    }
-    setInitiallyProvidedValue(params) {
-    }
-    updateStateVars(params) {
-    }
-    purgeVariableDependenciesOnElmtId(rmElmtId) {
-    }
-    aboutToBeDeleted() {
-        SubscriberManager.Get().delete(this.id__());
-        this.aboutToBeDeletedInternal();
-    }
-    initialRender() {
-        this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Navigation.create(new NavPathStack(), { moduleName: "entry", pagePath: "entry/src/main/ets/pages/MarkdownFormatGuidePage", isUserCreateStack: false });
-            Navigation.debugLine("entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(131:5)", "entry");
-            Navigation.width('100%');
-            Navigation.height('100%');
-            Navigation.backgroundColor(KikariaColors.PAGE_BG);
-            Navigation.hideTitleBar(true);
-            Navigation.hideBackButton(true);
-        }, Navigation);
-        {
-            this.observeComponentCreation2((elmtId, isInitialRender) => {
-                if (isInitialRender) {
-                    let componentCall = new MarkdownFormatGuideContent(this, {}, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/MarkdownFormatGuidePage.ets", line: 132, col: 7 });
-                    ViewPU.create(componentCall);
-                    let paramsLambda = () => {
-                        return {};
-                    };
-                    componentCall.paramsGenerator_ = paramsLambda;
-                }
-                else {
-                    this.updateStateVarsOfChildByElmtId(elmtId, {});
-                }
-            }, { name: "MarkdownFormatGuideContent" });
-        }
-        Navigation.pop();
-    }
-    rerender() {
-        this.updateDirtyElements();
-    }
-    static getEntryName() {
-        return "MarkdownFormatGuidePage";
-    }
-}
-registerNamedRoute(() => new MarkdownFormatGuidePage(undefined, {}), "", { bundleName: "com.vita0818.kikaria", moduleName: "entry", pagePath: "pages/MarkdownFormatGuidePage", pageFullPath: "entry/src/main/ets/pages/MarkdownFormatGuidePage", integratedHsp: "false", moduleType: "followWithHap" });
-//# sourceMappingURL=MarkdownFormatGuidePage.js.mapÂ“Ù]/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/components/KikariaTheme.etsÙf/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/components/KikariaAdaptiveLayout.etsÙ\/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/data/NavigationService.etsÙc/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/pages/MarkdownFormatGuidePage.etsÔrB›ªmoduleName±isLocalDependency¯isNodeEntryFile§pkgPath±belongProjectPath§pkgNameªpkgVersion±dependencyPkgInfo°belongModulePath¬shouldEmitJs¯hostModulesInfo¥entryÃÂÙ4/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entryÙ./Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS¥entry¥1.0.0Ô  Ù4/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entryÃ‘ÔrC’²hostDependencyName®hostModuleName¹./MarkdownFormatGuidePage¥entryÃÚ¾/**
- * MarkdownFormatGuidePage.ets - Documentation on Kikaria Markdown format.
- *
- * Translated from MarkdownFormatGuideView in source/Kikaria/ContentView.swift (line 5368)
- */
-import { KikariaColors } from '../components/KikariaTheme'
-import { isPadLandscape, pageHorizontalPadding } from '../components/KikariaAdaptiveLayout'
-import { navPathStack } from '../data/NavigationService'
-
-/**
- * NavDestination-compatible builder for NavPathStack migration.
- * Usage: navPathStack.pushPathByName('MarkdownFormatGuide', undefined)
- * Register in root Navigation's navDestination builder.
- */
-@Builder
-export function MarkdownFormatGuideBuilder(name: string, param: Object) {
-  MarkdownFormatGuideContent()
-}
-
-/**
- * Reusable page content component (used by both @Entry and NavDestination).
- */
-@Component
-export struct MarkdownFormatGuideContent {
-  @State contentPadH: number = 24
-
-  aboutToAppear(): void {
-    this.contentPadH = pageHorizontalPadding()
-  }
-
-  build() {
-    NavDestination() {
-      this.pageContent()
-    }
-    .hideTitleBar(true)
-    .width('100%')
-    .height('100%')
-  }
-
-  @Builder
-  pageContent() {
-    Scroll() {
-      Column({ space: 18 }) {
-        Row() {
-          Button() {
-            Text('â† è¿”å›')
-              .fontSize(17)
-              .fontColor(KikariaColors.SOFT_TEXT)
-          }
-          .backgroundColor(Color.Transparent)
-          .onClick(() => { navPathStack.pop() })
-
-          Blank()
-
-          Text('Markdown æ ¼å¼æŒ‡å—')
-            .fontSize(17)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(KikariaColors.DEEP_TEXT)
-        }
-        .width('100%')
-        .padding({ left: 20, right: 20, top: 12, bottom: 12 })
-
-        Text('Kikaria ä½¿ç”¨ Markdown æ ¼å¼å­˜å‚¨çŸ¥è¯†ç‚¹ã€‚æ¯ä¸ªçŸ¥è¯†ç‚¹ç”±ä»¥ä¸‹éƒ¨åˆ†ç»„æˆï¼š')
-          .fontSize(15)
-          .fontColor(KikariaColors.DEEP_TEXT)
-          .width('100%')
-
-        Column({ space: 8 }) {
-          Text('åŸºæœ¬ç»“æ„')
-            .fontSize(17).fontWeight(FontWeight.Bold)
-            .fontColor(KikariaColors.DEEP_TEXT).width('100%')
-          Text(`# çŸ¥è¯†ç‚¹æ ‡é¢˜\n\ntags: æ ‡ç­¾1, æ ‡ç­¾2\n\nhint:\nè¿™é‡Œæ˜¯æç¤ºå†…å®¹ã€‚å¯ä»¥åŒ…å«å¤šè¡Œæ–‡å­—ï¼Œ\næ”¯æŒ Markdown åŸºæœ¬è¯­æ³•ã€‚\n\ncontent:\nè¿™é‡Œæ˜¯ç­”æ¡ˆå†…å®¹ã€‚åŒæ ·æ”¯æŒå¤šè¡Œæ–‡å­—ï¼Œ\nä»¥åŠ LaTeX æ•°å­¦å…¬å¼ï¼š$E = mc^2$ã€‚`)
-            .fontSize(13).fontColor(KikariaColors.SOFT_TEXT)
-            .backgroundColor(KikariaColors.MIST).borderRadius(12)
-            .padding(16).width('100%').fontFamily('monospace')
-        }.width('100%')
-
-        Column({ space: 8 }) {
-          Text('å¤šä¸ªçŸ¥è¯†ç‚¹')
-            .fontSize(17).fontWeight(FontWeight.Bold)
-            .fontColor(KikariaColors.DEEP_TEXT).width('100%')
-          Text('ä½¿ç”¨ä¸‰ä¸ªçŸ­æ¨ªçº¿ --- åˆ†éš”å¤šä¸ªçŸ¥è¯†ç‚¹ï¼š')
-            .fontSize(15).fontColor(KikariaColors.DEEP_TEXT).width('100%')
-          Text(`# ç¬¬ä¸€ä¸ªçŸ¥è¯†ç‚¹\ntags: æ ‡ç­¾A\n\nhint:\næç¤ºA\n\ncontent:\nç­”æ¡ˆA\n\n---\n\n# ç¬¬äºŒä¸ªçŸ¥è¯†ç‚¹\ntags: æ ‡ç­¾B\n\nhint:\næç¤ºB\n\ncontent:\nç­”æ¡ˆB`)
-            .fontSize(13).fontColor(KikariaColors.SOFT_TEXT)
-            .backgroundColor(KikariaColors.MIST).borderRadius(12)
-            .padding(16).width('100%').fontFamily('monospace')
-        }.width('100%')
-
-        Column({ space: 8 }) {
-          Text('æ ‡ç­¾æ ¼å¼')
-            .fontSize(17).fontWeight(FontWeight.Bold)
-            .fontColor(KikariaColors.DEEP_TEXT).width('100%')
-          Text('tags: åè·Ÿé€—å·ï¼ˆä¸­è‹±æ–‡å‡å¯ï¼‰åˆ†éš”çš„æ ‡ç­¾åˆ—è¡¨ã€‚æ ‡ç­¾ç”¨äºç­›é€‰å’Œç»„ç»‡çŸ¥è¯†ç‚¹ã€‚')
-            .fontSize(15).fontColor(KikariaColors.DEEP_TEXT).width('100%')
-        }.width('100%')
-
-        Column({ space: 8 }) {
-          Text('æ•°å­¦å…¬å¼')
-            .fontSize(17).fontWeight(FontWeight.Bold)
-            .fontColor(KikariaColors.DEEP_TEXT).width('100%')
-          Text('Kikaria å†…åµŒæ”¯æŒ LaTeX æ•°å­¦å…¬å¼ï¼š\nè¡Œå†…å…¬å¼ï¼š$E = mc^2$\nå—çº§å…¬å¼ï¼š$$\\int_a^b f(x) dx$$\n\n(æ³¨ï¼šHarmonyOS ç‰ˆæœ¬ç›®å‰ä»¥æ–‡æœ¬å½¢å¼å±•ç¤ºå…¬å¼)')
-            .fontSize(15).fontColor(KikariaColors.DEEP_TEXT).width('100%')
-        }.width('100%')
-
-        Column({ space: 8 }) {
-          Text('å°è´´å£«')
-            .fontSize(17).fontWeight(FontWeight.Bold)
-            .fontColor(KikariaColors.DEEP_TEXT).width('100%')
-          Text('â€¢ æ ‡é¢˜ä»¥ # å¼€å¤´ï¼Œåæ¥çŸ¥è¯†ç‚¹åç§°\nâ€¢ hint: å’Œ content: å¿…é¡»å„å ä¸€è¡Œï¼Œä»¥å†’å·ç»“å°¾\nâ€¢ æç¤ºå’Œç­”æ¡ˆçš„å†…å®¹ä»ä¸‹ä¸€è¡Œå¼€å§‹\nâ€¢ æ¯ä¸ªçŸ¥è¯†ç‚¹è‡³å°‘éœ€è¦æ ‡é¢˜ã€tagsã€hint å’Œ content\nâ€¢ æ ‡ç­¾æœ‰åŠ©äºåœ¨é¦–é¡µæŒ‰èŒƒå›´ç­›é€‰\nâ€¢ ä½¿ç”¨ --- åˆ†éš”ä¸åŒçš„çŸ¥è¯†ç‚¹')
-            .fontSize(15).fontColor(KikariaColors.DEEP_TEXT).width('100%')
-        }.width('100%')
-
-        Row().height(40)
-      }
-      .width('100%')
-      .constraintSize({ maxWidth: isPadLandscape() ? 760 : '100%' })
-      .padding({ left: this.contentPadH, right: this.contentPadH })
-    }
-    .width('100%')
-    .height('100%')
-    .backgroundColor(KikariaColors.PAGE_BG)
-    .scrollBar(BarState.Off)
-  }
-}
-
-@Entry
-@Component
-struct MarkdownFormatGuidePage {
-  build() {
-    Navigation() {
-      MarkdownFormatGuideContent()
-    }
-    .width('100%')
-    .height('100%')
-    .backgroundColor(KikariaColors.PAGE_BG)
-    .hideTitleBar(true)
-    .hideBackButton(true)
-  }
-}
-ÀÔrD“º../components/KikariaThemeÙ#../components/KikariaAdaptiveLayout¹../data/NavigationServiceÔrE—ªassertions¨external¢id¤meta±moduleSideEffectsªresolvedByµsyntheticNamedExportsAÂÙ]/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/components/KikariaTheme.etsAÃªoh-resolveÂEAÂÙf/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/components/KikariaAdaptiveLayout.etsAÃªoh-resolveÂEAÂÙ\/Users/vita/Vitemis/Outposts/Kikaria-HarmonyOS/entry/src/main/ets/data/NavigationService.etsAÃªoh-resolveÂ“ÔrF–§version¤fileªsourceRoot§sources¥names¨mappingsºMarkdownFormatGuidePage.js ‘»MarkdownFormatGuidePage.etsÜG‘”    ‘” ˜”   ” ”	 	” ” ” ”: :”; :š”   ” ”	 	” ” ”. .”0 0”6 6”Ì[ Ì[”Ì\ Ì[˜”   ” ”	 	” ” ” ”8 8”9 8‘”  	 ‘” ˜”   ” ” ”* *”+ +”/ 7”1 9”6 ÌF’”( ”ÌB ‘” ””   ” ” ”' (‘”  ’”: ”< !‘” ’” 	” ’” 	” ’” ” ˜” ” ” 	” ” ”0 ,”2 .”3 .’” ” ‘” •”  ”  
-”  ”   ”-  ”” "”' "”( "”, "”” #”  #
-”! #”' #”” $”! $”" $”( $‘” %’” (” (’” )” )
-–” )” )
-” Ìw” Ìw
-” Ìw” Ìw–” )” )
-” Ìx” Ìx” Ìx”  Ìx˜” )” )
-” Ìy”" Ìy”# Ìy”0 Ìy"”1 Ìy#”8 Ìy*˜” )” )
-” Ìz” Ìz” Ìz”% Ìz”& Ìz”) Ìz˜” *” *” *” *”! *”# *”% *”' *–” *” *” Ìs” Ìs” Ìs” ÌsÜ ” *” *” Ìt”! Ìt”" Ìt”$ Ìt”, Ìt ”. Ìt"”< Ìt0”> Ìt2”? Ìt3”Ì@ Ìt4”ÌA Ìt5”ÌD Ìt8”ÌE Ìt9”ÌF Ìt:”ÌG Ìt;”ÌM ÌtÌA”ÌO ÌtÌCÜ ” *” *” Ìu” Ìu” Ìu” Ìu”! Ìu”# Ìu”' Ìu”( Ìu”3 Ìu'”5 Ìu)”: Ìu.”< Ìu0”Ì@ Ìu4”ÌA Ìu5”ÌL ÌuÌ@”ÌN ÌuÌB’” +” +–” +” +” ;	” ;” ;” ;Ü ” +” +” <	” <” <” <” <”  <”" <”$ <”) <"”+ <$”- <&”/ <(”2 <+”4 <-”6 </”8 <1”> <7”Ì@ <9”ÌB <;”ÌD <=’” ,
-” ,˜” ,
-” ,” 1”" 1”# 1”( 1 ”) 1!”4 1,Ÿ” ,
-” ,” 2” 2” 2” 2”  2”# 2”/ 2'”0 2(”3 2+”5 2-”6 2-”7 2.”8 2/”” -” -” -” -–” -” -” .” .” .” .˜” -” -” /” /” /”( /&”) /'”2 /0’” -” -’” ,
-” ,’” 4
-” 4’” 4
-” 4”” 6
-” 6” 6”' 6–” 6
-” 6” 7” 7” 7” 7˜” 6
-” 6” 8” 8” 8”& 8"”' 8#”- 8)˜” 6
-” 6” 9” 9” 9”( 9$”) 9%”2 9.’” 6
-” 6’” +” +”” >” >” >”ÌC >8–” >” >” ?” ?” ?” ?˜” >” >” Ì@” Ì@” Ì@”( Ì@"”) Ì@#”2 Ì@,–” >” >” ÌA” ÌA” ÌA” ÌA’” >” >˜” ÌC” ÌC” ÌC” ÌC”! ÌC”# ÌC”$ ÌC”& ÌC–” ÌC” ÌC” ÌK
-” ÌK” ÌK” ÌK”” ÌD
-” ÌD” ÌD” ÌD–” ÌD
-” ÌD” ÌE” ÌE” ÌE” ÌE˜” ÌD
-” ÌD” ÌE” ÌE$” ÌE%”& ÌE/”' ÌE0”+ ÌE4˜” ÌD
-” ÌD” ÌF” ÌF” ÌF”( ÌF$”) ÌF%”2 ÌF.–” ÌD
-” ÌD” ÌF0” ÌF5” ÌF6” ÌF<’” ÌD
-” ÌD”” ÌG
-” ÌG” ÌG”Ìœ ÌGÌ“–” ÌG
-” ÌG” ÌH” ÌH” ÌH” ÌH˜” ÌG
-” ÌG” ÌH” ÌH#” ÌH$”( ÌH1”) ÌH2”2 ÌH;˜” ÌG
-” ÌG” ÌI”  ÌI”! ÌI”. ÌI*”/ ÌI+”3 ÌI/–” ÌG
-” ÌG” ÌI1” ÌI=” ÌI>”  ÌIÌ@–” ÌG
-” ÌG” ÌJ” ÌJ” ÌJ” ÌJ–” ÌG
-” ÌG” ÌJ” ÌJ” ÌJ” ÌJ%–” ÌG
-” ÌG” ÌJ'” ÌJ1” ÌJ2”' ÌJ=’” ÌG
-” ÌG’” ÌC” ÌC˜” ÌM” ÌM” ÌM” ÌM”! ÌM”# ÌM”$ ÌM”& ÌM–” ÌM” ÌM” ÌW
-” ÌW” ÌW” ÌW”” ÌN
-” ÌN” ÌN” ÌN–” ÌN
-” ÌN” ÌO” ÌO” ÌO” ÌO˜” ÌN
-” ÌN” ÌO” ÌO$” ÌO%”& ÌO/”' ÌO0”+ ÌO4˜” ÌN
-” ÌN” ÌP” ÌP” ÌP”( ÌP$”) ÌP%”2 ÌP.–” ÌN
-” ÌN” ÌP0” ÌP5” ÌP6” ÌP<’” ÌN
-” ÌN”” ÌQ
-” ÌQ” ÌQ”. ÌQ%–” ÌQ
-” ÌQ” ÌR” ÌR” ÌR” ÌR˜” ÌQ
-” ÌQ” ÌR” ÌR#” ÌR$”( ÌR1”) ÌR2”2 ÌR;–” ÌQ
-” ÌQ” ÌR=” ÌRÌB” ÌRÌC” ÌRÌI’” ÌQ
-” ÌQ”” ÌS
-” ÌS” ÌS”Ì‰ ÌSÌ€–” ÌS
-” ÌS” ÌT” ÌT” ÌT” ÌT˜” ÌS
-” ÌS” ÌT” ÌT#” ÌT$”( ÌT1”) ÌT2”2 ÌT;˜” ÌS
-” ÌS” ÌU”  ÌU”! ÌU”. ÌU*”/ ÌU+”3 ÌU/–” ÌS
-” ÌS” ÌU1” ÌU=” ÌU>”  ÌUÌ@–” ÌS
-” ÌS” ÌV” ÌV” ÌV” ÌV–” ÌS
-” ÌS” ÌV” ÌV” ÌV” ÌV%–” ÌS
-” ÌS” ÌV'” ÌV1” ÌV2”' ÌV=’” ÌS
-” ÌS’” ÌM” ÌM˜” ÌY” ÌY” ÌY” ÌY”! ÌY”# ÌY”$ ÌY”& ÌY–” ÌY” ÌY” Ì_
-” Ì_” Ì_” Ì_”” ÌZ
-” ÌZ” ÌZ” ÌZ–” ÌZ
-” ÌZ” Ì[” Ì[” Ì[” Ì[˜” ÌZ
-” ÌZ” Ì[” Ì[$” Ì[%”& Ì[/”' Ì[0”+ Ì[4˜” ÌZ
-” ÌZ” Ì\” Ì\” Ì\”( Ì\$”) Ì\%”2 Ì\.–” ÌZ
-” ÌZ” Ì\0” Ì\5” Ì\6” Ì\<’” ÌZ
-” ÌZ”” Ì]
-” Ì]” Ì]”Ì@ Ì]7–” Ì]
-” Ì]” Ì^” Ì^” Ì^” Ì^˜” Ì]
-” Ì]” Ì^” Ì^#” Ì^$”( Ì^1”) Ì^2”2 Ì^;–” Ì]
-” Ì]” Ì^=” Ì^ÌB” Ì^ÌC” Ì^ÌI’” Ì]
-” Ì]’” ÌY” ÌY˜” Ìa” Ìa” Ìa” Ìa”! Ìa”# Ìa”$ Ìa”& Ìa–” Ìa” Ìa” Ìg
-” Ìg” Ìg” Ìg”” Ìb
-” Ìb” Ìb” Ìb–” Ìb
-” Ìb” Ìc” Ìc” Ìc” Ìc˜” Ìb
-” Ìb” Ìc” Ìc$” Ìc%”& Ìc/”' Ìc0”+ Ìc4˜” Ìb
-” Ìb” Ìd” Ìd” Ìd”( Ìd$”) Ìd%”2 Ìd.–” Ìb
-” Ìb” Ìd0” Ìd5” Ìd6” Ìd<’” Ìb
-” Ìb”” Ìe
-” Ìe” Ìe”Ì~ ÌeÌu–” Ìe
-” Ìe” Ìf” Ìf” Ìf” Ìf˜” Ìe
-” Ìe” Ìf” Ìf#” Ìf$”( Ìf1”) Ìf2”2 Ìf;–” Ìe
-” Ìe” Ìf=” ÌfÌB” ÌfÌC” ÌfÌI’” Ìe
-” Ìe’” Ìa” Ìa˜” Ìi” Ìi” Ìi” Ìi”! Ìi”# Ìi”$ Ìi”& Ìi–” Ìi” Ìi” Ìo
-” Ìo” Ìo” Ìo”” Ìj
-” Ìj” Ìj” Ìj–” Ìj
-” Ìj” Ìk” Ìk” Ìk” Ìk˜” Ìj
-” Ìj” Ìk” Ìk$” Ìk%”& Ìk/”' Ìk0”+ Ìk4˜” Ìj
-” Ìj” Ìl” Ìl” Ìl”( Ìl$”) Ìl%”2 Ìl.–” Ìj
-” Ìj” Ìl0” Ìl5” Ìl6” Ìl<’” Ìj
-” Ìj”” Ìm
-” Ìm” Ìm”Ì¦ ÌmÌ–” Ìm
-” Ìm” Ìn” Ìn” Ìn” Ìn˜” Ìm
-” Ìm” Ìn” Ìn#” Ìn$”( Ìn1”) Ìn2”2 Ìn;–” Ìm
-” Ìm” Ìn=” ÌnÌB” ÌnÌC” ÌnÌI’” Ìm
-” Ìm’” Ìi” Ìi’” Ìq” Ìq–” Ìq” Ìq” Ìq” Ìq” Ìq” Ìq’” Ìq” Ìq’” *” *’” )” )
-‘” Ì{’” Ì€” Ì€‘” Ì~ ‘” Ì|‘” Ì’” Ì‚” Ì‚–” Ì‚” Ì‚” Ì…” Ì…
-” Ì…”# Ì…–” Ì‚” Ì‚” Ì†” Ì†” Ì†”$ Ì†˜” Ì‚” Ì‚” Ì‡”& Ì‡”' Ì‡”4 Ì‡"”5 Ì‡#”< Ì‡*–” Ì‚” Ì‚” Ìˆ”# Ìˆ”$ Ìˆ”( Ìˆ–” Ì‚” Ì‚” Ì‰”% Ì‰”& Ì‰”* Ì‰’”, Ìƒ”ÌF Ìƒ ’” Ì‚” Ì‚‘” ÌŠÔrG–§version¤file§sources®sourcesContent¥names¨mappingsÀ‘À‘ÀÜP‘”    ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”  	 ‘”  
- ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”    ‘”  ! ‘”  " ‘”  # ‘”  $ ‘”  % ‘”  & ‘”  ' ‘”  ( ‘”  ) ‘”  * ‘”  + ‘”  , ‘”  - ‘”  . ‘”  / ‘”  0 ‘”  1 ‘”  2 ‘”  3 ‘”  4 ‘”  5 ‘”  6 ‘”  7 ‘”  8 ‘”  9 ‘”  : ‘”  ; ‘”  < ‘”  = ‘”  > ‘”  ? ‘”  Ì@ ‘”  ÌA ‘”  ÌB ‘”  ÌC ‘”  ÌD ‘”  ÌE ‘”  ÌF ‘”  ÌG ‘”  ÌH ‘”  ÌI ‘”  ÌJ ‘”  ÌK ‘”  ÌL ‘”  ÌM ‘”  ÌN ‘”  ÌO ‘”  ÌP ‘”  ÌQ ‘”  ÌR ‘”  ÌS ‘”  ÌT ‘”  ÌU ‘”  ÌV ‘”  ÌW ‘”  ÌX ‘”  ÌY ‘”  ÌZ ‘”  Ì[ ‘”  Ì\ ‘”  Ì] ‘”  Ì^ ‘”  Ì_ ‘”  Ì` ‘”  Ìa ‘”  Ìb ‘”  Ìc ‘”  Ìd ‘”  Ìe ‘”  Ìf ‘”  Ìg ‘”  Ìh ‘”  Ìi ‘”  Ìj ‘”  Ìk ‘”  Ìl ‘”  Ìm ‘”  Ìn ‘”  Ìo ‘”  Ìp ‘”  Ìq ‘”  Ìr ‘”  Ìs ‘”  Ìt ‘”  Ìu ‘”  Ìv ‘”  Ìw ‘”  Ìx ‘”  Ìy ‘”  Ìz ‘”  Ì{ ‘”  Ì| ‘”  Ì} ‘”  Ì~ ‘”  Ì ‘”  Ì€ ‘”  Ì ‘”  Ì‚ ‘”  Ìƒ ‘”  Ì„ ‘”  Ì… ‘”  Ì† ‘”  Ì‡ ‘”  Ìˆ ‘”  Ì‰ ‘”  ÌŠ ‘”  Ì‹ ‘”  ÌŒ ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì‘ ‘”  Ì’ ‘”  Ì“ ‘”  Ì” ‘”  Ì• ‘”  Ì– ‘”  Ì— ‘”  Ì˜ ‘”  Ì™ ‘”  Ìš ‘”  Ì› ‘”  Ìœ ‘”  Ì ‘”  Ì ‘”  ÌŸ ‘”  Ì  ‘”  Ì¡ ‘”  Ì¢ ‘”  Ì£ ‘”  Ì¤ ‘”  Ì¥ ‘”  Ì¦ ‘”  Ì§ ‘”  Ì¨ ‘”  Ì© ‘”  Ìª ‘”  Ì« ‘”  Ì¬ ‘”  Ì­ ‘”  Ì® ‘”  Ì¯ ‘”  Ì° ‘”  Ì± ‘”  Ì² ‘”  Ì³ ‘”  Ì´ ‘”  Ìµ ‘”  Ì¶ ‘”  Ì· ‘”  Ì¸ ‘”  Ì¹ ‘”  Ìº ‘”  Ì» ‘”  Ì¼ ‘”  Ì½ ‘”  Ì¾ ‘”  Ì¿ ‘”  ÌÀ ‘”  ÌÁ ‘”  ÌÂ ‘”  ÌÃ ‘”  ÌÄ ‘”  ÌÅ ‘”  ÌÆ ‘”  ÌÇ ‘”  ÌÈ ‘”  ÌÉ ‘”  ÌÊ ‘”  ÌË ‘”  ÌÌ ‘”  ÌÍ ‘”  ÌÎ ‘”  ÌÏ ‘”  ÌĞ ‘”  ÌÑ ‘”  ÌÒ ‘”  ÌÓ ‘”  ÌÔ ‘”  ÌÕ ‘”  ÌÖ ‘”  Ì× ‘”  ÌØ ‘”  ÌÙ ‘”  ÌÚ ‘”  ÌÛ ‘”  ÌÜ ‘”  Ìİ ‘”  ÌŞ ‘”  Ìß ‘”  Ìà ‘”  Ìá ‘”  Ìâ ‘”  Ìã ‘”  Ìä ‘”  Ìå ‘”  Ìæ ‘”  Ìç ‘”  Ìè ‘”  Ìé ‘”  Ìê ‘”  Ìë ‘”  Ìì ‘”  Ìí ‘”  Ìî ‘”  Ìï ‘”  Ìğ ‘”  Ìñ ‘”  Ìò ‘”  Ìó ‘”  Ìô ‘”  Ìõ ‘”  Ìö ‘”  Ì÷ ‘”  Ìø ‘”  Ìù ‘”  Ìú ‘”  Ìû ‘”  Ìü ‘”  Ìı ‘”  Ìş ‘”  Ìÿ ‘”  Í  ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í	 ‘”  Í
- ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í ‘”  Í  ‘”  Í! ‘”  Í" ‘”  Í# ‘”  Í$ ‘”  Í% ‘”  Í& ‘”  Í' ‘”  Í( ‘”  Í) ‘”  Í* ‘”  Í+ ‘”  Í, ‘”  Í- ‘”  Í. ‘”  Í/ ‘”  Í0 ‘”  Í1 ‘”  Í2 ‘”  Í3 ‘”  Í4 ‘”  Í5 ‘”  Í6 ‘”  Í7 ‘”  Í8 ‘”  Í9 ‘”  Í: ‘”  Í; ‘”  Í< ‘”  Í= ‘”  Í> ‘”  Í? ‘”  Í@ ‘”  ÍA ‘”  ÍB ‘”  ÍC ‘”  ÍD ‘”  ÍE ‘”  ÍF ‘”  ÍG ‘”  ÍH ‘”  ÍI ‘”  ÍJ ‘”  ÍK ‘”  ÍL ‘”  ÍM ‘”  ÍN ‘”  ÍO ÔrH’§missing¦pluginÃ¦genAbcÂÔ  ÔrI”²dynamicImportCache¹exportAllDeclarationCache»exportNamedDeclarationCache«importCache’ÔrJ–¤type¥start£end«declarationªspecifiers¦source¶ExportNamedDeclarationÍÛÍÔrK™¤type¥start£end¢idªexpression©generator¥async¦params¤body³FunctionDeclarationÍâÍÔrL”¤type¥start£end¤nameªIdentifierÍëÍºMarkdownFormatGuideBuilderÂÂÂ“LªIdentifierÍÍ
-¤nameLªIdentifierÍÍ¥paramÔrM•¤type¥start£end¤left¥right±AssignmentPatternÍÍ LªIdentifierÍÍ¦parentÔrN•¤type¥start£end¥value£raw§LiteralÍÍ À¤nullÔrO”¤type¥start£end¤body®BlockStatementÍ"Í‘O®BlockStatementÍ)Í‘ÔrP”¤type¥start£endªexpression³ExpressionStatementÍ4ÍÔrQ–¤type¥start£end¦callee©arguments¨optional®CallExpressionÍ4ÍÔrR—¤type¥start£end¦object¨property¨computed¨optional°MemberExpressionÍ4ÍfÔrS–¤type¥start£end¤testªconsequent©alternateµConditionalExpressionÍ5ÍKLªIdentifierÍ5Í;¦parentLªIdentifierÍ>ÍD¦parentÔrT“¤type¥start£end®ThisExpressionÍGÍKLªIdentifierÍMÍf¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍgÍŞÀÂÂÂ’LªIdentifierÍhÍn¦elmtIdLªIdentifierÍpÍ¯isInitialRenderO®BlockStatementÍ„ÍŞ‘S«IfStatementÍ“ÍÓLªIdentifierÍ—Í¦¯isInitialRenderO®BlockStatementÍ¨ÍZ”ÔrU•¤type¥start£end¬declarations¤kind³VariableDeclarationÍ»Í|‘ÔrV•¤type¥start£end¢id¤init²VariableDeclaratorÍ¿Í{LªIdentifierÍ¿ÍÌ­componentCallÔrW•¤type¥start£end¦callee©arguments­NewExpressionÍÏÍ{LªIdentifierÍÓÍíºMarkdownFormatGuideContent–SµConditionalExpressionÍîÍLªIdentifierÍîÍô¦parentLªIdentifierÍ÷Íı¦parentT®ThisExpressionÍ ÍÔrX”¤type¥start£endªproperties°ObjectExpressionÍÍLªIdentifierÍ
-Í©undefinedLªIdentifierÍÍ¦elmtIdK·ArrowFunctionExpressionÍÍ&ÀÂÂÂO®BlockStatementÍ#Í&X°ObjectExpressionÍ(Íz“ÔrY™¤type¥start£end¦method©shorthand¨computed£key¥value¤kind¨PropertyÍ*ÍfÂÂÂLªIdentifierÍ*Í.¤pageN§LiteralÍ0ÍfÙ4entry/src/main/ets/pages/MarkdownFormatGuidePage.etsÙ6"entry/src/main/ets/pages/MarkdownFormatGuidePage.ets"¤initY¨PropertyÍhÍpÂÂÂLªIdentifierÍhÍl¤lineN§LiteralÍnÍp¢17¤initY¨PropertyÍrÍxÂÂÂLªIdentifierÍrÍu£colN§LiteralÍwÍx¡3¤init£letP³ExpressionStatementÍÍ«Q®CallExpressionÍÍªR°MemberExpressionÍÍ›LªIdentifierÍÍ”¦ViewPULªIdentifierÍ•Í›¦createÂÂ‘LªIdentifierÍœÍ©­componentCallÂU³VariableDeclarationÍ½Í‘V²VariableDeclaratorÍÁÍ
-LªIdentifierÍÁÍÍ¬paramsLambdaK·ArrowFunctionExpressionÍĞÍ
-ÀÂÂÂO®BlockStatementÍÖÍ
-‘ÔrZ”¤type¥start£end¨argument¯ReturnStatementÍíÍ÷X°ObjectExpressionÍôÍö£letP³ExpressionStatementÍÍKÔr[–¤type¥start£end¨operator¤left¥right´AssignmentExpressionÍÍJ¡=R°MemberExpressionÍÍ;LªIdentifierÍÍ*­componentCallLªIdentifierÍ+Í;°paramsGenerator_ÂÂLªIdentifierÍ>ÍJ¬paramsLambdaO®BlockStatementÍmÍÓ‘P³ExpressionStatementÍ€ÍÄQ®CallExpressionÍ€ÍÃR°MemberExpressionÍ€Í·SµConditionalExpressionÍÍ—LªIdentifierÍÍ‡¦parentLªIdentifierÍŠÍ¦parentT®ThisExpressionÍ“Í—LªIdentifierÍ™Í·¾updateStateVarsOfChildByElmtIdÂÂ’LªIdentifierÍ¸Í¾¦elmtIdX°ObjectExpressionÍÀÍÂÂX°ObjectExpressionÍàÍ‘Y¨PropertyÍâÍÂÂÂLªIdentifierÍâÍæ¤nameN§LiteralÍèÍºMarkdownFormatGuideContent¼"MarkdownFormatGuideContent"¤initÂÀJ¶ExportNamedDeclarationÍÍ3÷Ôr\–¤type¥start£end¢idªsuperClass¤body°ClassDeclarationÍÍ3÷LªIdentifierÍ!Í;ºMarkdownFormatGuideContentLªIdentifierÍDÍJ¦ViewPUO©ClassBodyÍKÍ3÷›Ôr]˜¤type¥start£end¦static¨computed£key¤kind¥value°MethodDefinitionÍRÍÂÂLªIdentifierÍRÍ]«constructor«constructorK²FunctionExpressionÍ]ÍÀÂÂÂ–LªIdentifierÍ^Íd¦parentLªIdentifierÍfÍl¦paramsLªIdentifierÍnÍ|®__localStorageM±AssignmentPatternÍ~Í‰LªIdentifierÍ~Í„¦elmtIdÔr^–¤type¥start£end¨operator¦prefix¨argument¯UnaryExpressionÍ‡Í‰¡-ÃN§LiteralÍˆÍ‰¡1M±AssignmentPatternÍ‹Í£LªIdentifierÍ‹Í—¬paramsLambdaLªIdentifierÍšÍ£©undefinedLªIdentifierÍ¥Í®©extraInfoO®BlockStatementÍ°Í•P³ExpressionStatementÍ»ÍìQ®CallExpressionÍ»ÍëT¥SuperÍ»ÍÀ”LªIdentifierÍÁÍÇ¦parentLªIdentifierÍÉÍ×®__localStorageLªIdentifierÍÙÍß¦elmtIdLªIdentifierÍáÍê©extraInfoÂS«IfStatementÍöÍ]Ôr_–¤type¥start£end¤left¨operator¥right°BinaryExpressionÍúÍ^¯UnaryExpressionÍúÍ¦typeofÃLªIdentifierÍÍ¬paramsLambda£===N§LiteralÍÍ¨functionª"function"O®BlockStatementÍÍ]‘P³ExpressionStatementÍ-ÍR[´AssignmentExpressionÍ-ÍQ¡=R°MemberExpressionÍ-ÍBT®ThisExpressionÍ-Í1LªIdentifierÍ2ÍB°paramsGenerator_ÂÂLªIdentifierÍEÍQ¬paramsLambdaÀP³ExpressionStatementÍgÍ²[´AssignmentExpressionÍgÍ±¡=R°MemberExpressionÍgÍyT®ThisExpressionÍgÍkLªIdentifierÍlÍy­__contentPadHÂÂW­NewExpressionÍ|Í±LªIdentifierÍ€Í˜¸ObservedPropertySimplePU“N§LiteralÍ™Í›¢24T®ThisExpressionÍÍ¡N§LiteralÍ£Í°«contentPadH­"contentPadH"P³ExpressionStatementÍ¼ÍãQ®CallExpressionÍ¼ÍâR°MemberExpressionÍ¼ÍÚT®ThisExpressionÍ¼ÍÀLªIdentifierÍÁÍÚ¹setInitiallyProvidedValueÂÂ‘LªIdentifierÍÛÍá¦paramsÂP³ExpressionStatementÍíÍ	Q®CallExpressionÍíÍR°MemberExpressionÍíÍT®ThisExpressionÍíÍñLªIdentifierÍòÍ´finalizeConstructionÂÂÂ]°MethodDefinitionÍÍ°ÂÂLªIdentifierÍÍ/¹setInitiallyProvidedValue¦methodK²FunctionExpressionÍ/Í°ÀÂÂÂ‘LªIdentifierÍ0Í6¦paramsO®BlockStatementÍ8Í°‘S«IfStatementÍCÍ©_°BinaryExpressionÍGÍgR°MemberExpressionÍGÍYLªIdentifierÍGÍM¦paramsLªIdentifierÍNÍY«contentPadHÂÂ£!==LªIdentifierÍ^Íg©undefinedO®BlockStatementÍiÍ©‘P³ExpressionStatementÍxÍ[´AssignmentExpressionÍxÍ¡=R°MemberExpressionÍxÍˆT®ThisExpressionÍxÍ|LªIdentifierÍ}Íˆ«contentPadHÂÂR°MemberExpressionÍ‹ÍLªIdentifierÍ‹Í‘¦paramsLªIdentifierÍ’Í«contentPadHÂÂÀ]°MethodDefinitionÍ¶ÍÖÂÂLªIdentifierÍ¶ÍÅ¯updateStateVars¦methodK²FunctionExpressionÍÅÍÖÀÂÂÂ‘LªIdentifierÍÆÍÌ¦paramsO®BlockStatementÍÎÍÖ]°MethodDefinitionÍÜÍ	OÂÂLªIdentifierÍÜÍıÙ!purgeVariableDependenciesOnElmtId¦methodK²FunctionExpressionÍıÍ	OÀÂÂÂ‘LªIdentifierÍşÍ	¨rmElmtIdO®BlockStatementÍ	Í	O‘P³ExpressionStatementÍ	Í	HQ®CallExpressionÍ	Í	GR°MemberExpressionÍ	Í	=R°MemberExpressionÍ	Í	%T®ThisExpressionÍ	Í	LªIdentifierÍ	Í	%­__contentPadHÂÂLªIdentifierÍ	&Í	=·purgeDependencyOnElmtIdÂÂ‘LªIdentifierÍ	>Í	F¨rmElmtIdÂ]°MethodDefinitionÍ	UÍ
- ÂÂLªIdentifierÍ	UÍ	e°aboutToBeDeleted¦methodK²FunctionExpressionÍ	eÍ
- ÀÂÂÂO®BlockStatementÍ	hÍ
- “P³ExpressionStatementÍ	sÍ	™Q®CallExpressionÍ	sÍ	˜R°MemberExpressionÍ	sÍ	–R°MemberExpressionÍ	sÍ	…T®ThisExpressionÍ	sÍ	wLªIdentifierÍ	xÍ	…­__contentPadHÂÂLªIdentifierÍ	†Í	–°aboutToBeDeletedÂÂÂP³ExpressionStatementÍ	£Í	ÏQ®CallExpressionÍ	£Í	ÎR°MemberExpressionÍ	£Í	ÁQ®CallExpressionÍ	£Í	ºR°MemberExpressionÍ	£Í	¸LªIdentifierÍ	£Í	´±SubscriberManagerLªIdentifierÍ	µÍ	¸£GetÂÂÂLªIdentifierÍ	»Í	Á¦deleteÂÂ‘Q®CallExpressionÍ	ÂÍ	ÍR°MemberExpressionÍ	ÂÍ	ËT®ThisExpressionÍ	ÂÍ	ÆLªIdentifierÍ	ÇÍ	Ë¤id__ÂÂÂÂP³ExpressionStatementÍ	ÙÍ	ùQ®CallExpressionÍ	ÙÍ	øR°MemberExpressionÍ	ÙÍ	öT®ThisExpressionÍ	ÙÍ	İLªIdentifierÍ	ŞÍ	ö¸aboutToBeDeletedInternalÂÂÂ]°MethodDefinitionÍ
-Í
-JÂÂLªIdentifierÍ
-
-Í
-«contentPadH£getK²FunctionExpressionÍ
-Í
-JÀÂÂÂO®BlockStatementÍ
-Í
-J‘Z¯ReturnStatementÍ
-#Í
-CQ®CallExpressionÍ
-*Í
-BR°MemberExpressionÍ
-*Í
-@R°MemberExpressionÍ
-*Í
-<T®ThisExpressionÍ
-*Í
-.LªIdentifierÍ
-/Í
-<­__contentPadHÂÂLªIdentifierÍ
-=Í
-@£getÂÂÂ]°MethodDefinitionÍ
-PÍ
-ÂÂLªIdentifierÍ
-TÍ
-_«contentPadH£setK²FunctionExpressionÍ
-_Í
-ÀÂÂÂ‘LªIdentifierÍ
-`Í
-h¨newValueO®BlockStatementÍ
-jÍ
-‘P³ExpressionStatementÍ
-uÍ
-–Q®CallExpressionÍ
-uÍ
-•R°MemberExpressionÍ
-uÍ
-‹R°MemberExpressionÍ
-uÍ
-‡T®ThisExpressionÍ
-uÍ
-yLªIdentifierÍ
-zÍ
-‡­__contentPadHÂÂLªIdentifierÍ
-ˆÍ
-‹£setÂÂ‘LªIdentifierÍ
-ŒÍ
-”¨newValueÂ]°MethodDefinitionÍ
-£Í
-ğÂÂLªIdentifierÍ
-£Í
-°­aboutToAppear¦methodK²FunctionExpressionÍ
-°Í
-ğÀÂÂÂO®BlockStatementÍ
-³Í
-ğ‘P³ExpressionStatementÍ
-¾Í
-é[´AssignmentExpressionÍ
-¾Í
-è¡=R°MemberExpressionÍ
-¾Í
-ÎT®ThisExpressionÍ
-¾Í
-ÂLªIdentifierÍ
-ÃÍ
-Î«contentPadHÂÂQ®CallExpressionÍ
-ÑÍ
-èLªIdentifierÍ
-ÑÍ
-æµpageHorizontalPaddingÂ]°MethodDefinitionÍ
-öÍIÂÂLªIdentifierÍ
-öÍ­initialRender¦methodK²FunctionExpressionÍÍIÀÂÂÂO®BlockStatementÍÍI’P³ExpressionStatementÍÍ#Q®CallExpressionÍÍ"R°MemberExpressionÍÍ/T®ThisExpressionÍÍLªIdentifierÍÍ/¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ0ÍÀÂÂÂ’LªIdentifierÍ1Í7¦elmtIdLªIdentifierÍ9ÍH¯isInitialRenderO®BlockStatementÍMÍ•P³ExpressionStatementÍ\ÍQ®CallExpressionÍ\ÍR°MemberExpressionÍ\ÍqLªIdentifierÍ\Íj®NavDestinationLªIdentifierÍkÍq¦createÂÂ’K·ArrowFunctionExpressionÍrÍ¸ÀÂÂÂO®BlockStatementÍxÍ¸‘P³ExpressionStatementÍ‹Í©Q®CallExpressionÍ‹Í¨Q®CallExpressionÍ‹Í¦R°MemberExpressionÍ‹Í R°MemberExpressionÍ‹Í›T®ThisExpressionÍ‹ÍLªIdentifierÍÍ›«pageContentÂÂLªIdentifierÍœÍ ¤bindÂÂ‘T®ThisExpressionÍ¡Í¥ÂÂX°ObjectExpressionÍºÍ’Y¨PropertyÍ¼ÍÏÂÂÂLªIdentifierÍ¼ÍÆªmoduleNameN§LiteralÍÈÍÏ¥entry§"entry"¤initY¨PropertyÍÑÍÂÂÂLªIdentifierÍÑÍÙ¨pagePathN§LiteralÍÛÍÙ0entry/src/main/ets/pages/MarkdownFormatGuidePageÙ2"entry/src/main/ets/pages/MarkdownFormatGuidePage"¤initÂP³ExpressionStatementÍÍAQ®CallExpressionÍÍ@R°MemberExpressionÍÍ:LªIdentifierÍÍ-®NavDestinationLªIdentifierÍ.Í:¬hideTitleBarÂÂ‘N§LiteralÍ;Í?Ã¤trueÂP³ExpressionStatementÍOÍlQ®CallExpressionÍOÍkR°MemberExpressionÍOÍcLªIdentifierÍOÍ]®NavDestinationLªIdentifierÍ^Íc¥widthÂÂ‘N§LiteralÍdÍj¤100%¦'100%'ÂP³ExpressionStatementÍzÍ˜Q®CallExpressionÍzÍ—R°MemberExpressionÍzÍLªIdentifierÍzÍˆ®NavDestinationLªIdentifierÍ‰Í¦heightÂÂ‘N§LiteralÍÍ–¤100%¦'100%'ÂP³ExpressionStatementÍ¦ÍQ®CallExpressionÍ¦ÍR°MemberExpressionÍ¦Í¾LªIdentifierÍ¦Í´®NavDestinationLªIdentifierÍµÍ¾©debugLineÂÂ’N§LiteralÍ¿ÍûÙ:entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(32:5)Ù<"entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(32:5)"N§LiteralÍıÍ¥entry§"entry"ÂLªIdentifierÍÍ!®NavDestinationÂP³ExpressionStatementÍ-ÍBQ®CallExpressionÍ-ÍAR°MemberExpressionÍ-Í?LªIdentifierÍ-Í;®NavDestinationLªIdentifierÍ<Í?£popÂÂÂ]°MethodDefinitionÍOÍ3¶ÂÂLªIdentifierÍOÍZ«pageContent¦methodK²FunctionExpressionÍZÍ3¶ÀÂÂÂ‘M±AssignmentPatternÍ[ÍhLªIdentifierÍ[Ía¦parentN§LiteralÍdÍhÀ¤nullO®BlockStatementÍjÍ3¶Ü 2P³ExpressionStatementÍuÍûQ®CallExpressionÍuÍúR°MemberExpressionÍuÍ“T®ThisExpressionÍuÍyLªIdentifierÍzÍ“¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ”ÍñÀÂÂÂ’LªIdentifierÍ•Í›¦elmtIdLªIdentifierÍÍ¬¯isInitialRenderO®BlockStatementÍ±Íñ–P³ExpressionStatementÍÀÍĞQ®CallExpressionÍÀÍÏR°MemberExpressionÍÀÍÍLªIdentifierÍÀÍÆ¦ScrollLªIdentifierÍÇÍÍ¦createÂÂÂP³ExpressionStatementÍŞÍ6Q®CallExpressionÍŞÍ5R°MemberExpressionÍŞÍîLªIdentifierÍŞÍä¦ScrollLªIdentifierÍåÍî©debugLineÂÂ’N§LiteralÍïÍ+Ù:entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(42:5)Ù<"entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(42:5)"N§LiteralÍ-Í4¥entry§"entry"ÂP³ExpressionStatementÍDÍYQ®CallExpressionÍDÍXR°MemberExpressionÍDÍPLªIdentifierÍDÍJ¦ScrollLªIdentifierÍKÍP¥widthÂÂ‘N§LiteralÍQÍW¤100%¦'100%'ÂP³ExpressionStatementÍgÍ}Q®CallExpressionÍgÍ|R°MemberExpressionÍgÍtLªIdentifierÍgÍm¦ScrollLªIdentifierÍnÍt¦heightÂÂ‘N§LiteralÍuÍ{¤100%¦'100%'ÂP³ExpressionStatementÍ‹Í¹Q®CallExpressionÍ‹Í¸R°MemberExpressionÍ‹Í¡LªIdentifierÍ‹Í‘¦ScrollLªIdentifierÍ’Í¡¯backgroundColorÂÂ‘R°MemberExpressionÍ¢Í·LªIdentifierÍ¢Í¯­KikariaColorsLªIdentifierÍ°Í·§PAGE_BGÂÂÂP³ExpressionStatementÍÇÍæQ®CallExpressionÍÇÍåR°MemberExpressionÍÇÍ×LªIdentifierÍÇÍÍ¦ScrollLªIdentifierÍÎÍ×©scrollBarÂÂ‘R°MemberExpressionÍØÍäLªIdentifierÍØÍà¨BarStateLªIdentifierÍáÍä£OffÂÂÂLªIdentifierÍóÍù¦ScrollÂP³ExpressionStatementÍÍ°Q®CallExpressionÍÍ¯R°MemberExpressionÍÍ#T®ThisExpressionÍÍ	LªIdentifierÍ
-Í#¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ$Í¦ÀÂÂÂ’LªIdentifierÍ%Í+¦elmtIdLªIdentifierÍ-Í<¯isInitialRenderO®BlockStatementÍAÍ¦•P³ExpressionStatementÍPÍmQ®CallExpressionÍPÍlR°MemberExpressionÍPÍ]LªIdentifierÍPÍV¦ColumnLªIdentifierÍWÍ]¦createÂÂ‘X°ObjectExpressionÍ^Ík‘Y¨PropertyÍ`ÍiÂÂÂLªIdentifierÍ`Íe¥spaceN§LiteralÍgÍi¢18¤initÂP³ExpressionStatementÍ{ÍÓQ®CallExpressionÍ{ÍÒR°MemberExpressionÍ{Í‹LªIdentifierÍ{Í¦ColumnLªIdentifierÍ‚Í‹©debugLineÂÂ’N§LiteralÍŒÍÈÙ:entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(43:7)Ù<"entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(43:7)"N§LiteralÍÊÍÑ¥entry§"entry"ÂP³ExpressionStatementÍáÍöQ®CallExpressionÍáÍõR°MemberExpressionÍáÍíLªIdentifierÍáÍç¦ColumnLªIdentifierÍèÍí¥widthÂÂ‘N§LiteralÍîÍô¤100%¦'100%'ÂP³ExpressionStatementÍÍIQ®CallExpressionÍÍHR°MemberExpressionÍÍLªIdentifierÍÍ
-¦ColumnLªIdentifierÍÍ®constraintSizeÂÂ‘X°ObjectExpressionÍÍG‘Y¨PropertyÍÍEÂÂÂLªIdentifierÍÍ$¨maxWidthSµConditionalExpressionÍ&ÍEQ®CallExpressionÍ&Í6LªIdentifierÍ&Í4®isPadLandscapeÂN§LiteralÍ9Í<Íø£760N§LiteralÍ?ÍE¤100%¦'100%'¤initÂP³ExpressionStatementÍWÍ›Q®CallExpressionÍWÍšR°MemberExpressionÍWÍeLªIdentifierÍWÍ]¦ColumnLªIdentifierÍ^Íe§paddingÂÂ‘X°ObjectExpressionÍfÍ™’Y¨PropertyÍhÍ~ÂÂÂLªIdentifierÍhÍl¤leftR°MemberExpressionÍnÍ~T®ThisExpressionÍnÍrLªIdentifierÍsÍ~«contentPadHÂÂ¤initY¨PropertyÍ€Í—ÂÂÂLªIdentifierÍ€Í…¥rightR°MemberExpressionÍ‡Í—T®ThisExpressionÍ‡Í‹LªIdentifierÍŒÍ—«contentPadHÂÂ¤initÂLªIdentifierÍ¨Í®¦ColumnÂP³ExpressionStatementÍºÍïQ®CallExpressionÍºÍîR°MemberExpressionÍºÍØT®ThisExpressionÍºÍ¾LªIdentifierÍ¿ÍØ¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍÙÍèÀÂÂÂ’LªIdentifierÍÚÍà¦elmtIdLªIdentifierÍâÍñ¯isInitialRenderO®BlockStatementÍöÍè”P³ExpressionStatementÍÍQ®CallExpressionÍÍR°MemberExpressionÍÍLªIdentifierÍÍ£RowLªIdentifierÍ	Í¦createÂÂÂP³ExpressionStatementÍ ÍuQ®CallExpressionÍ ÍtR°MemberExpressionÍ Í-LªIdentifierÍ Í#£RowLªIdentifierÍ$Í-©debugLineÂÂ’N§LiteralÍ.ÍjÙ:entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(44:9)Ù<"entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(44:9)"N§LiteralÍlÍs¥entry§"entry"ÂP³ExpressionStatementÍƒÍ•Q®CallExpressionÍƒÍ”R°MemberExpressionÍƒÍŒLªIdentifierÍƒÍ†£RowLªIdentifierÍ‡ÍŒ¥widthÂÂ‘N§LiteralÍÍ“¤100%¦'100%'ÂP³ExpressionStatementÍ£ÍİQ®CallExpressionÍ£ÍÜR°MemberExpressionÍ£Í®LªIdentifierÍ£Í¦£RowLªIdentifierÍ§Í®§paddingÂÂ‘X°ObjectExpressionÍ¯ÍÛ”Y¨PropertyÍ±Í¹ÂÂÂLªIdentifierÍ±Íµ¤leftN§LiteralÍ·Í¹¢20¤initY¨PropertyÍ»ÍÄÂÂÂLªIdentifierÍ»ÍÀ¥rightN§LiteralÍÂÍÄ¢20¤initY¨PropertyÍÆÍÍÂÂÂLªIdentifierÍÆÍÉ£topN§LiteralÍËÍÍ¢12¤initY¨PropertyÍÏÍÙÂÂÂLªIdentifierÍÏÍÕ¦bottomN§LiteralÍ×ÍÙ¢12¤initÂLªIdentifierÍêÍí£RowÂP³ExpressionStatementÍùÍMQ®CallExpressionÍùÍLR°MemberExpressionÍùÍT®ThisExpressionÍùÍıLªIdentifierÍşÍ¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍÍCÀÂÂÂ’LªIdentifierÍÍ¦elmtIdLªIdentifierÍ!Í0¯isInitialRenderO®BlockStatementÍ5ÍC”P³ExpressionStatementÍDÍ]Q®CallExpressionÍDÍ\R°MemberExpressionÍDÍZLªIdentifierÍDÍJ¦ButtonLªIdentifierÍKÍZ¯createWithChildÂÂÂP³ExpressionStatementÍkÍÄQ®CallExpressionÍkÍÃR°MemberExpressionÍkÍ{LªIdentifierÍkÍq¦ButtonLªIdentifierÍrÍ{©debugLineÂÂ’N§LiteralÍ|Í¹Ù;entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(45:11)Ù="entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(45:11)"N§LiteralÍ»ÍÂ¥entry§"entry"ÂP³ExpressionStatementÍÒÍüQ®CallExpressionÍÒÍûR°MemberExpressionÍÒÍèLªIdentifierÍÒÍØ¦ButtonLªIdentifierÍÙÍè¯backgroundColorÂÂ‘R°MemberExpressionÍéÍúLªIdentifierÍéÍî¥ColorLªIdentifierÍïÍú«TransparentÂÂÂP³ExpressionStatementÍ
-Í8Q®CallExpressionÍ
-Í7R°MemberExpressionÍ
-ÍLªIdentifierÍ
-Í¦ButtonLªIdentifierÍÍ§onClickÂÂ‘K·ArrowFunctionExpressionÍÍ6ÀÂÂÂO®BlockStatementÍÍ6‘P³ExpressionStatementÍ!Í4Q®CallExpressionÍ!Í3R°MemberExpressionÍ!Í1LªIdentifierÍ!Í-¬navPathStackLªIdentifierÍ.Í1£popÂÂÂÂLªIdentifierÍEÍK¦ButtonÂP³ExpressionStatementÍWÍ„Q®CallExpressionÍWÍƒR°MemberExpressionÍWÍuT®ThisExpressionÍWÍ[LªIdentifierÍ\Íu¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍvÍ|ÀÂÂÂ’LªIdentifierÍwÍ}¦elmtIdLªIdentifierÍÍ¯isInitialRenderO®BlockStatementÍ“Í|”P³ExpressionStatementÍ¢Í¶Q®CallExpressionÍ¢ÍµR°MemberExpressionÍ¢Í­LªIdentifierÍ¢Í¦¤TextLªIdentifierÍ§Í­¦createÂÂ‘N§LiteralÍ®Í´ªâ† è¿”å›¬'â† è¿”å›'ÂP³ExpressionStatementÍÄÍQ®CallExpressionÍÄÍR°MemberExpressionÍÄÍÒLªIdentifierÍÄÍÈ¤TextLªIdentifierÍÉÍÒ©debugLineÂÂ’N§LiteralÍÓÍÙ;entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(46:13)Ù="entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(46:13)"N§LiteralÍÍ¥entry§"entry"ÂP³ExpressionStatementÍ)Í;Q®CallExpressionÍ)Í:R°MemberExpressionÍ)Í6LªIdentifierÍ)Í-¤TextLªIdentifierÍ.Í6¨fontSizeÂÂ‘N§LiteralÍ7Í9¢17ÂP³ExpressionStatementÍIÍqQ®CallExpressionÍIÍpR°MemberExpressionÍIÍWLªIdentifierÍIÍM¤TextLªIdentifierÍNÍW©fontColorÂÂ‘R°MemberExpressionÍXÍoLªIdentifierÍXÍe­KikariaColorsLªIdentifierÍfÍo©SOFT_TEXTÂÂÂLªIdentifierÍ~Í‚¤TextÂP³ExpressionStatementÍÍ™Q®CallExpressionÍÍ˜R°MemberExpressionÍÍ–LªIdentifierÍÍ’¤TextLªIdentifierÍ“Í–£popÂÂÂP³ExpressionStatementÍ£Í°Q®CallExpressionÍ£Í¯R°MemberExpressionÍ£Í­LªIdentifierÍ£Í©¦ButtonLªIdentifierÍªÍ­£popÂÂÂP³ExpressionStatementÍºÍQ®CallExpressionÍºÍR°MemberExpressionÍºÍØT®ThisExpressionÍºÍ¾LªIdentifierÍ¿ÍØ¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍÙÍ…ÀÂÂÂ’LªIdentifierÍÚÍà¦elmtIdLªIdentifierÍâÍñ¯isInitialRenderO®BlockStatementÍöÍ…’P³ExpressionStatementÍÍQ®CallExpressionÍÍR°MemberExpressionÍÍLªIdentifierÍÍ
-¥BlankLªIdentifierÍÍ¦createÂÂÂP³ExpressionStatementÍ"ÍzQ®CallExpressionÍ"ÍyR°MemberExpressionÍ"Í1LªIdentifierÍ"Í'¥BlankLªIdentifierÍ(Í1©debugLineÂÂ’N§LiteralÍ2ÍoÙ;entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(53:11)Ù="entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(53:11)"N§LiteralÍqÍx¥entry§"entry"ÂLªIdentifierÍ‡ÍŒ¥BlankÂP³ExpressionStatementÍ˜Í¤Q®CallExpressionÍ˜Í£R°MemberExpressionÍ˜Í¡LªIdentifierÍ˜Í¥BlankLªIdentifierÍÍ¡£popÂÂÂP³ExpressionStatementÍ®ÍQ®CallExpressionÍ®ÍR°MemberExpressionÍ®ÍÌT®ThisExpressionÍ®Í²LªIdentifierÍ³ÍÌ¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍÍÍÀÂÂÂ’LªIdentifierÍÎÍÔ¦elmtIdLªIdentifierÍÖÍå¯isInitialRenderO®BlockStatementÍêÍ•P³ExpressionStatementÍùÍQ®CallExpressionÍùÍR°MemberExpressionÍùÍLªIdentifierÍùÍı¤TextLªIdentifierÍşÍ¦createÂÂ‘N§LiteralÍÍµMarkdown æ ¼å¼æŒ‡å—·'Markdown æ ¼å¼æŒ‡å—'ÂP³ExpressionStatementÍ$Í{Q®CallExpressionÍ$ÍzR°MemberExpressionÍ$Í2LªIdentifierÍ$Í(¤TextLªIdentifierÍ)Í2©debugLineÂÂ’N§LiteralÍ3ÍpÙ;entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(55:11)Ù="entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(55:11)"N§LiteralÍrÍy¥entry§"entry"ÂP³ExpressionStatementÍ‰Í›Q®CallExpressionÍ‰ÍšR°MemberExpressionÍ‰Í–LªIdentifierÍ‰Í¤TextLªIdentifierÍÍ–¨fontSizeÂÂ‘N§LiteralÍ—Í™¢17ÂP³ExpressionStatementÍ©ÍÌQ®CallExpressionÍ©ÍËR°MemberExpressionÍ©Í¸LªIdentifierÍ©Í­¤TextLªIdentifierÍ®Í¸ªfontWeightÂÂ‘R°MemberExpressionÍ¹ÍÊLªIdentifierÍ¹ÍÃªFontWeightLªIdentifierÍÄÍÊ¦MediumÂÂÂP³ExpressionStatementÍÚÍQ®CallExpressionÍÚÍR°MemberExpressionÍÚÍèLªIdentifierÍÚÍŞ¤TextLªIdentifierÍßÍè©fontColorÂÂ‘R°MemberExpressionÍéÍ LªIdentifierÍéÍö­KikariaColorsLªIdentifierÍ÷Í ©DEEP_TEXTÂÂÂLªIdentifierÍÍ¤TextÂP³ExpressionStatementÍÍ*Q®CallExpressionÍÍ)R°MemberExpressionÍÍ'LªIdentifierÍÍ#¤TextLªIdentifierÍ$Í'£popÂÂÂP³ExpressionStatementÍ4Í>Q®CallExpressionÍ4Í=R°MemberExpressionÍ4Í;LªIdentifierÍ4Í7£RowLªIdentifierÍ8Í;£popÂÂÂP³ExpressionStatementÍHÍºQ®CallExpressionÍHÍ¹R°MemberExpressionÍHÍfT®ThisExpressionÍHÍLLªIdentifierÍMÍf¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍgÍ²ÀÂÂÂ’LªIdentifierÍhÍn¦elmtIdLªIdentifierÍpÍ¯isInitialRenderO®BlockStatementÍ„Í²•P³ExpressionStatementÍ“ÍÌQ®CallExpressionÍ“ÍËR°MemberExpressionÍ“ÍLªIdentifierÍ“Í—¤TextLªIdentifierÍ˜Í¦createÂÂ‘N§LiteralÍŸÍÊÙWKikaria ä½¿ç”¨ Markdown æ ¼å¼å­˜å‚¨çŸ¥è¯†ç‚¹ã€‚æ¯ä¸ªçŸ¥è¯†ç‚¹ç”±ä»¥ä¸‹éƒ¨åˆ†ç»„æˆï¼šÙY'Kikaria ä½¿ç”¨ Markdown æ ¼å¼å­˜å‚¨çŸ¥è¯†ç‚¹ã€‚æ¯ä¸ªçŸ¥è¯†ç‚¹ç”±ä»¥ä¸‹éƒ¨åˆ†ç»„æˆï¼š'ÂP³ExpressionStatementÍÚÍ0Q®CallExpressionÍÚÍ/R°MemberExpressionÍÚÍèLªIdentifierÍÚÍŞ¤TextLªIdentifierÍßÍè©debugLineÂÂ’N§LiteralÍéÍ%Ù:entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(63:9)Ù<"entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(63:9)"N§LiteralÍ'Í.¥entry§"entry"ÂP³ExpressionStatementÍ>ÍPQ®CallExpressionÍ>ÍOR°MemberExpressionÍ>ÍKLªIdentifierÍ>ÍB¤TextLªIdentifierÍCÍK¨fontSizeÂÂ‘N§LiteralÍLÍN¢15ÂP³ExpressionStatementÍ^Í†Q®CallExpressionÍ^Í…R°MemberExpressionÍ^ÍlLªIdentifierÍ^Íb¤TextLªIdentifierÍcÍl©fontColorÂÂ‘R°MemberExpressionÍmÍ„LªIdentifierÍmÍz­KikariaColorsLªIdentifierÍ{Í„©DEEP_TEXTÂÂÂP³ExpressionStatementÍ”Í§Q®CallExpressionÍ”Í¦R°MemberExpressionÍ”ÍLªIdentifierÍ”Í˜¤TextLªIdentifierÍ™Í¥widthÂÂ‘N§LiteralÍŸÍ¥¤100%¦'100%'ÂLªIdentifierÍ´Í¸¤TextÂP³ExpressionStatementÍÄÍÏQ®CallExpressionÍÄÍÎR°MemberExpressionÍÄÍÌLªIdentifierÍÄÍÈ¤TextLªIdentifierÍÉÍÌ£popÂÂÂP³ExpressionStatementÍÙÍŞQ®CallExpressionÍÙÍİR°MemberExpressionÍÙÍ÷T®ThisExpressionÍÙÍİLªIdentifierÍŞÍ÷¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍøÍÔÀÂÂÂ’LªIdentifierÍùÍÿ¦elmtIdLªIdentifierÍÍ¯isInitialRenderO®BlockStatementÍÍÔ“P³ExpressionStatementÍ$Í@Q®CallExpressionÍ$Í?R°MemberExpressionÍ$Í1LªIdentifierÍ$Í*¦ColumnLªIdentifierÍ+Í1¦createÂÂ‘X°ObjectExpressionÍ2Í>‘Y¨PropertyÍ4Í<ÂÂÂLªIdentifierÍ4Í9¥spaceN§LiteralÍ;Í<¡8¤initÂP³ExpressionStatementÍNÍ¦Q®CallExpressionÍNÍ¥R°MemberExpressionÍNÍ^LªIdentifierÍNÍT¦ColumnLªIdentifierÍUÍ^©debugLineÂÂ’N§LiteralÍ_Í›Ù:entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(68:9)Ù<"entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(68:9)"N§LiteralÍÍ¤¥entry§"entry"ÂP³ExpressionStatementÍ´ÍÉQ®CallExpressionÍ´ÍÈR°MemberExpressionÍ´ÍÀLªIdentifierÍ´Íº¦ColumnLªIdentifierÍ»ÍÀ¥widthÂÂ‘N§LiteralÍÁÍÇ¤100%¦'100%'ÂLªIdentifierÍÖÍÜ¦ColumnÂP³ExpressionStatementÍèÍeQ®CallExpressionÍèÍdR°MemberExpressionÍèÍT®ThisExpressionÍèÍìLªIdentifierÍíÍ¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍÍ]ÀÂÂÂ’LªIdentifierÍÍ¦elmtIdLªIdentifierÍÍ¯isInitialRenderO®BlockStatementÍ$Í]–P³ExpressionStatementÍ3ÍGQ®CallExpressionÍ3ÍFR°MemberExpressionÍ3Í>LªIdentifierÍ3Í7¤TextLªIdentifierÍ8Í>¦createÂÂ‘N§LiteralÍ?ÍE¬åŸºæœ¬ç»“æ„®'åŸºæœ¬ç»“æ„'ÂP³ExpressionStatementÍUÍ¬Q®CallExpressionÍUÍ«R°MemberExpressionÍUÍcLªIdentifierÍUÍY¤TextLªIdentifierÍZÍc©debugLineÂÂ’N§LiteralÍdÍ¡Ù;entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(69:11)Ù="entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(69:11)"N§LiteralÍ£Íª¥entry§"entry"ÂP³ExpressionStatementÍºÍÌQ®CallExpressionÍºÍËR°MemberExpressionÍºÍÇLªIdentifierÍºÍ¾¤TextLªIdentifierÍ¿ÍÇ¨fontSizeÂÂ‘N§LiteralÍÈÍÊ¢17ÂP³ExpressionStatementÍÚÍûQ®CallExpressionÍÚÍúR°MemberExpressionÍÚÍéLªIdentifierÍÚÍŞ¤TextLªIdentifierÍßÍéªfontWeightÂÂ‘R°MemberExpressionÍêÍùLªIdentifierÍêÍôªFontWeightLªIdentifierÍõÍù¤BoldÂÂÂP³ExpressionStatementÍ	Í1Q®CallExpressionÍ	Í0R°MemberExpressionÍ	ÍLªIdentifierÍ	Í¤TextLªIdentifierÍÍ©fontColorÂÂ‘R°MemberExpressionÍÍ/LªIdentifierÍÍ%­KikariaColorsLªIdentifierÍ&Í/©DEEP_TEXTÂÂÂP³ExpressionStatementÍ?ÍRQ®CallExpressionÍ?ÍQR°MemberExpressionÍ?ÍILªIdentifierÍ?ÍC¤TextLªIdentifierÍDÍI¥widthÂÂ‘N§LiteralÍJÍP¤100%¦'100%'ÂLªIdentifierÍ_Íc¤TextÂP³ExpressionStatementÍoÍzQ®CallExpressionÍoÍyR°MemberExpressionÍoÍwLªIdentifierÍoÍs¤TextLªIdentifierÍtÍw£popÂÂÂP³ExpressionStatementÍ„ÍõQ®CallExpressionÍ„ÍôR°MemberExpressionÍ„Í¢T®ThisExpressionÍ„ÍˆLªIdentifierÍ‰Í¢¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ£ÍíÀÂÂÂ’LªIdentifierÍ¤Íª¦elmtIdLªIdentifierÍ¬Í»¯isInitialRenderO®BlockStatementÍÀÍí™P³ExpressionStatementÍÏÍaQ®CallExpressionÍÏÍ`R°MemberExpressionÍÏÍÚLªIdentifierÍÏÍÓ¤TextLªIdentifierÍÔÍÚ¦createÂÂ‘Ôr`•¤type¥start£end«expressions¦quasis¯TemplateLiteralÍÛÍ_‘Ôra•¤type¥start£end¥value¤tail¯TemplateElementÍÜÍ^Ôrb’£raw¦cookedÙö# çŸ¥è¯†ç‚¹æ ‡é¢˜\n\ntags: æ ‡ç­¾1, æ ‡ç­¾2\n\nhint:\nè¿™é‡Œæ˜¯æç¤ºå†…å®¹ã€‚å¯ä»¥åŒ…å«å¤šè¡Œæ–‡å­—ï¼Œ\næ”¯æŒ Markdown åŸºæœ¬è¯­æ³•ã€‚\n\ncontent:\nè¿™é‡Œæ˜¯ç­”æ¡ˆå†…å®¹ã€‚åŒæ ·æ”¯æŒå¤šè¡Œæ–‡å­—ï¼Œ\nä»¥åŠ LaTeX æ•°å­¦å…¬å¼ï¼š$E = mc^2$ã€‚Ùì# çŸ¥è¯†ç‚¹æ ‡é¢˜
-
-tags: æ ‡ç­¾1, æ ‡ç­¾2
-
-hint:
-è¿™é‡Œæ˜¯æç¤ºå†…å®¹ã€‚å¯ä»¥åŒ…å«å¤šè¡Œæ–‡å­—ï¼Œ
-æ”¯æŒ Markdown åŸºæœ¬è¯­æ³•ã€‚
-
-content:
-è¿™é‡Œæ˜¯ç­”æ¡ˆå†…å®¹ã€‚åŒæ ·æ”¯æŒå¤šè¡Œæ–‡å­—ï¼Œ
-ä»¥åŠ LaTeX æ•°å­¦å…¬å¼ï¼š$E = mc^2$ã€‚ÃÂP³ExpressionStatementÍoÍÆQ®CallExpressionÍoÍÅR°MemberExpressionÍoÍ}LªIdentifierÍoÍs¤TextLªIdentifierÍtÍ}©debugLineÂÂ’N§LiteralÍ~Í»Ù;entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(72:11)Ù="entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(72:11)"N§LiteralÍ½ÍÄ¥entry§"entry"ÂP³ExpressionStatementÍÔÍæQ®CallExpressionÍÔÍåR°MemberExpressionÍÔÍáLªIdentifierÍÔÍØ¤TextLªIdentifierÍÙÍá¨fontSizeÂÂ‘N§LiteralÍâÍä¢13ÂP³ExpressionStatementÍôÍQ®CallExpressionÍôÍR°MemberExpressionÍôÍLªIdentifierÍôÍø¤TextLªIdentifierÍùÍ©fontColorÂÂ‘R°MemberExpressionÍÍLªIdentifierÍÍ­KikariaColorsLªIdentifierÍÍ©SOFT_TEXTÂÂÂP³ExpressionStatementÍ*ÍSQ®CallExpressionÍ*ÍRR°MemberExpressionÍ*Í>LªIdentifierÍ*Í.¤TextLªIdentifierÍ/Í>¯backgroundColorÂÂ‘R°MemberExpressionÍ?ÍQLªIdentifierÍ?ÍL­KikariaColorsLªIdentifierÍMÍQ¤MISTÂÂÂP³ExpressionStatementÍaÍwQ®CallExpressionÍaÍvR°MemberExpressionÍaÍrLªIdentifierÍaÍe¤TextLªIdentifierÍfÍr¬borderRadiusÂÂ‘N§LiteralÍsÍu¢12ÂP³ExpressionStatementÍ…Í–Q®CallExpressionÍ…Í•R°MemberExpressionÍ…Í‘LªIdentifierÍ…Í‰¤TextLªIdentifierÍŠÍ‘§paddingÂÂ‘N§LiteralÍ’Í”¢16ÂP³ExpressionStatementÍ¤Í·Q®CallExpressionÍ¤Í¶R°MemberExpressionÍ¤Í®LªIdentifierÍ¤Í¨¤TextLªIdentifierÍ©Í®¥widthÂÂ‘N§LiteralÍ¯Íµ¤100%¦'100%'ÂP³ExpressionStatementÍÅÍâQ®CallExpressionÍÅÍáR°MemberExpressionÍÅÍÔLªIdentifierÍÅÍÉ¤TextLªIdentifierÍÊÍÔªfontFamilyÂÂ‘N§LiteralÍÕÍà©monospace«'monospace'ÂLªIdentifierÍïÍó¤TextÂP³ExpressionStatementÍÿÍ
-Q®CallExpressionÍÿÍ	R°MemberExpressionÍÿÍLªIdentifierÍÿÍ¤TextLªIdentifierÍÍ£popÂÂÂP³ExpressionStatementÍÍ!Q®CallExpressionÍÍ R°MemberExpressionÍÍLªIdentifierÍÍ¦ColumnLªIdentifierÍÍ£popÂÂÂP³ExpressionStatementÍ+Í0Q®CallExpressionÍ+Í/R°MemberExpressionÍ+ÍIT®ThisExpressionÍ+Í/LªIdentifierÍ0ÍI¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍJÍ&ÀÂÂÂ’LªIdentifierÍKÍQ¦elmtIdLªIdentifierÍSÍb¯isInitialRenderO®BlockStatementÍgÍ&“P³ExpressionStatementÍvÍ’Q®CallExpressionÍvÍ‘R°MemberExpressionÍvÍƒLªIdentifierÍvÍ|¦ColumnLªIdentifierÍ}Íƒ¦createÂÂ‘X°ObjectExpressionÍ„Í‘Y¨PropertyÍ†ÍÂÂÂLªIdentifierÍ†Í‹¥spaceN§LiteralÍÍ¡8¤initÂP³ExpressionStatementÍ ÍøQ®CallExpressionÍ Í÷R°MemberExpressionÍ Í°LªIdentifierÍ Í¦¦ColumnLªIdentifierÍ§Í°©debugLineÂÂ’N§LiteralÍ±ÍíÙ:entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(78:9)Ù<"entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(78:9)"N§LiteralÍïÍö¥entry§"entry"ÂP³ExpressionStatementÍÍQ®CallExpressionÍÍR°MemberExpressionÍÍLªIdentifierÍÍ¦ColumnLªIdentifierÍÍ¥widthÂÂ‘N§LiteralÍÍ¤100%¦'100%'ÂLªIdentifierÍ(Í.¦ColumnÂP³ExpressionStatementÍ:Í ¸Q®CallExpressionÍ:Í ·R°MemberExpressionÍ:ÍXT®ThisExpressionÍ:Í>LªIdentifierÍ?ÍX¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍYÍ °ÀÂÂÂ’LªIdentifierÍZÍ`¦elmtIdLªIdentifierÍbÍq¯isInitialRenderO®BlockStatementÍvÍ °–P³ExpressionStatementÍ…ÍšQ®CallExpressionÍ…Í™R°MemberExpressionÍ…ÍLªIdentifierÍ…Í‰¤TextLªIdentifierÍŠÍ¦createÂÂ‘N§LiteralÍ‘Í˜¯å¤šä¸ªçŸ¥è¯†ç‚¹±'å¤šä¸ªçŸ¥è¯†ç‚¹'ÂP³ExpressionStatementÍ¨ÍÿQ®CallExpressionÍ¨ÍşR°MemberExpressionÍ¨Í¶LªIdentifierÍ¨Í¬¤TextLªIdentifierÍ­Í¶©debugLineÂÂ’N§LiteralÍ·ÍôÙ;entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(79:11)Ù="entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(79:11)"N§LiteralÍöÍı¥entry§"entry"ÂP³ExpressionStatementÍ Í Q®CallExpressionÍ Í R°MemberExpressionÍ Í LªIdentifierÍ Í ¤TextLªIdentifierÍ Í ¨fontSizeÂÂ‘N§LiteralÍ Í ¢17ÂP³ExpressionStatementÍ -Í NQ®CallExpressionÍ -Í MR°MemberExpressionÍ -Í <LªIdentifierÍ -Í 1¤TextLªIdentifierÍ 2Í <ªfontWeightÂÂ‘R°MemberExpressionÍ =Í LLªIdentifierÍ =Í GªFontWeightLªIdentifierÍ HÍ L¤BoldÂÂÂP³ExpressionStatementÍ \Í „Q®CallExpressionÍ \Í ƒR°MemberExpressionÍ \Í jLªIdentifierÍ \Í `¤TextLªIdentifierÍ aÍ j©fontColorÂÂ‘R°MemberExpressionÍ kÍ ‚LªIdentifierÍ kÍ x­KikariaColorsLªIdentifierÍ yÍ ‚©DEEP_TEXTÂÂÂP³ExpressionStatementÍ ’Í ¥Q®CallExpressionÍ ’Í ¤R°MemberExpressionÍ ’Í œLªIdentifierÍ ’Í –¤TextLªIdentifierÍ —Í œ¥widthÂÂ‘N§LiteralÍ Í £¤100%¦'100%'ÂLªIdentifierÍ ²Í ¶¤TextÂP³ExpressionStatementÍ ÂÍ ÍQ®CallExpressionÍ ÂÍ ÌR°MemberExpressionÍ ÂÍ ÊLªIdentifierÍ ÂÍ Æ¤TextLªIdentifierÍ ÇÍ Ê£popÂÂÂP³ExpressionStatementÍ ×Í"5Q®CallExpressionÍ ×Í"4R°MemberExpressionÍ ×Í õT®ThisExpressionÍ ×Í ÛLªIdentifierÍ ÜÍ õ¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ öÍ"-ÀÂÂÂ’LªIdentifierÍ ÷Í ı¦elmtIdLªIdentifierÍ ÿÍ!¯isInitialRenderO®BlockStatementÍ!Í"-•P³ExpressionStatementÍ!"Í!FQ®CallExpressionÍ!"Í!ER°MemberExpressionÍ!"Í!-LªIdentifierÍ!"Í!&¤TextLªIdentifierÍ!'Í!-¦createÂÂ‘N§LiteralÍ!.Í!DÙ2ä½¿ç”¨ä¸‰ä¸ªçŸ­æ¨ªçº¿ --- åˆ†éš”å¤šä¸ªçŸ¥è¯†ç‚¹ï¼šÙ4'ä½¿ç”¨ä¸‰ä¸ªçŸ­æ¨ªçº¿ --- åˆ†éš”å¤šä¸ªçŸ¥è¯†ç‚¹ï¼š'ÂP³ExpressionStatementÍ!TÍ!«Q®CallExpressionÍ!TÍ!ªR°MemberExpressionÍ!TÍ!bLªIdentifierÍ!TÍ!X¤TextLªIdentifierÍ!YÍ!b©debugLineÂÂ’N§LiteralÍ!cÍ! Ù;entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(82:11)Ù="entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(82:11)"N§LiteralÍ!¢Í!©¥entry§"entry"ÂP³ExpressionStatementÍ!¹Í!ËQ®CallExpressionÍ!¹Í!ÊR°MemberExpressionÍ!¹Í!ÆLªIdentifierÍ!¹Í!½¤TextLªIdentifierÍ!¾Í!Æ¨fontSizeÂÂ‘N§LiteralÍ!ÇÍ!É¢15ÂP³ExpressionStatementÍ!ÙÍ"Q®CallExpressionÍ!ÙÍ" R°MemberExpressionÍ!ÙÍ!çLªIdentifierÍ!ÙÍ!İ¤TextLªIdentifierÍ!ŞÍ!ç©fontColorÂÂ‘R°MemberExpressionÍ!èÍ!ÿLªIdentifierÍ!èÍ!õ­KikariaColorsLªIdentifierÍ!öÍ!ÿ©DEEP_TEXTÂÂÂP³ExpressionStatementÍ"Í""Q®CallExpressionÍ"Í"!R°MemberExpressionÍ"Í"LªIdentifierÍ"Í"¤TextLªIdentifierÍ"Í"¥widthÂÂ‘N§LiteralÍ"Í" ¤100%¦'100%'ÂLªIdentifierÍ"/Í"3¤TextÂP³ExpressionStatementÍ"?Í"JQ®CallExpressionÍ"?Í"IR°MemberExpressionÍ"?Í"GLªIdentifierÍ"?Í"C¤TextLªIdentifierÍ"DÍ"G£popÂÂÂP³ExpressionStatementÍ"TÍ$²Q®CallExpressionÍ"TÍ$±R°MemberExpressionÍ"TÍ"rT®ThisExpressionÍ"TÍ"XLªIdentifierÍ"YÍ"r¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ"sÍ$ªÀÂÂÂ’LªIdentifierÍ"tÍ"z¦elmtIdLªIdentifierÍ"|Í"‹¯isInitialRenderO®BlockStatementÍ"Í$ª™P³ExpressionStatementÍ"ŸÍ#Q®CallExpressionÍ"ŸÍ#R°MemberExpressionÍ"ŸÍ"ªLªIdentifierÍ"ŸÍ"£¤TextLªIdentifierÍ"¤Í"ª¦createÂÂ‘`¯TemplateLiteralÍ"«Í#‘a¯TemplateElementÍ"¬Í#bÙŸ# ç¬¬ä¸€ä¸ªçŸ¥è¯†ç‚¹\ntags: æ ‡ç­¾A\n\nhint:\næç¤ºA\n\ncontent:\nç­”æ¡ˆA\n\n---\n\n# ç¬¬äºŒä¸ªçŸ¥è¯†ç‚¹\ntags: æ ‡ç­¾B\n\nhint:\næç¤ºB\n\ncontent:\nç­”æ¡ˆBÙ# ç¬¬ä¸€ä¸ªçŸ¥è¯†ç‚¹
-tags: æ ‡ç­¾A
-
-hint:
-æç¤ºA
-
-content:
-ç­”æ¡ˆA
-
----
-
-# ç¬¬äºŒä¸ªçŸ¥è¯†ç‚¹
-tags: æ ‡ç­¾B
-
-hint:
-æç¤ºB
-
-content:
-ç­”æ¡ˆBÃÂP³ExpressionStatementÍ#,Í#ƒQ®CallExpressionÍ#,Í#‚R°MemberExpressionÍ#,Í#:LªIdentifierÍ#,Í#0¤TextLªIdentifierÍ#1Í#:©debugLineÂÂ’N§LiteralÍ#;Í#xÙ;entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(84:11)Ù="entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(84:11)"N§LiteralÍ#zÍ#¥entry§"entry"ÂP³ExpressionStatementÍ#‘Í#£Q®CallExpressionÍ#‘Í#¢R°MemberExpressionÍ#‘Í#LªIdentifierÍ#‘Í#•¤TextLªIdentifierÍ#–Í#¨fontSizeÂÂ‘N§LiteralÍ#ŸÍ#¡¢13ÂP³ExpressionStatementÍ#±Í#ÙQ®CallExpressionÍ#±Í#ØR°MemberExpressionÍ#±Í#¿LªIdentifierÍ#±Í#µ¤TextLªIdentifierÍ#¶Í#¿©fontColorÂÂ‘R°MemberExpressionÍ#ÀÍ#×LªIdentifierÍ#ÀÍ#Í­KikariaColorsLªIdentifierÍ#ÎÍ#×©SOFT_TEXTÂÂÂP³ExpressionStatementÍ#çÍ$Q®CallExpressionÍ#çÍ$R°MemberExpressionÍ#çÍ#ûLªIdentifierÍ#çÍ#ë¤TextLªIdentifierÍ#ìÍ#û¯backgroundColorÂÂ‘R°MemberExpressionÍ#üÍ$LªIdentifierÍ#üÍ$	­KikariaColorsLªIdentifierÍ$
-Í$¤MISTÂÂÂP³ExpressionStatementÍ$Í$4Q®CallExpressionÍ$Í$3R°MemberExpressionÍ$Í$/LªIdentifierÍ$Í$"¤TextLªIdentifierÍ$#Í$/¬borderRadiusÂÂ‘N§LiteralÍ$0Í$2¢12ÂP³ExpressionStatementÍ$BÍ$SQ®CallExpressionÍ$BÍ$RR°MemberExpressionÍ$BÍ$NLªIdentifierÍ$BÍ$F¤TextLªIdentifierÍ$GÍ$N§paddingÂÂ‘N§LiteralÍ$OÍ$Q¢16ÂP³ExpressionStatementÍ$aÍ$tQ®CallExpressionÍ$aÍ$sR°MemberExpressionÍ$aÍ$kLªIdentifierÍ$aÍ$e¤TextLªIdentifierÍ$fÍ$k¥widthÂÂ‘N§LiteralÍ$lÍ$r¤100%¦'100%'ÂP³ExpressionStatementÍ$‚Í$ŸQ®CallExpressionÍ$‚Í$R°MemberExpressionÍ$‚Í$‘LªIdentifierÍ$‚Í$†¤TextLªIdentifierÍ$‡Í$‘ªfontFamilyÂÂ‘N§LiteralÍ$’Í$©monospace«'monospace'ÂLªIdentifierÍ$¬Í$°¤TextÂP³ExpressionStatementÍ$¼Í$ÇQ®CallExpressionÍ$¼Í$ÆR°MemberExpressionÍ$¼Í$ÄLªIdentifierÍ$¼Í$À¤TextLªIdentifierÍ$ÁÍ$Ä£popÂÂÂP³ExpressionStatementÍ$ÑÍ$ŞQ®CallExpressionÍ$ÑÍ$İR°MemberExpressionÍ$ÑÍ$ÛLªIdentifierÍ$ÑÍ$×¦ColumnLªIdentifierÍ$ØÍ$Û£popÂÂÂP³ExpressionStatementÍ$èÍ%íQ®CallExpressionÍ$èÍ%ìR°MemberExpressionÍ$èÍ%T®ThisExpressionÍ$èÍ$ìLªIdentifierÍ$íÍ%¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ%Í%ãÀÂÂÂ’LªIdentifierÍ%Í%¦elmtIdLªIdentifierÍ%Í%¯isInitialRenderO®BlockStatementÍ%$Í%ã“P³ExpressionStatementÍ%3Í%OQ®CallExpressionÍ%3Í%NR°MemberExpressionÍ%3Í%@LªIdentifierÍ%3Í%9¦ColumnLªIdentifierÍ%:Í%@¦createÂÂ‘X°ObjectExpressionÍ%AÍ%M‘Y¨PropertyÍ%CÍ%KÂÂÂLªIdentifierÍ%CÍ%H¥spaceN§LiteralÍ%JÍ%K¡8¤initÂP³ExpressionStatementÍ%]Í%µQ®CallExpressionÍ%]Í%´R°MemberExpressionÍ%]Í%mLªIdentifierÍ%]Í%c¦ColumnLªIdentifierÍ%dÍ%m©debugLineÂÂ’N§LiteralÍ%nÍ%ªÙ:entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(90:9)Ù<"entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(90:9)"N§LiteralÍ%¬Í%³¥entry§"entry"ÂP³ExpressionStatementÍ%ÃÍ%ØQ®CallExpressionÍ%ÃÍ%×R°MemberExpressionÍ%ÃÍ%ÏLªIdentifierÍ%ÃÍ%É¦ColumnLªIdentifierÍ%ÊÍ%Ï¥widthÂÂ‘N§LiteralÍ%ĞÍ%Ö¤100%¦'100%'ÂLªIdentifierÍ%åÍ%ë¦ColumnÂP³ExpressionStatementÍ%÷Í'tQ®CallExpressionÍ%÷Í'sR°MemberExpressionÍ%÷Í&T®ThisExpressionÍ%÷Í%ûLªIdentifierÍ%üÍ&¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ&Í'lÀÂÂÂ’LªIdentifierÍ&Í&¦elmtIdLªIdentifierÍ&Í&.¯isInitialRenderO®BlockStatementÍ&3Í'l–P³ExpressionStatementÍ&BÍ&VQ®CallExpressionÍ&BÍ&UR°MemberExpressionÍ&BÍ&MLªIdentifierÍ&BÍ&F¤TextLªIdentifierÍ&GÍ&M¦createÂÂ‘N§LiteralÍ&NÍ&T¬æ ‡ç­¾æ ¼å¼®'æ ‡ç­¾æ ¼å¼'ÂP³ExpressionStatementÍ&dÍ&»Q®CallExpressionÍ&dÍ&ºR°MemberExpressionÍ&dÍ&rLªIdentifierÍ&dÍ&h¤TextLªIdentifierÍ&iÍ&r©debugLineÂÂ’N§LiteralÍ&sÍ&°Ù;entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(91:11)Ù="entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(91:11)"N§LiteralÍ&²Í&¹¥entry§"entry"ÂP³ExpressionStatementÍ&ÉÍ&ÛQ®CallExpressionÍ&ÉÍ&ÚR°MemberExpressionÍ&ÉÍ&ÖLªIdentifierÍ&ÉÍ&Í¤TextLªIdentifierÍ&ÎÍ&Ö¨fontSizeÂÂ‘N§LiteralÍ&×Í&Ù¢17ÂP³ExpressionStatementÍ&éÍ'
-Q®CallExpressionÍ&éÍ'	R°MemberExpressionÍ&éÍ&øLªIdentifierÍ&éÍ&í¤TextLªIdentifierÍ&îÍ&øªfontWeightÂÂ‘R°MemberExpressionÍ&ùÍ'LªIdentifierÍ&ùÍ'ªFontWeightLªIdentifierÍ'Í'¤BoldÂÂÂP³ExpressionStatementÍ'Í'@Q®CallExpressionÍ'Í'?R°MemberExpressionÍ'Í'&LªIdentifierÍ'Í'¤TextLªIdentifierÍ'Í'&©fontColorÂÂ‘R°MemberExpressionÍ''Í'>LªIdentifierÍ''Í'4­KikariaColorsLªIdentifierÍ'5Í'>©DEEP_TEXTÂÂÂP³ExpressionStatementÍ'NÍ'aQ®CallExpressionÍ'NÍ'`R°MemberExpressionÍ'NÍ'XLªIdentifierÍ'NÍ'R¤TextLªIdentifierÍ'SÍ'X¥widthÂÂ‘N§LiteralÍ'YÍ'_¤100%¦'100%'ÂLªIdentifierÍ'nÍ'r¤TextÂP³ExpressionStatementÍ'~Í'‰Q®CallExpressionÍ'~Í'ˆR°MemberExpressionÍ'~Í'†LªIdentifierÍ'~Í'‚¤TextLªIdentifierÍ'ƒÍ'†£popÂÂÂP³ExpressionStatementÍ'“Í)Q®CallExpressionÍ'“Í)R°MemberExpressionÍ'“Í'±T®ThisExpressionÍ'“Í'—LªIdentifierÍ'˜Í'±¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ'²Í(ûÀÂÂÂ’LªIdentifierÍ'³Í'¹¦elmtIdLªIdentifierÍ'»Í'Ê¯isInitialRenderO®BlockStatementÍ'ÏÍ(û•P³ExpressionStatementÍ'ŞÍ(Q®CallExpressionÍ'ŞÍ(R°MemberExpressionÍ'ŞÍ'éLªIdentifierÍ'ŞÍ'â¤TextLªIdentifierÍ'ãÍ'é¦createÂÂ‘N§LiteralÍ'êÍ(Ùftags: åè·Ÿé€—å·ï¼ˆä¸­è‹±æ–‡å‡å¯ï¼‰åˆ†éš”çš„æ ‡ç­¾åˆ—è¡¨ã€‚æ ‡ç­¾ç”¨äºç­›é€‰å’Œç»„ç»‡çŸ¥è¯†ç‚¹ã€‚Ùh'tags: åè·Ÿé€—å·ï¼ˆä¸­è‹±æ–‡å‡å¯ï¼‰åˆ†éš”çš„æ ‡ç­¾åˆ—è¡¨ã€‚æ ‡ç­¾ç”¨äºç­›é€‰å’Œç»„ç»‡çŸ¥è¯†ç‚¹ã€‚'ÂP³ExpressionStatementÍ("Í(yQ®CallExpressionÍ("Í(xR°MemberExpressionÍ("Í(0LªIdentifierÍ("Í(&¤TextLªIdentifierÍ('Í(0©debugLineÂÂ’N§LiteralÍ(1Í(nÙ;entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(94:11)Ù="entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(94:11)"N§LiteralÍ(pÍ(w¥entry§"entry"ÂP³ExpressionStatementÍ(‡Í(™Q®CallExpressionÍ(‡Í(˜R°MemberExpressionÍ(‡Í(”LªIdentifierÍ(‡Í(‹¤TextLªIdentifierÍ(ŒÍ(”¨fontSizeÂÂ‘N§LiteralÍ(•Í(—¢15ÂP³ExpressionStatementÍ(§Í(ÏQ®CallExpressionÍ(§Í(ÎR°MemberExpressionÍ(§Í(µLªIdentifierÍ(§Í(«¤TextLªIdentifierÍ(¬Í(µ©fontColorÂÂ‘R°MemberExpressionÍ(¶Í(ÍLªIdentifierÍ(¶Í(Ã­KikariaColorsLªIdentifierÍ(ÄÍ(Í©DEEP_TEXTÂÂÂP³ExpressionStatementÍ(İÍ(ğQ®CallExpressionÍ(İÍ(ïR°MemberExpressionÍ(İÍ(çLªIdentifierÍ(İÍ(á¤TextLªIdentifierÍ(âÍ(ç¥widthÂÂ‘N§LiteralÍ(èÍ(î¤100%¦'100%'ÂLªIdentifierÍ(ıÍ)¤TextÂP³ExpressionStatementÍ)Í)Q®CallExpressionÍ)Í)R°MemberExpressionÍ)Í)LªIdentifierÍ)Í)¤TextLªIdentifierÍ)Í)£popÂÂÂP³ExpressionStatementÍ)"Í)/Q®CallExpressionÍ)"Í).R°MemberExpressionÍ)"Í),LªIdentifierÍ)"Í)(¦ColumnLªIdentifierÍ))Í),£popÂÂÂP³ExpressionStatementÍ)9Í*>Q®CallExpressionÍ)9Í*=R°MemberExpressionÍ)9Í)WT®ThisExpressionÍ)9Í)=LªIdentifierÍ)>Í)W¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ)XÍ*4ÀÂÂÂ’LªIdentifierÍ)YÍ)_¦elmtIdLªIdentifierÍ)aÍ)p¯isInitialRenderO®BlockStatementÍ)uÍ*4“P³ExpressionStatementÍ)„Í) Q®CallExpressionÍ)„Í)ŸR°MemberExpressionÍ)„Í)‘LªIdentifierÍ)„Í)Š¦ColumnLªIdentifierÍ)‹Í)‘¦createÂÂ‘X°ObjectExpressionÍ)’Í)‘Y¨PropertyÍ)”Í)œÂÂÂLªIdentifierÍ)”Í)™¥spaceN§LiteralÍ)›Í)œ¡8¤initÂP³ExpressionStatementÍ)®Í*Q®CallExpressionÍ)®Í*R°MemberExpressionÍ)®Í)¾LªIdentifierÍ)®Í)´¦ColumnLªIdentifierÍ)µÍ)¾©debugLineÂÂ’N§LiteralÍ)¿Í)ûÙ:entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(98:9)Ù<"entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(98:9)"N§LiteralÍ)ıÍ*¥entry§"entry"ÂP³ExpressionStatementÍ*Í*)Q®CallExpressionÍ*Í*(R°MemberExpressionÍ*Í* LªIdentifierÍ*Í*¦ColumnLªIdentifierÍ*Í* ¥widthÂÂ‘N§LiteralÍ*!Í*'¤100%¦'100%'ÂLªIdentifierÍ*6Í*<¦ColumnÂP³ExpressionStatementÍ*HÍ+ÅQ®CallExpressionÍ*HÍ+ÄR°MemberExpressionÍ*HÍ*fT®ThisExpressionÍ*HÍ*LLªIdentifierÍ*MÍ*f¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ*gÍ+½ÀÂÂÂ’LªIdentifierÍ*hÍ*n¦elmtIdLªIdentifierÍ*pÍ*¯isInitialRenderO®BlockStatementÍ*„Í+½–P³ExpressionStatementÍ*“Í*§Q®CallExpressionÍ*“Í*¦R°MemberExpressionÍ*“Í*LªIdentifierÍ*“Í*—¤TextLªIdentifierÍ*˜Í*¦createÂÂ‘N§LiteralÍ*ŸÍ*¥¬æ•°å­¦å…¬å¼®'æ•°å­¦å…¬å¼'ÂP³ExpressionStatementÍ*µÍ+Q®CallExpressionÍ*µÍ+R°MemberExpressionÍ*µÍ*ÃLªIdentifierÍ*µÍ*¹¤TextLªIdentifierÍ*ºÍ*Ã©debugLineÂÂ’N§LiteralÍ*ÄÍ+Ù;entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(99:11)Ù="entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(99:11)"N§LiteralÍ+Í+
-¥entry§"entry"ÂP³ExpressionStatementÍ+Í+,Q®CallExpressionÍ+Í++R°MemberExpressionÍ+Í+'LªIdentifierÍ+Í+¤TextLªIdentifierÍ+Í+'¨fontSizeÂÂ‘N§LiteralÍ+(Í+*¢17ÂP³ExpressionStatementÍ+:Í+[Q®CallExpressionÍ+:Í+ZR°MemberExpressionÍ+:Í+ILªIdentifierÍ+:Í+>¤TextLªIdentifierÍ+?Í+IªfontWeightÂÂ‘R°MemberExpressionÍ+JÍ+YLªIdentifierÍ+JÍ+TªFontWeightLªIdentifierÍ+UÍ+Y¤BoldÂÂÂP³ExpressionStatementÍ+iÍ+‘Q®CallExpressionÍ+iÍ+R°MemberExpressionÍ+iÍ+wLªIdentifierÍ+iÍ+m¤TextLªIdentifierÍ+nÍ+w©fontColorÂÂ‘R°MemberExpressionÍ+xÍ+LªIdentifierÍ+xÍ+…­KikariaColorsLªIdentifierÍ+†Í+©DEEP_TEXTÂÂÂP³ExpressionStatementÍ+ŸÍ+²Q®CallExpressionÍ+ŸÍ+±R°MemberExpressionÍ+ŸÍ+©LªIdentifierÍ+ŸÍ+£¤TextLªIdentifierÍ+¤Í+©¥widthÂÂ‘N§LiteralÍ+ªÍ+°¤100%¦'100%'ÂLªIdentifierÍ+¿Í+Ã¤TextÂP³ExpressionStatementÍ+ÏÍ+ÚQ®CallExpressionÍ+ÏÍ+ÙR°MemberExpressionÍ+ÏÍ+×LªIdentifierÍ+ÏÍ+Ó¤TextLªIdentifierÍ+ÔÍ+×£popÂÂÂP³ExpressionStatementÍ+äÍ-“Q®CallExpressionÍ+äÍ-’R°MemberExpressionÍ+äÍ,T®ThisExpressionÍ+äÍ+èLªIdentifierÍ+éÍ,¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ,Í-‹ÀÂÂÂ’LªIdentifierÍ,Í,
-¦elmtIdLªIdentifierÍ,Í,¯isInitialRenderO®BlockStatementÍ, Í-‹•P³ExpressionStatementÍ,/Í,£Q®CallExpressionÍ,/Í,¢R°MemberExpressionÍ,/Í,:LªIdentifierÍ,/Í,3¤TextLªIdentifierÍ,4Í,:¦createÂÂ‘N§LiteralÍ,;Í,¡Ù£Kikaria å†…åµŒæ”¯æŒ LaTeX æ•°å­¦å…¬å¼ï¼š
-è¡Œå†…å…¬å¼ï¼š$E = mc^2$
-å—çº§å…¬å¼ï¼š$$\int_a^b f(x) dx$$
-
-(æ³¨ï¼šHarmonyOS ç‰ˆæœ¬ç›®å‰ä»¥æ–‡æœ¬å½¢å¼å±•ç¤ºå…¬å¼)Ùª'Kikaria å†…åµŒæ”¯æŒ LaTeX æ•°å­¦å…¬å¼ï¼š\nè¡Œå†…å…¬å¼ï¼š$E = mc^2$\nå—çº§å…¬å¼ï¼š$$\\int_a^b f(x) dx$$\n\n(æ³¨ï¼šHarmonyOS ç‰ˆæœ¬ç›®å‰ä»¥æ–‡æœ¬å½¢å¼å±•ç¤ºå…¬å¼)'ÂP³ExpressionStatementÍ,±Í-	Q®CallExpressionÍ,±Í-R°MemberExpressionÍ,±Í,¿LªIdentifierÍ,±Í,µ¤TextLªIdentifierÍ,¶Í,¿©debugLineÂÂ’N§LiteralÍ,ÀÍ,şÙ<entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(102:11)Ù>"entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(102:11)"N§LiteralÍ- Í-¥entry§"entry"ÂP³ExpressionStatementÍ-Í-)Q®CallExpressionÍ-Í-(R°MemberExpressionÍ-Í-$LªIdentifierÍ-Í-¤TextLªIdentifierÍ-Í-$¨fontSizeÂÂ‘N§LiteralÍ-%Í-'¢15ÂP³ExpressionStatementÍ-7Í-_Q®CallExpressionÍ-7Í-^R°MemberExpressionÍ-7Í-ELªIdentifierÍ-7Í-;¤TextLªIdentifierÍ-<Í-E©fontColorÂÂ‘R°MemberExpressionÍ-FÍ-]LªIdentifierÍ-FÍ-S­KikariaColorsLªIdentifierÍ-TÍ-]©DEEP_TEXTÂÂÂP³ExpressionStatementÍ-mÍ-€Q®CallExpressionÍ-mÍ-R°MemberExpressionÍ-mÍ-wLªIdentifierÍ-mÍ-q¤TextLªIdentifierÍ-rÍ-w¥widthÂÂ‘N§LiteralÍ-xÍ-~¤100%¦'100%'ÂLªIdentifierÍ-Í-‘¤TextÂP³ExpressionStatementÍ-Í-¨Q®CallExpressionÍ-Í-§R°MemberExpressionÍ-Í-¥LªIdentifierÍ-Í-¡¤TextLªIdentifierÍ-¢Í-¥£popÂÂÂP³ExpressionStatementÍ-²Í-¿Q®CallExpressionÍ-²Í-¾R°MemberExpressionÍ-²Í-¼LªIdentifierÍ-²Í-¸¦ColumnLªIdentifierÍ-¹Í-¼£popÂÂÂP³ExpressionStatementÍ-ÉÍ.ÏQ®CallExpressionÍ-ÉÍ.ÎR°MemberExpressionÍ-ÉÍ-çT®ThisExpressionÍ-ÉÍ-ÍLªIdentifierÍ-ÎÍ-ç¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ-èÍ.ÅÀÂÂÂ’LªIdentifierÍ-éÍ-ï¦elmtIdLªIdentifierÍ-ñÍ. ¯isInitialRenderO®BlockStatementÍ.Í.Å“P³ExpressionStatementÍ.Í.0Q®CallExpressionÍ.Í./R°MemberExpressionÍ.Í.!LªIdentifierÍ.Í.¦ColumnLªIdentifierÍ.Í.!¦createÂÂ‘X°ObjectExpressionÍ."Í..‘Y¨PropertyÍ.$Í.,ÂÂÂLªIdentifierÍ.$Í.)¥spaceN§LiteralÍ.+Í.,¡8¤initÂP³ExpressionStatementÍ.>Í.—Q®CallExpressionÍ.>Í.–R°MemberExpressionÍ.>Í.NLªIdentifierÍ.>Í.D¦ColumnLªIdentifierÍ.EÍ.N©debugLineÂÂ’N§LiteralÍ.OÍ.ŒÙ;entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(106:9)Ù="entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(106:9)"N§LiteralÍ.Í.•¥entry§"entry"ÂP³ExpressionStatementÍ.¥Í.ºQ®CallExpressionÍ.¥Í.¹R°MemberExpressionÍ.¥Í.±LªIdentifierÍ.¥Í.«¦ColumnLªIdentifierÍ.¬Í.±¥widthÂÂ‘N§LiteralÍ.²Í.¸¤100%¦'100%'ÂLªIdentifierÍ.ÇÍ.Í¦ColumnÂP³ExpressionStatementÍ.ÙÍ0VQ®CallExpressionÍ.ÙÍ0UR°MemberExpressionÍ.ÙÍ.÷T®ThisExpressionÍ.ÙÍ.İLªIdentifierÍ.ŞÍ.÷¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ.øÍ0NÀÂÂÂ’LªIdentifierÍ.ùÍ.ÿ¦elmtIdLªIdentifierÍ/Í/¯isInitialRenderO®BlockStatementÍ/Í0N–P³ExpressionStatementÍ/$Í/7Q®CallExpressionÍ/$Í/6R°MemberExpressionÍ/$Í//LªIdentifierÍ/$Í/(¤TextLªIdentifierÍ/)Í//¦createÂÂ‘N§LiteralÍ/0Í/5©å°è´´å£««'å°è´´å£«'ÂP³ExpressionStatementÍ/EÍ/Q®CallExpressionÍ/EÍ/œR°MemberExpressionÍ/EÍ/SLªIdentifierÍ/EÍ/I¤TextLªIdentifierÍ/JÍ/S©debugLineÂÂ’N§LiteralÍ/TÍ/’Ù<entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(107:11)Ù>"entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(107:11)"N§LiteralÍ/”Í/›¥entry§"entry"ÂP³ExpressionStatementÍ/«Í/½Q®CallExpressionÍ/«Í/¼R°MemberExpressionÍ/«Í/¸LªIdentifierÍ/«Í/¯¤TextLªIdentifierÍ/°Í/¸¨fontSizeÂÂ‘N§LiteralÍ/¹Í/»¢17ÂP³ExpressionStatementÍ/ËÍ/ìQ®CallExpressionÍ/ËÍ/ëR°MemberExpressionÍ/ËÍ/ÚLªIdentifierÍ/ËÍ/Ï¤TextLªIdentifierÍ/ĞÍ/ÚªfontWeightÂÂ‘R°MemberExpressionÍ/ÛÍ/êLªIdentifierÍ/ÛÍ/åªFontWeightLªIdentifierÍ/æÍ/ê¤BoldÂÂÂP³ExpressionStatementÍ/úÍ0"Q®CallExpressionÍ/úÍ0!R°MemberExpressionÍ/úÍ0LªIdentifierÍ/úÍ/ş¤TextLªIdentifierÍ/ÿÍ0©fontColorÂÂ‘R°MemberExpressionÍ0	Í0 LªIdentifierÍ0	Í0­KikariaColorsLªIdentifierÍ0Í0 ©DEEP_TEXTÂÂÂP³ExpressionStatementÍ00Í0CQ®CallExpressionÍ00Í0BR°MemberExpressionÍ00Í0:LªIdentifierÍ00Í04¤TextLªIdentifierÍ05Í0:¥widthÂÂ‘N§LiteralÍ0;Í0A¤100%¦'100%'ÂLªIdentifierÍ0PÍ0T¤TextÂP³ExpressionStatementÍ0`Í0kQ®CallExpressionÍ0`Í0jR°MemberExpressionÍ0`Í0hLªIdentifierÍ0`Í0d¤TextLªIdentifierÍ0eÍ0h£popÂÂÂP³ExpressionStatementÍ0uÍ2LQ®CallExpressionÍ0uÍ2KR°MemberExpressionÍ0uÍ0“T®ThisExpressionÍ0uÍ0yLªIdentifierÍ0zÍ0“¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ0”Í2DÀÂÂÂ’LªIdentifierÍ0•Í0›¦elmtIdLªIdentifierÍ0Í0¬¯isInitialRenderO®BlockStatementÍ0±Í2D•P³ExpressionStatementÍ0ÀÍ1\Q®CallExpressionÍ0ÀÍ1[R°MemberExpressionÍ0ÀÍ0ËLªIdentifierÍ0ÀÍ0Ä¤TextLªIdentifierÍ0ÅÍ0Ë¦createÂÂ‘N§LiteralÍ0ÌÍ1ZÚ-â€¢ æ ‡é¢˜ä»¥ # å¼€å¤´ï¼Œåæ¥çŸ¥è¯†ç‚¹åç§°
-â€¢ hint: å’Œ content: å¿…é¡»å„å ä¸€è¡Œï¼Œä»¥å†’å·ç»“å°¾
-â€¢ æç¤ºå’Œç­”æ¡ˆçš„å†…å®¹ä»ä¸‹ä¸€è¡Œå¼€å§‹
-â€¢ æ¯ä¸ªçŸ¥è¯†ç‚¹è‡³å°‘éœ€è¦æ ‡é¢˜ã€tagsã€hint å’Œ content
-â€¢ æ ‡ç­¾æœ‰åŠ©äºåœ¨é¦–é¡µæŒ‰èŒƒå›´ç­›é€‰
-â€¢ ä½¿ç”¨ --- åˆ†éš”ä¸åŒçš„çŸ¥è¯†ç‚¹Ú4'â€¢ æ ‡é¢˜ä»¥ # å¼€å¤´ï¼Œåæ¥çŸ¥è¯†ç‚¹åç§°\nâ€¢ hint: å’Œ content: å¿…é¡»å„å ä¸€è¡Œï¼Œä»¥å†’å·ç»“å°¾\nâ€¢ æç¤ºå’Œç­”æ¡ˆçš„å†…å®¹ä»ä¸‹ä¸€è¡Œå¼€å§‹\nâ€¢ æ¯ä¸ªçŸ¥è¯†ç‚¹è‡³å°‘éœ€è¦æ ‡é¢˜ã€tagsã€hint å’Œ content\nâ€¢ æ ‡ç­¾æœ‰åŠ©äºåœ¨é¦–é¡µæŒ‰èŒƒå›´ç­›é€‰\nâ€¢ ä½¿ç”¨ --- åˆ†éš”ä¸åŒçš„çŸ¥è¯†ç‚¹'ÂP³ExpressionStatementÍ1jÍ1ÂQ®CallExpressionÍ1jÍ1ÁR°MemberExpressionÍ1jÍ1xLªIdentifierÍ1jÍ1n¤TextLªIdentifierÍ1oÍ1x©debugLineÂÂ’N§LiteralÍ1yÍ1·Ù<entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(110:11)Ù>"entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(110:11)"N§LiteralÍ1¹Í1À¥entry§"entry"ÂP³ExpressionStatementÍ1ĞÍ1âQ®CallExpressionÍ1ĞÍ1áR°MemberExpressionÍ1ĞÍ1İLªIdentifierÍ1ĞÍ1Ô¤TextLªIdentifierÍ1ÕÍ1İ¨fontSizeÂÂ‘N§LiteralÍ1ŞÍ1à¢15ÂP³ExpressionStatementÍ1ğÍ2Q®CallExpressionÍ1ğÍ2R°MemberExpressionÍ1ğÍ1şLªIdentifierÍ1ğÍ1ô¤TextLªIdentifierÍ1õÍ1ş©fontColorÂÂ‘R°MemberExpressionÍ1ÿÍ2LªIdentifierÍ1ÿÍ2­KikariaColorsLªIdentifierÍ2Í2©DEEP_TEXTÂÂÂP³ExpressionStatementÍ2&Í29Q®CallExpressionÍ2&Í28R°MemberExpressionÍ2&Í20LªIdentifierÍ2&Í2*¤TextLªIdentifierÍ2+Í20¥widthÂÂ‘N§LiteralÍ21Í27¤100%¦'100%'ÂLªIdentifierÍ2FÍ2J¤TextÂP³ExpressionStatementÍ2VÍ2aQ®CallExpressionÍ2VÍ2`R°MemberExpressionÍ2VÍ2^LªIdentifierÍ2VÍ2Z¤TextLªIdentifierÍ2[Í2^£popÂÂÂP³ExpressionStatementÍ2kÍ2xQ®CallExpressionÍ2kÍ2wR°MemberExpressionÍ2kÍ2uLªIdentifierÍ2kÍ2q¦ColumnLªIdentifierÍ2rÍ2u£popÂÂÂP³ExpressionStatementÍ2‚Í3mQ®CallExpressionÍ2‚Í3lR°MemberExpressionÍ2‚Í2 T®ThisExpressionÍ2‚Í2†LªIdentifierÍ2‡Í2 ¹observeComponentCreation2ÂÂ’K·ArrowFunctionExpressionÍ2¡Í3fÀÂÂÂ’LªIdentifierÍ2¢Í2¨¦elmtIdLªIdentifierÍ2ªÍ2¹¯isInitialRenderO®BlockStatementÍ2¾Í3f“P³ExpressionStatementÍ2ÍÍ2ÚQ®CallExpressionÍ2ÍÍ2ÙR°MemberExpressionÍ2ÍÍ2×LªIdentifierÍ2ÍÍ2Ğ£RowLªIdentifierÍ2ÑÍ2×¦createÂÂÂP³ExpressionStatementÍ2èÍ3>Q®CallExpressionÍ2èÍ3=R°MemberExpressionÍ2èÍ2õLªIdentifierÍ2èÍ2ë£RowLªIdentifierÍ2ìÍ2õ©debugLineÂÂ’N§LiteralÍ2öÍ33Ù;entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(114:9)Ù="entry/src/main/ets/pages/MarkdownFormatGuidePage.ets(114:9)"N§LiteralÍ35Í3<¥entry§"entry"ÂP³ExpressionStatementÍ3LÍ3[Q®CallExpressionÍ3LÍ3ZR°MemberExpressionÍ3LÍ3VLªIdentifierÍ3LÍ3O£RowLªIdentifierÍ3PÍ3V¦heightÂÂ‘N§LiteralÍ3WÍ3Y(¢40ÂLªIdentifierÍ3hÍ3k£RowÂP³ExpressionStatementÍ3wÍ3Q®CallExpressionÍ3wÍ3€R°MemberExpressionÍ3wÍ3~LªIdentifierÍ3wÍ3z£RowLªIdentifierÍ3{Í3~£popÂÂÂP³ExpressionStatementÍ3‹Í3˜Q®CallExpressionÍ3‹Í3—R°MemberExpressionÍ3‹Í3•LªIdentifierÍ3‹Í3‘¦ColumnLªIdentifierÍ3’Í3•£popÂÂÂP³ExpressionStatementÍ3¢Í3¯Q®CallExpressionÍ3¢Í3®R°MemberExpressionÍ3¢Í3¬LªIdentifierÍ3¢Í3¨¦ScrollLªIdentifierÍ3©Í3¬£popÂÂÂ]°MethodDefinitionÍ3¼Í3ôÂÂLªIdentifierÍ3¼Í3Ä¨rerender¦methodK²FunctionExpressionÍ3ÄÍ3ôÀÂÂÂO®BlockStatementÍ3ÇÍ3ô‘P³ExpressionStatementÍ3ÒÍ3íQ®CallExpressionÍ3ÒÍ3ìR°MemberExpressionÍ3ÒÍ3êT®ThisExpressionÍ3ÒÍ3ÖLªIdentifierÍ3×Í3ê³updateDirtyElementsÂÂÂÀ“Ôrc•¤type¥start£endªspecifiers¦source±ImportDeclarationÍ6Íq‘Ôrd•¤type¥start£end¨imported¥local¯ImportSpecifierÍ?ÍLLªIdentifierÍ?ÍL­KikariaColorsLªIdentifierÍ?ÍL­KikariaColorsN§LiteralÍTÍpº../components/KikariaTheme¼'../components/KikariaTheme'c±ImportDeclarationÍsÍÏ’d¯ImportSpecifierÍ|ÍŠLªIdentifierÍ|ÍŠ®isPadLandscapeLªIdentifierÍ|ÍŠ®isPadLandscaped¯ImportSpecifierÍŒÍ¡LªIdentifierÍŒÍ¡µpageHorizontalPaddingLªIdentifierÍŒÍ¡µpageHorizontalPaddingN§LiteralÍ©ÍÎÙ#../components/KikariaAdaptiveLayoutÙ%'../components/KikariaAdaptiveLayout'c±ImportDeclarationÍÑÍ
-‘d¯ImportSpecifierÍÚÍæLªIdentifierÍÚÍæ¬navPathStackLªIdentifierÍÚÍæ¬navPathStackN§LiteralÍîÍ	¹../data/NavigationService»'../data/NavigationService'

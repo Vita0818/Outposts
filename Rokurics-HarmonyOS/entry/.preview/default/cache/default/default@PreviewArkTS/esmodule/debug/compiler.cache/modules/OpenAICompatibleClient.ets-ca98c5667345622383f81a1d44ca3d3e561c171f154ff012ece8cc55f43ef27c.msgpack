@@ -1,598 +1,0 @@
-Ôr@Ÿªassertions¤code´customTransformCache¬dependencies¢id¤meta±moduleSideEffects¬originalCode±originalSourcemap«resolvedIds®sourcemapChainµsyntheticNamedExportsµtransformDependencies®transformFiles¨cacheAstÔrAÚè/**
- * OpenAI-compatible API client using @ohos.net.http
- */
-import http from "@ohos.net.http";
-import { ChatMessage, ChatMessageRole, ChatResult } from '../models/ChatModels';
-const TAG = 'RokuricsOpenAI';
-export class OpenAICompatibleClient {
-    static async chatCompletion(config, request, timeoutMs = 120000) {
-        const endpoint = `${config.baseURL.replace(/\/+$/, '')}/chat/completions`;
-        const messages = [
-            {
-                role: 'system',
-                content: 'ä½ æ˜¯ Rokurics çš„å­¦ä¹ åŠ©æ‰‹ã€‚è¯·åŸºäºç”¨æˆ·æä¾›çš„å­¦ä¹ èµ„æ–™ä¸Šä¸‹æ–‡è¿›è¡Œå›ç­”ã€‚å¦‚æœä¸Šä¸‹æ–‡ä¸è¶³ï¼Œè¯·æ˜ç¡®è¯´æ˜ï¼Œä¸è¦ç¼–é€ å†…å®¹ã€‚è¯·ä½¿ç”¨ä¸­æ–‡å›å¤ã€‚'
-            }
-        ];
-        for (const msg of request.messages) {
-            if (msg.role === ChatMessageRole.SYSTEM)
-                continue;
-            messages.push({
-                role: msg.role === ChatMessageRole.ASSISTANT ? 'assistant' : 'user',
-                content: msg.content
-            });
-        }
-        const body = {
-            model: config.modelName,
-            messages: messages,
-            max_tokens: request.maxTokens ?? config.maxTokens,
-            temperature: request.temperature ?? config.temperature,
-            stream: false
-        };
-        const bodyJson = JSON.stringify(body);
-        const httpRequest = http.createHttp();
-        try {
-            const response = await httpRequest.request(endpoint, {
-                method: http.RequestMethod.POST,
-                header: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${config.apiKey}`
-                },
-                extraData: bodyJson,
-                expectDataType: http.HttpDataType.STRING,
-                connectTimeout: 30000,
-                readTimeout: timeoutMs
-            });
-            if (response.responseCode !== 200) {
-                let errMsg = `HTTP ${response.responseCode}`;
-                try {
-                    const errBody = JSON.parse(response.result);
-                    const err = errBody['error'];
-                    if (err && err['message']) {
-                        errMsg = err['message'];
-                    }
-                }
-                catch { /* ignore parse error */ }
-                throw new Error(errMsg);
-            }
-            const data = JSON.parse(response.result);
-            if (!data.choices || data.choices.length === 0) {
-                throw new Error('AI æ²¡æœ‰è¿”å›å†…å®¹');
-            }
-            const choice = data.choices[0];
-            const content = choice.message.content?.trim() ?? '';
-            if (!content) {
-                throw new Error('AI è¿”å›äº†ç©ºå†…å®¹');
-            }
-            const reply = new ChatMessage(ChatMessageRole.ASSISTANT, content);
-            const result = new ChatResult(reply, 'openai-compatible', 'OpenAI Compatible');
-            result.modelName = data.model ?? config.modelName;
-            result.finishReason = choice.finish_reason ?? 'stop';
-            result.outputWasTruncated = choice.finish_reason === 'length';
-            console.info(`[${TAG}] chat completion success, tokens: ${data.usage?.total_tokens ?? 'unknown'}`);
-            return result;
-        }
-        finally {
-            httpRequest.destroy();
-        }
-    }
-    static async testConnection(config) {
-        const endpoint = `${config.baseURL.replace(/\/+$/, '')}/models`;
-        const httpRequest = http.createHttp();
-        try {
-            const response = await httpRequest.request(endpoint, {
-                method: http.RequestMethod.GET,
-                header: {
-                    'Authorization': `Bearer ${config.apiKey}`
-                },
-                expectDataType: http.HttpDataType.STRING,
-                connectTimeout: 10000,
-                readTimeout: 10000
-            });
-            return response.responseCode === 200;
-        }
-        catch {
-            return false;
-        }
-        finally {
-            httpRequest.destroy();
-        }
-    }
-    static async validateConfiguration(config) {
-        const endpoint = `${config.baseURL.replace(/\/+$/, '')}/models`;
-        const startedAt = Date.now();
-        const httpRequest = http.createHttp();
-        try {
-            const response = await httpRequest.request(endpoint, {
-                method: http.RequestMethod.GET,
-                header: {
-                    'Authorization': `Bearer ${config.apiKey}`
-                },
-                expectDataType: http.HttpDataType.STRING,
-                connectTimeout: 10000,
-                readTimeout: 10000
-            });
-            const latencyMs = Date.now() - startedAt;
-            let modelIds = [];
-            if (response.responseCode === 200) {
-                try {
-                    const data = JSON.parse(response.result);
-                    const dataArray = data['data'];
-                    if (dataArray) {
-                        modelIds = dataArray
-                            .map((m) => m['id'] ?? '')
-                            .filter((id) => id.length > 0);
-                    }
-                }
-                catch { /* ignore parse errors */ }
-            }
-            return {
-                reachable: response.responseCode === 200,
-                statusCode: response.responseCode,
-                models: modelIds,
-                latencyMs: latencyMs,
-                errorMessage: response.responseCode === 200 ? null : `HTTP ${response.responseCode}`
-            };
-        }
-        catch (err) {
-            return {
-                reachable: false,
-                statusCode: null,
-                models: [],
-                latencyMs: Date.now() - startedAt,
-                errorMessage: `${err}`
-            };
-        }
-        finally {
-            httpRequest.destroy();
-        }
-    }
-    static async chatCompletionSimple(config, systemPrompt, userMessage, timeoutMs = 180000) {
-        const endpoint = `${config.baseURL.replace(/\/+$/, '')}/chat/completions`;
-        const body = {
-            model: config.modelName,
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userMessage }
-            ],
-            max_tokens: config.maxTokens,
-            temperature: config.temperature,
-            stream: false
-        };
-        const httpRequest = http.createHttp();
-        try {
-            const response = await httpRequest.request(endpoint, {
-                method: http.RequestMethod.POST,
-                header: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${config.apiKey}`
-                },
-                extraData: JSON.stringify(body),
-                expectDataType: http.HttpDataType.STRING,
-                connectTimeout: 30000,
-                readTimeout: timeoutMs
-            });
-            if (response.responseCode !== 200) {
-                let errMsg = `HTTP ${response.responseCode}`;
-                try {
-                    const errBody = JSON.parse(response.result);
-                    const err = errBody['error'];
-                    if (err && err['message'])
-                        errMsg = err['message'];
-                }
-                catch { /* ignore */ }
-                throw new Error(errMsg);
-            }
-            const data = JSON.parse(response.result);
-            if (!data.choices || data.choices.length === 0) {
-                throw new Error('AI æ²¡æœ‰è¿”å›å†…å®¹');
-            }
-            const content = data.choices[0].message.content?.trim() ?? '';
-            if (!content)
-                throw new Error('AI è¿”å›äº†ç©ºå†…å®¹');
-            console.info(`[${TAG}] completion success, model: ${data.model}`);
-            return content;
-        }
-        finally {
-            httpRequest.destroy();
-        }
-    }
-}
-//# sourceMappingURL=OpenAICompatibleClient.js.mapÂ’Ùk hvigor_ignore__Applications_DevEco-Studio.app_Contents_sdk_default_openharmony_ets_api_@ohos.net.http.d.tsÙX/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/models/ChatModels.etsÙf/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/services/OpenAICompatibleClient.etsÔrB›ªmoduleName±isLocalDependency¯isNodeEntryFile§pkgPath±belongProjectPath§pkgNameªpkgVersion±dependencyPkgInfo¯hostModulesInfo°belongModulePath¬shouldEmitJs¥entryÃÂÙ5/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entryÙ//Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS¥entry¥1.0.0Ô  ’ÔrC’²hostDependencyName®hostModuleNameÙ"../services/OpenAICompatibleClient¥entryCÙ"../services/OpenAICompatibleClient¥entryÙ5/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entryÃÃÚ ?/**
- * OpenAI-compatible API client using @ohos.net.http
- */
-import { http } from '@kit.NetworkKit'
-import { ChatRequest, ChatMessage, ChatMessageRole, ChatResult } from '../models/ChatModels'
-
-const TAG = 'RokuricsOpenAI'
-
-interface OpenAIMessage {
-  role: string
-  content: string
-}
-
-interface ChatCompletionRequest {
-  model: string
-  messages: OpenAIMessage[]
-  max_tokens?: number
-  temperature?: number
-  stream?: boolean
-}
-
-interface ChatCompletionMessage {
-  role: string
-  content: string
-}
-
-interface ChatCompletionChoice {
-  index: number
-  message: ChatCompletionMessage
-  finish_reason: string | null
-}
-
-interface ChatCompletionUsage {
-  prompt_tokens: number
-  completion_tokens: number
-  total_tokens: number
-}
-
-interface ChatCompletionResponse {
-  id: string
-  object: string
-  created: number
-  model: string
-  choices: ChatCompletionChoice[]
-  usage?: ChatCompletionUsage
-}
-
-export interface AIConfiguration {
-  baseURL: string
-  modelName: string
-  apiKey: string
-  temperature: number
-  maxTokens: number
-}
-
-export interface ProviderHealthResult {
-  reachable: boolean
-  statusCode: number | null
-  models: string[]
-  latencyMs: number | null
-  errorMessage: string | null
-}
-
-export class OpenAICompatibleClient {
-  static async chatCompletion(
-    config: AIConfiguration,
-    request: ChatRequest,
-    timeoutMs: number = 120000
-  ): Promise<ChatResult> {
-    const endpoint = `${config.baseURL.replace(/\/+$/, '')}/chat/completions`
-
-    const messages: OpenAIMessage[] = [
-      {
-        role: 'system',
-        content: 'ä½ æ˜¯ Rokurics çš„å­¦ä¹ åŠ©æ‰‹ã€‚è¯·åŸºäºç”¨æˆ·æä¾›çš„å­¦ä¹ èµ„æ–™ä¸Šä¸‹æ–‡è¿›è¡Œå›ç­”ã€‚å¦‚æœä¸Šä¸‹æ–‡ä¸è¶³ï¼Œè¯·æ˜ç¡®è¯´æ˜ï¼Œä¸è¦ç¼–é€ å†…å®¹ã€‚è¯·ä½¿ç”¨ä¸­æ–‡å›å¤ã€‚'
-      }
-    ]
-
-    for (const msg of request.messages) {
-      if (msg.role === ChatMessageRole.SYSTEM) continue
-      messages.push({
-        role: msg.role === ChatMessageRole.ASSISTANT ? 'assistant' : 'user',
-        content: msg.content
-      })
-    }
-
-    const body: ChatCompletionRequest = {
-      model: config.modelName,
-      messages: messages,
-      max_tokens: request.maxTokens ?? config.maxTokens,
-      temperature: request.temperature ?? config.temperature,
-      stream: false
-    }
-
-    const bodyJson = JSON.stringify(body)
-
-    const httpRequest = http.createHttp()
-    try {
-      const response = await httpRequest.request(endpoint, {
-        method: http.RequestMethod.POST,
-        header: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.apiKey}`
-        },
-        extraData: bodyJson,
-        expectDataType: http.HttpDataType.STRING,
-        connectTimeout: 30000,
-        readTimeout: timeoutMs
-      })
-
-      if (response.responseCode !== 200) {
-        let errMsg = `HTTP ${response.responseCode}`
-        try {
-          const errBody = JSON.parse(response.result as string) as Record<string, Object>
-          const err = errBody['error'] as Record<string, Object> | undefined
-          if (err && err['message']) {
-            errMsg = err['message'] as string
-          }
-        } catch { /* ignore parse error */ }
-        throw new Error(errMsg)
-      }
-
-      const data: ChatCompletionResponse = JSON.parse(response.result as string) as ChatCompletionResponse
-
-      if (!data.choices || data.choices.length === 0) {
-        throw new Error('AI æ²¡æœ‰è¿”å›å†…å®¹')
-      }
-
-      const choice = data.choices[0]
-      const content = choice.message.content?.trim() ?? ''
-
-      if (!content) {
-        throw new Error('AI è¿”å›äº†ç©ºå†…å®¹')
-      }
-
-      const reply = new ChatMessage(ChatMessageRole.ASSISTANT, content)
-      const result = new ChatResult(reply, 'openai-compatible', 'OpenAI Compatible')
-      result.modelName = data.model ?? config.modelName
-      result.finishReason = choice.finish_reason ?? 'stop'
-      result.outputWasTruncated = choice.finish_reason === 'length'
-
-      console.info(`[${TAG}] chat completion success, tokens: ${data.usage?.total_tokens ?? 'unknown'}`)
-      return result
-    } finally {
-      httpRequest.destroy()
-    }
-  }
-
-  static async testConnection(config: AIConfiguration): Promise<boolean> {
-    const endpoint = `${config.baseURL.replace(/\/+$/, '')}/models`
-
-    const httpRequest = http.createHttp()
-    try {
-      const response = await httpRequest.request(endpoint, {
-        method: http.RequestMethod.GET,
-        header: {
-          'Authorization': `Bearer ${config.apiKey}`
-        },
-        expectDataType: http.HttpDataType.STRING,
-        connectTimeout: 10000,
-        readTimeout: 10000
-      })
-      return response.responseCode === 200
-    } catch {
-      return false
-    } finally {
-      httpRequest.destroy()
-    }
-  }
-
-  static async validateConfiguration(config: AIConfiguration): Promise<ProviderHealthResult> {
-    const endpoint = `${config.baseURL.replace(/\/+$/, '')}/models`
-    const startedAt = Date.now()
-
-    const httpRequest = http.createHttp()
-    try {
-      const response = await httpRequest.request(endpoint, {
-        method: http.RequestMethod.GET,
-        header: {
-          'Authorization': `Bearer ${config.apiKey}`
-        },
-        expectDataType: http.HttpDataType.STRING,
-        connectTimeout: 10000,
-        readTimeout: 10000
-      })
-
-      const latencyMs = Date.now() - startedAt
-      let modelIds: string[] = []
-
-      if (response.responseCode === 200) {
-        try {
-          const data = JSON.parse(response.result as string) as Record<string, Object>
-          const dataArray = data['data'] as Record<string, Object>[] | undefined
-          if (dataArray) {
-            modelIds = dataArray
-              .map((m: Record<string, Object>) => (m['id'] as string) ?? '')
-              .filter((id: string) => id.length > 0)
-          }
-        } catch { /* ignore parse errors */ }
-      }
-
-      return {
-        reachable: response.responseCode === 200,
-        statusCode: response.responseCode,
-        models: modelIds,
-        latencyMs: latencyMs,
-        errorMessage: response.responseCode === 200 ? null : `HTTP ${response.responseCode}`
-      }
-    } catch (err) {
-      return {
-        reachable: false,
-        statusCode: null,
-        models: [],
-        latencyMs: Date.now() - startedAt,
-        errorMessage: `${err}`
-      }
-    } finally {
-      httpRequest.destroy()
-    }
-  }
-
-  static async chatCompletionSimple(
-    config: AIConfiguration,
-    systemPrompt: string,
-    userMessage: string,
-    timeoutMs: number = 180000
-  ): Promise<string> {
-    const endpoint = `${config.baseURL.replace(/\/+$/, '')}/chat/completions`
-
-    const body: ChatCompletionRequest = {
-      model: config.modelName,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage }
-      ],
-      max_tokens: config.maxTokens,
-      temperature: config.temperature,
-      stream: false
-    }
-
-    const httpRequest = http.createHttp()
-    try {
-      const response = await httpRequest.request(endpoint, {
-        method: http.RequestMethod.POST,
-        header: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.apiKey}`
-        },
-        extraData: JSON.stringify(body),
-        expectDataType: http.HttpDataType.STRING,
-        connectTimeout: 30000,
-        readTimeout: timeoutMs
-      })
-
-      if (response.responseCode !== 200) {
-        let errMsg = `HTTP ${response.responseCode}`
-        try {
-          const errBody = JSON.parse(response.result as string) as Record<string, Object>
-          const err = errBody['error'] as Record<string, Object> | undefined
-          if (err && err['message']) errMsg = err['message'] as string
-        } catch { /* ignore */ }
-        throw new Error(errMsg)
-      }
-
-      const data: ChatCompletionResponse = JSON.parse(response.result as string) as ChatCompletionResponse
-      if (!data.choices || data.choices.length === 0) {
-        throw new Error('AI æ²¡æœ‰è¿”å›å†…å®¹')
-      }
-
-      const content = data.choices[0].message.content?.trim() ?? ''
-      if (!content) throw new Error('AI è¿”å›äº†ç©ºå†…å®¹')
-
-      console.info(`[${TAG}] completion success, model: ${data.model}`)
-      return content
-    } finally {
-      httpRequest.destroy()
-    }
-  }
-}
-ÀÔrD’®@ohos.net.http´../models/ChatModelsÔrE—ªassertions¨external¢id¤meta±moduleSideEffectsªresolvedByµsyntheticNamedExportsAÃÙk hvigor_ignore__Applications_DevEco-Studio.app_Contents_sdk_default_openharmony_ets_api_@ohos.net.http.d.tsÔrF‘¯hostModulesInfo’C®@ohos.net.http¥entryC®@ohos.net.http¥entryÃªoh-resolveÂEAÂÙX/Users/vita/Vitemis/Outposts/Rokurics-HarmonyOS/entry/src/main/ets/models/ChatModels.etsAÃªoh-resolveÂ“ÔrG–§version¤fileªsourceRoot§sources¥names¨mappings¹OpenAICompatibleClient.js ‘ºOpenAICompatibleClient.etsÜ Ç‘”    ‘” –”   ” 	” ” ”! &”" &œ”   ” ”	 ” !” #”% 2”' 4”1 >”3 Ì@”9 ÌF”ÌO Ì\”ÌP Ì\–”   ” ”	 	” ” ” ””  ? ” ?” ?”# ?#” Ì@”
- Ì@” Ì@	” Ì@” Ì@” Ì@”  ÌA”& ÌA”( ÌB”/ ÌB”1 ÌC”= ÌC”ÌC ÌCÜ ” ÌE” ÌE
-” ÌE” ÌE” ÌE”" ÌE”# ÌE”* ÌE&”+ ÌE'”2 ÌE.”3 ÌE/”9 ÌE5”; ÌE7”= ÌE9”> ÌE:”ÌQ ÌEÌM”ÌR ÌEÌM”” ÌG” ÌG
-” ÌG” ÌG&‘” ÌH”” ÌI” ÌI” ÌI” ÌI”” ÌJ” ÌJ” ÌJ”Ì^ ÌJÌV‘” ÌK’”	 ÌL”
- ÌL™” ÌN” ÌN	” ÌN” ÌN” ÌN”! ÌN”" ÌN”* ÌN&”, ÌN(™” ÌO” ÌO
-” ÌO” ÌO” ÌO” ÌO”, ÌO&”- ÌO'”3 ÌO-’” ÌO/” ÌO7•” ÌP” ÌP” ÌP” ÌP” ÌPÜ ” ÌQ” ÌQ” ÌQ” ÌQ” ÌQ” ÌQ”# ÌQ”2 ÌQ*”3 ÌQ+”< ÌQ4”= ÌQ5”> ÌQ6”? ÌQ7”ÌJ ÌQÌB”ÌK ÌQÌC”ÌL ÌQÌD”ÌM ÌQÌE”ÌS ÌQÌK–” ÌR” ÌR” ÌR” ÌR” ÌR”$ ÌR“” ÌS” ÌS” ÌS‘”	 ÌT”” ÌV” ÌV
-” ÌV” ÌV(–” ÌW” ÌW” ÌW” ÌW” ÌW”# ÌW”” ÌX” ÌX” ÌX” ÌXš” ÌY” ÌY” ÌY” ÌY”  ÌY”) ÌY#”- ÌY'”3 ÌY-”4 ÌY.”= ÌY7š” ÌZ” ÌZ” ÌZ”  ÌZ”! ÌZ”, ÌZ&”0 ÌZ*”6 ÌZ0”7 ÌZ1”ÌB ÌZ<”” Ì[” Ì[” Ì[” Ì[’”	 Ì\”
- Ì\›” Ì^” Ì^
-” Ì^” Ì^” Ì^” Ì^”' Ì^#”( Ì^$”, Ì^(”- Ì^)”. Ì^)™” Ì`” Ì`
-” Ì`” Ì`”  Ì`”! Ì`”+ Ì`'”- Ì`)”. Ì`)’” Ìa” Ìa›” Ìb” Ìb” Ìb” Ìb”# Ìb”. Ìb(”/ Ìb)”6 Ìb0”7 Ìb1”? Ìb9”ÌA Ìb;˜” Ìc” Ìc” Ìc” Ìc” Ìc”* Ìc"”+ Ìc#”/ Ìc'“” Ìd” Ìd” Ìd”” Ìe
-”" Ìe”$ Ìe”6 Ìe,˜” Ìf
-”# Ìf”% Ìf”/ Ìf%”5 Ìf+”6 Ìf,”< Ìf2”> Ìf4‘” Ìg	”” Ìh” Ìh” Ìh”# Ìh˜” Ìi” Ìi”  Ìi”$ Ìi”% Ìi”1 Ìi)”2 Ìi*”8 Ìi0”” Ìj” Ìj”  Ìj”% Ìj”” Ìk” Ìk” Ìk”& Ìk“” Ìl” Ìl” Ìl˜” Ìn” Ìn
-” Ìn” Ìn”% Ìn”* Ìn$”- Ìn'”/ Ìn)š” Ìo” Ìo” Ìo” Ìo”% Ìo”- Ìo%”. Ìo&”: Ìo2”< Ìo4”= Ìo4’” Ìp” Ìp” Ìq
-” Ìq”! Ìq”$ Ìq”( Ìq”) Ìq”. Ìq$”/ Ìq%”7 Ìq-”8 Ìq.”> Ìq>”? ÌqÌY”Ì@ ÌqÌY™” Ìr
-” Ìr” Ìr”  Ìr”' Ìr”( Ìr”/ Ìr%”0 ÌrÌL”1 ÌrÌL™” Ìs
-” Ìs” Ìs” Ìs”" Ìs”# Ìs”, Ìs"”- Ìs#”/ Ìs%˜” Ìt” Ìt”! Ìt”$ Ìt”% Ìt”. Ìt"”/ Ìt-”0 Ìt-‘” Ìu‘” Ìv	•” Ìv
-” Ìv” Ìv”0 Ìv*”2 Ìv,˜” Ìw” Ìw” Ìw” Ìw”  Ìw”& Ìw”' Ìw”( Ìw‘” Ìx” Ìz” Ìz” Ìz” Ìz+” Ìz/” Ìz0”# Ìz5”$ Ìz6”, Ìz>”- Ìz?”3 ÌzÌO”4 ÌzÌj”5 ÌzÌjŸ” Ì|” Ì|
-” Ì|” Ì|” Ì|” Ì|”! Ì|”% Ì|”& Ì| ”- Ì|'”. Ì|(”4 Ì|.”9 Ì|3”: Ì|4”< Ì|6˜” Ì}” Ì}” Ì}” Ì}”  Ì}”+ Ì}#”, Ì}$”- Ì}$‘” Ì~›” Ì€” Ì€” Ì€” Ì€” Ì€”  Ì€”' Ì€!”( Ì€"”) Ì€#”* Ì€$”+ Ì€$Ÿ” Ì” Ì” Ì” Ì”" Ì”# Ì”* Ì$”+ Ì%”2 Ì,”4 Ì.”8 Ì2”: Ì4”> Ì8”Ì@ Ì:”ÌA Ì:•” Ìƒ” Ìƒ
-” Ìƒ” Ìƒ” Ìƒ˜” Ì„” Ì„” Ì„” Ì„”  Ì„”+ Ì„#”, Ì„$”- Ì„$‘” Ì…” Ì‡” Ì‡” Ì‡” Ì‡” Ì‡”) Ì‡#”* Ì‡$”9 Ì‡3”: Ì‡4”ÌC Ì‡=”ÌE Ì‡?”ÌL Ì‡ÌF”ÌM Ì‡ÌG”ÌN Ì‡ÌG” Ìˆ” Ìˆ” Ìˆ” Ìˆ” Ìˆ”) Ìˆ#”* Ìˆ$”/ Ìˆ)”1 Ìˆ+”ÌD Ìˆ>”ÌF ÌˆÌ@”ÌY ÌˆÌS”ÌZ ÌˆÌT”Ì[ ÌˆÌT” Ì‰” Ì‰” Ì‰” Ì‰” Ì‰”# Ì‰”$ Ì‰”) Ì‰#”- Ì‰'”3 Ì‰-”4 Ì‰.”= Ì‰7”> Ì‰7›” ÌŠ” ÌŠ” ÌŠ” ÌŠ”" ÌŠ”( ÌŠ"”) ÌŠ#”6 ÌŠ0”: ÌŠ4”Ì@ ÌŠ:”ÌA ÌŠ:›” Ì‹” Ì‹” Ì‹”% Ì‹”( Ì‹"”. Ì‹(”/ Ì‹)”< Ì‹6”ÌA Ì‹;”ÌI Ì‹ÌC”ÌJ Ì‹ÌCÜ ” Ì” Ì” Ì” Ì” Ì” Ì”  Ì”ÌF ÌÌ@”ÌJ ÌÌD”ÌK ÌÌE”ÌP ÌÌJ”ÌR ÌÌL”Ì^ ÌÌX”Ìb ÌÌ\”Ìk ÌÌe”Ìm ÌÌg”Ìn ÌÌh”Ìo ÌÌh”” Ì” Ì” Ì” Ì‘”	 Ì‘” Ì–” Ì” Ì” Ì” Ì”! Ì”" Ì‘”	 Ì‘’” Ì’” Ì’˜” Ì””
- Ì”” Ì”	” Ì”” Ì”” Ì””  Ì””& Ì”5Ü ” Ì•” Ì•
-” Ì•” Ì•” Ì•”" Ì•”# Ì•”* Ì•&”+ Ì•'”2 Ì•.”3 Ì•/”9 Ì•5”; Ì•7”= Ì•9”> Ì•:”ÌG Ì•ÌC”ÌH Ì•ÌC™” Ì—” Ì—
-” Ì—” Ì—”  Ì—”! Ì—”+ Ì—'”- Ì—)”. Ì—)’” Ì˜” Ì˜›” Ì™” Ì™” Ì™” Ì™”# Ì™”. Ì™(”/ Ì™)”6 Ì™0”7 Ì™1”? Ì™9”ÌA Ì™;˜” Ìš” Ìš” Ìš” Ìš” Ìš”* Ìš"”+ Ìš#”. Ìš&“” Ì›” Ì›” Ì›˜” Ìœ
-”# Ìœ”% Ìœ”/ Ìœ%”5 Ìœ+”6 Ìœ,”< Ìœ2”> Ìœ4‘” Ì	˜” Ì” Ì”  Ì”$ Ì”% Ì”1 Ì)”2 Ì*”8 Ì0”” ÌŸ” ÌŸ”  ÌŸ”% ÌŸ”” Ì ” Ì ” Ì ”" Ì “” Ì¡” Ì¡” Ì¡˜” Ì¢” Ì¢” Ì¢” Ì¢”( Ì¢"”- Ì¢'”0 Ì¢*”1 Ì¢*‘”	 Ì£’” Ì£” Ì£”” Ì¤” Ì¤” Ì¤” Ì¤‘”	 Ì¥‘” Ì¥–” Ì¦” Ì¦” Ì¦” Ì¦”! Ì¦”" Ì¦‘”	 Ì§’” Ì¨” Ì¨˜” Ìª”
- Ìª” Ìª	” Ìª” Ìª”& Ìª$”' Ìª%”- Ìª<Ü ” Ì«” Ì«
-” Ì«” Ì«” Ì«”" Ì«”# Ì«”* Ì«&”+ Ì«'”2 Ì«.”3 Ì«/”9 Ì«5”; Ì«7”= Ì«9”> Ì«:”ÌG Ì«ÌC”ÌH Ì«ÌC™” Ì¬” Ì¬
-” Ì¬” Ì¬” Ì¬” Ì¬”" Ì¬”$ Ì¬ ”% Ì¬ ™” Ì®” Ì®
-” Ì®” Ì®”  Ì®”! Ì®”+ Ì®'”- Ì®)”. Ì®)’” Ì¯” Ì¯›” Ì°” Ì°” Ì°” Ì°”# Ì°”. Ì°(”/ Ì°)”6 Ì°0”7 Ì°1”? Ì°9”ÌA Ì°;˜” Ì±” Ì±” Ì±” Ì±” Ì±”* Ì±"”+ Ì±#”. Ì±&“” Ì²” Ì²” Ì²˜” Ì³
-”# Ì³”% Ì³”/ Ì³%”5 Ì³+”6 Ì³,”< Ì³2”> Ì³4‘” Ì´	˜” Ìµ” Ìµ”  Ìµ”$ Ìµ”% Ìµ”1 Ìµ)”2 Ìµ*”8 Ìµ0”” Ì¶” Ì¶”  Ì¶”% Ì¶”” Ì·” Ì·” Ì·”" Ì·“” Ì¸” Ì¸” Ì¸›” Ìº” Ìº” Ìº” Ìº”" Ìº”# Ìº”& Ìº ”( Ìº"”+ Ìº%”4 Ìº.”5 Ìº.–” Ì»” Ì»
-” Ì»” Ì»” Ì»!” Ì»!˜” Ì½” Ì½
-” Ì½” Ì½”% Ì½”* Ì½$”- Ì½'”/ Ì½)’” Ì¾” Ì¾” Ì¿
-” Ì¿” Ì¿”! Ì¿”% Ì¿”& Ì¿”+ Ì¿!”, Ì¿"”4 Ì¿*”5 Ì¿+”; Ì¿;”< Ì¿ÌV”= Ì¿ÌV™” ÌÀ
-” ÌÀ”# ÌÀ”& ÌÀ”* ÌÀ ”+ ÌÀ!”1 ÌÀ'”2 ÌÀÌP”3 ÌÀÌP”” ÌÁ
-” ÌÁ”! ÌÁ”# ÌÁ”” ÌÂ”  ÌÂ”# ÌÂ”, ÌÂ Ÿ” ÌÃ”  ÌÃ”! ÌÃ”" ÌÃ”# ÌÃ-”% ÌÃ/”' ÌÃ1”( ÌÃ3”) ÌÃ4”* ÌÃ5”. ÌÃ9”/ ÌÃÌE”3 ÌÃÌI”5 ÌÃÌK”6 ÌÃÌLŸ” ÌÄ”# ÌÄ”$ ÌÄ”% ÌÄ”' ÌÄ!”) ÌÄ#”+ ÌÄ%”, ÌÄ&”. ÌÄ(”/ ÌÄ)”5 ÌÄ/”8 ÌÄ2”9 ÌÄ3”: ÌÄ4”; ÌÄ4‘” ÌÅ‘” ÌÆ	•” ÌÆ
-” ÌÆ” ÌÆ”1 ÌÆ+”3 ÌÆ-‘” ÌÇ’” ÌÉ” ÌÉ˜” ÌÊ” ÌÊ” ÌÊ”# ÌÊ”$ ÌÊ”0 ÌÊ(”5 ÌÊ-”8 ÌÊ0–” ÌË” ÌË” ÌË”$ ÌË”% ÌË”1 ÌË)”” ÌÌ” ÌÌ” ÌÌ”  ÌÌ”” ÌÍ” ÌÍ” ÌÍ”$ ÌÍÜ ” ÌÎ” ÌÎ” ÌÎ”& ÌÎ”' ÌÎ”3 ÌÎ+”8 ÌÎ0”; ÌÎ3”< ÌÎ4”= ÌÎ5”> ÌÎ6”ÌB ÌÎ:”ÌC ÌÎ;”ÌD ÌÎ<”ÌE ÌÎ=”ÌM ÌÎÌE”ÌU ÌÎÌM”ÌV ÌÎÌN”Ìb ÌÎÌZ”Ìd ÌÎÌ\’” ÌÏ” ÌÏ‘”	 ÌĞ”” ÌĞ” ÌĞ” ÌĞ” ÌĞ’” ÌÑ” ÌÑ”” ÌÒ” ÌÒ” ÌÒ”  ÌÒ”” ÌÓ” ÌÓ” ÌÓ”  ÌÓ”” ÌÔ” ÌÔ” ÌÔ” ÌÔ™” ÌÕ” ÌÕ” ÌÕ” ÌÕ”  ÌÕ”# ÌÕ”% ÌÕ”( ÌÕ ”1 ÌÕ)–” ÌÖ” ÌÖ” ÌÖ”! ÌÖ”$ ÌÖ”& ÌÖ’” Ì×” Ì×‘”	 ÌØ‘” ÌØ–” ÌÙ” ÌÙ” ÌÙ” ÌÙ”! ÌÙ”" ÌÙ‘”	 ÌÚ’” ÌÛ” ÌÛŸ” Ìİ”
- Ìİ” Ìİ	” Ìİ” Ìİ”% Ìİ#”& ÌŞ”, ÌŞ”. Ìß”: Ìß”< Ìà”ÌG Ìà”ÌI Ìá”ÌU Ìá”Ì[ ÌáÜ ” Ìã” Ìã
-” Ìã” Ìã” Ìã”" Ìã”# Ìã”* Ìã&”+ Ìã'”2 Ìã.”3 Ìã/”9 Ìã5”; Ìã7”= Ìã9”> Ìã:”ÌQ ÌãÌM”ÌR ÌãÌM”” Ìå” Ìå
-” Ìå” Ìå(–” Ìæ” Ìæ” Ìæ” Ìæ” Ìæ”# Ìæ“” Ìç” Ìç” Ìçš” Ìè” Ìè
-” Ìè” Ìè”  Ìè”" Ìè”) Ìè!”+ Ìè#”7 Ìè/”9 Ìè1š” Ìé” Ìé
-” Ìé” Ìé” Ìé”  Ìé”' Ìé”) Ìé!”4 Ìé,”6 Ìé.‘” Ìê–” Ìë” Ìë” Ìë” Ìë” Ìë”( Ìë"–” Ìì” Ìì” Ìì” Ìì”  Ìì”+ Ìì%”” Ìí” Ìí” Ìí” Ìí’”	 Ìî”
- Ìî™” Ìğ” Ìğ
-” Ìğ” Ìğ”  Ìğ”! Ìğ”+ Ìğ'”- Ìğ)”. Ìğ)’” Ìñ” Ìñ›” Ìò” Ìò” Ìò” Ìò”# Ìò”. Ìò(”/ Ìò)”6 Ìò0”7 Ìò1”? Ìò9”ÌA Ìò;˜” Ìó” Ìó” Ìó” Ìó” Ìó”* Ìó"”+ Ìó#”/ Ìó'“” Ìô” Ìô” Ìô”” Ìõ
-”" Ìõ”$ Ìõ”6 Ìõ,˜” Ìö
-”# Ìö”% Ìö”/ Ìö%”5 Ìö+”6 Ìö,”< Ìö2”> Ìö4‘” Ì÷	™” Ìø” Ìø” Ìø” Ìø”  Ìø”) Ìø!”* Ìø"”. Ìø&”/ Ìø'˜” Ìù” Ìù”  Ìù”$ Ìù”% Ìù”1 Ìù)”2 Ìù*”8 Ìù0”” Ìú” Ìú”  Ìú”% Ìú”” Ìû” Ìû” Ìû”& Ìû“” Ìü” Ìü” Ìü˜” Ìş” Ìş
-” Ìş” Ìş”% Ìş”* Ìş$”- Ìş'”/ Ìş)š” Ìÿ” Ìÿ” Ìÿ” Ìÿ”% Ìÿ”- Ìÿ%”. Ìÿ&”: Ìÿ2”< Ìÿ4”= Ìÿ4’” Í ” Í ” Í
-” Í”! Í”$ Í”( Í”) Í”. Í$”/ Í%”7 Í-”8 Í.”> Í>”? ÍÌY”Ì@ ÍÌY™” Í
-” Í” Í”  Í”' Í”( Í”/ Í%”0 ÍÌL”1 ÍÌL˜” Í
-” Í” Í” Í”" Í”# Í”, Í"”- Í#˜” Í%” Í+”! Í.”$ Í1”% Í2”. Í;”/ ÍÌF”0 ÍÌF‘” Í	•” Í
-” Í” Í”$ Í”& Í ˜” Í” Í” Í” Í”  Í”& Í”' Í”( Í‘” Í” Í” Í” Í” Í+” Í/” Í0”# Í5”$ Í6”, Í>”- Í?”3 ÍÌO”4 ÍÌj”5 ÍÌjŸ” Í	” Í	
-” Í	” Í	” Í	” Í	”! Í	”% Í	”& Í	 ”- Í	'”. Í	(”4 Í	.”9 Í	3”: Í	4”< Í	6˜” Í
-” Í
-” Í
-” Í
-”  Í
-”+ Í
-#”, Í
-$”- Í
-$‘” ÍÜ ” Í” Í” Í” Í”  Í”! Í”( Í"”) Í#”* Í$”+ Í%”, Í&”3 Í-”4 Í.”; Í5”= Í7”ÌA Í;”ÌC Í=”ÌG ÍÌA”ÌI ÍÌC”ÌJ ÍÌC”” Í” Í
-” Í” Í˜” Í” Í” Í” Í#”  Í$”+ Í/”, Í0”- Í0” Í” Í” Í” Í” Í” Í”  Í”Ì@ Í:”ÌD Í>”ÌE Í?”ÌJ ÍÌD”ÌL ÍÌF”ÌM ÍÌG”ÌN ÍÌG”” Í” Í” Í” Í‘”	 Í‘” Í–” Í” Í” Í” Í”! Í”" Í‘”	 Í’” Í” Í‘” ÍÔrH–§version¤file§sources®sourcesContent¥names¨mappingsÀ‘À‘ÀÜ È‘”    ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”  	 ‘”  
- ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”   ‘”    ‘”  ! ‘”  " ‘”  # ‘”  $ ‘”  % ‘”  & ‘”  ' ‘”  ( ‘”  ) ‘”  * ‘”  + ‘”  , ‘”  - ‘”  . ‘”  / ‘”  0 ‘”  1 ‘”  2 ‘”  3 ‘”  4 ‘”  5 ‘”  6 ‘”  7 ‘”  8 ‘”  9 ‘”  : ‘”  ; ‘”  < ‘”  = ‘”  > ‘”  ? ‘”  Ì@ ‘”  ÌA ‘”  ÌB ‘”  ÌC ‘”  ÌD ‘”  ÌE ‘”  ÌF ‘”  ÌG ‘”  ÌH ‘”  ÌI ‘”  ÌJ ‘”  ÌK ‘”  ÌL ‘”  ÌM ‘”  ÌN ‘”  ÌO ‘”  ÌP ‘”  ÌQ ‘”  ÌR ‘”  ÌS ‘”  ÌT ‘”  ÌU ‘”  ÌV ‘”  ÌW ‘”  ÌX ‘”  ÌY ‘”  ÌZ ‘”  Ì[ ‘”  Ì\ ‘”  Ì] ‘”  Ì^ ‘”  Ì_ ‘”  Ì` ‘”  Ìa ‘”  Ìb ‘”  Ìc ‘”  Ìd ‘”  Ìe ‘”  Ìf ‘”  Ìg ‘”  Ìh ‘”  Ìi ‘”  Ìj ‘”  Ìk ‘”  Ìl ‘”  Ìm ‘”  Ìn ‘”  Ìo ‘”  Ìp ‘”  Ìq ‘”  Ìr ‘”  Ìs ‘”  Ìt ‘”  Ìu ‘”  Ìv ‘”  Ìw ‘”  Ìx ‘”  Ìy ‘”  Ìz ‘”  Ì{ ‘”  Ì| ‘”  Ì} ‘”  Ì~ ‘”  Ì ‘”  Ì€ ‘”  Ì ‘”  Ì‚ ‘”  Ìƒ ‘”  Ì„ ‘”  Ì… ‘”  Ì† ‘”  Ì‡ ‘”  Ìˆ ‘”  Ì‰ ‘”  ÌŠ ‘”  Ì‹ ‘”  ÌŒ ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì ‘”  Ì‘ ‘”  Ì’ ‘”  Ì“ ‘”  Ì” ‘”  Ì• ‘”  Ì– ‘”  Ì— ‘”  Ì˜ ‘”  Ì™ ‘”  Ìš ‘”  Ì› ‘”  Ìœ ‘”  Ì ‘”  Ì ‘”  ÌŸ ‘”  Ì  ‘”  Ì¡ ‘”  Ì¢ ‘”  Ì£ ‘”  Ì¤ ‘”  Ì¥ ‘”  Ì¦ ‘”  Ì§ ‘”  Ì¨ ‘”  Ì© ‘”  Ìª ‘”  Ì« ‘”  Ì¬ ‘”  Ì­ ‘”  Ì® ‘”  Ì¯ ‘”  Ì° ‘”  Ì± ‘”  Ì² ‘”  Ì³ ‘”  Ì´ ‘”  Ìµ ‘”  Ì¶ ‘”  Ì· ‘”  Ì¸ ‘”  Ì¹ ‘”  Ìº ‘”  Ì» ‘”  Ì¼ ‘”  Ì½ ‘”  Ì¾ ‘”  Ì¿ ‘”  ÌÀ ‘”  ÌÁ ‘”  ÌÂ ‘”  ÌÃ ‘”  ÌÄ ‘”  ÌÅ ‘”  ÌÆ ‘”  ÌÇ ÔrI’§missing¦pluginÃ¦genAbcÂÔ  ÔrJ”²dynamicImportCache¹exportAllDeclarationCache»exportNamedDeclarationCache«importCache‘ÔrK–¤type¥start£end«declarationªspecifiers¦source¶ExportNamedDeclarationÌÕÍÔrL–¤type¥start£end¢idªsuperClass¤body°ClassDeclarationÌÜÍÔrM”¤type¥start£end¤nameªIdentifierÌâÌø¶OpenAICompatibleClientÀÔrN”¤type¥start£end¤body©ClassBodyÌùÍ”ÔrO˜¤type¥start£end¦static¨computed£key¤kind¥value°MethodDefinitionÍ ÍÀÃÂMªIdentifierÍÍ®chatCompletion¦methodÔrP™¤type¥start£end¢idªexpression©generator¥async¦params¤body²FunctionExpressionÍÍÀÀÂÂÃ“MªIdentifierÍÍ"¦configMªIdentifierÍ$Í+§requestÔrQ•¤type¥start£end¤left¥right±AssignmentPatternÍ-Í?MªIdentifierÍ-Í6©timeoutMsÔrR•¤type¥start£end¥value£raw§LiteralÍ9Í?Î ÔÀ¦120000N®BlockStatementÍAÍÀ—ÔrS•¤type¥start£end¬declarations¤kind³VariableDeclarationÍLÍ–‘ÔrT•¤type¥start£end¢id¤init²VariableDeclaratorÍRÍ•MªIdentifierÍRÍZ¨endpointÔrU•¤type¥start£end«expressions¦quasis¯TemplateLiteralÍ]Í•‘ÔrV–¤type¥start£end¦callee©arguments¨optional®CallExpressionÍ`Í‚ÔrW—¤type¥start£end¦object¨property¨computed¨optional°MemberExpressionÍ`ÍvW°MemberExpressionÍ`ÍnMªIdentifierÍ`Íf¦configMªIdentifierÍgÍn§baseURLÂÂMªIdentifierÍoÍv§replaceÂÂ’ÔrX–¤type¥start£end¥value£raw¥regex§LiteralÍwÍ}’¤\/+$ ¦/\/+$/ÔrY’§pattern¥flags¤\/+$ R§LiteralÍÍ ¢''Â’ÔrZ•¤type¥start£end¥value¤tail¯TemplateElementÍ^Í^Ôr[’£raw¦cooked  ÂZ¯TemplateElementÍƒÍ”[±/chat/completions±/chat/completionsÃ¥constS³VariableDeclarationÍ Í]‘T²VariableDeclaratorÍ¦Í\MªIdentifierÍ¦Í®¨messagesÔr\”¤type¥start£end¨elements¯ArrayExpressionÍ±Í\‘Ôr]”¤type¥start£endªproperties°ObjectExpressionÍÀÍQ’Ôr^™¤type¥start£end¦method©shorthand¨computed£key¥value¤kind¨PropertyÍÓÍáÂÂÂMªIdentifierÍÓÍ×¤roleR§LiteralÍÙÍá¦system¨'system'¤init^¨PropertyÍôÍBÂÂÂMªIdentifierÍôÍû§contentR§LiteralÍıÍBÙµä½ æ˜¯ Rokurics çš„å­¦ä¹ åŠ©æ‰‹ã€‚è¯·åŸºäºç”¨æˆ·æä¾›çš„å­¦ä¹ èµ„æ–™ä¸Šä¸‹æ–‡è¿›è¡Œå›ç­”ã€‚å¦‚æœä¸Šä¸‹æ–‡ä¸è¶³ï¼Œè¯·æ˜ç¡®è¯´æ˜ï¼Œä¸è¦ç¼–é€ å†…å®¹ã€‚è¯·ä½¿ç”¨ä¸­æ–‡å›å¤ã€‚Ù·'ä½ æ˜¯ Rokurics çš„å­¦ä¹ åŠ©æ‰‹ã€‚è¯·åŸºäºç”¨æˆ·æä¾›çš„å­¦ä¹ èµ„æ–™ä¸Šä¸‹æ–‡è¿›è¡Œå›ç­”ã€‚å¦‚æœä¸Šä¸‹æ–‡ä¸è¶³ï¼Œè¯·æ˜ç¡®è¯´æ˜ï¼Œä¸è¦ç¼–é€ å†…å®¹ã€‚è¯·ä½¿ç”¨ä¸­æ–‡å›å¤ã€‚'¤init¥constÔr_—¤type¥start£end¥await¤left¥right¤body®ForOfStatementÍgÍ’ÂS³VariableDeclarationÍlÍu‘T²VariableDeclaratorÍrÍuMªIdentifierÍrÍu£msgÀ¥constW°MemberExpressionÍyÍ‰MªIdentifierÍyÍ€§requestMªIdentifierÍÍ‰¨messagesÂÂN®BlockStatementÍ‹Í’’Ôr`–¤type¥start£end¤testªconsequent©alternate«IfStatementÍšÍİÔra–¤type¥start£end¤left¨operator¥right°BinaryExpressionÍÍÁW°MemberExpressionÍÍ¦MªIdentifierÍÍ¡£msgMªIdentifierÍ¢Í¦¤roleÂÂ£===W°MemberExpressionÍ«ÍÁMªIdentifierÍ«Íº¯ChatMessageRoleMªIdentifierÍ»ÍÁ¦SYSTEMÂÂÔrb”¤type¥start£end¥label±ContinueStatementÍÔÍİÀÀÔrc”¤type¥start£endªexpression³ExpressionStatementÍëÍ‡V®CallExpressionÍëÍ†W°MemberExpressionÍëÍøMªIdentifierÍëÍó¨messagesMªIdentifierÍôÍø¤pushÂÂ‘]°ObjectExpressionÍùÍ…’^¨PropertyÍÍOÂÂÂMªIdentifierÍÍ¤role`µConditionalExpressionÍÍOa°BinaryExpressionÍÍ8W°MemberExpressionÍÍMªIdentifierÍÍ£msgMªIdentifierÍÍ¤roleÂÂ£===W°MemberExpressionÍÍ8MªIdentifierÍÍ.¯ChatMessageRoleMªIdentifierÍ/Í8©ASSISTANTÂÂR§LiteralÍ;ÍF©assistant«'assistant'R§LiteralÍIÍO¤user¦'user'¤init^¨PropertyÍbÍvÂÂÂMªIdentifierÍbÍi§contentW°MemberExpressionÍkÍvMªIdentifierÍkÍn£msgMªIdentifierÍoÍv§contentÂÂ¤initÂS³VariableDeclarationÍœÍ‘T²VariableDeclaratorÍ¢ÍœMªIdentifierÍ¢Í¦¤body]°ObjectExpressionÍ©Íœ•^¨PropertyÍ¸ÍÏÂÂÂMªIdentifierÍ¸Í½¥modelW°MemberExpressionÍ¿ÍÏMªIdentifierÍ¿ÍÅ¦configMªIdentifierÍÆÍÏ©modelNameÂÂ¤init^¨PropertyÍŞÍğÂÂÂMªIdentifierÍŞÍæ¨messagesMªIdentifierÍèÍğ¨messages¤init^¨PropertyÍÿÍ0ÂÂÂMªIdentifierÍÿÍ	ªmax_tokensa±LogicalExpressionÍÍ0W°MemberExpressionÍÍMªIdentifierÍÍ§requestMªIdentifierÍÍ©maxTokensÂÂ¢??W°MemberExpressionÍ Í0MªIdentifierÍ Í&¦configMªIdentifierÍ'Í0©maxTokensÂÂ¤init^¨PropertyÍ?ÍuÂÂÂMªIdentifierÍ?ÍJ«temperaturea±LogicalExpressionÍLÍuW°MemberExpressionÍLÍ_MªIdentifierÍLÍS§requestMªIdentifierÍTÍ_«temperatureÂÂ¢??W°MemberExpressionÍcÍuMªIdentifierÍcÍi¦configMªIdentifierÍjÍu«temperatureÂÂ¤init^¨PropertyÍ„Í‘ÂÂÂMªIdentifierÍ„ÍŠ¦streamR§LiteralÍŒÍ‘Â¥false¤init¥constS³VariableDeclarationÍ§ÍÍ‘T²VariableDeclaratorÍ­ÍÌMªIdentifierÍ­Íµ¨bodyJsonV®CallExpressionÍ¸ÍÌW°MemberExpressionÍ¸ÍÆMªIdentifierÍ¸Í¼¤JSONMªIdentifierÍ½ÍÆ©stringifyÂÂ‘MªIdentifierÍÇÍË¤bodyÂ¥constS³VariableDeclarationÍ×Íı‘T²VariableDeclaratorÍİÍüMªIdentifierÍİÍè«httpRequestV®CallExpressionÍëÍüW°MemberExpressionÍëÍúMªIdentifierÍëÍï¤httpMªIdentifierÍğÍúªcreateHttpÂÂÂ¥constÔrd–¤type¥start£end¥block§handler©finalizer¬TryStatementÍÍ¹N®BlockStatementÍÍwS³VariableDeclarationÍÍì‘T²VariableDeclaratorÍ ÍëMªIdentifierÍ Í(¨responseÔre”¤type¥start£end¨argument¯AwaitExpressionÍ+ÍëV®CallExpressionÍ1ÍëW°MemberExpressionÍ1ÍDMªIdentifierÍ1Í<«httpRequestMªIdentifierÍ=ÍD§requestÂÂ’MªIdentifierÍEÍM¨endpoint]°ObjectExpressionÍOÍê–^¨PropertyÍbÍÂÂÂMªIdentifierÍbÍh¦methodW°MemberExpressionÍjÍW°MemberExpressionÍjÍ|MªIdentifierÍjÍn¤httpMªIdentifierÍoÍ|­RequestMethodÂÂMªIdentifierÍ}Í¤POSTÂÂ¤init^¨PropertyÍ”Í)ÂÂÂMªIdentifierÍ”Íš¦header]°ObjectExpressionÍœÍ)’^¨PropertyÍ³ÍÕÂÂÂR§LiteralÍ³ÍÁ¬Content-Type®'Content-Type'R§LiteralÍÃÍÕ°application/json²'application/json'¤init^¨PropertyÍìÍÂÂÂR§LiteralÍìÍû­Authorization¯'Authorization'U¯TemplateLiteralÍıÍ‘W°MemberExpressionÍÍMªIdentifierÍÍ¦configMªIdentifierÍÍ¦apiKeyÂÂ’Z¯TemplateElementÍşÍ[§Bearer §Bearer ÂZ¯TemplateElementÍÍ[  Ã¤init¤init^¨PropertyÍ<ÍOÂÂÂMªIdentifierÍ<ÍE©extraDataMªIdentifierÍGÍO¨bodyJson¤init^¨PropertyÍbÍŠÂÂÂMªIdentifierÍbÍp®expectDataTypeW°MemberExpressionÍrÍŠW°MemberExpressionÍrÍƒMªIdentifierÍrÍv¤httpMªIdentifierÍwÍƒ¬HttpDataTypeÂÂMªIdentifierÍ„ÍŠ¦STRINGÂÂ¤init^¨PropertyÍÍ²ÂÂÂMªIdentifierÍÍ«®connectTimeoutR§LiteralÍ­Í²Íu0¥30000¤init^¨PropertyÍÅÍÛÂÂÂMªIdentifierÍÅÍĞ«readTimeoutMªIdentifierÍÒÍÛ©timeoutMs¤initÂ¥const`«IfStatementÍúÍäa°BinaryExpressionÍşÍW°MemberExpressionÍşÍMªIdentifierÍşÍ¨responseMªIdentifierÍÍ¬responseCodeÂÂ£!==R§LiteralÍÍÌÈ£200N®BlockStatementÍÍä“S³VariableDeclarationÍ0Í]‘T²VariableDeclaratorÍ4Í\MªIdentifierÍ4Í:¦errMsgU¯TemplateLiteralÍ=Í\‘W°MemberExpressionÍEÍZMªIdentifierÍEÍM¨responseMªIdentifierÍNÍZ¬responseCodeÂÂ’Z¯TemplateElementÍ>ÍC[¥HTTP ¥HTTP ÂZ¯TemplateElementÍ[Í[[  Ã£letd¬TryStatementÍoÍ«N®BlockStatementÍsÍw“S³VariableDeclarationÍŠÍ¶‘T²VariableDeclaratorÍÍµMªIdentifierÍÍ—§errBodyV®CallExpressionÍšÍµW°MemberExpressionÍšÍ¤MªIdentifierÍšÍ¤JSONMªIdentifierÍŸÍ¤¥parseÂÂ‘W°MemberExpressionÍ¥Í´MªIdentifierÍ¥Í­¨responseMªIdentifierÍ®Í´¦resultÂÂÂ¥constS³VariableDeclarationÍÌÍé‘T²VariableDeclaratorÍÒÍèMªIdentifierÍÒÍÕ£errW°MemberExpressionÍØÍèMªIdentifierÍØÍß§errBodyR§LiteralÍàÍç¥error§'error'ÃÂ¥const`«IfStatementÍÿÍda±LogicalExpressionÍÍMªIdentifierÍÍ£err¢&&W°MemberExpressionÍ
-ÍMªIdentifierÍ
-Í£errR§LiteralÍÍ§message©'message'ÃÂN®BlockStatementÍÍd‘c³ExpressionStatementÍ5ÍMÔrf–¤type¥start£end¨operator¤left¥right´AssignmentExpressionÍ5ÍL¡=MªIdentifierÍ5Í;¦errMsgW°MemberExpressionÍ>ÍLMªIdentifierÍ>ÍA£errR§LiteralÍBÍK§message©'message'ÃÂÀÔrg•¤type¥start£end¥param¤body«CatchClauseÍ‰Í«ÀN®BlockStatementÍÍ«Àe®ThrowStatementÍ½ÍÕÔrh•¤type¥start£end¦callee©arguments­NewExpressionÍÃÍÔMªIdentifierÍÇÍÌ¥Error‘MªIdentifierÍÍÍÓ¦errMsgÀS³VariableDeclarationÍòÍ	‘T²VariableDeclaratorÍøÍ	MªIdentifierÍøÍü¤dataV®CallExpressionÍÿÍ	W°MemberExpressionÍÿÍ		MªIdentifierÍÿÍ	¤JSONMªIdentifierÍ	Í		¥parseÂÂ‘W°MemberExpressionÍ	
-Í	MªIdentifierÍ	
-Í	¨responseMªIdentifierÍ	Í	¦resultÂÂÂ¥const`«IfStatementÍ	)Í	˜a±LogicalExpressionÍ	-Í	WÔri–¤type¥start£end¨operator¦prefix¨argument¯UnaryExpressionÍ	-Í	:¡!ÃW°MemberExpressionÍ	.Í	:MªIdentifierÍ	.Í	2¤dataMªIdentifierÍ	3Í	:§choicesÂÂ¢||a°BinaryExpressionÍ	>Í	WW°MemberExpressionÍ	>Í	QW°MemberExpressionÍ	>Í	JMªIdentifierÍ	>Í	B¤dataMªIdentifierÍ	CÍ	J§choicesÂÂMªIdentifierÍ	KÍ	Q¦lengthÂÂ£===R§LiteralÍ	VÍ	W ¡0N®BlockStatementÍ	YÍ	˜‘e®ThrowStatementÍ	lÍ	‰h­NewExpressionÍ	rÍ	ˆMªIdentifierÍ	vÍ	{¥Error‘R§LiteralÍ	|Í	‡µAI æ²¡æœ‰è¿”å›å†…å®¹·'AI æ²¡æœ‰è¿”å›å†…å®¹'ÀS³VariableDeclarationÍ	¦Í	Å‘T²VariableDeclaratorÍ	¬Í	ÄMªIdentifierÍ	¬Í	²¦choiceW°MemberExpressionÍ	µÍ	ÄW°MemberExpressionÍ	µÍ	ÁMªIdentifierÍ	µÍ	¹¤dataMªIdentifierÍ	ºÍ	Á§choicesÂÂR§LiteralÍ	ÂÍ	Ã ¡0ÃÂ¥constS³VariableDeclarationÍ	ÓÍ
-‘T²VariableDeclaratorÍ	ÙÍ
-MªIdentifierÍ	ÙÍ	à§contenta±LogicalExpressionÍ	ãÍ
-c¯ChainExpressionÍ	ãÍ
-V®CallExpressionÍ	ãÍ
-W°MemberExpressionÍ	ãÍ	ÿW°MemberExpressionÍ	ãÍ	ùW°MemberExpressionÍ	ãÍ	ñMªIdentifierÍ	ãÍ	é¦choiceMªIdentifierÍ	êÍ	ñ§messageÂÂMªIdentifierÍ	òÍ	ù§contentÂÂMªIdentifierÍ	ûÍ	ÿ¤trimÂÃÂ¢??R§LiteralÍ
-Í
- ¢''¥const`«IfStatementÍ
-Í
-ci¯UnaryExpressionÍ
-Í
-"¡!ÃMªIdentifierÍ
-Í
-"§contentN®BlockStatementÍ
-$Í
-c‘e®ThrowStatementÍ
-7Í
-Th­NewExpressionÍ
-=Í
-SMªIdentifierÍ
-AÍ
-F¥Error‘R§LiteralÍ
-GÍ
-RµAI è¿”å›äº†ç©ºå†…å®¹·'AI è¿”å›äº†ç©ºå†…å®¹'ÀS³VariableDeclarationÍ
-qÍ
-³‘T²VariableDeclaratorÍ
-wÍ
-²MªIdentifierÍ
-wÍ
-|¥replyh­NewExpressionÍ
-Í
-²MªIdentifierÍ
-ƒÍ
-«ChatMessage’W°MemberExpressionÍ
-Í
-¨MªIdentifierÍ
-Í
-¯ChatMessageRoleMªIdentifierÍ
-ŸÍ
-¨©ASSISTANTÂÂMªIdentifierÍ
-ªÍ
-±§content¥constS³VariableDeclarationÍ
-ÁÍ‘T²VariableDeclaratorÍ
-ÇÍMªIdentifierÍ
-ÇÍ
-Í¦resulth­NewExpressionÍ
-ĞÍMªIdentifierÍ
-ÔÍ
-ŞªChatResult“MªIdentifierÍ
-ßÍ
-ä¥replyR§LiteralÍ
-æÍ
-ù±openai-compatible³'openai-compatible'R§LiteralÍ
-ûÍ±OpenAI Compatible³'OpenAI Compatible'¥constc³ExpressionStatementÍÍPf´AssignmentExpressionÍÍO¡=W°MemberExpressionÍÍ.MªIdentifierÍÍ$¦resultMªIdentifierÍ%Í.©modelNameÂÂa±LogicalExpressionÍ1ÍOW°MemberExpressionÍ1Í;MªIdentifierÍ1Í5¤dataMªIdentifierÍ6Í;¥modelÂÂ¢??W°MemberExpressionÍ?ÍOMªIdentifierÍ?ÍE¦configMªIdentifierÍFÍO©modelNameÂÂc³ExpressionStatementÍ^Í“f´AssignmentExpressionÍ^Í’¡=W°MemberExpressionÍ^ÍqMªIdentifierÍ^Íd¦resultMªIdentifierÍeÍq¬finishReasonÂÂa±LogicalExpressionÍtÍ’W°MemberExpressionÍtÍˆMªIdentifierÍtÍz¦choiceMªIdentifierÍ{Íˆ­finish_reasonÂÂ¢??R§LiteralÍŒÍ’¤stop¦'stop'c³ExpressionStatementÍ¡Íßf´AssignmentExpressionÍ¡ÍŞ¡=W°MemberExpressionÍ¡ÍºMªIdentifierÍ¡Í§¦resultMªIdentifierÍ¨Íº²outputWasTruncatedÂÂa°BinaryExpressionÍ½ÍŞW°MemberExpressionÍ½ÍÑMªIdentifierÍ½ÍÃ¦choiceMªIdentifierÍÄÍÑ­finish_reasonÂÂ£===R§LiteralÍÖÍŞ¦length¨'length'c³ExpressionStatementÍíÍPV®CallExpressionÍíÍOW°MemberExpressionÍíÍùMªIdentifierÍíÍô§consoleMªIdentifierÍõÍù¤infoÂÂ‘U¯TemplateLiteralÍúÍN’MªIdentifierÍşÍ£TAGa±LogicalExpressionÍ'ÍLc¯ChainExpressionÍ'Í?W°MemberExpressionÍ'Í?W°MemberExpressionÍ'Í1MªIdentifierÍ'Í+¤dataMªIdentifierÍ,Í1¥usageÂÂMªIdentifierÍ3Í?¬total_tokensÂÃ¢??R§LiteralÍCÍL§unknown©'unknown'“Z¯TemplateElementÍûÍü[¡[¡[ÂZ¯TemplateElementÍÍ%[Ù#] chat completion success, tokens: Ù#] chat completion success, tokens: ÂZ¯TemplateElementÍMÍM[  ÃÂe¯ReturnStatementÍ^ÍlMªIdentifierÍeÍk¦resultÀN®BlockStatementÍ‰Í¹‘c³ExpressionStatementÍ˜Í®V®CallExpressionÍ˜Í­W°MemberExpressionÍ˜Í«MªIdentifierÍ˜Í£«httpRequestMªIdentifierÍ¤Í«§destroyÂÂÂO°MethodDefinitionÍÆÍ®ÃÂMªIdentifierÍÓÍá®testConnection¦methodP²FunctionExpressionÍáÍ®ÀÂÂÃ‘MªIdentifierÍâÍè¦configN®BlockStatementÍêÍ®“S³VariableDeclarationÍõÍ5‘T²VariableDeclaratorÍûÍ4MªIdentifierÍûÍ¨endpointU¯TemplateLiteralÍÍ4‘V®CallExpressionÍ	Í+W°MemberExpressionÍ	ÍW°MemberExpressionÍ	ÍMªIdentifierÍ	Í¦configMªIdentifierÍÍ§baseURLÂÂMªIdentifierÍÍ§replaceÂÂ’X§LiteralÍ Í&’¤\/+$ ¦/\/+$/Y¤\/+$ R§LiteralÍ(Í* ¢''Â’Z¯TemplateElementÍÍ[  ÂZ¯TemplateElementÍ,Í3[§/models§/modelsÃ¥constS³VariableDeclarationÍ?Íe‘T²VariableDeclaratorÍEÍdMªIdentifierÍEÍP«httpRequestV®CallExpressionÍSÍdW°MemberExpressionÍSÍbMªIdentifierÍSÍW¤httpMªIdentifierÍXÍbªcreateHttpÂÂÂ¥constd¬TryStatementÍoÍ§N®BlockStatementÍsÍ.’S³VariableDeclarationÍ‚Íğ‘T²VariableDeclaratorÍˆÍïMªIdentifierÍˆÍ¨responsee¯AwaitExpressionÍ“ÍïV®CallExpressionÍ™ÍïW°MemberExpressionÍ™Í¬MªIdentifierÍ™Í¤«httpRequestMªIdentifierÍ¥Í¬§requestÂÂ’MªIdentifierÍ­Íµ¨endpoint]°ObjectExpressionÍ·Íî•^¨PropertyÍÊÍèÂÂÂMªIdentifierÍÊÍĞ¦methodW°MemberExpressionÍÒÍèW°MemberExpressionÍÒÍäMªIdentifierÍÒÍÖ¤httpMªIdentifierÍ×Íä­RequestMethodÂÂMªIdentifierÍåÍè£GETÂÂ¤init^¨PropertyÍûÍWÂÂÂMªIdentifierÍûÍ¦header]°ObjectExpressionÍÍW‘^¨PropertyÍÍDÂÂÂR§LiteralÍÍ)­Authorization¯'Authorization'U¯TemplateLiteralÍ+ÍD‘W°MemberExpressionÍ5ÍBMªIdentifierÍ5Í;¦configMªIdentifierÍ<ÍB¦apiKeyÂÂ’Z¯TemplateElementÍ,Í3[§Bearer §Bearer ÂZ¯TemplateElementÍCÍC[  Ã¤init¤init^¨PropertyÍjÍ’ÂÂÂMªIdentifierÍjÍx®expectDataTypeW°MemberExpressionÍzÍ’W°MemberExpressionÍzÍ‹MªIdentifierÍzÍ~¤httpMªIdentifierÍÍ‹¬HttpDataTypeÂÂMªIdentifierÍŒÍ’¦STRINGÂÂ¤init^¨PropertyÍ¥ÍºÂÂÂMªIdentifierÍ¥Í³®connectTimeoutR§LiteralÍµÍºÍ'¥10000¤init^¨PropertyÍÍÍßÂÂÂMªIdentifierÍÍÍØ«readTimeoutR§LiteralÍÚÍßÍ'¥10000¤initÂ¥conste¯ReturnStatementÍşÍ#a°BinaryExpressionÍÍ"W°MemberExpressionÍÍMªIdentifierÍÍ¨responseMªIdentifierÍÍ¬responseCodeÂÂ£===R§LiteralÍÍ"ÌÈ£200g«CatchClauseÍ8ÍeÀN®BlockStatementÍ>Íe‘e¯ReturnStatementÍMÍZR§LiteralÍTÍYÂ¥falseN®BlockStatementÍwÍ§‘c³ExpressionStatementÍ†ÍœV®CallExpressionÍ†Í›W°MemberExpressionÍ†Í™MªIdentifierÍ†Í‘«httpRequestMªIdentifierÍ’Í™§destroyÂÂÂO°MethodDefinitionÍ´Í÷ÃÂMªIdentifierÍÁÍÖµvalidateConfiguration¦methodP²FunctionExpressionÍÖÍ÷ÀÂÂÃ‘MªIdentifierÍ×Íİ¦configN®BlockStatementÍßÍ÷”S³VariableDeclarationÍêÍ*‘T²VariableDeclaratorÍğÍ)MªIdentifierÍğÍø¨endpointU¯TemplateLiteralÍûÍ)‘V®CallExpressionÍşÍ W°MemberExpressionÍşÍW°MemberExpressionÍşÍMªIdentifierÍşÍ¦configMªIdentifierÍÍ§baseURLÂÂMªIdentifierÍÍ§replaceÂÂ’X§LiteralÍÍ’¤\/+$ ¦/\/+$/Y¤\/+$ R§LiteralÍÍ ¢''Â’Z¯TemplateElementÍüÍü[  ÂZ¯TemplateElementÍ!Í([§/models§/modelsÃ¥constS³VariableDeclarationÍ4ÍQ‘T²VariableDeclaratorÍ:ÍPMªIdentifierÍ:ÍC©startedAtV®CallExpressionÍFÍPW°MemberExpressionÍFÍNMªIdentifierÍFÍJ¤DateMªIdentifierÍKÍN£nowÂÂÂ¥constS³VariableDeclarationÍ[Í‘T²VariableDeclaratorÍaÍ€MªIdentifierÍaÍl«httpRequestV®CallExpressionÍoÍ€W°MemberExpressionÍoÍ~MªIdentifierÍoÍs¤httpMªIdentifierÍtÍ~ªcreateHttpÂÂÂ¥constd¬TryStatementÍ‹ÍğN®BlockStatementÍÍ§•S³VariableDeclarationÍÍ‘T²VariableDeclaratorÍ¤ÍMªIdentifierÍ¤Í¬¨responsee¯AwaitExpressionÍ¯ÍV®CallExpressionÍµÍW°MemberExpressionÍµÍÈMªIdentifierÍµÍÀ«httpRequestMªIdentifierÍÁÍÈ§requestÂÂ’MªIdentifierÍÉÍÑ¨endpoint]°ObjectExpressionÍÓÍ
-•^¨PropertyÍæÍÂÂÂMªIdentifierÍæÍì¦methodW°MemberExpressionÍîÍW°MemberExpressionÍîÍ MªIdentifierÍîÍò¤httpMªIdentifierÍóÍ ­RequestMethodÂÂMªIdentifierÍÍ£GETÂÂ¤init^¨PropertyÍÍsÂÂÂMªIdentifierÍÍ¦header]°ObjectExpressionÍÍs‘^¨PropertyÍ6Í`ÂÂÂR§LiteralÍ6ÍE­Authorization¯'Authorization'U¯TemplateLiteralÍGÍ`‘W°MemberExpressionÍQÍ^MªIdentifierÍQÍW¦configMªIdentifierÍXÍ^¦apiKeyÂÂ’Z¯TemplateElementÍHÍO[§Bearer §Bearer ÂZ¯TemplateElementÍ_Í_[  Ã¤init¤init^¨PropertyÍ†Í®ÂÂÂMªIdentifierÍ†Í”®expectDataTypeW°MemberExpressionÍ–Í®W°MemberExpressionÍ–Í§MªIdentifierÍ–Íš¤httpMªIdentifierÍ›Í§¬HttpDataTypeÂÂMªIdentifierÍ¨Í®¦STRINGÂÂ¤init^¨PropertyÍÁÍÖÂÂÂMªIdentifierÍÁÍÏ®connectTimeoutR§LiteralÍÑÍÖÍ'¥10000¤init^¨PropertyÍéÍûÂÂÂMªIdentifierÍéÍô«readTimeoutR§LiteralÍöÍûÍ'¥10000¤initÂ¥constS³VariableDeclarationÍÍC‘T²VariableDeclaratorÍ ÍBMªIdentifierÍ Í)©latencyMsa°BinaryExpressionÍ,ÍBV®CallExpressionÍ,Í6W°MemberExpressionÍ,Í4MªIdentifierÍ,Í0¤DateMªIdentifierÍ1Í4£nowÂÂÂ¡-MªIdentifierÍ9ÍB©startedAt¥constS³VariableDeclarationÍQÍc‘T²VariableDeclaratorÍUÍbMªIdentifierÍUÍ]¨modelIds\¯ArrayExpressionÍ`Íb£let`«IfStatementÍqÍWa°BinaryExpressionÍuÍ’W°MemberExpressionÍuÍŠMªIdentifierÍuÍ}¨responseMªIdentifierÍ~ÍŠ¬responseCodeÂÂ£===R§LiteralÍÍ’ÌÈ£200N®BlockStatementÍ”ÍW‘d¬TryStatementÍ§ÍHN®BlockStatementÍ«Í“S³VariableDeclarationÍÂÍë‘T²VariableDeclaratorÍÈÍêMªIdentifierÍÈÍÌ¤dataV®CallExpressionÍÏÍêW°MemberExpressionÍÏÍÙMªIdentifierÍÏÍÓ¤JSONMªIdentifierÍÔÍÙ¥parseÂÂ‘W°MemberExpressionÍÚÍéMªIdentifierÍÚÍâ¨responseMªIdentifierÍãÍé¦resultÂÂÂ¥constS³VariableDeclarationÍÍ ‘T²VariableDeclaratorÍÍMªIdentifierÍÍ©dataArrayW°MemberExpressionÍÍMªIdentifierÍÍ¤dataR§LiteralÍÍ¤data¦'data'ÃÂ¥const`«IfStatementÍ6Í MªIdentifierÍ:ÍC©dataArrayN®BlockStatementÍEÍ ‘c³ExpressionStatementÍ`Íéf´AssignmentExpressionÍ`Íè¡=MªIdentifierÍ`Íh¨modelIdsV®CallExpressionÍkÍèW°MemberExpressionÍkÍÑV®CallExpressionÍkÍ¬W°MemberExpressionÍkÍ–MªIdentifierÍkÍt©dataArrayMªIdentifierÍ“Í–£mapÂÂ‘P·ArrowFunctionExpressionÍ—Í«ÀÃÂÂ‘MªIdentifierÍ˜Í™¡ma±LogicalExpressionÍÍ«W°MemberExpressionÍÍ¥MªIdentifierÍÍŸ¡mR§LiteralÍ Í¤¢id¤'id'ÃÂ¢??R§LiteralÍ©Í« ¢''ÂMªIdentifierÍËÍÑ¦filterÂÂ‘P·ArrowFunctionExpressionÍÒÍçÀÃÂÂ‘MªIdentifierÍÓÍÕ¢ida°BinaryExpressionÍÚÍçW°MemberExpressionÍÚÍãMªIdentifierÍÚÍÜ¢idMªIdentifierÍİÍã¦lengthÂÂ¡>R§LiteralÍæÍç ¡0ÂÀg«CatchClauseÍ%ÍHÀN®BlockStatementÍ+ÍHÀÀe¯ReturnStatementÍeÍœ]°ObjectExpressionÍlÍ›•^¨PropertyÍÍ§ÂÂÂMªIdentifierÍÍˆ©reachablea°BinaryExpressionÍŠÍ§W°MemberExpressionÍŠÍŸMªIdentifierÍŠÍ’¨responseMªIdentifierÍ“ÍŸ¬responseCodeÂÂ£===R§LiteralÍ¤Í§ÌÈ£200¤init^¨PropertyÍºÍÛÂÂÂMªIdentifierÍºÍÄªstatusCodeW°MemberExpressionÍÆÍÛMªIdentifierÍÆÍÎ¨responseMªIdentifierÍÏÍÛ¬responseCodeÂÂ¤init^¨PropertyÍîÍşÂÂÂMªIdentifierÍîÍô¦modelsMªIdentifierÍöÍş¨modelIds¤init^¨PropertyÍÍ%ÂÂÂMªIdentifierÍÍ©latencyMsMªIdentifierÍÍ%©latencyMs¤init^¨PropertyÍ8ÍŒÂÂÂMªIdentifierÍ8ÍD¬errorMessage`µConditionalExpressionÍFÍŒa°BinaryExpressionÍFÍcW°MemberExpressionÍFÍ[MªIdentifierÍFÍN¨responseMªIdentifierÍOÍ[¬responseCodeÂÂ£===R§LiteralÍ`ÍcÌÈ£200R§LiteralÍfÍjÀ¤nullU¯TemplateLiteralÍmÍŒ‘W°MemberExpressionÍuÍŠMªIdentifierÍuÍ}¨responseMªIdentifierÍ~ÍŠ¬responseCodeÂÂ’Z¯TemplateElementÍnÍs[¥HTTP ¥HTTP ÂZ¯TemplateElementÍ‹Í‹[  Ã¤initg«CatchClauseÍ±Í®MªIdentifierÍ¸Í»£errN®BlockStatementÍ½Í®‘e¯ReturnStatementÍÌÍ£]°ObjectExpressionÍÓÍ¢•^¨PropertyÍæÍöÂÂÂMªIdentifierÍæÍï©reachableR§LiteralÍñÍöÂ¥false¤init^¨PropertyÍ	ÍÂÂÂMªIdentifierÍ	ÍªstatusCodeR§LiteralÍÍÀ¤null¤init^¨PropertyÍ,Í6ÂÂÂMªIdentifierÍ,Í2¦models\¯ArrayExpressionÍ4Í6¤init^¨PropertyÍIÍjÂÂÂMªIdentifierÍIÍR©latencyMsa°BinaryExpressionÍTÍjV®CallExpressionÍTÍ^W°MemberExpressionÍTÍ\MªIdentifierÍTÍX¤DateMªIdentifierÍYÍ\£nowÂÂÂ¡-MªIdentifierÍaÍj©startedAt¤init^¨PropertyÍ}Í“ÂÂÂMªIdentifierÍ}Í‰¬errorMessageU¯TemplateLiteralÍ‹Í“‘MªIdentifierÍÍ‘£err’Z¯TemplateElementÍŒÍŒ[  ÂZ¯TemplateElementÍ’Í’[  Ã¤initN®BlockStatementÍÀÍğ‘c³ExpressionStatementÍÏÍåV®CallExpressionÍÏÍäW°MemberExpressionÍÏÍâMªIdentifierÍÏÍÚ«httpRequestMªIdentifierÍÛÍâ§destroyÂÂÂO°MethodDefinitionÍıÍÃÂMªIdentifierÍ
-Í´chatCompletionSimple¦methodP²FunctionExpressionÍÍÀÂÂÃ”MªIdentifierÍÍ%¦configMªIdentifierÍ'Í3¬systemPromptMªIdentifierÍ5Í@«userMessageQ±AssignmentPatternÍBÍTMªIdentifierÍBÍK©timeoutMsR§LiteralÍNÍTÎ ¿ ¦180000N®BlockStatementÍVÍ”S³VariableDeclarationÍaÍ«‘T²VariableDeclaratorÍgÍªMªIdentifierÍgÍo¨endpointU¯TemplateLiteralÍrÍª‘V®CallExpressionÍuÍ—W°MemberExpressionÍuÍ‹W°MemberExpressionÍuÍƒMªIdentifierÍuÍ{¦configMªIdentifierÍ|Íƒ§baseURLÂÂMªIdentifierÍ„Í‹§replaceÂÂ’X§LiteralÍŒÍ’’¤\/+$ ¦/\/+$/Y¤\/+$ R§LiteralÍ”Í– ¢''Â’Z¯TemplateElementÍsÍs[  ÂZ¯TemplateElementÍ˜Í©[±/chat/completions±/chat/completionsÃ¥constS³VariableDeclarationÍµÍ‘T²VariableDeclaratorÍ»ÍMªIdentifierÍ»Í¿¤body]°ObjectExpressionÍÂÍ•^¨PropertyÍÑÍèÂÂÂMªIdentifierÍÑÍÖ¥modelW°MemberExpressionÍØÍèMªIdentifierÍØÍŞ¦configMªIdentifierÍßÍè©modelNameÂÂ¤init^¨PropertyÍ÷Í…ÂÂÂMªIdentifierÍ÷Íÿ¨messages\¯ArrayExpressionÍÍ…’]°ObjectExpressionÍÍ=’^¨PropertyÍÍ$ÂÂÂMªIdentifierÍÍ¤roleR§LiteralÍÍ$¦system¨'system'¤init^¨PropertyÍ&Í;ÂÂÂMªIdentifierÍ&Í-§contentMªIdentifierÍ/Í;¬systemPrompt¤init]°ObjectExpressionÍPÍv’^¨PropertyÍRÍ^ÂÂÂMªIdentifierÍRÍV¤roleR§LiteralÍXÍ^¤user¦'user'¤init^¨PropertyÍ`ÍtÂÂÂMªIdentifierÍ`Íg§contentMªIdentifierÍiÍt«userMessage¤init¤init^¨PropertyÍ”Í°ÂÂÂMªIdentifierÍ”Íªmax_tokensW°MemberExpressionÍ Í°MªIdentifierÍ Í¦¦configMªIdentifierÍ§Í°©maxTokensÂÂ¤init^¨PropertyÍ¿ÍŞÂÂÂMªIdentifierÍ¿ÍÊ«temperatureW°MemberExpressionÍÌÍŞMªIdentifierÍÌÍÒ¦configMªIdentifierÍÓÍŞ«temperatureÂÂ¤init^¨PropertyÍíÍúÂÂÂMªIdentifierÍíÍó¦streamR§LiteralÍõÍúÂ¥false¤init¥constS³VariableDeclarationÍÍ6‘T²VariableDeclaratorÍÍ5MªIdentifierÍÍ!«httpRequestV®CallExpressionÍ$Í5W°MemberExpressionÍ$Í3MªIdentifierÍ$Í(¤httpMªIdentifierÍ)Í3ªcreateHttpÂÂÂ¥constd¬TryStatementÍ@ÍN®BlockStatementÍDÍÆ˜S³VariableDeclarationÍSÍ1‘T²VariableDeclaratorÍYÍ0MªIdentifierÍYÍa¨responsee¯AwaitExpressionÍdÍ0V®CallExpressionÍjÍ0W°MemberExpressionÍjÍ}MªIdentifierÍjÍu«httpRequestMªIdentifierÍvÍ}§requestÂÂ’MªIdentifierÍ~Í†¨endpoint]°ObjectExpressionÍˆÍ/–^¨PropertyÍ›ÍºÂÂÂMªIdentifierÍ›Í¡¦methodW°MemberExpressionÍ£ÍºW°MemberExpressionÍ£ÍµMªIdentifierÍ£Í§¤httpMªIdentifierÍ¨Íµ­RequestMethodÂÂMªIdentifierÍ¶Íº¤POSTÂÂ¤init^¨PropertyÍÍÍbÂÂÂMªIdentifierÍÍÍÓ¦header]°ObjectExpressionÍÕÍb’^¨PropertyÍìÍÂÂÂR§LiteralÍìÍú¬Content-Type®'Content-Type'R§LiteralÍüÍ°application/json²'application/json'¤init^¨PropertyÍ%ÍOÂÂÂR§LiteralÍ%Í4­Authorization¯'Authorization'U¯TemplateLiteralÍ6ÍO‘W°MemberExpressionÍ@ÍMMªIdentifierÍ@ÍF¦configMªIdentifierÍGÍM¦apiKeyÂÂ’Z¯TemplateElementÍ7Í>[§Bearer §Bearer ÂZ¯TemplateElementÍNÍN[  Ã¤init¤init^¨PropertyÍuÍ”ÂÂÂMªIdentifierÍuÍ~©extraDataV®CallExpressionÍ€Í”W°MemberExpressionÍ€ÍMªIdentifierÍ€Í„¤JSONMªIdentifierÍ…Í©stringifyÂÂ‘MªIdentifierÍÍ“¤bodyÂ¤init^¨PropertyÍ§ÍÏÂÂÂMªIdentifierÍ§Íµ®expectDataTypeW°MemberExpressionÍ·ÍÏW°MemberExpressionÍ·ÍÈMªIdentifierÍ·Í»¤httpMªIdentifierÍ¼ÍÈ¬HttpDataTypeÂÂMªIdentifierÍÉÍÏ¦STRINGÂÂ¤init^¨PropertyÍâÍ÷ÂÂÂMªIdentifierÍâÍğ®connectTimeoutR§LiteralÍòÍ÷Íu0¥30000¤init^¨PropertyÍ
-Í ÂÂÂMªIdentifierÍ
-Í«readTimeoutMªIdentifierÍÍ ©timeoutMs¤initÂ¥const`«IfStatementÍ?Ía°BinaryExpressionÍCÍ`W°MemberExpressionÍCÍXMªIdentifierÍCÍK¨responseMªIdentifierÍLÍX¬responseCodeÂÂ£!==R§LiteralÍ]Í`ÌÈ£200N®BlockStatementÍbÍ“S³VariableDeclarationÍuÍ¢‘T²VariableDeclaratorÍyÍ¡MªIdentifierÍyÍ¦errMsgU¯TemplateLiteralÍ‚Í¡‘W°MemberExpressionÍŠÍŸMªIdentifierÍŠÍ’¨responseMªIdentifierÍ“ÍŸ¬responseCodeÂÂ’Z¯TemplateElementÍƒÍˆ[¥HTTP ¥HTTP ÂZ¯TemplateElementÍ Í [  Ã£letd¬TryStatementÍ´ÍËN®BlockStatementÍ¸Í£“S³VariableDeclarationÍÏÍû‘T²VariableDeclaratorÍÕÍúMªIdentifierÍÕÍÜ§errBodyV®CallExpressionÍßÍúW°MemberExpressionÍßÍéMªIdentifierÍßÍã¤JSONMªIdentifierÍäÍé¥parseÂÂ‘W°MemberExpressionÍêÍùMªIdentifierÍêÍò¨responseMªIdentifierÍóÍù¦resultÂÂÂ¥constS³VariableDeclarationÍÍ.‘T²VariableDeclaratorÍÍ-MªIdentifierÍÍ£errW°MemberExpressionÍÍ-MªIdentifierÍÍ$§errBodyR§LiteralÍ%Í,¥error§'error'ÃÂ¥const`«IfStatementÍDÍa±LogicalExpressionÍHÍ]MªIdentifierÍHÍK£err¢&&W°MemberExpressionÍOÍ]MªIdentifierÍOÍR£errR§LiteralÍSÍ\§message©'message'ÃÂc³ExpressionStatementÍxÍf´AssignmentExpressionÍxÍ¡=MªIdentifierÍxÍ~¦errMsgW°MemberExpressionÍÍMªIdentifierÍÍ„£errR§LiteralÍ…Í§message©'message'ÃÂÀg«CatchClauseÍµÍËÀN®BlockStatementÍ»ÍËÀe®ThrowStatementÍİÍõh­NewExpressionÍãÍôMªIdentifierÍçÍì¥Error‘MªIdentifierÍíÍó¦errMsgÀS³VariableDeclarationÍÍ;‘T²VariableDeclaratorÍÍ:MªIdentifierÍÍ¤dataV®CallExpressionÍÍ:W°MemberExpressionÍÍ)MªIdentifierÍÍ#¤JSONMªIdentifierÍ$Í)¥parseÂÂ‘W°MemberExpressionÍ*Í9MªIdentifierÍ*Í2¨responseMªIdentifierÍ3Í9¦resultÂÂÂ¥const`«IfStatementÍIÍ¸a±LogicalExpressionÍMÍwi¯UnaryExpressionÍMÍZ¡!ÃW°MemberExpressionÍNÍZMªIdentifierÍNÍR¤dataMªIdentifierÍSÍZ§choicesÂÂ¢||a°BinaryExpressionÍ^ÍwW°MemberExpressionÍ^ÍqW°MemberExpressionÍ^ÍjMªIdentifierÍ^Íb¤dataMªIdentifierÍcÍj§choicesÂÂMªIdentifierÍkÍq¦lengthÂÂ£===R§LiteralÍvÍw ¡0N®BlockStatementÍyÍ¸‘e®ThrowStatementÍŒÍ©h­NewExpressionÍ’Í¨MªIdentifierÍ–Í›¥Error‘R§LiteralÍœÍ§µAI æ²¡æœ‰è¿”å›å†…å®¹·'AI æ²¡æœ‰è¿”å›å†…å®¹'ÀS³VariableDeclarationÍÆÍ‘T²VariableDeclaratorÍÌÍMªIdentifierÍÌÍÓ§contenta±LogicalExpressionÍÖÍc¯ChainExpressionÍÖÍıV®CallExpressionÍÖÍıW°MemberExpressionÍÖÍûW°MemberExpressionÍÖÍõW°MemberExpressionÍÖÍíW°MemberExpressionÍÖÍåW°MemberExpressionÍÖÍâMªIdentifierÍÖÍÚ¤dataMªIdentifierÍÛÍâ§choicesÂÂR§LiteralÍãÍä ¡0ÃÂMªIdentifierÍæÍí§messageÂÂMªIdentifierÍîÍõ§contentÂÂMªIdentifierÍ÷Íû¤trimÂÃÂ¢??R§LiteralÍÍ ¢''¥const`«IfStatementÍÍNi¯UnaryExpressionÍÍ¡!ÃMªIdentifierÍÍ§contente®ThrowStatementÍ1ÍNh­NewExpressionÍ7ÍMMªIdentifierÍ;Í@¥Error‘R§LiteralÍAÍLµAI è¿”å›äº†ç©ºå†…å®¹·'AI è¿”å›äº†ç©ºå†…å®¹'Àc³ExpressionStatementÍ\ÍV®CallExpressionÍ\ÍW°MemberExpressionÍ\ÍhMªIdentifierÍ\Íc§consoleMªIdentifierÍdÍh¤infoÂÂ‘U¯TemplateLiteralÍiÍœ’MªIdentifierÍmÍp£TAGW°MemberExpressionÍÍšMªIdentifierÍÍ”¤dataMªIdentifierÍ•Íš¥modelÂÂ“Z¯TemplateElementÍjÍk[¡[¡[ÂZ¯TemplateElementÍqÍ[½] completion success, model: ½] completion success, model: ÂZ¯TemplateElementÍ›Í›[  ÃÂe¯ReturnStatementÍ¬Í»MªIdentifierÍ³Íº§contentÀN®BlockStatementÍØÍ‘c³ExpressionStatementÍçÍıV®CallExpressionÍçÍüW°MemberExpressionÍçÍúMªIdentifierÍçÍò«httpRequestMªIdentifierÍóÍú§destroyÂÂÂÀ’Ôrj•¤type¥start£endªspecifiers¦source±ImportDeclarationÌ@Ìb‘Ôrk”¤type¥start£end¥local¶ImportDefaultSpecifierÌGÌKMªIdentifierÌGÌK¤httpR§LiteralÌQÌa®@ohos.net.http°"@ohos.net.http"j±ImportDeclarationÌdÌ´“Ôrl•¤type¥start£end¨imported¥local¯ImportSpecifierÌmÌxMªIdentifierÌmÌx«ChatMessageMªIdentifierÌmÌx«ChatMessagel¯ImportSpecifierÌzÌ‰MªIdentifierÌzÌ‰¯ChatMessageRoleMªIdentifierÌzÌ‰¯ChatMessageRolel¯ImportSpecifierÌ‹Ì•MªIdentifierÌ‹Ì•ªChatResultMªIdentifierÌ‹Ì•ªChatResultR§LiteralÌÌ³´../models/ChatModels¶'../models/ChatModels'

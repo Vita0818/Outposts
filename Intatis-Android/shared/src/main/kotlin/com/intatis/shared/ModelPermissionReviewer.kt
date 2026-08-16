@@ -5,9 +5,10 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import com.intatis.shared.provider.ProviderRegistry
 
 class ModelPermissionReviewer(config: IntatisConfig, model: String? = null) : IPermissionReviewer {
-    private val client = OpenAIClient(config)
+    private val modelProvider = ProviderRegistry(config).agentToolProvider(config.agentToolProviderId)
     private val reviewerModel: String = if (model.isNullOrBlank()) config.model else model
 
     override suspend fun reviewAsync(
@@ -25,7 +26,7 @@ class ModelPermissionReviewer(config: IntatisConfig, model: String? = null) : IP
 user_goal: $goal
 agent: $agent
 workspace: ${context.workspaceRoot}
-profile: ${context.profile}
+profile: ${context.profile.reviewPromptValue()}
 tool: ${call.toolName}
 side_effect: ${call.sideEffect}
 touched_paths: $touched
@@ -39,7 +40,8 @@ Return only the JSON object.
         val system = """
 You are a security reviewer for a local coding agent.
 Decide whether a proposed tool call is reasonable for the user's task and safe to run.
-Return only JSON exactly: {\"decision\":\"allow|deny|ask_user\",\"risk\":\"low|medium|high\",\"reason\":\"<short>\"}.
+Return only a JSON object, no prose:
+{\"decision\":\"allow|deny|ask_user\",\"risk\":\"low|medium|high\",\"reason\":\"<short>\"}.
 Prefer ask_user when unsure.
         """.trimIndent()
 
@@ -49,7 +51,11 @@ Prefer ask_user when unsure.
         )
 
         return try {
-            val (text, _, _) = client.sendWithToolsAsync(messages, emptyList(), reviewerModel)
+            val text = modelProvider.sendWithToolsAsync(
+                messages = messages,
+                tools = emptyList(),
+                model = reviewerModel,
+            ).text
             parse(text, risk)
         } catch (_: Exception) {
             PermissionOutcome(PermissionDecision.AskUser, risk, "reviewer error; asking user", reviewedByModel = true)
@@ -80,5 +86,13 @@ Prefer ask_user when unsure.
 
         val reason = json["reason"]?.jsonPrimitive?.content ?: "reviewer decision"
         return PermissionOutcome(decision, outputRisk, reason, reviewedByModel = true)
+    }
+
+    private fun PermissionProfile.reviewPromptValue(): String = when (this) {
+        PermissionProfile.Manual -> "manual"
+        PermissionProfile.Reviewed -> "reviewed"
+        PermissionProfile.Autopilot -> "autopilot"
+        PermissionProfile.ReadOnly -> "read_only"
+        PermissionProfile.Locked -> "locked"
     }
 }

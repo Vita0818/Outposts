@@ -6,7 +6,7 @@
 
 不得从第一轮重跑。不得重复发送上一轮 prompt。不得用“进程还活着”当作进度。不得清理工作区。不得在状态未知时继续正式迁移。
 
-Agent / ExAgent 中，事实来源是：
+Agent 中，事实来源是：
 
 1. Supervisor checkpoint / batch state。
 2. 指定输出文件：`DeepCode-output/<BATCH_NAME>/*.md` 与 `QwenCode-output/<BATCH_NAME>/*.md`。
@@ -172,7 +172,7 @@ QWENCODE_MODEL_MISMATCH
 
 ## Apple 只读边界失败
 
-如果发现 DeepCode、Spark 或 OpenCode 尝试或已经写入 Apple 源项目：
+如果发现 DeepCode 或 Spark 尝试或已经写入 Apple 源项目：
 
 1. 立即暂停该项目。
 2. 记录路径和操作摘要。

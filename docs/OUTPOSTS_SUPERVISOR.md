@@ -1,15 +1,6 @@
 # Outposts Supervisor
 
-本文定义 Agent / ExAgent 模式的 supervisor 行为。
-
-Agent 与 ExAgent 只有发起者不同：
-
-```text
-Agent:   INITIATOR=Codex
-ExAgent: INITIATOR=OpenCode_THREAD
-```
-
-其余 supervisor 规则相同。
+本文定义 Agent 模式的 supervisor 行为。Agent 从 Codex 对话发起，`INITIATOR=Codex`，`SUPERVISOR=Codex`。
 
 ## 总体定位
 

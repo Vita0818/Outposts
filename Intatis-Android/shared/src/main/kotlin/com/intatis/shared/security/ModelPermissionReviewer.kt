@@ -31,7 +31,7 @@ class ModelPermissionReviewer(
             appendLine("user_goal: ${context.userGoal ?: "(unspecified)")}")
             appendLine("agent: ${context.agent ?: "(none)"}")
             appendLine("workspace: ${context.workspaceRoot}")
-            appendLine("profile: ${context.profile}")
+            appendLine("profile: ${context.profile.reviewPromptValue()}")
             appendLine("tool: ${call.toolName}")
             appendLine("side_effect: ${call.sideEffect}")
             appendLine("touched_paths: ${call.touchedPaths.joinToString(", ")}")
@@ -91,5 +91,14 @@ class ModelPermissionReviewer(
             }
             out
         }.getOrNull()
+    }
+
+    private fun PermissionProfile.reviewPromptValue(): String = when (this) {
+        PermissionProfile.Manual -> "manual"
+        PermissionProfile.Reviewed -> "reviewed"
+        PermissionProfile.Autopilot -> "autopilot"
+        PermissionProfile.ReadOnly -> "read_only"
+        PermissionProfile.Locked -> "locked"
+        else -> "unknown"
     }
 }

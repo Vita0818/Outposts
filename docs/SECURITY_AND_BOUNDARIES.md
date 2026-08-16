@@ -16,9 +16,9 @@ Outposts 根目录：
 
 默认目标项目必须位于 Outposts 根目录下。任何超出这两个根目录的访问都需要用户明确确认；无关目录不得访问。
 
-## Agent / ExAgent Supervisor 边界
+## Agent Supervisor 边界
 
-Agent / ExAgent 中，Supervisor 是 Codex 或 OpenCode 线程。
+Agent 中，Supervisor 是 Codex。
 
 Supervisor 允许：
 
@@ -117,19 +117,6 @@ Spark 模式中，Codex 本体是实现者。
 
 视觉任务中，Spark 不得主观判读图片并宣称视觉验收完成；视觉结论必须来自 QwenCode 报告、有效截图证据或用户明确反馈。
 
-## OpenCode 独立模式边界
-
-OpenCode 独立模式只读取 `OPENCODE_MODE.md` 与当前目标项目自己的项目文档。
-
-OpenCode 独立模式不得读取：
-
-- Agent / ExAgent / Spark supervisor 调度文档。
-- `.outposts-supervisor/**`。
-- `DeepCode-output/**`。
-- `QwenCode-output/**`。
-
-OpenCode 独立模式不得写 Apple 源项目或参考图目录。
-
 ## 敏感信息禁区
 
 不得读取、发送、复制、摘要或写入以下内容：
@@ -157,7 +144,7 @@ git restore .
 force push
 ```
 
-不得删除用户未提交文件。不得 commit、push、创建 PR，除非用户另行明确要求。
+不得删除用户未提交文件。未经用户明文要求具体 Git 操作，不 add、不 commit、不 push、不创建 PR；编辑、整理、修复、验证或准备工作都不等于提交请求。若用户要求提交，只提交当前 Git root 中与本任务相关的文件；不得递归进入、暂存、提交或推送子仓库、submodule、nested Git repo 或依赖 checkout。
 
 工作区很脏时，不得清理；只能记录状态并继续在授权范围内调度。
 

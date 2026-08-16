@@ -1,8 +1,8 @@
 # Supervisor Worker Visual Protocol
 
-本文定义 Agent / ExAgent 模式中的视觉 worker 调度规则。
+本文定义 Agent 模式中的视觉 worker 调度规则。
 
-Agent / ExAgent 中，视觉任务由 QwenCode one-shot 执行。QwenCode 已配置 Qwen3.7-Plus 作为专用视觉模型。
+Agent 中，视觉任务由 QwenCode one-shot 执行。QwenCode 已配置 Qwen3.7-Plus 作为专用视觉模型。
 
 重要边界：QwenCode 不是 DeepCode 的 helper。DeepCode 不能调用 QwenCode，QwenCode 也不能调用 DeepCode。所有 QwenCode 请求都必须由 supervisor 发起。
 

@@ -1,5 +1,8 @@
 package com.vita0818.kikaria.ui.components
 
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -24,10 +27,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,7 +46,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -49,6 +61,8 @@ import com.vita0818.kikaria.ui.theme.KikariaColors
 import com.vita0818.kikaria.ui.theme.KikariaDesign
 import com.vita0818.kikaria.ui.theme.KikariaPhoneMetrics
 import com.vita0818.kikaria.ui.theme.KikariaTypography
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 // ═══════════════════════════════════════════════════════════════════
 //  Shared Kikaria UI primitives — translated from iOS View extensions
@@ -520,12 +534,28 @@ fun KikariaGlassCard(
 fun KikariaProfileAvatar(
     modifier: Modifier = Modifier,
     size: Dp = 44.dp,
-    displayName: String = ""
+    displayName: String = "",
+    avatarUri: String? = null
 ) {
     val isDark = isSystemInDarkTheme()
+    val context = LocalContext.current
     val glassSurface = if (isDark) KikariaColors.GlassSurfaceDark else KikariaColors.GlassSurface
     val shadowColor = (if (isDark) KikariaColors.SkyDark else KikariaColors.Sky).copy(alpha = if (isDark) 0.10f else 0.16f)
     val displayChar = if (displayName.isNotEmpty()) displayName.first().uppercase() else "K"
+    var avatarBitmap by remember(avatarUri) { mutableStateOf<ImageBitmap?>(null) }
+
+    LaunchedEffect(avatarUri) {
+        avatarBitmap = withContext(Dispatchers.IO) {
+            try {
+                val uri = avatarUri?.takeIf { it.isNotBlank() }?.let { Uri.parse(it) } ?: return@withContext null
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    BitmapFactory.decodeStream(stream)
+                }?.asImageBitmap()
+            } catch (_: Exception) {
+                null
+            }
+        }
+    }
 
     Box(
         modifier = modifier
@@ -551,13 +581,29 @@ fun KikariaProfileAvatar(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = displayChar,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = (size.value * 0.38f).sp,
-                fontFamily = FontFamily.Serif
-            )
+            val bitmap = avatarBitmap
+            if (bitmap != null) {
+                Image(
+                    bitmap = bitmap,
+                    contentDescription = "头像",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Text(
+                    text = displayChar,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = (size.value * 0.38f).sp,
+                    fontFamily = if (displayChar.any { KikariaTypography.isChineseCharacter(it) }) {
+                        FontFamily.Default
+                    } else {
+                        FontFamily.Serif
+                    }
+                )
+            }
         }
     }
 }

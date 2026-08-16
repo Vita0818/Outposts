@@ -163,7 +163,7 @@ private fun CompactHomeLayout(
                 .defaultMinSize(minHeight = maxHeight)
                 .verticalScroll(rememberScrollState())
                 .fillMaxWidth(),
-            verticalArrangement = Arrangement.Top,
+            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header: title + avatar — Apple: HStack(.top, 14)
@@ -182,7 +182,9 @@ private fun CompactHomeLayout(
                 )
                 Box(modifier = Modifier.clickable { onOpenSettings() }) {
                     KikariaProfileAvatar(
-                        size = (44 * headerScale).dp, displayName = viewModel.userDisplayName
+                        size = (44 * headerScale).dp,
+                        displayName = viewModel.userDisplayName,
+                        avatarUri = viewModel.avatarUri
                     )
                 }
             }
@@ -265,7 +267,8 @@ private fun PadPortraitHomeLayout(
                 Box(modifier = Modifier.clickable { onOpenSettings() }) {
                     KikariaProfileAvatar(
                         size = (if (isLargePortrait) 66 else 62).dp,
-                        displayName = viewModel.userDisplayName
+                        displayName = viewModel.userDisplayName,
+                        avatarUri = viewModel.avatarUri
                     )
                 }
             }
@@ -502,7 +505,8 @@ private fun HomeLandscapeLayout(
     ) {
         KikariaProfileAvatar(
             size = (48 * cardScale).dp,
-            displayName = viewModel.userDisplayName
+            displayName = viewModel.userDisplayName,
+            avatarUri = viewModel.avatarUri
             )
         }
     }
@@ -560,9 +564,9 @@ private fun GlassyBubble(
                 drawCircle(
                     brush = Brush.linearGradient(
                         listOf(
-                            Color.White.copy(alpha = 0.28f),
-                            Color.White.copy(alpha = 0.06f),
-                            strokeCyan.copy(alpha = 0.12f)
+                            Color.White.copy(alpha = 0.42f),
+                            Color.White.copy(alpha = 0.08f),
+                            strokeCyan.copy(alpha = 0.16f)
                         ),
                         start = Offset.Zero,
                         end = Offset(size.width, size.height)
@@ -667,7 +671,7 @@ private fun KikariaStartBubble(
             // Bubble 1: cyan+mint (top-left diagonal) — iOS diagonal layout
             GlassyBubble(
                 sizeDp = (92 * orbitScale).dp,
-                fillColors = listOf(bubble1Color.copy(alpha = 0.42f), bubble1Color2.copy(alpha = 0.42f)),
+                fillColors = listOf(bubble1Color.copy(alpha = 0.48f), bubble1Color2.copy(alpha = 0.48f)),
                 shadowColor = bubble1Color.copy(alpha = 0.12f),
                 highlightFractionX = 0.18f,
                 highlightFractionY = 0.14f,
@@ -679,7 +683,7 @@ private fun KikariaStartBubble(
             // Bubble 2: lavender+mist (top-right diagonal)
             GlassyBubble(
                 sizeDp = (80 * orbitScale).dp,
-                fillColors = listOf(bubble2Color.copy(alpha = 0.32f), bubble2Color2.copy(alpha = 0.32f)),
+                fillColors = listOf(bubble2Color.copy(alpha = 0.42f), bubble2Color2.copy(alpha = 0.42f)),
                 shadowColor = bubble2Color.copy(alpha = 0.10f),
                 highlightFractionX = 0.12f,
                 highlightFractionY = 0.24f,
@@ -691,7 +695,7 @@ private fun KikariaStartBubble(
             // Bubble 3: green+cyan (bottom-right diagonal)
             GlassyBubble(
                 sizeDp = (78 * orbitScale).dp,
-                fillColors = listOf(bubble3Color.copy(alpha = 0.30f), bubble3Color2.copy(alpha = 0.30f)),
+                fillColors = listOf(bubble3Color.copy(alpha = 0.38f), bubble3Color2.copy(alpha = 0.38f)),
                 shadowColor = bubble3Color.copy(alpha = 0.09f),
                 highlightFractionX = 0.22f,
                 highlightFractionY = 0.08f,
@@ -703,7 +707,7 @@ private fun KikariaStartBubble(
             // Bubble 4: sky+white (bottom-left diagonal)
             GlassyBubble(
                 sizeDp = (74 * orbitScale).dp,
-                fillColors = listOf(bubble4Color.copy(alpha = 0.34f), bubble4Color2.copy(alpha = 0.34f)),
+                fillColors = listOf(bubble4Color.copy(alpha = 0.36f), bubble4Color2.copy(alpha = 0.36f)),
                 shadowColor = bubble4Color.copy(alpha = 0.10f),
                 highlightFractionX = 0.32f,
                 highlightFractionY = 0.18f,
@@ -729,15 +733,15 @@ private fun KikariaStartBubble(
                     drawCircle(
                         brush = Brush.linearGradient(
                             listOf(
-                                Color.White.copy(alpha = 0.22f),
-                                Color.White.copy(alpha = 0.05f),
-                                centerStrokeCyan.copy(alpha = 0.10f)
+                                Color.White.copy(alpha = 0.48f),
+                                Color.White.copy(alpha = 0.12f),
+                                centerStrokeCyan.copy(alpha = 0.22f)
                             ),
                             start = Offset.Zero,
                             end = Offset(size.width, size.height)
                         ),
                         radius = r - 0.4f * density,
-                        style = Stroke(width = 0.8f * density)
+                        style = Stroke(width = 1.1f * density)
                     )
                 }
                 .clickable { onClick() },
@@ -762,7 +766,7 @@ private fun KikariaStartBubble(
             )
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = "开始复习",
+                contentDescription = "开始背诵",
                 modifier = Modifier
                     .size((70 * visualScale).dp)
                     .shadow(

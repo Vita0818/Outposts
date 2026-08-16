@@ -28,6 +28,7 @@ import com.vita0818.kikaria.ui.mastered.MasteredScreen
 import com.vita0818.kikaria.ui.onboarding.OnboardingScreen
 import com.vita0818.kikaria.ui.overview.ReviewHistoryScreen
 import com.vita0818.kikaria.ui.overview.TodayOverviewScreen
+import com.vita0818.kikaria.ui.preset.EditKnowledgePointScreen
 import com.vita0818.kikaria.ui.preset.EditPresetScreen
 import com.vita0818.kikaria.ui.preset.NewPresetScreen
 import com.vita0818.kikaria.ui.preset.PresetSelectionScreen
@@ -58,6 +59,13 @@ object Routes {
     const val NEW_PRESET = "new_preset"
     const val PRIVACY_POLICY = "privacy_policy"
     const val EDIT_PRESET = "edit_preset/{presetId}"
+    const val EDIT_KNOWLEDGE_POINT = "edit_knowledge_point/{presetId}/{pointId}"
+
+    fun editPresetRoute(presetId: String): String = "edit_preset/$presetId"
+
+    fun editKnowledgePointRoute(presetId: String, pointId: String? = null): String {
+        return "edit_knowledge_point/$presetId/${pointId ?: "new"}"
+    }
 }
 
 @Composable
@@ -179,6 +187,7 @@ fun KikariaNavGraph(
                 userDisplayName = viewModel.userDisplayName.ifEmpty { "K" },
                 userHandle = viewModel.userHandle,
                 presetName = viewModel.activePreset?.name ?: "无",
+                avatarUri = viewModel.avatarUri,
                 dailyGoal = viewModel.dailyGoal,
                 countdownDays = viewModel.countdownDays,
                 countdownEndDate = viewModel.countdownEndDate,
@@ -196,6 +205,9 @@ fun KikariaNavGraph(
                 onSetDangerPercent = { viewModel.updateDangerPercent(it) },
                 onToggleNotifications = { enabled ->
                     viewModel.updateNotificationsEnabled(enabled)
+                },
+                onNotificationPermissionDenied = {
+                    viewModel.showToast("请在系统设置中允许通知")
                 },
                 onSetNotificationTime = { viewModel.setNotificationTime(it) },
                 onOpenOnboarding = {
@@ -249,7 +261,7 @@ fun KikariaNavGraph(
                     navController.navigate(Routes.NEW_PRESET)
                 },
                 onEditPreset = { preset ->
-                    navController.navigate("edit_preset/${preset.id}")
+                    navController.navigate(Routes.editPresetRoute(preset.id))
                 },
                 onDeletePreset = { preset ->
                     viewModel.deletePreset(preset.id)
@@ -257,7 +269,7 @@ fun KikariaNavGraph(
                 onImportPreset = { name, markdownText ->
                     val preset = viewModel.importPreset(name, markdownText)
                     navController.popBackStack()
-                    navController.navigate("edit_preset/${preset.id}")
+                    navController.navigate(Routes.editPresetRoute(preset.id))
                 }
             )
         }
@@ -282,8 +294,10 @@ fun KikariaNavGraph(
             ProfileSetupScreen(
                 initialDisplayName = viewModel.userDisplayName,
                 initialHandle = viewModel.userHandle,
-                onComplete = { displayName, handle ->
+                initialAvatarUri = viewModel.avatarUri,
+                onComplete = { displayName, handle, avatarUri ->
                     viewModel.updateProfile(displayName, handle)
+                    viewModel.avatarUri = avatarUri
                     viewModel.hasCompletedProfileSetup = true
                     viewModel.saveState()
                     if (!viewModel.hasCompletedOnboarding) {
@@ -338,14 +352,54 @@ fun KikariaNavGraph(
             if (preset != null) {
                 EditPresetScreen(
                     preset = preset,
+                    knowledgePoints = viewModel.knowledgePointsForPreset(presetId),
                     onBack = { navController.popBackStack() },
                     onSavePreset = { name, category, markdownText ->
                         viewModel.updatePreset(presetId, name, category, markdownText)
+                        navController.popBackStack()
+                    },
+                    onAddPoint = {
+                        navController.navigate(Routes.editKnowledgePointRoute(presetId))
+                    },
+                    onEditPoint = { point ->
+                        navController.navigate(Routes.editKnowledgePointRoute(presetId, point.id))
+                    },
+                    onDeletePoint = { point ->
+                        viewModel.deleteKnowledgePoint(presetId, point.id)
+                    },
+                    onDeletePreset = {
+                        viewModel.deletePreset(presetId)
                         navController.popBackStack()
                     }
                 )
             } else {
                 // Preset not found — navigate back
+                androidx.compose.runtime.LaunchedEffect(Unit) {
+                    navController.popBackStack()
+                }
+            }
+        }
+
+        composable(Routes.EDIT_KNOWLEDGE_POINT) { backStackEntry ->
+            val presetId = backStackEntry.arguments?.getString("presetId") ?: ""
+            val pointId = backStackEntry.arguments?.getString("pointId") ?: "new"
+            val preset = viewModel.presets.find { it.id == presetId }
+            if (preset != null) {
+                val point = if (pointId == "new") {
+                    null
+                } else {
+                    viewModel.knowledgePointsForPreset(presetId).find { it.id == pointId }
+                }
+                EditKnowledgePointScreen(
+                    presetName = preset.name,
+                    point = point,
+                    onBack = { navController.popBackStack() },
+                    onSave = { savedPoint ->
+                        viewModel.upsertKnowledgePoint(presetId, savedPoint)
+                        navController.popBackStack()
+                    }
+                )
+            } else {
                 androidx.compose.runtime.LaunchedEffect(Unit) {
                     navController.popBackStack()
                 }

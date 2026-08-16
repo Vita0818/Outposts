@@ -1,5 +1,10 @@
 package com.vita0818.kikaria.ui.settings
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -38,12 +43,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.vita0818.kikaria.ui.components.KikariaFormPageShell
 import com.vita0818.kikaria.ui.components.KikariaGlassCard
 import com.vita0818.kikaria.ui.components.KikariaIcons
@@ -55,11 +62,13 @@ import com.vita0818.kikaria.ui.theme.rememberKikariaPhoneMetrics
 @Composable
 fun SettingsScreen(
     userDisplayName: String, userHandle: String, presetName: String,
+    avatarUri: String? = null,
     dailyGoal: Int, countdownDays: Int, countdownEndDate: Date?, dangerPercent: Int,
     notificationsEnabled: Boolean, notificationTimeText: String,
     onBack: () -> Unit, onEditProfile: () -> Unit,
     onSetDailyGoal: (Int) -> Unit = {}, onSetCountdownRange: (Date?, Date?) -> Unit = { _, _ -> },
     onSetDangerPercent: (Int) -> Unit = {}, onToggleNotifications: (Boolean) -> Unit = {},
+    onNotificationPermissionDenied: () -> Unit = {},
     onSetNotificationTime: (String) -> Unit = {}, onOpenOnboarding: () -> Unit = {},
     onOpenMarkdownGuide: () -> Unit = {}, onOpenPrivacyPolicy: () -> Unit = {},
     onOpenPresetSelection: () -> Unit = {}
@@ -67,6 +76,7 @@ fun SettingsScreen(
     val isDark = isSystemInDarkTheme()
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
     val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
+    val context = LocalContext.current
 
     var showDailyGoalPicker by remember { mutableStateOf(false) }
     var showCountdownPicker by remember { mutableStateOf(false) }
@@ -78,6 +88,28 @@ fun SettingsScreen(
     var draftDanger by remember { mutableStateOf(dangerPercent) }
     var draftHour by remember { mutableStateOf(notificationTimeText.split(":").firstOrNull()?.toIntOrNull() ?: 21) }
     var draftMinute by remember { mutableStateOf(notificationTimeText.split(":").getOrNull(1)?.toIntOrNull() ?: 0) }
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            onToggleNotifications(true)
+        } else {
+            onNotificationPermissionDenied()
+        }
+    }
+    val handleNotificationToggle: (Boolean) -> Unit = { enabled ->
+        if (!enabled) {
+            onToggleNotifications(false)
+        } else if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            onToggleNotifications(true)
+        }
+    }
 
     val metrics = rememberKikariaPhoneMetrics()
     val sScale = maxOf(metrics.settingsScale, 1f)
@@ -89,7 +121,11 @@ fun SettingsScreen(
         // Profile Section
         KikariaGlassCard(Modifier.fillMaxWidth(), cornerRadius = 28.dp, fillOpacity = 0.44f) {
             Column(Modifier.fillMaxWidth().padding((24 * sScale).dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                KikariaProfileAvatar(size = (86 * sScale).dp, displayName = userDisplayName)
+                KikariaProfileAvatar(
+                    size = (86 * sScale).dp,
+                    displayName = userDisplayName,
+                    avatarUri = avatarUri
+                )
                 Spacer(Modifier.height((8 * sScale).dp))
                 Text(KikariaTypography.mixedText(userDisplayName.ifEmpty { "Kikaria" }, size = (28 * sScale).toInt(), weight = FontWeight.SemiBold), color = deepText)
                 Spacer(Modifier.height((4 * sScale).dp))
@@ -121,7 +157,7 @@ fun SettingsScreen(
 
         // Notification
         SettingsSection("通知", scale = sScale) {
-            SettingsToggleRow("学习进度通知", notificationsEnabled, scale = srScale) { onToggleNotifications(it) }
+            SettingsToggleRow("学习进度通知", notificationsEnabled, scale = srScale, onToggle = handleNotificationToggle)
             if (notificationsEnabled) { SettingsDivider(); SettingsRow("通知时间", notificationTimeText, scale = srScale) { showNotificationTimePicker = true } }
         }
 
@@ -242,7 +278,6 @@ private fun PickerDialog(title: String, valueText: String, isDark: Boolean, onDi
 @Composable
 private fun PickerWheel(values: List<Int>, selected: Int, formatLabel: (Int) -> String, onSelected: (Int) -> Unit, isDark: Boolean) {
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
-    val softText = if (isDark) KikariaColors.SoftTextDark else KikariaColors.SoftText
     var textValue by remember(selected) { mutableStateOf(formatLabel(selected).replace(Regex("[^0-9]"), "")) }
     Box(Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(16.dp)).background((if (isDark) KikariaColors.MistDark else KikariaColors.Mist).copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {

@@ -1,6 +1,11 @@
 package com.intatis.cli
 
 import com.intatis.shared.*
+import com.intatis.shared.conversation.CodeProjection
+import com.intatis.shared.conversation.ConversationProjection
+import com.intatis.shared.conversation.CoworkProjection
+import com.intatis.shared.provider.ProviderHealthCheckResult
+import com.intatis.shared.provider.ProviderRegistry
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.UUID
@@ -25,6 +30,7 @@ USAGE
   intatis settings         Configure base URL, model, API key, workspace
   intatis config           Print current resolved config
   intatis selftest         Offline self-test (no key)
+  intatis health           Run provider health checks
   intatis help             Show this help
 
 ENV CONFIG
@@ -46,6 +52,7 @@ IN-SESSION /slash
   /attach clear
   /config
   /workspace [path] (code/cowork)
+  /health
   /exit
 """
     )
@@ -57,17 +64,20 @@ private fun printChatHelp() {
     println("/mode         - /mode <chat|code|cowork>")
     println("/model        - /model [name]")
     println("/reasoning    - /reasoning minimal|low|medium|high|off")
-    println("/attach       - /attach <path> (text or image) | /attach clear")
+    println("/attach       - /attach <path> (text or image) | /attach clear | /attach list")
     println("/config       - print runtime config")
     println("/workspace    - print workspace hint")
+    println("/health       - run provider health checks")
     println("/exit         - leave app")
 }
 
 private fun printCodeHelp() {
     println("code mode commands:")
     println("/help")
+    println("/attach       - /attach <path> (text or image) | /attach clear | /attach list")
     println("/mode <chat|code|cowork>")
     println("/workspace [path]")
+    println("/health")
     println("/clear")
     println("/exit")
 }
@@ -75,9 +85,11 @@ private fun printCodeHelp() {
 private fun printCoworkHelp() {
     println("cowork commands:")
     println("/help")
+    println("/attach       - /attach <path> (text or image) | /attach clear | /attach list")
     println("/agents")
     println("/agent add <name> [path]")
     println("/mode <chat|code|cowork>")
+    println("/health       - run provider health checks")
     println("/clear")
     println("/exit")
 }
@@ -99,6 +111,7 @@ fun main(args: Array<String>) {
             "settings" -> runner.showSettingsWizard()
             "config" -> runner.printConfig(config)
             "selftest" -> runBlocking { runner.runSelftestAsync() }
+            "health" -> runBlocking { runner.runHealthCheckAsync() }
             "help", "-h", "--help" -> printHelp()
             else -> {
                 println("unknown command: $command\n")
@@ -143,7 +156,11 @@ private fun parseMode(command: String): IntatisMode {
 
 private class CliRunner(initialConfig: IntatisConfig) {
     private var config: IntatisConfig = initialConfig
-    private var session = ConversationSession(config)
+    private val chatEventLog = SessionEventLog("cli-chat")
+    private var session = ConversationSession(config, chatEventLog)
+    private val chatProjection = ConversationProjection()
+    private val codeProjection = CodeProjection()
+    private val coworkProjection = CoworkProjection()
     private val permissionResponder = TerminalPermissionResponder()
     private val codeEventLog = SessionEventLog("cli-code")
     private val coworkEventLog = SessionEventLog("cli-cowork")
@@ -151,14 +168,23 @@ private class CliRunner(initialConfig: IntatisConfig) {
     private var runtimeModel = config.model
     private var runtimeReasoning = config.reasoning
     private var runtimeWorkspace = resolveWorkspace(config.workspace, null)
+    private var chatProjectionLines = 0
+    private var codeProjectionLines = 0
+    private var coworkProjectionLines = 0
 
     private var codeSession = createCodeSession(config, runtimeWorkspace)
     private var coworkEngine = createCoworkEngine(config, runtimeWorkspace)
-    private val attachments = mutableListOf<ChatAttachment>()
+    private val chatAttachments = mutableListOf<ChatAttachment>()
+    private val codeAttachments = mutableListOf<ChatAttachment>()
+    private val coworkAttachments = mutableListOf<ChatAttachment>()
 
     fun printConfig(current: IntatisConfig) {
         println("endpoint : ${current.baseUrl}")
         println("model    : ${current.model}")
+        println("chat provider       : ${current.chatProviderId}")
+        println("agent tool provider : ${current.agentToolProviderId}")
+        println("image provider      : ${current.imageProviderId}")
+        println("transcription provider : ${current.transcriptionProviderId}")
         println("reasoning: ${current.reasoning ?: "(off)"}")
         println("mode     : ${current.defaultMode}")
         println("workspace: ${current.workspace ?: "(unset)"}")
@@ -174,6 +200,10 @@ private class CliRunner(initialConfig: IntatisConfig) {
         var reasoning = config.reasoning ?: ""
         var workspace = config.workspace ?: ""
         var mode = config.defaultMode.name.lowercase()
+        var chatProviderId = config.chatProviderId
+        var agentToolProviderId = config.agentToolProviderId
+        var imageProviderId = config.imageProviderId
+        var transcriptionProviderId = config.transcriptionProviderId
         var includeUsage = if (config.includeUsage) "1" else "0"
 
         fun prompt(label: String, current: String): String {
@@ -186,6 +216,10 @@ private class CliRunner(initialConfig: IntatisConfig) {
         model = prompt("Model", model)
         reasoning = prompt("Reasoning [minimal|low|medium|high|off]", reasoning)
         apiKey = prompt("API Key", apiKey)
+        chatProviderId = prompt("Chat Provider ID", chatProviderId)
+        agentToolProviderId = prompt("Agent Tool Provider ID", agentToolProviderId)
+        imageProviderId = prompt("Image Provider ID", imageProviderId)
+        transcriptionProviderId = prompt("Transcription Provider ID", transcriptionProviderId)
         workspace = prompt("Default Workspace (optional)", workspace)
         mode = prompt("Default mode (chat|code|cowork)", mode)
         includeUsage = prompt("Show usage in responses? (1 on, 0 off)", includeUsage)
@@ -210,9 +244,14 @@ private class CliRunner(initialConfig: IntatisConfig) {
             baseUrl = baseUrl,
             apiKey = apiKey,
             model = model,
+            selectedModel = model,
             reasoning = resolvedReasoning,
             defaultMode = nextMode,
             workspace = workspace.ifBlank { null },
+            chatProviderId = chatProviderId.ifBlank { "openai" },
+            agentToolProviderId = agentToolProviderId.ifBlank { "openai" },
+            imageProviderId = imageProviderId.ifBlank { "openai" },
+            transcriptionProviderId = transcriptionProviderId.ifBlank { "openai" },
             includeUsage = includeUsage != "0",
         )
 
@@ -221,7 +260,7 @@ private class CliRunner(initialConfig: IntatisConfig) {
         runtimeModel = next.model
         runtimeReasoning = next.reasoning
         runtimeWorkspace = resolveWorkspace(next.workspace, null)
-        session = ConversationSession(next)
+        session = ConversationSession(next, chatEventLog)
         codeSession = createCodeSession(next, runtimeWorkspace)
         coworkEngine = createCoworkEngine(next, runtimeWorkspace)
         println("Saved.")
@@ -230,8 +269,8 @@ private class CliRunner(initialConfig: IntatisConfig) {
     suspend fun runChatAsync(): ReplAction {
         println("Intatis chat mode. /help for commands.")
         while (true) {
-            if (attachments.isNotEmpty()) {
-                println("[${describeAttachmentQueue()} queued for next message]")
+            if (chatAttachments.isNotEmpty()) {
+                println("[${describeAttachmentQueue(chatAttachments)} queued for next message]")
             }
 
             print("> ")
@@ -247,18 +286,19 @@ private class CliRunner(initialConfig: IntatisConfig) {
 
             if (!input.startsWith('/')) {
                 try {
-                    val (effectiveText, imageAttachments) = prepareQueuedMessage(input)
-                    val (reply, elapsed, usage) = session.sendUserMessageAsync(
-                        userText = effectiveText,
-                        model = runtimeModel,
-                        reasoning = runtimeReasoning,
-                        attachments = imageAttachments,
-                    )
-                    println("\n[assistant] ${reply.content}")
-                    if (config.includeUsage && !usage.isNullOrBlank()) {
-                        println("usage: $usage")
-                    }
-                    println("time: ${elapsed.toMillis()}ms\n")
+                    val (effectiveText, imageAttachments) = prepareQueuedMessage(input, chatAttachments)
+                val (reply, elapsed, usage) = session.sendUserMessageAsync(
+                    userText = effectiveText,
+                    model = runtimeModel,
+                    reasoning = runtimeReasoning,
+                    attachments = imageAttachments,
+                    includeUsage = config.includeUsage,
+                )
+                appendChatProjectionLines()
+                if (config.includeUsage && !usage.isNullOrBlank()) {
+                    println("usage: $usage")
+                }
+                println("time: ${elapsed.toMillis()}ms\n")
                 } catch (ex: Exception) {
                     println("error: ${ex.message}")
                     if (config.apiKey.isBlank()) {
@@ -278,6 +318,10 @@ private class CliRunner(initialConfig: IntatisConfig) {
         println("Code mode: workspace = $runtimeWorkspace")
         println("Describe what to do. The agent decides and runs tools.")
         while (true) {
+            if (codeAttachments.isNotEmpty()) {
+                println("[${describeAttachmentQueue(codeAttachments)} queued for next code message]")
+            }
+
             print("code> ")
             val raw = readLine() ?: return ReplAction.Exit
             val text = raw.trim()
@@ -301,13 +345,16 @@ private class CliRunner(initialConfig: IntatisConfig) {
             }
 
             try {
+                val (effectiveText, imageAttachments) = prepareQueuedMessage(text, codeAttachments)
                 val (reply, elapsed, usage) = codeSession.sendAsync(
-                    userText = text,
+                    userText = effectiveText,
                     model = runtimeModel,
                     reasoning = runtimeReasoning,
                     userGoal = "code mode",
+                    attachments = imageAttachments,
+                    includeUsage = config.includeUsage,
                 )
-                println("\n[assistant] $reply\n")
+                appendCodeProjectionLines()
                 if (config.includeUsage && !usage.isNullOrBlank()) {
                     println("usage: $usage")
                 }
@@ -328,6 +375,10 @@ private class CliRunner(initialConfig: IntatisConfig) {
         println("Examples: /agents, /agent add reviewer .")
         println("Use @agent message for explicit routing, or default agent")
         while (true) {
+            if (coworkAttachments.isNotEmpty()) {
+                println("[${describeAttachmentQueue(coworkAttachments)} queued for next cowork message]")
+            }
+
             print("cowork> ")
             val raw = readLine() ?: return ReplAction.Exit
             val text = raw.trim()
@@ -361,14 +412,30 @@ private class CliRunner(initialConfig: IntatisConfig) {
             }
 
             try {
-                val reply = if (target == null) {
-                    runBlockingOrNull { coworkEngine.send(body, null, runtimeModel, runtimeReasoning) } ?: "(no response)"
+                val (effectiveBody, imageAttachments) = prepareQueuedMessage(body, coworkAttachments)
+                if (target == null) {
+                    runBlockingOrNull {
+                        coworkEngine.sendAsync(
+                            text = effectiveBody,
+                            target = null,
+                            model = runtimeModel,
+                            reasoning = runtimeReasoning,
+                            images = imageAttachments,
+                            includeUsage = config.includeUsage,
+                        )
+                    } ?: "(no response)"
                 } else {
-                    runBlockingOrNull { coworkEngine.askAsync("gui", target, body) } ?: "(no response)"
+                    runBlockingOrNull {
+                        coworkEngine.askAsync(
+                            from = "cli",
+                            to = target,
+                            question = effectiveBody,
+                            images = imageAttachments,
+                            includeUsage = config.includeUsage,
+                        )
+                    } ?: "(no response)"
                 }
-                if (reply.isNotBlank()) {
-                    println("\n[$target] $reply\n")
-                }
+                appendCoworkProjectionLines()
             } catch (ex: Exception) {
                 println("error: ${ex.message}\n")
             }
@@ -390,6 +457,17 @@ private class CliRunner(initialConfig: IntatisConfig) {
         }
     }
 
+    suspend fun runHealthCheckAsync() {
+        try {
+            val registry = ProviderRegistry(config)
+            val suite = registry.checkHealth(config.chatProviderId, config.agentToolProviderId)
+            printHealthCheckResult(suite.chat)
+            printHealthCheckResult(suite.agentTool)
+        } catch (ex: Exception) {
+            println("health check failed: ${ex.message}")
+        }
+    }
+
     private fun handleChatSlash(input: String): ReplAction {
         if (!input.startsWith('/')) return ReplAction.Continue
         val tokens = CommandParser.parseTokens(input.substring(1))
@@ -402,6 +480,7 @@ private class CliRunner(initialConfig: IntatisConfig) {
             }
             "clear" -> {
                 session.clear()
+                chatProjectionLines = chatProjection.render(chatEventLog.readAll()).size
                 println("session cleared.")
                 ReplAction.Continue
             }
@@ -457,19 +536,22 @@ private class CliRunner(initialConfig: IntatisConfig) {
 
             "attach" -> {
                 if (tokens.size == 1) {
-                    println(if (attachments.isEmpty()) "no attachments queued." else describeAttachmentQueue())
+                    println(if (chatAttachments.isEmpty()) "no attachments queued." else describeAttachmentQueue(chatAttachments))
                     ReplAction.Continue
                 } else {
                     val arg = tokens.drop(1).joinToString(" ")
                     if (arg.equals("clear", ignoreCase = true)) {
-                        attachments.clear()
+                        chatAttachments.clear()
                         println("attachments cleared.")
+                        ReplAction.Continue
+                    } else if (arg.equals("list", ignoreCase = true)) {
+                        println(describeAttachmentQueue(chatAttachments))
                         ReplAction.Continue
                     } else {
                         when (val result = AttachmentLoader.load(arg)) {
                             is AttachmentLoadResult -> {
                                 if (result.isSuccess) {
-                                    result.attachment?.let { attachments.add(it) }
+                                    result.attachment?.let { chatAttachments.add(it) }
                                     println("attached ${result.attachment?.name ?: "file"}")
                                 } else {
                                     println(result.failure)
@@ -488,6 +570,13 @@ private class CliRunner(initialConfig: IntatisConfig) {
 
             "workspace" -> {
                 println("workspace: $runtimeWorkspace")
+                ReplAction.Continue
+            }
+
+            "health" -> {
+                runBlocking {
+                    runHealthCheckAsync()
+                }
                 ReplAction.Continue
             }
 
@@ -540,11 +629,48 @@ private class CliRunner(initialConfig: IntatisConfig) {
                 }
                 ReplAction.Continue
             }
+            "attach" -> {
+                if (tokens.size == 1) {
+                    println(if (codeAttachments.isEmpty()) "no attachments queued. usage: /attach <path>" else describeAttachmentQueue(codeAttachments))
+                    ReplAction.Continue
+                } else {
+                    val arg = tokens.drop(1).joinToString(" ")
+                    if (arg.equals("clear", ignoreCase = true)) {
+                        codeAttachments.clear()
+                        println("code attachments cleared.")
+                        ReplAction.Continue
+                    } else if (arg.equals("list", ignoreCase = true)) {
+                        println(describeAttachmentQueue(codeAttachments))
+                        ReplAction.Continue
+                    } else {
+                        when (val result = AttachmentLoader.load(arg)) {
+                            is AttachmentLoadResult -> {
+                                if (result.isSuccess) {
+                                    result.attachment?.let { codeAttachments.add(it) }
+                                    println("attached ${result.attachment?.name ?: "file"}")
+                                } else {
+                                    println(result.failure)
+                                }
+                            }
+                        }
+                        ReplAction.Continue
+                    }
+                }
+            }
             "clear" -> {
                 codeSession.clear()
+                codeProjectionLines = codeProjection.render(codeEventLog.readAll()).size
                 println("code session cleared.")
                 ReplAction.Continue
             }
+
+            "health" -> {
+                runBlocking {
+                    runHealthCheckAsync()
+                }
+                ReplAction.Continue
+            }
+
             "exit", "quit" -> ReplAction.Exit
             else -> {
                 println("unknown command: /${tokens[0]}")
@@ -599,9 +725,45 @@ private class CliRunner(initialConfig: IntatisConfig) {
                     }
                 }
             }
+            "attach" -> {
+                if (tokens.size == 1) {
+                    println(if (coworkAttachments.isEmpty()) "no attachments queued. usage: /attach <path>" else describeAttachmentQueue(coworkAttachments))
+                    ReplAction.Continue
+                } else {
+                    val arg = tokens.drop(1).joinToString(" ")
+                    if (arg.equals("clear", ignoreCase = true)) {
+                        coworkAttachments.clear()
+                        println("cowork attachments cleared.")
+                        ReplAction.Continue
+                    } else if (arg.equals("list", ignoreCase = true)) {
+                        println(describeAttachmentQueue(coworkAttachments))
+                        ReplAction.Continue
+                    } else {
+                        when (val result = AttachmentLoader.load(arg)) {
+                            is AttachmentLoadResult -> {
+                                if (result.isSuccess) {
+                                    result.attachment?.let { coworkAttachments.add(it) }
+                                    println("attached ${result.attachment?.name ?: "file"}")
+                                } else {
+                                    println(result.failure)
+                                }
+                            }
+                        }
+                        ReplAction.Continue
+                    }
+                }
+            }
             "clear" -> {
                 coworkEngine.clear()
+                coworkProjectionLines = coworkProjection.render(coworkEventLog.readAll()).size
                 println("cowork sessions cleared.")
+                ReplAction.Continue
+            }
+
+            "health" -> {
+                runBlocking {
+                    runHealthCheckAsync()
+                }
                 ReplAction.Continue
             }
             "exit", "quit" -> ReplAction.Exit
@@ -612,14 +774,17 @@ private class CliRunner(initialConfig: IntatisConfig) {
         }
     }
 
-    private fun prepareQueuedMessage(userText: String): Pair<String, List<ImageAttachment>> {
-        if (attachments.isEmpty()) {
+    private fun prepareQueuedMessage(
+        userText: String,
+        attachmentQueue: MutableList<ChatAttachment>,
+    ): Pair<String, List<ImageAttachment>> {
+        if (attachmentQueue.isEmpty()) {
             return userText to emptyList()
         }
 
         val builder = StringBuilder(userText)
         val images = mutableListOf<ImageAttachment>()
-        attachments.forEach { attachment ->
+        attachmentQueue.forEach { attachment ->
             when (attachment) {
                 is TextAttachment -> {
                     builder.appendLine()
@@ -631,20 +796,24 @@ private class CliRunner(initialConfig: IntatisConfig) {
             }
         }
 
-        attachments.clear()
+        attachmentQueue.clear()
         return builder.toString() to images
     }
 
-    private fun describeAttachmentQueue(): String {
-        val textCount = attachments.count { it is TextAttachment }
-        val imageCount = attachments.count { it is ImageAttachment }
-        val names = attachments.joinToString(", ") { it.name }
-        return "${attachments.size} attachment(s) [text=$textCount, image=$imageCount] ($names)"
+    private fun describeAttachmentQueue(attachmentQueue: List<ChatAttachment>): String {
+        val textCount = attachmentQueue.count { it is TextAttachment }
+        val imageCount = attachmentQueue.count { it is ImageAttachment }
+        val names = attachmentQueue.joinToString(", ") { it.name }
+        return "${attachmentQueue.size} attachment(s) [text=$textCount, image=$imageCount] ($names)"
     }
 
     private fun printRuntimeConfig() {
         println("endpoint : ${config.baseUrl}")
         println("model    : $runtimeModel")
+        println("chat provider       : ${config.chatProviderId}")
+        println("agent tool provider : ${config.agentToolProviderId}")
+        println("image provider      : ${config.imageProviderId}")
+        println("transcription provider : ${config.transcriptionProviderId}")
         println("reasoning: ${runtimeReasoning ?: "(off)"}")
         println("mode     : ${config.defaultMode}")
         println("workspace: ${config.workspace ?: "(unset)"}")
@@ -702,6 +871,36 @@ private class CliRunner(initialConfig: IntatisConfig) {
         val source = requested?.ifBlank { null } ?: configured?.ifBlank { null } ?: System.getProperty("user.dir")
         return WorkspaceTools.resolveWorkspace(source, null)
     }
+
+    private fun appendChatProjectionLines() {
+        val records = chatEventLog.readAll()
+        val rendered = chatProjection.render(records)
+        for (index in chatProjectionLines until rendered.size) {
+            val line = rendered[index]
+            println("${line.sender}: ${line.text}")
+        }
+        chatProjectionLines = rendered.size
+    }
+
+    private fun appendCodeProjectionLines() {
+        val records = codeEventLog.readAll()
+        val rendered = codeProjection.render(records)
+        for (index in codeProjectionLines until rendered.size) {
+            val line = rendered[index]
+            println("${line.sender}: ${line.text}")
+        }
+        codeProjectionLines = rendered.size
+    }
+
+    private fun appendCoworkProjectionLines() {
+        val records = coworkEventLog.readAll()
+        val rendered = coworkProjection.render(records)
+        for (index in coworkProjectionLines until rendered.size) {
+            val line = rendered[index]
+            println("${line.sender}: ${line.text}")
+        }
+        coworkProjectionLines = rendered.size
+    }
 }
 
 private class TerminalPermissionResponder : IPermissionResponder {
@@ -730,5 +929,17 @@ private fun runBlockingOrNull(block: suspend () -> String): String? {
         runBlocking { block() }
     } catch (_: Throwable) {
         null
+    }
+}
+
+private fun printHealthCheckResult(result: ProviderHealthCheckResult) {
+    val status = if (result.isHealthy) "PASS" else "FAIL"
+    println("[$status] ${result.role} (${result.providerId}/${result.model})")
+    println("  latency  : ${result.latency.toMillis()}ms")
+    println("  status   : ${result.message}")
+    result.responsePreview?.let { preview ->
+        if (preview.isNotBlank()) {
+            println("  preview  : $preview")
+        }
     }
 }

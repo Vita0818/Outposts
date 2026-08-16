@@ -1,15 +1,15 @@
 # Batch Scheduling
 
-本文适用于 Agent、ExAgent 与 Spark。OpenCode 独立模式不进入 supervisor batch state。
+本文适用于 Agent 与 Spark。
 
 ## 必填批处理参数
 
 每个批次开始前必须确定：
 
 ```text
-MODE: AGENT / EXAGENT / SPARK
-INITIATOR: Codex / OpenCode_THREAD
-SUPERVISOR: Codex / OpenCode_THREAD / NONE
+MODE: AGENT / SPARK
+INITIATOR: Codex
+SUPERVISOR: Codex / NONE
 IMPLEMENTATION_WORKER: DeepCode_ONE_SHOT / GPT-5.3-Codex-Spark
 VISION_WORKER: QwenCode_ONE_SHOT / QWENCODE_VISUAL_ASSIST / NONE
 WORKER_INTERACTION: FORBIDDEN
@@ -24,7 +24,7 @@ WAIT_RUNNING_ROUNDS_TO_FINISH
 VISION_VALIDATION_MAX_ROUNDS
 ```
 
-Agent / ExAgent 还必须记录：
+Agent 还必须记录：
 
 ```text
 DEEPCODE_CLI_COMMAND
@@ -48,9 +48,7 @@ SPARK_MODEL_CHECK_REQUIRED=YES
 DIRECT_CODE_MODIFICATION_ALLOWED=YES_WITHIN_TARGET_PROJECT
 ```
 
-OpenCode 独立模式不进入上述批次状态，不写 supervisor batch state，不消费 supervisor 轮次预算。
-
-## Agent / ExAgent 一轮如何计数
+## Agent 一轮如何计数
 
 一轮 DeepCode 实现任务只有在以下步骤全部完成后，才计入 `ROUNDS_COMPLETED`：
 

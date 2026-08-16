@@ -59,7 +59,12 @@ object ConfigStore {
         val baseUrl = value("INTATIS_BASE_URL", "baseUrl", "https://api.openai.com/v1")
         val apiKey = value("INTATIS_API_KEY", "apiKey", "")
         val model = value("INTATIS_MODEL", "model", "gpt-4o-mini")
+        val selectedModel = value("INTATIS_SELECTED_MODEL", "selectedModel", model)
         val reasoning = System.getenv("INTATIS_REASONING") ?: fileValues["reasoning"]
+        val chatProviderId = value("INTATIS_CHAT_PROVIDER_ID", "chatProviderId", "openai")
+        val agentToolProviderId = value("INTATIS_AGENT_TOOL_PROVIDER_ID", "agentToolProviderId", "openai")
+        val imageProviderId = value("INTATIS_IMAGE_PROVIDER_ID", "imageProviderId", "openai")
+        val transcriptionProviderId = value("INTATIS_TRANSCRIPTION_PROVIDER_ID", "transcriptionProviderId", "openai")
 
         val modeString = value("INTATIS_MODE", "defaultMode", IntatisMode.Chat.name).lowercase()
         val mode = try {
@@ -76,9 +81,14 @@ object ConfigStore {
             baseUrl = baseUrl,
             apiKey = apiKey,
             model = model,
+            selectedModel = selectedModel,
             reasoning = reasoning?.trim()?.takeIf { it.isNotEmpty() && it != "off" },
             defaultMode = mode,
             workspace = workspace?.takeIf { it.isNotBlank() },
+            chatProviderId = chatProviderId,
+            agentToolProviderId = agentToolProviderId,
+            imageProviderId = imageProviderId,
+            transcriptionProviderId = transcriptionProviderId,
             includeUsage = includeUsage,
         )
     }
@@ -91,9 +101,14 @@ object ConfigStore {
             put("baseUrl", JsonPrimitive(config.baseUrl))
             put("apiKey", JsonPrimitive(config.apiKey))
             put("model", JsonPrimitive(config.model))
+            put("selectedModel", JsonPrimitive(config.selectedModel))
             put("defaultMode", JsonPrimitive(config.defaultMode.name))
             config.reasoning?.let { put("reasoning", JsonPrimitive(it)) }
             config.workspace?.takeIf { it.isNotBlank() }?.let { put("workspace", JsonPrimitive(it)) }
+            put("chatProviderId", JsonPrimitive(config.chatProviderId))
+            put("agentToolProviderId", JsonPrimitive(config.agentToolProviderId))
+            put("imageProviderId", JsonPrimitive(config.imageProviderId))
+            put("transcriptionProviderId", JsonPrimitive(config.transcriptionProviderId))
             put("includeUsage", JsonPrimitive(config.includeUsage))
         }
 

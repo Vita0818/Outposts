@@ -45,8 +45,10 @@ object WorkspaceTools {
             return matches
         }
 
-        root.walkTopDown().forEachIndexed { index, file ->
-            if (!file.isFile) return@forEachIndexed
+        root.walkTopDown()
+            .onEnter { path -> path == root || !isHiddenPath(path) }
+            .filter { it.isFile && !isHiddenPath(it) }
+            .forEachIndexed { index, file ->
             if (matches.size >= 200) return matches
             searchInFile(file, workspace, needle, matches)
         }
@@ -88,5 +90,9 @@ object WorkspaceTools {
         if (!WorkspaceSecurity.isWithinWorkspace(candidate.absolutePath, File(workspace).absolutePath)) {
             throw IllegalArgumentException("Access denied: path escapes workspace")
         }
+    }
+
+    private fun isHiddenPath(file: File): Boolean {
+        return file.isHidden || file.name.startsWith(".")
     }
 }

@@ -1,6 +1,6 @@
 # Worker One-shot Invocation Protocol
 
-本文定义 Agent / ExAgent 模式下 DeepCode 与 QwenCode 的一次性窗口调用协议。
+本文定义 Agent 模式下 DeepCode 与 QwenCode 的一次性窗口调用协议。
 
 ## 核心规则
 
@@ -20,7 +20,7 @@ DeepCode：DeepSeek；负责规划、读源码、写代码、构建、测试、�
 
 QwenCode：Qwen3.7-Plus；负责看图、reference/actual 识别、截图对比、视觉报告。
 
-Supervisor：Codex 或 OpenCode 线程；负责发起所有请求、管理输入输出路径、串联轮次、控制预算和生成主管摘要。
+Supervisor：Codex；负责发起所有请求、管理输入输出路径、串联轮次、控制预算和生成主管摘要。
 
 ## Worker 间禁止通信
 

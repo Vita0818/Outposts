@@ -2,18 +2,18 @@
 
 本目录是 Outposts 根目录。
 
-本文件服务于从 Codex 对话启动的 Outposts 工作流。OpenCode 独立模式不要读取本文件；OpenCode 独立模式只读取 `OPENCODE_MODE.md` 与目标项目自己的项目文档。由 OpenCode 线程发起的 ExAgent 模式读取 `EXAGENT_MODE.md`。
+本文件服务于从 Codex 对话启动的 Outposts 工作流。
 
-## 四种互斥模式
+## 两种互斥模式
 
-Outposts 支持四种互斥模式：
+Outposts 只支持两种互斥模式：
 
 1. **Agent 模式**：从 Codex 对话发起；Codex 只做 supervisor；由 supervisor 独立调度 DeepCode one-shot 与 QwenCode one-shot。
-2. **ExAgent 模式**：从 OpenCode 线程发起；除发起者为 OpenCode 线程外，其余要求、配置、worker、预算、报告、安全边界均与 Agent 模式一致。
-3. **Spark 模式**：从 Codex 对话发起；由 `GPT-5.3-Codex-Spark` 本体直接读取、修改、构建和验证目标项目。
-4. **OpenCode 模式**：OpenCode 独立执行；不进入 supervisor 流程，不使用 DeepCode / QwenCode 调度链，不读取 Agent / Spark / ExAgent 调度文档。
+2. **Spark 模式**：从 Codex 对话发起；由 `GPT-5.3-Codex-Spark` 本体直接读取、修改、构建和验证目标项目。
 
-用户未明确声明模式时，不得猜测执行；必须要求用户明确 `Agent 模式`、`ExAgent 模式`、`Spark 模式` 或 `OpenCode 模式`。
+用户未明确声明执行模式时，不得猜测执行；必须要求用户明确 `Agent 模式` 或 `Spark 模式`。
+
+仅维护 Outposts 根级模式、调度或安全文档，不等于进入 Agent 或 Spark 执行模式；只有开始调度 worker 或直接修改目标项目时，才要求用户选择执行模式。
 
 ## Agent 模式
 
@@ -90,17 +90,6 @@ QwenCode 只负责：
 
 QwenCode 不得读取源码、不得修改文件、不得读取 DeepCode 报告、不得接收密钥或私密配置。
 
-## ExAgent 模式
-
-ExAgent 模式由 OpenCode 线程发起。它与 Agent 模式的唯一差异是发起者：
-
-- Agent：发起者是 Codex 对话；supervisor 是 Codex。
-- ExAgent：发起者是 OpenCode 线程；supervisor 是 OpenCode 线程。
-
-除此以外，ExAgent 的 one-shot worker、路径检查、模型检查、视觉调度、预算、恢复、报告、安全边界与 Agent 模式完全一致。
-
-ExAgent 入口是 `EXAGENT_MODE.md`。OpenCode 线程进入 ExAgent 时不使用 `OPENCODE_MODE.md` 的独立执行规则。
-
 ## Spark 模式
 
 ### 触发条件
@@ -133,7 +122,7 @@ Spark 模式中，Codex/Spark 本体是实现者：
 - 禁止：读取、发送或记录密钥、token、`.env`、证书、ssh key、Keychain 内容等敏感信息。
 - 禁止：执行破坏性 Git 操作。
 - 禁止：清理工作区、构建产物、缓存或用户级工具链。
-- 禁止：伪装为 Agent 或 ExAgent 执行。
+- 禁止：伪装为 Agent 执行。
 
 ### Spark 视觉辅助
 
@@ -150,23 +139,9 @@ QWENCODE_VISUAL_ASSIST=YES
 - reference 与 actual 均有效时必须做 compare。
 - actual 不可用时只能报告 `REFERENCE_ONLY`，不得声称完成视觉闭环。
 
-## OpenCode 模式
-
-OpenCode 模式完全不由 Codex 启动、调度或恢复。
-
-OpenCode 模式必须满足：
-
-- 用户直接启动 OpenCode 独立任务。
-- OpenCode 不读取本文件。
-- OpenCode 不读取 `EXAGENT_MODE.md` 或 `docs/` 下的 supervisor / Agent / Spark / ExAgent 协议。
-- OpenCode 只读取 `OPENCODE_MODE.md` 与当前目标项目自己的项目文档。
-- OpenCode 不使用 supervisor checkpoint、batch state、DeepCode-output、QwenCode-output 或 Spark 模型检查。
-
-OpenCode 独立模式仍遵守项目边界：Apple 项目只读参考；只构建或修改 Android、HarmonyOS、Windows 目标项目；不得写入 `/Users/vita/Vitemis/Vela`；不得读取敏感信息；不得执行破坏性 Git 操作。
-
 ## 启动前检查
 
-Agent、ExAgent 或 Spark 模式进入 Outposts 根目录后，必须先执行并记录：
+Agent 或 Spark 模式进入 Outposts 根目录后，必须先执行并记录：
 
 ```bash
 pwd
@@ -176,7 +151,9 @@ git status --short
 
 只有当 `pwd` 与 `git rev-parse --show-toplevel` 都指向 `/Users/vita/Vitemis/Outposts` 时，才允许继续调度或更新本目录级调度文档。若不匹配，停止修改并报告路径问题。
 
-不得执行破坏性 Git 操作，包括 `git reset --hard`、`git clean -fd`、`git checkout .`、`git restore .`、强制 push、删除用户未提交文件。不得 commit、push、创建 PR，除非用户明确要求。
+不得执行破坏性 Git 操作，包括 `git reset --hard`、`git clean -fd`、`git checkout .`、`git restore .`、强制 push、删除用户未提交文件。未经用户明文要求具体 Git 操作，不 add、不 commit、不 push、不创建 PR；编辑、整理、修复、验证或准备工作都不等于提交请求。若用户要求提交，只提交当前 Git root 中与本任务相关的文件；不得递归进入、暂存、提交或推送子仓库、submodule、nested Git repo 或依赖 checkout。
+
+完成调度、实现、修复、验证或文档维护后，必须将已完成的持久性改动及时回写到相关项目文档；若无需更新文档，最终报告说明原因。
 
 ## Codex 模式必读顺序
 
@@ -192,16 +169,13 @@ Agent 或 Spark 模式下，Codex 必须按顺序阅读：
 8. `docs/RECOVERY_PLAYBOOK.md`
 9. `docs/REPORTING_FORMATS.md`
 10. `docs/DO_NOT_BREAK.md`
+11. `docs/NEXT_TARGET.md`（如果存在）
 
 这些文档给 Codex 读，用于形成调度判断。Codex 可以根据这些文档生成给 DeepCode / QwenCode 的当前项目、当前轮次、当前目标所需的精简 prompt，但不得把整套调度文档粗暴粘给 worker。
 
-OpenCode 独立模式不得使用上述顺序；OpenCode 独立模式只读取 `OPENCODE_MODE.md`。
-
-ExAgent 模式使用 `EXAGENT_MODE.md` 规定的顺序。
-
 ## 输出目录
 
-Agent / ExAgent 的跨轮交接只允许通过文件路径完成：
+Agent 的跨轮交接只允许通过文件路径完成：
 
 ```text
 <PROJECT_PATH>/DeepCode-output/<BATCH_NAME>/

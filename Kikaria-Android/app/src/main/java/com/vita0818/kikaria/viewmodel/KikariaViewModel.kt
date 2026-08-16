@@ -3,10 +3,12 @@ package com.vita0818.kikaria.viewmodel
 import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import com.vita0818.kikaria.data.DailyReviewRecord
 import com.vita0818.kikaria.data.KnowledgePoint
 import com.vita0818.kikaria.data.KnowledgePreset
 import com.vita0818.kikaria.data.SamplePresets
@@ -35,6 +37,7 @@ class KikariaViewModel(application: Application) : AndroidViewModel(application)
 
     // --- Presets ---
     var presets = mutableStateListOf<KnowledgePreset>()
+    private var presetStates = mutableStateMapOf<String, KikariaPersistence.PresetStudyState>()
     var activePresetId by mutableStateOf(KnowledgePreset.DEFAULT_PRESET_ID)
 
     val activePreset: KnowledgePreset?
@@ -64,6 +67,7 @@ class KikariaViewModel(application: Application) : AndroidViewModel(application)
 
     // --- Activity records ---
     var activityRecords = mutableStateListOf<StudyActivityRecord>()
+    var dailyReviewRecords = mutableStateMapOf<String, DailyReviewRecord>()
 
     // --- UI state ---
     var toastMessage by mutableStateOf<String?>(null)
@@ -135,9 +139,31 @@ class KikariaViewModel(application: Application) : AndroidViewModel(application)
             }
         }
 
+    fun matchesKnowledgeSearch(point: KnowledgePoint, query: String): Boolean {
+        val normalizedQuery = query.trim()
+        if (normalizedQuery.isEmpty()) return true
+        return point.title.contains(normalizedQuery, ignoreCase = true) ||
+            point.tags.any { it.contains(normalizedQuery, ignoreCase = true) } ||
+            point.hint.contains(normalizedQuery, ignoreCase = true) ||
+            point.content.contains(normalizedQuery, ignoreCase = true)
+    }
+
+    fun scopeTagsMatchingSearch(query: String): List<String> {
+        val normalizedQuery = query.trim()
+        if (normalizedQuery.isEmpty()) return allTags
+        val relevantTags = knowledgePoints
+            .filter { matchesKnowledgeSearch(it, normalizedQuery) }
+            .flatMap { it.tags }
+            .toSet()
+        return allTags.filter { tag ->
+            tag.contains(normalizedQuery, ignoreCase = true) || tag in relevantTags
+        }
+    }
+
     init {
         com.vita0818.kikaria.util.KikariaNotificationManager.createChannel(getApplication())
         loadState()
+        rescheduleReminderIfEnabled()
     }
 
     // --- Persistence ---
@@ -147,96 +173,272 @@ class KikariaViewModel(application: Application) : AndroidViewModel(application)
         if (state != null) {
             hasCompletedOnboarding = state.hasCompletedOnboarding
             hasCompletedProfileSetup = state.hasCompletedProfileSetup
-        }
-        if (state != null && state.presets.isNotEmpty()) {
-            presets.clear()
-            presets.addAll(state.presets)
-            activePresetId = state.currentPresetId.ifEmpty { presets.firstOrNull()?.id ?: KnowledgePreset.DEFAULT_PRESET_ID }
             userDisplayName = state.userDisplayName
             userHandle = state.userHandle.ifEmpty { "user" }
-            dailyGoal = state.dailyGoal.coerceIn(1, 100)
-            countdownStartDate = state.countdownStartDate
-            countdownEndDate = state.countdownEndDate
-            dangerPercent = state.dangerPercent.coerceIn(1, 100)
-            notificationsEnabled = state.notificationsEnabled
-            notificationTimeText = state.notificationTimeText.ifEmpty { "21:00" }
             avatarUri = state.avatarUri
-            selectedTags.clear()
-            state.selectedTags.forEach { selectedTags.add(it) }
-            activityRecords.clear()
-            state.activityRecords.forEach { activityRecords.add(it) }
-
-            val lastDate = state.lastActiveDate
-            if (lastDate != null && isSameDay(lastDate, Date())) {
-                todayReviewCount = state.todayReviewCount
-                todayHintCount = state.todayHintCount
-                todayMasteredCount = state.todayMasteredCount
-            }
-
-            loadPresetKnowledgePoints(state.knowledgePoints)
-        } else {
-            loadInitialPresets()
         }
+
+        installPresets(state?.presets.orEmpty())
+        activePresetId = resolvePresetId(
+            state?.currentPresetId.orEmpty().ifEmpty { KnowledgePreset.DEFAULT_PRESET_ID }
+        )
+
+        presetStates.clear()
+        state?.presetStates.orEmpty().forEach { (presetId, presetState) ->
+            presets.find { it.id == presetId }?.let { preset ->
+                presetStates[presetId] = sanitizePresetState(presetState, preset)
+            }
+        }
+
+        if (state != null && activePresetId !in presetStates) {
+            legacyStateFromAppState(state, activePresetId)?.let { legacyState ->
+                presetStates[activePresetId] = legacyState
+            }
+        }
+
+        ensurePresetStates()
+        restorePresetState(presetStates[activePresetId] ?: initialStudyState(activePreset ?: return))
     }
 
     fun saveState() {
         val lastActive = Date()
+        val activeState = currentPresetStateSnapshot(lastActive)
+        presetStates[activePresetId] = activeState
         KikariaPersistence.save(
             getApplication(),
             KikariaPersistence.AppState(
-                schemaVersion = 2,
+                schemaVersion = 3,
                 presets = presets.toList(),
                 currentPresetId = activePresetId,
+                presetStates = presetStates.toMap(),
                 userDisplayName = userDisplayName,
                 userHandle = userHandle,
-                dailyGoal = dailyGoal,
-                countdownStartDate = countdownStartDate,
-                countdownEndDate = countdownEndDate,
-                dangerPercent = dangerPercent,
-                notificationsEnabled = notificationsEnabled,
-                notificationTimeText = notificationTimeText,
+                dailyGoal = activeState.dailyGoal,
+                countdownStartDate = activeState.countdownStartDate,
+                countdownEndDate = activeState.countdownEndDate,
+                dangerPercent = activeState.dangerPercent,
+                notificationsEnabled = activeState.notificationsEnabled,
+                notificationTimeText = activeState.notificationTimeText,
                 hasCompletedOnboarding = hasCompletedOnboarding,
                 hasCompletedProfileSetup = hasCompletedProfileSetup,
                 avatarUri = avatarUri,
-                knowledgePoints = knowledgePoints.toList(),
-                activityRecords = activityRecords.toList(),
-                selectedTags = selectedTags.toList(),
-                todayReviewCount = todayReviewCount,
-                todayHintCount = todayHintCount,
-                todayMasteredCount = todayMasteredCount,
+                knowledgePoints = activeState.knowledgePoints,
+                activityRecords = activeState.activityRecords,
+                selectedTags = activeState.selectedTags,
+                todayReviewCount = activeState.todayReviewCount,
+                todayHintCount = activeState.todayHintCount,
+                todayMasteredCount = activeState.todayMasteredCount,
                 lastActiveDate = lastActive
             )
         )
+        com.vita0818.kikaria.widget.KikariaWidgetUpdater.updateWidgets(getApplication())
     }
 
-    private fun loadInitialPresets() {
+    private fun installPresets(savedPresets: List<KnowledgePreset>) {
         presets.clear()
-        presets.addAll(SamplePresets.all)
+        presets.addAll(savedPresets.ifEmpty { SamplePresets.all })
         val assetPresets = com.vita0818.kikaria.util.PresetLoader.loadPresets(getApplication())
         val existingIds = presets.map { it.id }.toSet()
         assetPresets.filter { it.id !in existingIds }.forEach { presets.add(it) }
-        loadPresetKnowledgePoints(emptyList())
     }
 
     fun loadPresetKnowledgePoints(savedPoints: List<KnowledgePoint> = emptyList()) {
         val preset = activePreset ?: return
-        knowledgePoints.clear()
-        val parsed = MarkdownParser.parseKnowledgePoints(preset.markdownText)
-        val savedById = savedPoints.associateBy { it.id }
-        for (point in parsed) {
-            val saved = savedById[point.id]
-            if (saved != null) {
-                knowledgePoints.add(point.copy(
-                    reinforcementCount = saved.reinforcementCount,
-                    lastReinforcedAt = saved.lastReinforcedAt,
-                    isMastered = saved.isMastered,
-                    createdAt = saved.createdAt,
-                    updatedAt = saved.updatedAt
-                ))
-            } else {
-                knowledgePoints.add(point)
+        val state = if (savedPoints.isNotEmpty()) {
+            initialStudyState(preset).copy(knowledgePoints = savedPoints)
+        } else {
+            presetStates[preset.id] ?: initialStudyState(preset)
+        }
+        presetStates[preset.id] = sanitizePresetState(state, preset)
+        restorePresetState(presetStates[preset.id] ?: return)
+    }
+
+    private fun resolvePresetId(candidateId: String): String {
+        return when {
+            presets.any { it.id == candidateId } -> candidateId
+            presets.any { it.id == KnowledgePreset.DEFAULT_PRESET_ID } -> KnowledgePreset.DEFAULT_PRESET_ID
+            else -> presets.firstOrNull()?.id ?: KnowledgePreset.DEFAULT_PRESET_ID
+        }
+    }
+
+    private fun ensurePresetStates() {
+        presets.forEach { preset ->
+            if (preset.id !in presetStates) {
+                presetStates[preset.id] = initialStudyState(preset)
             }
         }
+    }
+
+    private fun initialStudyState(preset: KnowledgePreset): KikariaPersistence.PresetStudyState {
+        val points = MarkdownParser.parseKnowledgePoints(preset.markdownText)
+        return KikariaPersistence.PresetStudyState(
+            presetId = preset.id,
+            knowledgePoints = points,
+            markdownText = preset.markdownText,
+            selectedTags = emptyList(),
+            dailyReviewRecords = emptyMap(),
+            activityRecords = emptyList(),
+            dailyGoal = 20,
+            countdownStartDate = null,
+            countdownEndDate = null,
+            dangerPercent = 80,
+            notificationsEnabled = false,
+            notificationTimeText = "21:00",
+            todayReviewCount = 0,
+            todayHintCount = 0,
+            todayMasteredCount = 0,
+            lastActiveDate = null
+        )
+    }
+
+    private fun legacyStateFromAppState(
+        appState: KikariaPersistence.AppState,
+        presetId: String
+    ): KikariaPersistence.PresetStudyState? {
+        val preset = presets.find { it.id == presetId } ?: return null
+        val points = appState.knowledgePoints.ifEmpty {
+            MarkdownParser.parseKnowledgePoints(preset.markdownText)
+        }
+        val lastDate = appState.lastActiveDate
+        val hasTodayCounts = lastDate != null && isSameDay(lastDate, Date())
+
+        return sanitizePresetState(
+            KikariaPersistence.PresetStudyState(
+                presetId = presetId,
+                knowledgePoints = points,
+                markdownText = preset.markdownText,
+                selectedTags = appState.selectedTags,
+                dailyReviewRecords = emptyMap(),
+                activityRecords = appState.activityRecords,
+                dailyGoal = appState.dailyGoal,
+                countdownStartDate = appState.countdownStartDate,
+                countdownEndDate = appState.countdownEndDate,
+                dangerPercent = appState.dangerPercent,
+                notificationsEnabled = appState.notificationsEnabled,
+                notificationTimeText = appState.notificationTimeText,
+                todayReviewCount = if (hasTodayCounts) appState.todayReviewCount else 0,
+                todayHintCount = if (hasTodayCounts) appState.todayHintCount else 0,
+                todayMasteredCount = if (hasTodayCounts) appState.todayMasteredCount else 0,
+                lastActiveDate = lastDate
+            ),
+            preset
+        )
+    }
+
+    private fun sanitizePresetState(
+        state: KikariaPersistence.PresetStudyState,
+        preset: KnowledgePreset
+    ): KikariaPersistence.PresetStudyState {
+        val markdown = state.markdownText.ifBlank { preset.markdownText }
+        val points = state.knowledgePoints.ifEmpty { MarkdownParser.parseKnowledgePoints(markdown) }
+        val pointIds = points.map { it.id }.toSet()
+        return state.copy(
+            presetId = preset.id,
+            knowledgePoints = points,
+            markdownText = markdown,
+            selectedTags = validSelectedTags(state.selectedTags, points),
+            dailyReviewRecords = state.dailyReviewRecords.filterKeys { it in pointIds },
+            activityRecords = state.activityRecords.filter { it.pointId in pointIds },
+            dailyGoal = state.dailyGoal.coerceIn(1, 100),
+            dangerPercent = state.dangerPercent.coerceIn(1, 100),
+            notificationTimeText = state.notificationTimeText.ifBlank { "21:00" }
+        )
+    }
+
+    private fun currentPresetStateSnapshot(lastActive: Date = Date()): KikariaPersistence.PresetStudyState {
+        val markdown = MarkdownParser.markdownFromPoints(knowledgePoints.toList())
+        return KikariaPersistence.PresetStudyState(
+            presetId = activePresetId,
+            knowledgePoints = knowledgePoints.toList(),
+            markdownText = markdown,
+            selectedTags = selectedTags.toList(),
+            dailyReviewRecords = dailyReviewRecords.toMap(),
+            activityRecords = activityRecords.toList(),
+            dailyGoal = dailyGoal.coerceIn(1, 100),
+            countdownStartDate = countdownStartDate,
+            countdownEndDate = countdownEndDate,
+            dangerPercent = dangerPercent.coerceIn(1, 100),
+            notificationsEnabled = notificationsEnabled,
+            notificationTimeText = notificationTimeText.ifBlank { "21:00" },
+            todayReviewCount = todayReviewCount,
+            todayHintCount = todayHintCount,
+            todayMasteredCount = todayMasteredCount,
+            lastActiveDate = lastActive
+        )
+    }
+
+    private fun restorePresetState(state: KikariaPersistence.PresetStudyState) {
+        val preset = presets.find { it.id == state.presetId } ?: return
+        val sanitized = sanitizePresetState(state, preset)
+        activePresetId = sanitized.presetId
+
+        knowledgePoints.clear()
+        knowledgePoints.addAll(sanitized.knowledgePoints)
+
+        selectedTags.clear()
+        selectedTags.addAll(validSelectedTags(sanitized.selectedTags, sanitized.knowledgePoints))
+
+        dailyReviewRecords.clear()
+        dailyReviewRecords.putAll(sanitized.dailyReviewRecords)
+
+        activityRecords.clear()
+        activityRecords.addAll(sanitized.activityRecords)
+
+        dailyGoal = sanitized.dailyGoal.coerceIn(1, 100)
+        countdownStartDate = sanitized.countdownStartDate
+        countdownEndDate = sanitized.countdownEndDate
+        dangerPercent = sanitized.dangerPercent.coerceIn(1, 100)
+        notificationsEnabled = sanitized.notificationsEnabled
+        notificationTimeText = sanitized.notificationTimeText.ifBlank { "21:00" }
+
+        val lastDate = sanitized.lastActiveDate
+        if (lastDate != null && isSameDay(lastDate, Date())) {
+            todayHintCount = sanitized.todayHintCount
+            todayMasteredCount = sanitized.todayMasteredCount
+            todayReviewCount = maxOf(todayReviewRecordsTotal(), sanitized.todayReviewCount)
+        } else {
+            resetTodayCounts()
+        }
+
+        resetReviewSession()
+        presetStates[sanitized.presetId] = sanitized
+    }
+
+    private fun validSelectedTags(tags: Collection<String>, points: List<KnowledgePoint>): List<String> {
+        val availableTags = points.flatMap { it.tags }.toSet()
+        return tags.distinct().filter { it in availableTags }
+    }
+
+    private fun resetReviewSession() {
+        reviewQueue.clear()
+        currentReviewIndex = -1
+        isHintShown = false
+        isContentShown = false
+        isReviewCompleted = false
+    }
+
+    fun todayReviewCountFor(pointId: String): Int {
+        val record = dailyReviewRecords[pointId] ?: return 0
+        return if (isSameDay(record.date, Date())) record.count else 0
+    }
+
+    private fun incrementTodayReviewCountFor(pointId: String) {
+        val now = Date()
+        val current = dailyReviewRecords[pointId]
+        val nextCount = if (current != null && isSameDay(current.date, now)) {
+            current.count + 1
+        } else {
+            1
+        }
+        dailyReviewRecords[pointId] = DailyReviewRecord(date = now, count = nextCount)
+        todayReviewCount = todayReviewRecordsTotal()
+    }
+
+    private fun todayReviewRecordsTotal(): Int {
+        val today = Date()
+        return dailyReviewRecords.values
+            .filter { isSameDay(it.date, today) }
+            .sumOf { it.count.coerceAtLeast(0) }
     }
 
     private fun isSameDay(d1: Date, d2: Date): Boolean {
@@ -247,11 +449,13 @@ class KikariaViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun switchPreset(presetId: String) {
-        activePresetId = presetId
-        loadPresetKnowledgePoints()
-        selectedTags.clear()
-        resetTodayCounts()
+        val targetPreset = presets.find { it.id == presetId } ?: return
+        presetStates[activePresetId] = currentPresetStateSnapshot()
+        val targetState = presetStates[presetId] ?: initialStudyState(targetPreset)
+        presetStates[presetId] = sanitizePresetState(targetState, targetPreset)
+        restorePresetState(presetStates[presetId] ?: return)
         saveState()
+        rescheduleReminderIfEnabled()
     }
 
     // --- Toast ---
@@ -283,6 +487,13 @@ class KikariaViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun updateNotificationsEnabled(enabled: Boolean) {
+        if (enabled && !com.vita0818.kikaria.util.KikariaNotificationManager.canPostNotifications(getApplication())) {
+            notificationsEnabled = false
+            toastMessage = "请在系统设置中允许通知"
+            saveState()
+            return
+        }
+
         notificationsEnabled = enabled
         saveState()
         if (enabled) {
@@ -304,13 +515,26 @@ class KikariaViewModel(application: Application) : AndroidViewModel(application)
         val parts = notificationTimeText.split(":")
         val hour = parts.firstOrNull()?.toIntOrNull() ?: 21
         val minute = parts.getOrNull(1)?.toIntOrNull() ?: 0
-        com.vita0818.kikaria.util.KikariaNotificationManager.scheduleReminder(
+        val scheduled = com.vita0818.kikaria.util.KikariaNotificationManager.scheduleReminder(
             getApplication(), hour, minute
         )
+        if (!scheduled) {
+            notificationsEnabled = false
+            toastMessage = "请在系统设置中允许通知"
+            saveState()
+        }
     }
 
     private fun cancelReminder() {
         com.vita0818.kikaria.util.KikariaNotificationManager.cancelReminder(getApplication())
+    }
+
+    private fun rescheduleReminderIfEnabled() {
+        if (notificationsEnabled) {
+            scheduleReminder()
+        } else {
+            cancelReminder()
+        }
     }
 
     fun updateProfile(displayName: String, handle: String) {
@@ -324,15 +548,17 @@ class KikariaViewModel(application: Application) : AndroidViewModel(application)
     fun createPreset(name: String, category: String, markdownText: String): KnowledgePreset {
         val trimmedName = name.trim()
         val trimmedCategory = category.trim().ifEmpty { "自定义" }
+        presetStates[activePresetId] = currentPresetStateSnapshot()
         val preset = KnowledgePreset(
             id = "user-${UUID.randomUUID()}",
             name = trimmedName.ifEmpty { "新预设" },
             subtitle = "自定义知识点",
             category = trimmedCategory,
-            markdownText = markdownText,
+            markdownText = markdownText.trim(),
             isBuiltIn = false
         )
         presets.add(preset)
+        presetStates[preset.id] = initialStudyState(preset)
         switchPreset(preset.id)
         showToast("已创建「${preset.name}」")
         return preset
@@ -342,14 +568,27 @@ class KikariaViewModel(application: Application) : AndroidViewModel(application)
         val index = presets.indexOfFirst { it.id == presetId }
         if (index == -1) return
         val preset = presets[index]
+        val previousState = stateForEditing(presetId) ?: initialStudyState(preset)
+        val parsedPoints = MarkdownParser.parseKnowledgePoints(markdownText.trim().ifEmpty { preset.markdownText })
+        val mergedPoints = mergeParsedPointsWithExisting(parsedPoints, previousState.knowledgePoints)
         val updated = preset.copy(
             name = name.trim().ifEmpty { preset.name },
             category = category.trim().ifEmpty { preset.category },
             markdownText = markdownText.trim().ifEmpty { preset.markdownText }
         )
         presets[index] = updated
+        val updatedState = sanitizePresetState(
+            previousState.copy(
+                presetId = presetId,
+                knowledgePoints = mergedPoints,
+                markdownText = updated.markdownText,
+                selectedTags = validSelectedTags(previousState.selectedTags, mergedPoints)
+            ),
+            updated
+        )
+        presetStates[presetId] = updatedState
         if (activePresetId == presetId) {
-            loadPresetKnowledgePoints()
+            restorePresetState(updatedState)
         }
         saveState()
         showToast("已更新「${updated.name}」")
@@ -367,15 +606,100 @@ class KikariaViewModel(application: Application) : AndroidViewModel(application)
             showToast("无法删除最后一个预设")
             return
         }
+        presetStates[activePresetId] = currentPresetStateSnapshot()
         presets.remove(preset)
+        presetStates.remove(presetId)
         if (activePresetId == presetId) {
-            activePresetId = presets.firstOrNull()?.id ?: KnowledgePreset.DEFAULT_PRESET_ID
-            loadPresetKnowledgePoints()
-            selectedTags.clear()
-            resetTodayCounts()
+            val nextPreset = presets.firstOrNull() ?: return
+            val nextState = presetStates[nextPreset.id] ?: initialStudyState(nextPreset)
+            presetStates[nextPreset.id] = nextState
+            restorePresetState(nextState)
         }
         saveState()
         showToast("已删除「${preset.name}」")
+    }
+
+    fun knowledgePointsForPreset(presetId: String): List<KnowledgePoint> {
+        val state = stateForEditing(presetId) ?: return emptyList()
+        return state.knowledgePoints
+    }
+
+    fun upsertKnowledgePoint(presetId: String, point: KnowledgePoint) {
+        val preset = presets.find { it.id == presetId } ?: return
+        val state = stateForEditing(presetId) ?: initialStudyState(preset)
+        val points = state.knowledgePoints.toMutableList()
+        val index = points.indexOfFirst { it.id == point.id }
+        if (index == -1) points.add(point) else points[index] = point
+        syncEditedPresetState(presetId, points, state)
+        showToast(if (index == -1) "已添加知识点" else "已更新知识点")
+    }
+
+    fun deleteKnowledgePoint(presetId: String, pointId: String) {
+        val state = stateForEditing(presetId) ?: return
+        val points = state.knowledgePoints.filterNot { it.id == pointId }
+        val updatedRecords = state.dailyReviewRecords.filterKeys { it != pointId }
+        val updatedActivities = state.activityRecords.filter { it.pointId != pointId }
+        syncEditedPresetState(
+            presetId,
+            points,
+            state.copy(
+                dailyReviewRecords = updatedRecords,
+                activityRecords = updatedActivities,
+                selectedTags = validSelectedTags(state.selectedTags, points)
+            )
+        )
+        showToast("已删除知识点")
+    }
+
+    private fun stateForEditing(presetId: String): KikariaPersistence.PresetStudyState? {
+        if (presetId == activePresetId) {
+            return currentPresetStateSnapshot()
+        }
+        val preset = presets.find { it.id == presetId } ?: return null
+        return presetStates[presetId] ?: initialStudyState(preset)
+    }
+
+    private fun syncEditedPresetState(
+        presetId: String,
+        points: List<KnowledgePoint>,
+        baseState: KikariaPersistence.PresetStudyState
+    ) {
+        val presetIndex = presets.indexOfFirst { it.id == presetId }
+        if (presetIndex == -1) return
+        val markdown = MarkdownParser.markdownFromPoints(points)
+        val updatedPreset = presets[presetIndex].copy(markdownText = markdown)
+        presets[presetIndex] = updatedPreset
+        val updatedState = sanitizePresetState(
+            baseState.copy(
+                presetId = presetId,
+                knowledgePoints = points,
+                markdownText = markdown,
+                selectedTags = validSelectedTags(baseState.selectedTags, points)
+            ),
+            updatedPreset
+        )
+        presetStates[presetId] = updatedState
+        if (presetId == activePresetId) {
+            restorePresetState(updatedState)
+        }
+        saveState()
+    }
+
+    private fun mergeParsedPointsWithExisting(
+        parsedPoints: List<KnowledgePoint>,
+        existingPoints: List<KnowledgePoint>
+    ): List<KnowledgePoint> {
+        val existingByTitle = existingPoints.associateBy { it.title }
+        return parsedPoints.map { parsed ->
+            val existing = existingByTitle[parsed.title] ?: return@map parsed
+            parsed.copy(
+                id = existing.id,
+                reinforcementCount = existing.reinforcementCount,
+                lastReinforcedAt = existing.lastReinforcedAt,
+                isMastered = existing.isMastered,
+                createdAt = existing.createdAt
+            )
+        }
     }
 
     // --- Review ---
@@ -415,8 +739,9 @@ class KikariaViewModel(application: Application) : AndroidViewModel(application)
 
     fun showContent() {
         val point = currentPoint ?: return
+        if (isContentShown) return
         isContentShown = true
-        todayReviewCount++
+        incrementTodayReviewCountFor(point.id)
         recordActivity(StudyActivityType.REVIEWED_ANSWER, point)
         saveState()
     }

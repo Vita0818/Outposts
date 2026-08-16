@@ -38,6 +38,7 @@ object ConfigStore {
         val baseUrl = readValue("INTATIS_BASE_URL", "baseUrl", values, "https://api.openai.com/v1")
         val apiKey = readValue("INTATIS_API_KEY", "apiKey", values, "")
         val model = readValue("INTATIS_MODEL", "model", values, "gpt-4o-mini")
+        val selectedModel = readValue("INTATIS_SELECTED_MODEL", "selectedModel", values, model)
         val reasoning = readValue("INTATIS_REASONING", "reasoning", values, "", allowBlank = true)
         val modeValue = readValue("INTATIS_MODE", "defaultMode", values, IntatisMode.CHAT.name.lowercase())
         val workspace = readValue("INTATIS_WORKSPACE", "workspace", values, "")
@@ -47,6 +48,7 @@ object ConfigStore {
             baseUrl = baseUrl,
             apiKey = apiKey,
             model = model,
+            selectedModel = selectedModel,
             reasoning = reasoning.ifBlank { null },
             defaultMode = runCatching { IntatisMode.valueOf(modeValue.uppercase()) }.getOrDefault(IntatisMode.CHAT),
             workspace = workspace.ifBlank { null },
@@ -64,6 +66,7 @@ object ConfigStore {
             "defaultMode" to config.defaultMode.name.lowercase(),
             "includeUsage" to if (config.includeUsage) "1" else "0",
         )
+        map["selectedModel"] = config.selectedModel
         if (!config.reasoning.isNullOrBlank()) map["reasoning"] = config.reasoning
         if (!config.workspace.isNullOrBlank()) map["workspace"] = config.workspace
         path.toFile().writeText(json.encodeToString(map))

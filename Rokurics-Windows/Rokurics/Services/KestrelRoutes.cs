@@ -6,29 +6,37 @@ namespace Rokurics.Services;
 /// Kestrel HTTPS endpoint routing definitions.
 /// Mirrors SecureReceiverService route registration from Apple source.
 ///
-/// Endpoint layout (matching Apple source receiver):
-///   GET  /health                — health check (always 200)
-///   POST /pairing/begin         — start pairing, returns 6-digit code + fingerprint
-///   POST /pairing/verify        — verify pairing code from device
-///   POST /pairing/complete      — complete pairing, exchange shared secret
-///   GET  /pairing/status        — current pairing state
-///   POST /upload                — receive recording file upload
-///   POST /sync/device-status     — canonical sync status endpoint (alias to /sync/status on legacy clients)
-///   POST /sync/start            — start canonical sync control plane
-///   POST /sync/start-ack        — acknowledge canonical sync control plane
-///   POST /sync/inventory        — sync inventory exchange
-///   POST /sync/apply-metadata   — apply metadata manifest in canonical protocol
-///   POST /sync/artifact-status  — query artifact transfer state
-///   POST /sync/artifact-request — request artifact chunk
-///   POST /sync/artifact-put     — upload artifact chunk
-///   POST /sync/status           — compatibility legacy route for sync status
-///   GET  /sync/manifest         — compatibility legacy route for sync manifest
-///   POST /sync/apply            — compatibility legacy route for sync apply
-///   GET  /devices               — list paired devices
-///   POST /devices/disconnect    — disconnect a paired device
+/// Canonical Apple endpoints:
+///   GET  /health
+///   GET  /fingerprint
+///   POST /pair
+///   POST /pair/confirm
+///   POST /upload-secure-test
+///   POST /upload-recording-metadata
+///   POST /upload-recording-audio
+///   POST /upload-recording-audio-session/start
+///   POST /upload-recording-audio-session/status
+///   POST /upload-recording-audio-session/chunk
+///   POST /upload-recording-audio-session/finalize
+///   POST /device/status
+///   POST /device/unpair
+///   POST /connection/heartbeat
+///   POST /connection/probe
+///   POST /sync/device-status
+///   POST /sync/status
+///   POST /sync/manifest
+///   POST /sync/apply
+///   POST /sync/inventory
+///   POST /sync/apply-metadata
+///   POST /sync/start
+///   POST /sync/start-ack
+///   POST /sync/artifact-status
+///   POST /sync/artifact-request
+///   POST /sync/artifact-put
 ///
-/// REQUIRES: .NET 8+, Microsoft.AspNetCore.App, Kestrel server.
-/// VALIDATION GAP: Cannot run on macOS without .NET SDK.
+/// Compatibility endpoints used by historical implementations:
+///   /pairing/begin, /pairing/verify, /pairing/complete
+///   /pairing/status, /upload, /devices, /devices/disconnect
 /// </summary>
 
 /// <summary>
@@ -49,6 +57,7 @@ public sealed class VerifyPairingRequest
     public string PairingCode { get; init; } = "";
     public string DeviceId { get; init; } = "";
     public string DeviceName { get; init; } = "iPhone";
+    public string DeviceType { get; init; } = "iPhone";
 }
 
 public sealed class VerifyPairingResponse
@@ -56,6 +65,9 @@ public sealed class VerifyPairingResponse
     public bool Accepted { get; init; }
     public string? SharedSecret { get; init; }
     public string? DeviceToken { get; init; }
+    public string? DeviceID { get; init; }
+    public string? ConfirmationToken { get; init; }
+    public string? Disposition { get; init; }
     public string? Error { get; init; }
 }
 
@@ -309,6 +321,9 @@ public sealed class KestrelPairingState
     public DateTime? PairingCodeExpiresAt { get; set; }
     public string? PendingDeviceId { get; set; }
     public string? PendingDeviceName { get; set; }
+    public string? PendingDeviceType { get; set; }
+    public string? PendingSharedSecret { get; set; }
+    public string? PendingConfirmationToken { get; set; }
     public bool IsVerificationInProgress { get; set; }
 
     public bool IsCodeExpired =>
@@ -322,6 +337,9 @@ public sealed class KestrelPairingState
         PairingCodeExpiresAt = null;
         PendingDeviceId = null;
         PendingDeviceName = null;
+        PendingDeviceType = null;
+        PendingSharedSecret = null;
+        PendingConfirmationToken = null;
         IsVerificationInProgress = false;
     }
 }
@@ -329,10 +347,7 @@ public sealed class KestrelPairingState
 /// <summary>
 /// Kestrel route handler interface.
 /// Provides HTTP endpoint mapping for the Kestrel server.
-/// Implementations wire these to ASP.NET Core minimal API endpoints.
-///
-/// REQUIRES: Microsoft.AspNetCore.App for actual HTTP hosting.
-/// This interface allows DI and testing without the runtime.
+/// Implementations wire these to ASP.NET Core endpoints when available.
 /// </summary>
 public interface IKestrelRouteHandler
 {
@@ -341,58 +356,50 @@ public interface IKestrelRouteHandler
 }
 
 /// <summary>
-/// Kestrel route handler stub documenting the expected endpoint layout.
-/// Actual implementation requires ASP.NET Core WebApplication.
+/// Route metadata used by the service host.
 /// </summary>
 public sealed class KestrelRouteHandler : IKestrelRouteHandler
 {
     public string[] RegisteredRoutes => new[]
     {
         "GET  /health",
+        "GET  /fingerprint",
+        "POST /pair",
+        "POST /pair/confirm",
+        "POST /upload-secure-test",
+        "POST /upload-recording-metadata",
+        "POST /upload-recording-audio",
+        "POST /upload-recording-audio-session/start",
+        "POST /upload-recording-audio-session/status",
+        "POST /upload-recording-audio-session/chunk",
+        "POST /upload-recording-audio-session/finalize",
+        "POST /device/status",
+        "POST /device/unpair",
+        "POST /connection/heartbeat",
+        "POST /connection/probe",
+        "POST /sync/device-status",
+        "POST /sync/status",
+        "POST /sync/manifest",
+        "POST /sync/apply",
+        "POST /sync/inventory",
+        "POST /sync/apply-metadata",
+        "POST /sync/start",
+        "POST /sync/start-ack",
+        "POST /sync/artifact-status",
+        "POST /sync/artifact-request",
+        "POST /sync/artifact-put",
         "POST /pairing/begin",
         "POST /pairing/verify",
         "POST /pairing/complete",
         "GET  /pairing/status",
         "POST /upload",
-        "POST /sync/device-status",
-        "POST /sync/start",
-        "POST /sync/start-ack",
-        "POST /sync/inventory",
-        "POST /sync/apply-metadata",
-        "POST /sync/artifact-status",
-        "POST /sync/artifact-request",
-        "POST /sync/artifact-put",
-        "POST /sync/status",
-        "GET  /sync/manifest",
-        "POST /sync/apply",
         "GET  /devices",
-        "POST /devices/disconnect",
+        "POST /devices/disconnect"
     };
 
     public void MapRoutes(object app)
     {
-        // TODO: Wire to ASP.NET Core minimal API endpoints
-        // var webApp = (WebApplication)app;
-        // webApp.MapGet("/health", () => Results.Ok(new { status = "ok" }));
-        // webApp.MapPost("/pairing/begin", HandleBeginPairing);
-        // webApp.MapPost("/pairing/verify", HandleVerifyPairing);
-        // webApp.MapPost("/pairing/complete", HandleCompletePairing);
-        // webApp.MapGet("/pairing/status", HandlePairingStatus);
-        // webApp.MapPost("/upload", HandleUpload);
-        // webApp.MapPost("/sync/device-status", HandleSyncStatus);
-        // webApp.MapPost("/sync/start", HandleSyncStart);
-        // webApp.MapPost("/sync/start-ack", HandleSyncStartAck);
-        // webApp.MapPost("/sync/inventory", HandleSyncInventory);
-        // webApp.MapPost("/sync/apply-metadata", HandleSyncApplyMetadata);
-        // webApp.MapPost("/sync/artifact-status", HandleSyncArtifactStatus);
-        // webApp.MapPost("/sync/artifact-request", HandleSyncArtifactRequest);
-        // webApp.MapPost("/sync/artifact-put", HandleSyncArtifactPut);
-        // webApp.MapGet("/sync/manifest", HandleGetManifest);
-        // webApp.MapPost("/sync/apply", HandleApplySync);
-        // webApp.MapPost("/sync/status", HandleSyncStatus);
-        // webApp.MapGet("/devices", HandleListDevices);
-        // webApp.MapPost("/devices/disconnect", HandleDisconnect);
-        throw new NotImplementedException("Kestrel route mapping requires ASP.NET Core runtime");
+        _ = app; // Route registration is orchestrated in KestrelReceiverService.
     }
 }
 

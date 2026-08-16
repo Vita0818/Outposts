@@ -20,11 +20,9 @@ import com.vita0818.kikaria.ui.theme.KikariaTheme
  * - [MainActivity] replaces the @main App entry point.
  * - [KikariaApp] composable replaces the WindowGroup { ContentView() } scene.
  *
- * TODO: Android notification channel setup and study-progress scheduling.
- * The iOS app sets UNUserNotificationCenter delegate in KikariaApp.init().
- * On Android this requires creating a NotificationChannel, requesting
- * POST_NOTIFICATIONS permission (API 33+), and scheduling alarms/work
- * for daily study-progress warnings.
+ * Android notification setup is handled by KikariaViewModel and SettingsScreen:
+ * the app creates a NotificationChannel, requests POST_NOTIFICATIONS on API 33+,
+ * and schedules a daily progress-warning alarm.
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

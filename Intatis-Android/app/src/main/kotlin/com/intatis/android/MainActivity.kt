@@ -75,9 +75,15 @@ import com.intatis.shared.PermissionRequest
 import com.intatis.shared.ProcessGitService
 import com.intatis.shared.ProcessShellRunner
 import com.intatis.shared.CommandParser
+import com.intatis.shared.provider.ProviderHealthCheckResult
+import com.intatis.shared.provider.ProviderRegistry
 import com.intatis.shared.SessionEventLog
 import com.intatis.shared.TextAttachment
 import com.intatis.shared.WorkspaceTools
+import com.intatis.shared.conversation.CodeProjection
+import com.intatis.shared.conversation.CoworkMentionRouting
+import com.intatis.shared.conversation.CoworkProjection
+import com.intatis.shared.conversation.ConversationProjection
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -113,6 +119,10 @@ data class EditConfig(
     val apiKey: String,
     val model: String,
     val reasoning: String,
+    val chatProviderId: String,
+    val agentToolProviderId: String,
+    val imageProviderId: String,
+    val transcriptionProviderId: String,
     val workspace: String,
     val defaultMode: String,
     val includeUsage: Boolean,
@@ -148,12 +158,15 @@ class MainActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
 
                 var showSettings by rememberSaveable { mutableStateOf(false) }
+                var settingsHealthReport by rememberSaveable { mutableStateOf("") }
 
                 val mode = viewModel.runtimeMode
                 val chatMessages = viewModel.chatMessages
                 val codeMessages = viewModel.codeMessages
                 val coworkMessages = viewModel.coworkMessages
-                val attachmentCount = viewModel.attachmentsCount
+                val chatAttachmentCount = viewModel.chatAttachmentsCount
+                val codeAttachmentCount = viewModel.codeAttachmentsCount
+                val coworkAttachmentCount = viewModel.coworkAttachmentsCount
                 val workspace = viewModel.runtimeWorkspace
                 val pendingPermission = viewModel.pendingPermission
 
@@ -198,7 +211,7 @@ class MainActivity : ComponentActivity() {
                             when (mode) {
                                 UiMode.Chat -> ChatPanel(
                                     messages = chatMessages,
-                                    attachmentsQueued = attachmentCount,
+                                    attachmentsQueued = chatAttachmentCount,
                                     workspace = workspace,
                                     onSend = { text ->
                                         when (val action = viewModel.sendChat(text)) {
@@ -211,6 +224,7 @@ class MainActivity : ComponentActivity() {
 
                                 UiMode.Code -> CodePanel(
                                     messages = codeMessages,
+                                    attachmentsQueued = codeAttachmentCount,
                                     workspace = workspace,
                                     onSend = { text ->
                                         when (val action = viewModel.sendCode(text)) {
@@ -223,6 +237,7 @@ class MainActivity : ComponentActivity() {
 
                                 UiMode.Cowork -> CoworkPanel(
                                     messages = coworkMessages,
+                                    attachmentsQueued = coworkAttachmentCount,
                                     workspace = workspace,
                                     agents = viewModel.coworkAgents,
                                     onSend = { text ->
@@ -240,6 +255,12 @@ class MainActivity : ComponentActivity() {
                     if (showSettings) {
                         SettingsDialog(
                             snapshot = viewModel.configSnapshot,
+                            healthReport = settingsHealthReport,
+                            onHealthCheck = { edit ->
+                                scope.launch {
+                                    settingsHealthReport = viewModel.checkHealth(edit)
+                                }
+                            },
                             onSave = {
                                 val ok = viewModel.applyConfig(it)
                                 scope.launch {
@@ -302,9 +323,18 @@ class MainViewModel : ViewModel() {
     )
         private set
 
-    private val attachmentQueue = mutableListOf<ChatAttachment>()
-    val attachmentsCount: Int
-        get() = attachmentQueue.size
+    private val chatAttachmentQueue = mutableListOf<ChatAttachment>()
+    private val codeAttachmentQueue = mutableListOf<ChatAttachment>()
+    private val coworkAttachmentQueue = mutableListOf<ChatAttachment>()
+
+    val chatAttachmentsCount: Int
+        get() = chatAttachmentQueue.size
+
+    val codeAttachmentsCount: Int
+        get() = codeAttachmentQueue.size
+
+    val coworkAttachmentsCount: Int
+        get() = coworkAttachmentQueue.size
 
     val chatMessages: SnapshotStateList<UiLine> = mutableStateListOf(
         UiLine("system", "Chat mode ready"),
@@ -322,10 +352,19 @@ class MainViewModel : ViewModel() {
     val coworkEngineAgents: List<String>
         get() = coworkEngine.value.agentsNames
 
-    private var chatSession = mutableStateOf(ConversationSession(config))
+    private var chatEventLog = mutableStateOf(SessionEventLog("gui-chat"))
+    private var codeEventLog = mutableStateOf(SessionEventLog("gui-code"))
+    private var coworkEventLog = mutableStateOf(SessionEventLog("gui-cowork"))
+    private var chatSession = mutableStateOf(ConversationSession(config, chatEventLog.value))
     private var codeSession = mutableStateOf(createCodeSession(config, runtimeWorkspace))
     private var coworkEngine = mutableStateOf(createCoworkEngine(config, runtimeWorkspace))
-    private val eventSink = SessionEventLog("gui")
+
+    private val chatProjection = ConversationProjection()
+    private val codeProjection = CodeProjection()
+    private val coworkProjection = CoworkProjection()
+    private var chatProjectionLines = 0
+    private var codeProjectionLines = 0
+    private var coworkProjectionLines = 0
 
     var pendingPermission by mutableStateOf<PendingPermissionState?>(null)
         private set
@@ -354,8 +393,6 @@ class MainViewModel : ViewModel() {
         val text = raw.trim()
         if (text.isBlank()) return ReplAction.Continue
 
-        chatMessages.add(UiLine("you", text))
-
         if (text.startsWith('/')) {
             return handleChatSlash(text)
         }
@@ -365,16 +402,17 @@ class MainViewModel : ViewModel() {
         val currentReasoning = runtimeReasoning
         val usageEnabled = config.includeUsage
 
-        val (effectiveText, imageAttachments) = prepareQueuedMessage(text)
+        val (effectiveText, imageAttachments) = prepareQueuedMessage(text, chatAttachmentQueue)
         viewModelScope.launch {
             try {
-                val (reply, _, usage) = currentSession.sendUserMessageAsync(
+                val (_, _, usage) = currentSession.sendUserMessageAsync(
                     userText = effectiveText,
                     model = currentModel,
                     reasoning = currentReasoning,
                     attachments = imageAttachments,
+                    includeUsage = usageEnabled,
                 )
-                chatMessages.add(UiLine("assistant", reply.content))
+                appendChatProjectionLines()
                 if (usageEnabled && !usage.isNullOrBlank()) {
                     chatMessages.add(UiLine("system", "usage: $usage"))
                 }
@@ -390,8 +428,6 @@ class MainViewModel : ViewModel() {
         val text = raw.trim()
         if (text.isBlank()) return ReplAction.Continue
 
-        codeMessages.add(UiLine("you", text))
-
         if (text.startsWith('/')) {
             return handleCodeSlash(text)
         }
@@ -400,15 +436,20 @@ class MainViewModel : ViewModel() {
         val currentModel = runtimeModel
         val currentReasoning = runtimeReasoning
         val usageEnabled = config.includeUsage
+        val (effectiveText, imageAttachments) = prepareQueuedMessage(text, codeAttachmentQueue)
         viewModelScope.launch {
             try {
-                val (reply, _, usage) = currentSession.sendAsync(
-                    userText = text,
+                val (_, _, usage) = currentSession.sendAsync(
+                    userText = effectiveText,
                     model = currentModel,
                     reasoning = currentReasoning,
                     userGoal = "code mode",
+                    attachments = imageAttachments,
+                    includeUsage = usageEnabled,
+                    to = "code",
+                    tags = listOf("code"),
                 )
-                codeMessages.add(UiLine("assistant", reply))
+                appendCodeProjectionLines()
                 if (usageEnabled && !usage.isNullOrBlank()) {
                     codeMessages.add(UiLine("system", "usage: $usage"))
                 }
@@ -424,36 +465,47 @@ class MainViewModel : ViewModel() {
         val text = raw.trim()
         if (text.isBlank()) return ReplAction.Continue
 
-        coworkMessages.add(UiLine("you", text))
-
         if (text.startsWith('/')) {
             return handleCoworkSlash(text)
         }
 
-        var target: String? = null
-        var body = text
-        if (text.startsWith('@')) {
-            val split = text.substring(1).trim().split(Regex("\\s+"), limit = 2)
-            if (split.isNotEmpty()) {
-                target = split[0]
-                body = split.getOrNull(1) ?: ""
-            }
-        }
+        val route = CoworkMentionRouting.parse(text)
+        val target = route.to
+        val body = route.text
 
         val currentEngine = coworkEngine.value
         val currentModel = runtimeModel
         val currentReasoning = runtimeReasoning
+        val usageEnabled = config.includeUsage
+        val (effectiveBody, imageAttachments) = prepareQueuedMessage(body, coworkAttachmentQueue)
         viewModelScope.launch {
-            val reply = try {
+            try {
                 if (target == null) {
-                    currentEngine.send(body, null, currentModel, currentReasoning)
+                    currentEngine.sendAsync(
+                        text = effectiveBody,
+                        target = null,
+                        model = currentModel,
+                        reasoning = currentReasoning,
+                        images = imageAttachments,
+                        includeUsage = usageEnabled,
+                        to = target,
+                        userGoal = route.goal ?: "cowork",
+                        tags = target?.let { listOf(it) },
+                    )
                 } else {
-                    currentEngine.askAsync("gui", target, body)
+                    currentEngine.askAsync(
+                        from = "gui",
+                        to = target,
+                        question = effectiveBody,
+                        userGoal = route.goal,
+                        images = imageAttachments,
+                        includeUsage = usageEnabled,
+                    )
                 }
+                appendCoworkProjectionLines()
             } catch (ex: Exception) {
-                "error: ${ex.message}"
+                coworkMessages.add(UiLine("system", "error: ${ex.message}", isError = true))
             }
-            coworkMessages.add(UiLine("assistant", reply))
         }
 
         return ReplAction.Continue
@@ -471,6 +523,8 @@ class MainViewModel : ViewModel() {
 
             "clear" -> {
                 chatSession.value.clear()
+                chatMessages.clear()
+                chatProjectionLines = 0
                 chatMessages.add(UiLine("system", "chat session cleared"))
                 ReplAction.Continue
             }
@@ -517,17 +571,19 @@ class MainViewModel : ViewModel() {
 
             "attach" -> {
                 if (tokens.size == 1) {
-                    chatMessages.add(UiLine("system", "attachments queued: $attachmentsCount"))
+                    chatMessages.add(UiLine("system", "attachments queued: ${chatAttachmentQueue.size}"))
                 } else {
                     val arg = tokens.drop(1).joinToString(" ")
                     if (arg.equals("clear", ignoreCase = true)) {
-                        attachmentQueue.clear()
+                        chatAttachmentQueue.clear()
                         chatMessages.add(UiLine("system", "attachments cleared"))
+                    } else if (arg.equals("list", ignoreCase = true)) {
+                        chatMessages.add(UiLine("system", if (chatAttachmentQueue.isEmpty()) "no attachments queued" else describeAttachmentQueue(chatAttachmentQueue)))
                     } else {
                         when (val loaded = AttachmentLoader.load(arg)) {
                             is AttachmentLoadResult -> {
                                 if (loaded.isSuccess) {
-                                    loaded.attachment?.let { attachmentQueue.add(it) }
+                                    loaded.attachment?.let { chatAttachmentQueue.add(it) }
                                     chatMessages.add(UiLine("system", "attached ${loaded.attachment?.name ?: "file"}"))
                                 } else {
                                     chatMessages.add(UiLine("system", loaded.failure ?: "attach failed", isError = true))
@@ -542,6 +598,10 @@ class MainViewModel : ViewModel() {
             "config" -> {
                 chatMessages.add(UiLine("system", "endpoint : ${config.baseUrl}"))
                 chatMessages.add(UiLine("system", "model    : $runtimeModel"))
+                chatMessages.add(UiLine("system", "chat provider       : ${config.chatProviderId}"))
+                chatMessages.add(UiLine("system", "agent tool provider : ${config.agentToolProviderId}"))
+                chatMessages.add(UiLine("system", "image provider      : ${config.imageProviderId}"))
+                chatMessages.add(UiLine("system", "transcription provider : ${config.transcriptionProviderId}"))
                 chatMessages.add(UiLine("system", "reasoning: ${runtimeReasoning ?: "(off)"}"))
                 chatMessages.add(UiLine("system", "workspace: $runtimeWorkspace"))
                 chatMessages.add(UiLine("system", "usage    : ${if (config.includeUsage) "on" else "off"}"))
@@ -570,7 +630,33 @@ class MainViewModel : ViewModel() {
 
         return when (tokens[0].lowercase()) {
             "help" -> {
-                codeMessages.add(UiLine("system", "code commands: /help /mode <chat|code|cowork> /workspace [path] /clear /exit"))
+                codeMessages.add(UiLine("system", "code commands: /help /attach /mode <chat|code|cowork> /workspace [path] /clear /exit"))
+                ReplAction.Continue
+            }
+
+            "attach" -> {
+                if (tokens.size == 1) {
+                    codeMessages.add(UiLine("system", "attachments queued: ${if (codeAttachmentQueue.isEmpty()) 0 else codeAttachmentQueue.size}"))
+                } else {
+                    val arg = tokens.drop(1).joinToString(" ")
+                    if (arg.equals("clear", ignoreCase = true)) {
+                        codeAttachmentQueue.clear()
+                        codeMessages.add(UiLine("system", "code attachments cleared"))
+                    } else if (arg.equals("list", ignoreCase = true)) {
+                        codeMessages.add(UiLine("system", if (codeAttachmentQueue.isEmpty()) "no attachments queued" else describeAttachmentQueue(codeAttachmentQueue)))
+                    } else {
+                        when (val loaded = AttachmentLoader.load(arg)) {
+                            is AttachmentLoadResult -> {
+                                if (loaded.isSuccess) {
+                                    loaded.attachment?.let { codeAttachmentQueue.add(it) }
+                                    codeMessages.add(UiLine("system", "attached ${loaded.attachment?.name ?: "file"}"))
+                                } else {
+                                    codeMessages.add(UiLine("system", loaded.failure ?: "attach failed", isError = true))
+                                }
+                            }
+                        }
+                    }
+                }
                 ReplAction.Continue
             }
 
@@ -599,6 +685,8 @@ class MainViewModel : ViewModel() {
 
             "clear" -> {
                 codeSession.value.clear()
+                codeMessages.clear()
+                codeProjectionLines = 0
                 codeMessages.add(UiLine("system", "code session cleared"))
                 ReplAction.Continue
             }
@@ -618,7 +706,7 @@ class MainViewModel : ViewModel() {
 
         return when (tokens[0].lowercase()) {
             "help" -> {
-                coworkMessages.add(UiLine("system", "cowork commands: /help /agents /agent add <name> [path] /mode <chat|code|cowork> /clear /exit"))
+                coworkMessages.add(UiLine("system", "cowork commands: /help /attach /agents /agent add <name> [path] /mode <chat|code|cowork> /clear /exit"))
                 ReplAction.Continue
             }
 
@@ -656,8 +744,36 @@ class MainViewModel : ViewModel() {
                 }
             }
 
+            "attach" -> {
+                if (tokens.size == 1) {
+                    coworkMessages.add(UiLine("system", "attachments queued: ${if (coworkAttachmentQueue.isEmpty()) 0 else coworkAttachmentQueue.size}"))
+                } else {
+                    val arg = tokens.drop(1).joinToString(" ")
+                    if (arg.equals("clear", ignoreCase = true)) {
+                        coworkAttachmentQueue.clear()
+                        coworkMessages.add(UiLine("system", "cowork attachments cleared"))
+                    } else if (arg.equals("list", ignoreCase = true)) {
+                        coworkMessages.add(UiLine("system", if (coworkAttachmentQueue.isEmpty()) "no attachments queued" else describeAttachmentQueue(coworkAttachmentQueue)))
+                    } else {
+                        when (val loaded = AttachmentLoader.load(arg)) {
+                            is AttachmentLoadResult -> {
+                                if (loaded.isSuccess) {
+                                    loaded.attachment?.let { coworkAttachmentQueue.add(it) }
+                                    coworkMessages.add(UiLine("system", "attached ${loaded.attachment?.name ?: "file"}"))
+                                } else {
+                                    coworkMessages.add(UiLine("system", loaded.failure ?: "attach failed", isError = true))
+                                }
+                            }
+                        }
+                    }
+                }
+                ReplAction.Continue
+            }
+
             "clear" -> {
                 coworkEngine.value.clear()
+                coworkMessages.clear()
+                coworkProjectionLines = 0
                 coworkMessages.add(UiLine("system", "cowork sessions cleared"))
                 ReplAction.Continue
             }
@@ -672,22 +788,7 @@ class MainViewModel : ViewModel() {
     }
 
     fun applyConfig(edit: EditConfig): Boolean {
-        val parsedReasoning = CommandParser.parseReasoning(edit.reasoning)
-        if (!parsedReasoning.first && edit.reasoning.isNotBlank()) return false
-
-        val parsedMode = runCatching {
-            IntatisMode.valueOf(edit.defaultMode.replaceFirstChar { it.uppercaseChar() })
-        }.getOrElse { config.defaultMode }
-
-        val next = IntatisConfig(
-            baseUrl = edit.baseUrl,
-            apiKey = edit.apiKey,
-            model = edit.model,
-            reasoning = parsedReasoning.second,
-            defaultMode = parsedMode,
-            workspace = edit.workspace.ifBlank { null },
-            includeUsage = edit.includeUsage,
-        )
+        val next = resolveConfigFromEdit(edit) ?: return false
 
         val resolvedWorkspace = runCatching {
             resolveWorkspace(next.workspace)
@@ -700,11 +801,67 @@ class MainViewModel : ViewModel() {
         runtimeWorkspace = resolvedWorkspace
         runtimeMode = next.defaultMode.toUiMode()
 
-        chatSession.value = ConversationSession(next)
+        chatSession.value = ConversationSession(next, chatEventLog.value)
         codeSession.value = createCodeSession(next, resolvedWorkspace)
         coworkEngine.value = createCoworkEngine(next, resolvedWorkspace)
 
+        chatProjectionLines = 0
+        codeProjectionLines = 0
+        coworkProjectionLines = 0
+        chatMessages.clear()
+        codeMessages.clear()
+        coworkMessages.clear()
+        chatMessages.add(UiLine("system", "Intatis config updated"))
+        codeMessages.add(UiLine("system", "Intatis config updated"))
+        coworkMessages.add(UiLine("system", "Intatis config updated"))
+
         return true
+    }
+
+    suspend fun checkHealth(edit: EditConfig): String {
+        val editedConfig = resolveConfigFromEdit(edit) ?: return "Health check cancelled: invalid config input."
+
+        return try {
+            val registry = ProviderRegistry(editedConfig)
+            val suite = registry.checkHealth(editedConfig.chatProviderId, editedConfig.agentToolProviderId)
+            listOf(
+                formatHealthCheckResult(suite.chat),
+                formatHealthCheckResult(suite.agentTool),
+            ).joinToString("\n")
+        } catch (ex: Exception) {
+            "Health check failed: ${ex.message}"
+        }
+    }
+
+    private fun resolveConfigFromEdit(edit: EditConfig): IntatisConfig? {
+        val parsedReasoning = CommandParser.parseReasoning(edit.reasoning)
+        if (!parsedReasoning.first && edit.reasoning.isNotBlank()) return null
+
+        val parsedMode = runCatching {
+            IntatisMode.valueOf(edit.defaultMode.replaceFirstChar { it.uppercaseChar() })
+        }.getOrElse { return null }
+
+        return IntatisConfig(
+            baseUrl = edit.baseUrl,
+            apiKey = edit.apiKey,
+            model = edit.model,
+            selectedModel = edit.model,
+            reasoning = parsedReasoning.second,
+            defaultMode = parsedMode,
+            workspace = edit.workspace.ifBlank { null },
+            chatProviderId = edit.chatProviderId.ifBlank { "openai" },
+            agentToolProviderId = edit.agentToolProviderId.ifBlank { "openai" },
+            imageProviderId = edit.imageProviderId.ifBlank { "openai" },
+            transcriptionProviderId = edit.transcriptionProviderId.ifBlank { "openai" },
+            includeUsage = edit.includeUsage,
+        )
+    }
+
+    private fun formatHealthCheckResult(result: ProviderHealthCheckResult): String {
+        val status = if (result.isHealthy) "PASS" else "FAIL"
+        val header = "${result.providerId}/${result.role} (${result.model}) $status - latency ${result.latency.toMillis()}ms"
+        val preview = result.responsePreview?.let { "\n  response: $it" } ?: ""
+        return "$header\n  message: ${result.message}$preview"
     }
 
     private fun applyWorkspace(rawPath: String): String {
@@ -713,17 +870,26 @@ class MainViewModel : ViewModel() {
             runtimeWorkspace = resolved
             codeSession.value = createCodeSession(config, resolved)
             coworkEngine.value = createCoworkEngine(config, resolved)
+            codeProjectionLines = 0
+            coworkProjectionLines = 0
+            codeMessages.clear()
+            coworkMessages.clear()
+            codeMessages.add(UiLine("system", "workspace set to $resolved"))
+            coworkMessages.add(UiLine("system", "workspace set to $resolved"))
             "workspace set to $resolved"
         }.getOrElse { "error: ${it.message}" }
     }
 
-    private fun prepareQueuedMessage(userText: String): Pair<String, List<ImageAttachment>> {
-        if (attachmentQueue.isEmpty()) return userText to emptyList()
+    private fun prepareQueuedMessage(
+        userText: String,
+        queue: MutableList<ChatAttachment>,
+    ): Pair<String, List<ImageAttachment>> {
+        if (queue.isEmpty()) return userText to emptyList()
 
         val sb = StringBuilder(userText)
         val images = mutableListOf<ImageAttachment>()
 
-        attachmentQueue.forEach { attachment ->
+        queue.forEach { attachment ->
             when (attachment) {
                 is TextAttachment -> {
                     sb.appendLine()
@@ -736,8 +902,15 @@ class MainViewModel : ViewModel() {
             }
         }
 
-        attachmentQueue.clear()
+        queue.clear()
         return sb.toString() to images
+    }
+
+    private fun describeAttachmentQueue(queue: List<ChatAttachment>): String {
+        val textCount = queue.count { it is TextAttachment }
+        val imageCount = queue.count { it is ImageAttachment }
+        val names = queue.joinToString(", ") { it.name }
+        return "${queue.size} attachment(s) [text=$textCount, image=$imageCount] ($names)"
     }
 
     fun resolvePermission(allow: Boolean) {
@@ -766,7 +939,7 @@ class MainViewModel : ViewModel() {
             git = git,
             responder = permissionResponder,
             permissionReviewer = reviewer,
-            eventSink = eventSink,
+            eventSink = codeEventLog.value,
             allowsShell = true,
             maxIterations = 8,
         )
@@ -784,11 +957,41 @@ class MainViewModel : ViewModel() {
             git = git,
             responder = permissionResponder,
             profile = PermissionProfile.Reviewed,
-            eventSink = eventSink,
+            eventSink = coworkEventLog.value,
             allowsShell = true,
             maxIterations = 8,
             permissionReviewer = reviewer,
         )
+    }
+
+    private fun appendChatProjectionLines() {
+        val records = chatEventLog.value.readAll()
+        val rendered = chatProjection.render(records)
+        for (index in chatProjectionLines until rendered.size) {
+            val line = rendered[index]
+            chatMessages.add(UiLine(line.sender, line.text, line.isError))
+        }
+        chatProjectionLines = rendered.size
+    }
+
+    private fun appendCodeProjectionLines() {
+        val records = codeEventLog.value.readAll()
+        val rendered = codeProjection.render(records)
+        for (index in codeProjectionLines until rendered.size) {
+            val line = rendered[index]
+            codeMessages.add(UiLine(line.sender, line.text, line.isError))
+        }
+        codeProjectionLines = rendered.size
+    }
+
+    private fun appendCoworkProjectionLines() {
+        val records = coworkEventLog.value.readAll()
+        val rendered = coworkProjection.render(records)
+        for (index in coworkProjectionLines until rendered.size) {
+            val line = rendered[index]
+            coworkMessages.add(UiLine(line.sender, line.text, line.isError))
+        }
+        coworkProjectionLines = rendered.size
     }
 
     private fun resolveWorkspace(workspace: String?): String {
@@ -826,12 +1029,16 @@ private fun ChatPanel(
 @Composable
 private fun CodePanel(
     messages: List<UiLine>,
+    attachmentsQueued: Int,
     workspace: String,
     onSend: (String) -> Unit,
 ) {
     var input by rememberSaveable { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        if (attachmentsQueued > 0) {
+            Text("attachments queued: $attachmentsQueued", style = MaterialTheme.typography.bodySmall)
+        }
         Text("workspace: $workspace", style = MaterialTheme.typography.bodySmall)
         MessageFeed(title = "Code", messages = messages)
         MessageComposer(
@@ -850,11 +1057,15 @@ private fun CoworkPanel(
     messages: List<UiLine>,
     workspace: String,
     agents: List<String>,
+    attachmentsQueued: Int,
     onSend: (String) -> Unit,
 ) {
     var input by rememberSaveable { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        if (attachmentsQueued > 0) {
+            Text("attachments queued: $attachmentsQueued", style = MaterialTheme.typography.bodySmall)
+        }
         Text("workspace: $workspace", style = MaterialTheme.typography.bodySmall)
         if (agents.isNotEmpty()) {
             Text("agents: ${agents.joinToString()}", style = MaterialTheme.typography.bodySmall)
@@ -940,7 +1151,9 @@ private fun MessageComposer(
 @Composable
 private fun SettingsDialog(
     snapshot: IntatisConfig,
+    healthReport: String,
     onSave: (EditConfig) -> Unit,
+    onHealthCheck: (EditConfig) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var baseUrl by rememberSaveable { mutableStateOf(snapshot.baseUrl) }
@@ -948,6 +1161,10 @@ private fun SettingsDialog(
     var model by rememberSaveable { mutableStateOf(snapshot.model) }
     var reasoning by rememberSaveable { mutableStateOf(snapshot.reasoning ?: "") }
     var workspace by rememberSaveable { mutableStateOf(snapshot.workspace ?: "") }
+    var chatProviderId by rememberSaveable { mutableStateOf(snapshot.chatProviderId) }
+    var agentToolProviderId by rememberSaveable { mutableStateOf(snapshot.agentToolProviderId) }
+    var imageProviderId by rememberSaveable { mutableStateOf(snapshot.imageProviderId) }
+    var transcriptionProviderId by rememberSaveable { mutableStateOf(snapshot.transcriptionProviderId) }
     var defaultMode by rememberSaveable { mutableStateOf(snapshot.defaultMode.name.lowercase()) }
     var includeUsage by rememberSaveable { mutableStateOf(snapshot.includeUsage) }
 
@@ -960,8 +1177,16 @@ private fun SettingsDialog(
                 OutlinedTextField(value = apiKey, onValueChange = { apiKey = it }, label = { Text("API Key") })
                 OutlinedTextField(value = model, onValueChange = { model = it }, label = { Text("Model") })
                 OutlinedTextField(value = reasoning, onValueChange = { reasoning = it }, label = { Text("Reasoning (minimal|low|medium|high|off)") })
+                OutlinedTextField(value = chatProviderId, onValueChange = { chatProviderId = it }, label = { Text("Chat provider ID") })
+                OutlinedTextField(value = agentToolProviderId, onValueChange = { agentToolProviderId = it }, label = { Text("Agent/tool provider ID") })
+                OutlinedTextField(value = imageProviderId, onValueChange = { imageProviderId = it }, label = { Text("Image provider ID") })
+                OutlinedTextField(value = transcriptionProviderId, onValueChange = { transcriptionProviderId = it }, label = { Text("Transcription provider ID") })
                 OutlinedTextField(value = workspace, onValueChange = { workspace = it }, label = { Text("Default workspace") })
                 OutlinedTextField(value = defaultMode, onValueChange = { defaultMode = it }, label = { Text("Default mode") })
+                if (healthReport.isNotBlank()) {
+                    Text("Health check:")
+                    Text(healthReport)
+                }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -969,11 +1194,44 @@ private fun SettingsDialog(
                     Checkbox(checked = includeUsage, onCheckedChange = { includeUsage = it })
                     Text("Include usage")
                 }
+                Button(onClick = {
+                    onHealthCheck(
+                        EditConfig(
+                            baseUrl = baseUrl,
+                            apiKey = apiKey,
+                            model = model,
+                            reasoning = reasoning,
+                            chatProviderId = chatProviderId.ifBlank { "openai" },
+                            agentToolProviderId = agentToolProviderId.ifBlank { "openai" },
+                            imageProviderId = imageProviderId.ifBlank { "openai" },
+                            transcriptionProviderId = transcriptionProviderId.ifBlank { "openai" },
+                            workspace = workspace,
+                            defaultMode = defaultMode,
+                            includeUsage = includeUsage,
+                        )
+                    )
+                }) {
+                    Text("Run health check")
+                }
             }
         },
         confirmButton = {
             Button(onClick = {
-                onSave(EditConfig(baseUrl, apiKey, model, reasoning, workspace, defaultMode, includeUsage))
+                onSave(
+                    EditConfig(
+                        baseUrl = baseUrl,
+                        apiKey = apiKey,
+                        model = model,
+                        reasoning = reasoning,
+                        chatProviderId = chatProviderId.ifBlank { "openai" },
+                        agentToolProviderId = agentToolProviderId.ifBlank { "openai" },
+                        imageProviderId = imageProviderId.ifBlank { "openai" },
+                        transcriptionProviderId = transcriptionProviderId.ifBlank { "openai" },
+                        workspace = workspace,
+                        defaultMode = defaultMode,
+                        includeUsage = includeUsage,
+                    )
+                )
             }) {
                 Text("Save")
             }

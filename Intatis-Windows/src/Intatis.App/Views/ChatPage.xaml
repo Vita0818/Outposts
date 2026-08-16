@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Intatis.App.Views.ChatPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:Intatis.App.ViewModels">
+
+    <Grid RowSpacing="6" Padding="0,24,0,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            Grid.Row="0"
+            Text="{x:Bind ViewModel.SessionTitle, Mode=OneWay}"
+            Style="{StaticResource PageHeaderStyle}"
+            HorizontalAlignment="Center"
+            MaxWidth="900"
+            Margin="20,0" />
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ListView
+                x:Name="MessagesList"
+                SelectionMode="None"
+                IsItemClickEnabled="False"
+                ItemsSource="{x:Bind ViewModel.Messages, Mode=OneWay}"
+                HorizontalAlignment="Center"
+                MaxWidth="900"
+                Margin="20,4"
+                Padding="0,4">
+
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="0,0,0,14" />
+                        <Setter Property="MinHeight" Value="0" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ChatMessageItemVm">
+                        <Grid>
+                            <!-- User row: trailing capsule, Liquid Glass equivalent. -->
+                            <StackPanel
+                                Visibility="{x:Bind IsUser, Converter={StaticResource BoolToVis}}"
+                                HorizontalAlignment="Right"
+                                MaxWidth="560"
+                                Spacing="2">
+                                <Border
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    CornerRadius="16"
+                                    Padding="15,11">
+                                    <TextBlock Text="{x:Bind Text, Mode=OneWay}"
+                                               Style="{StaticResource ChatBodyStyle}"
+                                               Foreground="White" />
+                                </Border>
+                                <StackPanel Orientation="Horizontal" Spacing="6"
+                                            Visibility="{x:Bind HasAttachments, FallbackValue=Collapsed}">
+                                    <TextBlock Text="📎" Style="{StaticResource MetadataStyle}" />
+                                    <TextBlock Text="{x:Bind AttachmentCount}" Style="{StaticResource MetadataStyle}" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Assistant/system row: leading, full width, no bubble chrome. -->
+                            <StackPanel
+                                Visibility="{x:Bind IsUser, Converter={StaticResource BoolToVis}, ConverterParameter=invert, FallbackValue=Visible}"
+                                HorizontalAlignment="Stretch"
+                                Spacing="4">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{x:Bind Caption}" Style="{StaticResource MetadataStyle}" />
+                                    <TextBlock Text="{x:Bind Timestamp}" Style="{StaticResource MetadataStyle}" />
+                                </StackPanel>
+                                <TextBlock Text="{x:Bind Text, Mode=OneWay}" Style="{StaticResource ChatBodyStyle}" />
+                                <TextBlock
+                                    Text="…"
+                                    Visibility="{x:Bind IsComplete, Converter={StaticResource BoolToVis}, ConverterParameter=invert, FallbackValue=Collapsed}"
+                                    Style="{StaticResource ChatBodyStyle}" />
+                                <ItemsControl
+                                    ItemsSource="{x:Bind Citations, Mode=OneWay}"
+                                    Visibility="{x:Bind HasCitations, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="6" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:CitationVm">
+                                            <Border
+                                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="8,3">
+                                                <TextBlock Text="{x:Bind Host}" Style="{StaticResource MetadataStyle}" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </ScrollViewer>
+
+        <TextBlock
+            Grid.Row="2"
+            Text="{x:Bind ViewModel.ErrorText, Mode=OneWay}"
+            Style="{StaticResource CaptionStyle}"
+            Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+            Visibility="{x:Bind ViewModel.ErrorText, Mode=OneWay, Converter={StaticResource EmptyToCollapsed}}"
+            HorizontalAlignment="Center"
+            MaxWidth="900"
+            Margin="20,0" />
+
+        <!-- Composer: model pill + usage strip on top, pill input + send/stop below. -->
+        <StackPanel Grid.Row="3" HorizontalAlignment="Center" MaxWidth="900" Margin="20,4,20,0" Spacing="8">
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <ComboBox
+                    x:Name="ModelPicker"
+                    Grid.Column="0"
+                    MinWidth="190"
+                    MaxWidth="260"
+                    ItemsSource="{x:Bind ViewModel.ModelOptions, Mode=OneWay}"
+                    SelectedItem="{x:Bind ViewModel.SelectedModel, Mode=TwoWay}" />
+                <TextBlock
+                    Grid.Column="1"
+                    Text="{x:Bind ViewModel.UsageText, Mode=OneWay}"
+                    Style="{StaticResource MetadataStyle}"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center" />
+            </Grid>
+
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox
+                    x:Name="InputBox"
+                    Grid.Column="0"
+                    Style="{StaticResource ComposerInputStyle}"
+                    Text="{x:Bind ViewModel.Input, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    KeyDown="OnInputKeyDown" />
+                <Button
+                    Grid.Column="1"
+                    Style="{StaticResource PillButtonStyle}"
+                    Content="Stop"
+                    Visibility="{x:Bind ViewModel.IsStreaming, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                    Click="OnStopClick" />
+                <Button
+                    Grid.Column="2"
+                    Style="{StaticResource PillButtonStyle}"
+                    Content="Send"
+                    Visibility="{x:Bind ViewModel.IsStreaming, Mode=OneWay, Converter={StaticResource BoolToVis}, ConverterParameter=invert, FallbackValue=Visible}"
+                    Click="OnSendClick" />
+            </Grid>
+        </StackPanel>
+    </Grid>
+</Page>

@@ -1,17 +1,14 @@
 # Do Not Break
 
-以下规则是 Outposts 四模式的禁区。任何未来 Codex、OpenCode 线程、DeepCode、QwenCode、Spark 或 OpenCode 独立任务执行时都不得破坏。
+以下规则是 Outposts Agent 与 Spark 两种模式的禁区。任何未来 Codex、DeepCode、QwenCode 或 Spark 执行时都不得破坏。
 
 ## 模式禁区
 
-- 不得混用 Agent、ExAgent、Spark、OpenCode 的权限边界。
-- 不得把 OpenCode 独立模式纳入 supervisor batch state、checkpoint 或恢复流程。
-- 不得让 OpenCode 独立模式读取 Agent、ExAgent、Spark 或 supervisor 调度文档。
-- 不得把 ExAgent 当成 OpenCode 独立模式；ExAgent 的实现 worker 为 DeepCode one-shot，视觉 worker 为 QwenCode one-shot。
-- 不得把 OpenCode 独立模式当成 ExAgent；OpenCode 独立模式不启动 DeepCode / QwenCode 调度链。
+- 不得混用 Agent 与 Spark 的权限边界。
+- 不得让 Spark 冒充 Agent supervisor，也不得让 Agent supervisor 直接承担 Spark 实现职责。
 - 不得因为任务紧急而跳过模式声明确认。
 
-## Agent / ExAgent supervisor 禁区
+## Agent supervisor 禁区
 
 - 不得让 Supervisor 自己写业务代码。
 - 不得让 Supervisor 自己读业务源码。
@@ -68,30 +65,7 @@
 - 不得在 Spark 模式下修改参考图目录。
 - 不得在 Spark 模式下读取或发送敏感信息。
 - 不得在 Spark 模式下执行破坏性 Git 操作。
-- 不得伪装为 Agent 或 ExAgent 执行。
-
-## OpenCode 独立模式禁区
-
-OpenCode 独立模式不得读取：
-
-- `AGENTS.md`
-- `EXAGENT_MODE.md`
-- `docs/OUTPOSTS_MODE_EXECUTION.md`
-- `docs/OUTPOSTS_SUPERVISOR.md`
-- `docs/BATCH_SCHEDULING.md`
-- `docs/WORKER_ONE_SHOT_INVOCATION_PROTOCOL.md`
-- `docs/SUPERVISOR_WORKER_VISUAL_PROTOCOL.md`
-- `docs/RECOVERY_PLAYBOOK.md`
-- `docs/REPORTING_FORMATS.md`
-- `docs/SECURITY_AND_BOUNDARIES.md`
-- `docs/DO_NOT_BREAK.md`
-- `.outposts-supervisor/**`
-- `DeepCode-output/**`
-- `QwenCode-output/**`
-
-OpenCode 独立模式只读取 `OPENCODE_MODE.md` 与目标项目自己的项目文档。
-
-OpenCode 独立模式不得修改 Apple 源项目、参考图目录或无关目录。
+- 不得伪装为 Agent 执行。
 
 ## 终端禁区
 
@@ -148,7 +122,8 @@ git checkout .
 git restore .
 ```
 
-不得 commit、push、创建 PR，除非用户另行明确要求。
+未经用户明文要求具体 Git 操作，不 add、不 commit、不 push、不创建 PR；编辑、整理、修复、验证或准备工作都不等于提交请求。
+若用户要求提交，只提交当前 Git root 中与本任务相关的文件；不得递归进入、暂存、提交或推送子仓库、submodule、nested Git repo 或依赖 checkout。
 
 不得清理 build、cache、`.gradle`、`intermediates`。
 

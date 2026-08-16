@@ -1,5 +1,9 @@
 package com.vita0818.kikaria.ui.profile
 
+import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -10,12 +14,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +40,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import com.vita0818.kikaria.ui.components.KikariaIcons
 import com.vita0818.kikaria.ui.components.KikariaPageShell
 import com.vita0818.kikaria.ui.components.KikariaProfileAvatar
 import com.vita0818.kikaria.ui.theme.KikariaColors
@@ -54,9 +63,11 @@ import com.vita0818.kikaria.ui.theme.rememberKikariaPhoneMetrics
 fun ProfileSetupScreen(
     initialDisplayName: String,
     initialHandle: String,
-    onComplete: (displayName: String, handle: String) -> Unit
+    initialAvatarUri: String? = null,
+    onComplete: (displayName: String, handle: String, avatarUri: String?) -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
+    val context = LocalContext.current
     val metrics = rememberKikariaPhoneMetrics()
     val isExpanded = metrics.isTablet
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
@@ -77,6 +88,21 @@ fun ProfileSetupScreen(
     var userHandle by remember { mutableStateOf(
         if (initialHandle.isEmpty()) "" else initialHandle
     ) }
+    var avatarUri by remember { mutableStateOf(initialAvatarUri) }
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (_: SecurityException) {
+            }
+            avatarUri = uri.toString()
+        }
+    }
 
     val canSave = displayName.trim().isNotEmpty()
 
@@ -138,10 +164,30 @@ fun ProfileSetupScreen(
                         }
 
                         // Avatar
-                        KikariaProfileAvatar(
-                            size = avatarSize,
-                            displayName = displayName.ifEmpty { "K" }
-                        )
+                        Box(contentAlignment = Alignment.BottomEnd) {
+                            KikariaProfileAvatar(
+                                size = avatarSize,
+                                displayName = displayName.ifEmpty { "K" },
+                                avatarUri = avatarUri
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(if (isExpanded) 34.dp else 30.dp)
+                                    .offset(x = 3.dp, y = 3.dp)
+                                    .shadow(10.dp, CircleShape, spotColor = sky.copy(alpha = 0.26f))
+                                    .clip(CircleShape)
+                                    .background(actionGrad)
+                                    .clickable { imagePicker.launch(arrayOf("image/*")) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = KikariaIcons.add,
+                                    contentDescription = "选择头像",
+                                    modifier = Modifier.size(if (isExpanded) 17.dp else 15.dp),
+                                    tint = Color.White
+                                )
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(4.dp))
 
@@ -191,7 +237,7 @@ fun ProfileSetupScreen(
                                                 .joinToString("").trimEnd('_')
                                                 .ifEmpty { "kikaria_user" }
                                         }
-                                        onComplete(trimmedName, finalHandle)
+                                        onComplete(trimmedName, finalHandle, avatarUri)
                                     }
                                 }
                                 .padding(vertical = if (isExpanded) 18.dp else 16.dp),

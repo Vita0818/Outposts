@@ -29,13 +29,19 @@ object WorkspaceTools {
         require(root.exists()) { "Path not found: ${root.absolutePath}" }
 
         val hits = mutableListOf<SearchHit>()
-        val files = if (root.isFile) sequenceOf(root) else root.walkTopDown().filter { it.isFile }
+        val files = if (root.isFile) {
+            sequenceOf(root)
+        } else {
+            root.walkTopDown()
+                .onEnter { path -> path == root || !isHiddenPath(path) }
+                .filter { it.isFile && !isHiddenPath(it) }
+        }
 
         for (file in files) {
             if (hits.size >= 200) break
             val lines = runCatching { file.readLines() }.getOrNull() ?: continue
             for ((i, line) in lines.withIndex()) {
-                if (line.contains(query, ignoreCase = true)) {
+                if (line.contains(query, ignoreCase = false)) {
                     val rel = file.relativeTo(File(workspace)).path
                     hits.add(SearchHit(rel, i + 1, line))
                     if (hits.size >= 200) break
@@ -58,5 +64,9 @@ object WorkspaceTools {
         val canonical = target.canonicalFile
         require(canonical == root || canonical.toPath().startsWith(root.toPath())) { "Access denied: path escapes workspace" }
         return canonical
+    }
+
+    private fun isHiddenPath(file: File): Boolean {
+        return file.isHidden || file.name.startsWith(".")
     }
 }

@@ -1,10 +1,9 @@
 package com.vita0818.kikaria.ui.settings
 
-import android.graphics.BitmapFactory
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -15,26 +14,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -67,9 +60,16 @@ fun EditProfileScreen(
     var avatarUri by remember { mutableStateOf(initialAvatarUri) }
 
     val imagePicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         if (uri != null) {
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (_: SecurityException) {
+            }
             val uriStr = uri.toString()
             avatarUri = uriStr
             onAvatarChanged?.invoke(uriStr)
@@ -94,34 +94,7 @@ fun EditProfileScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            var avatarBitmap by remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
-            LaunchedEffect(avatarUri) {
-                val bitmap = withContext(Dispatchers.IO) {
-                    try {
-                        val uri = avatarUri?.let { Uri.parse(it) }
-                        if (uri != null) {
-                            context.contentResolver.openInputStream(uri)?.use { stream ->
-                                BitmapFactory.decodeStream(stream)
-                            }?.asImageBitmap()
-                        } else null
-                    } catch (_: Exception) { null }
-                }
-                avatarBitmap = bitmap
-            }
-
-            val bitmap = avatarBitmap
-            if (bitmap != null) {
-                Image(
-                    bitmap = bitmap,
-                    contentDescription = "头像",
-                    modifier = Modifier
-                        .size(92.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                KikariaProfileAvatar(size = 92.dp, displayName = displayName)
-            }
+            KikariaProfileAvatar(size = 92.dp, displayName = displayName, avatarUri = avatarUri)
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -132,7 +105,7 @@ fun EditProfileScreen(
                         if (isDark) KikariaColors.GlassSurfaceDark.copy(alpha = 0.44f)
                         else KikariaColors.GlassSurface.copy(alpha = 0.44f)
                     )
-                    .clickable { imagePicker.launch("image/*") }
+                    .clickable { imagePicker.launch(arrayOf("image/*")) }
                     .padding(horizontal = 18.dp, vertical = 11.dp)
             ) {
                 Text(

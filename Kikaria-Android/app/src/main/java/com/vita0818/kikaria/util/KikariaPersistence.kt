@@ -2,6 +2,7 @@ package com.vita0818.kikaria.util
 
 import android.content.Context
 import com.google.gson.Gson
+import com.vita0818.kikaria.data.DailyReviewRecord
 import com.vita0818.kikaria.data.KnowledgePoint
 import com.vita0818.kikaria.data.KnowledgePreset
 import com.vita0818.kikaria.data.StudyActivityRecord
@@ -15,6 +16,7 @@ object KikariaPersistence {
         val schemaVersion: Int = 1,
         val presets: List<KnowledgePreset> = emptyList(),
         val currentPresetId: String = "",
+        val presetStates: Map<String, PresetStudyState>? = emptyMap(),
         val userDisplayName: String = "",
         val userHandle: String = "user",
         val dailyGoal: Int = 20,
@@ -29,6 +31,25 @@ object KikariaPersistence {
         val knowledgePoints: List<KnowledgePoint> = emptyList(),
         val activityRecords: List<StudyActivityRecord> = emptyList(),
         val selectedTags: List<String> = emptyList(),
+        val todayReviewCount: Int = 0,
+        val todayHintCount: Int = 0,
+        val todayMasteredCount: Int = 0,
+        val lastActiveDate: Date? = null
+    )
+
+    data class PresetStudyState(
+        val presetId: String = "",
+        val knowledgePoints: List<KnowledgePoint> = emptyList(),
+        val markdownText: String = "",
+        val selectedTags: List<String> = emptyList(),
+        val dailyReviewRecords: Map<String, DailyReviewRecord> = emptyMap(),
+        val activityRecords: List<StudyActivityRecord> = emptyList(),
+        val dailyGoal: Int = 20,
+        val countdownStartDate: Date? = null,
+        val countdownEndDate: Date? = null,
+        val dangerPercent: Int = 80,
+        val notificationsEnabled: Boolean = false,
+        val notificationTimeText: String = "21:00",
         val todayReviewCount: Int = 0,
         val todayHintCount: Int = 0,
         val todayMasteredCount: Int = 0,

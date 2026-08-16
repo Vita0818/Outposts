@@ -61,7 +61,6 @@ fun ScopeSelectionScreen(
     viewModel: KikariaViewModel,
     onBack: () -> Unit
 ) {
-    val allTags = viewModel.allTags
     val selected = viewModel.selectedTags.toSet()
     val isDark = isSystemInDarkTheme()
     val deepText = if (isDark) KikariaColors.DeepTextDark else KikariaColors.DeepText
@@ -75,8 +74,7 @@ fun ScopeSelectionScreen(
     val pagePadding = metrics.innerHorizontalPadding
 
     var searchText by remember { mutableStateOf("") }
-    val filteredTags = if (searchText.isBlank()) allTags
-        else allTags.filter { searchText.trim().lowercase() in it.lowercase() }
+    val filteredTags = viewModel.scopeTagsMatchingSearch(searchText)
 
     KikariaPageShell {
         Box(
