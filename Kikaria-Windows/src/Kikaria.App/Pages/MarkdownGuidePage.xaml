@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Kikaria.App.Pages.MarkdownGuidePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Kikaria.App.Controls"
+    Background="{ThemeResource PageGradientBrush}">
+
+    <Grid Padding="24,48,24,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Button
+                x:Name="BackButton"
+                Style="{StaticResource CircleButtonStyle}"
+                Width="42"
+                Height="42"
+                HorizontalAlignment="Left"
+                Background="{ThemeResource CardSubtleFillBrush}"
+                Click="OnBackClick">
+                <FontIcon Glyph="&#xE72B;" FontSize="15" Foreground="{ThemeResource DeepTextBrush}" />
+            </Button>
+            <TextBlock
+                Text="Markdown 格式说明"
+                Style="{StaticResource HeadlineStyle}"
+                Foreground="{ThemeResource DeepTextBrush}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center" />
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" Margin="0,18,0,0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16" MaxWidth="520" HorizontalAlignment="Stretch">
+                <controls:GlassCard CardRadius="24">
+                    <TextBlock
+                        Text="Kikaria 使用结构化 Markdown 来导入知识点。每个知识点由标题、标签、提示和答案组成。多个知识点之间使用 --- 分隔。"
+                        Style="{StaticResource BodyStyle}"
+                        Foreground="{ThemeResource DeepTextBrush}" />
+                </controls:GlassCard>
+
+                <controls:GlassCard CardRadius="24">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="格式规则" Style="{StaticResource HeadlineStyle}" Foreground="{ThemeResource DeepTextBrush}" />
+                        <Border
+                            CornerRadius="14"
+                            Background="{ThemeResource CardSubtleFillBrush}"
+                            Padding="12">
+                            <TextBlock
+                                x:Name="FormatTemplateText"
+                                Style="{StaticResource MathCodeStyle}"
+                                Foreground="{ThemeResource DeepTextBrush}" />
+                        </Border>
+                        <TextBlock
+                            Text="多个知识点之间用一行 --- 分隔。"
+                            Style="{StaticResource CaptionStyle}"
+                            Foreground="{ThemeResource SoftTextBrush}" />
+                    </StackPanel>
+                </controls:GlassCard>
+
+                <controls:GlassCard CardRadius="24">
+                    <StackPanel Spacing="9">
+                        <TextBlock Text="规则说明" Style="{StaticResource HeadlineStyle}" Foreground="{ThemeResource DeepTextBrush}" />
+                        <TextBlock Text="标题必须以 # 开头。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" />
+                        <TextBlock Text="tags: 后面写标签，多个标签用英文逗号或中文逗号分隔。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" />
+                        <TextBlock Text="hint: 后面写提示。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" />
+                        <TextBlock Text="content: 后面写完整内容。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" />
+                        <TextBlock Text="每个知识点之间用单独一行 --- 分隔。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" />
+                        <TextBlock Text="建议每个知识点不要太长，适合一次背诵。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" />
+                        <TextBlock Text="标签可以用于后续选择背诵范围。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" />
+                    </StackPanel>
+                </controls:GlassCard>
+
+                <controls:GlassCard CardRadius="24">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="LaTeX 公式" Style="{StaticResource HeadlineStyle}" Foreground="{ThemeResource DeepTextBrush}" />
+                        <TextBlock Text="Kikaria 使用本地公式文本渲染，不会联网处理。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" TextWrapping="Wrap" />
+                        <TextBlock Text="行内公式必须写成：$f(x)=x^2$。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" TextWrapping="Wrap" />
+                        <TextBlock Text="块级公式必须写成：用 $$...$$ 单独成块。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" TextWrapping="Wrap" />
+                        <TextBlock Text="只有 $...$ 和 $$...$$ 中的内容会渲染为公式。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" TextWrapping="Wrap" />
+                        <TextBlock Text="没有包裹的 LaTeX 命令不会自动识别，会按普通文本显示。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" TextWrapping="Wrap" />
+                        <TextBlock Text="公式环境中不要混入中文，中文说明应放在公式外。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" TextWrapping="Wrap" />
+                        <TextBlock Text="App 会尽量渲染 \text{...}，但不建议在复杂公式里滥用中文。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" TextWrapping="Wrap" />
+                        <TextBlock Text="矩阵、cases、align 等复杂结构会尽量按可读文本呈现；失败时显示原始源码。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" TextWrapping="Wrap" />
+                        <TextBlock Text="导入、编辑和导出都会保留原始 LaTeX 源码。" Style="{StaticResource CaptionStyle}" Foreground="{ThemeResource SoftTextBrush}" TextWrapping="Wrap" />
+                        <Border
+                            CornerRadius="14"
+                            Background="{ThemeResource CardSubtleFillBrush}"
+                            Padding="12">
+                            <TextBlock
+                                x:Name="LatexExampleText"
+                                Style="{StaticResource MathCodeStyle}"
+                                Foreground="{ThemeResource DeepTextBrush}" />
+                        </Border>
+                    </StackPanel>
+                </controls:GlassCard>
+
+                <controls:GlassCard CardRadius="24">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="完整示例" Style="{StaticResource HeadlineStyle}" Foreground="{ThemeResource DeepTextBrush}" />
+                        <Border
+                            CornerRadius="14"
+                            Background="{ThemeResource CardSubtleFillBrush}"
+                            Padding="12">
+                            <TextBlock
+                                x:Name="CompleteExampleText"
+                                Style="{StaticResource MathCodeStyle}"
+                                Foreground="{ThemeResource DeepTextBrush}" />
+                        </Border>
+                    </StackPanel>
+                </controls:GlassCard>
+
+                <controls:GlassCard CardRadius="24">
+                    <StackPanel Spacing="12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                Grid.Column="0"
+                                Text="给 AI 助手的 Prompt"
+                                Style="{StaticResource HeadlineStyle}"
+                                Foreground="{ThemeResource DeepTextBrush}"
+                                VerticalAlignment="Center" />
+                            <Button
+                                Grid.Column="1"
+                                Style="{StaticResource ActionButtonStyle}"
+                                Background="{ThemeResource ActionGradientBrush}"
+                                Foreground="White"
+                                FontSize="12"
+                                MinHeight="34"
+                                Padding="12,4,12,4"
+                                Click="OnCopyPromptClick">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8C8;" FontSize="12" />
+                                    <TextBlock Text="复制 Prompt" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                        <TextBlock
+                            Text="你可以把下面这段 prompt 复制给 AI 助手，并附上你的课本、讲义、笔记或照片识别出的文本，让 AI 帮你整理成 Kikaria 支持的 Markdown 格式。"
+                            Style="{StaticResource CaptionStyle}"
+                            Foreground="{ThemeResource SoftTextBrush}"
+                            TextWrapping="Wrap" />
+                        <Border
+                            CornerRadius="14"
+                            Background="{ThemeResource CardSubtleFillBrush}"
+                            Padding="12">
+                            <TextBlock
+                                x:Name="AiPromptText"
+                                Style="{StaticResource MathCodeStyle}"
+                                Foreground="{ThemeResource DeepTextBrush}" />
+                        </Border>
+                    </StackPanel>
+                </controls:GlassCard>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

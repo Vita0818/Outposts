@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Kikaria.App.Pages.OnboardingPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Kikaria.App.Controls"
+    Background="{ThemeResource PageGradientBrush}">
+
+    <Grid Padding="24,48,24,28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            x:Name="BrandText"
+            Grid.Row="0"
+            Text="Kikaria"
+            Style="{StaticResource AppTitleStyle}"
+            Foreground="{ThemeResource DeepTextBrush}" />
+
+        <controls:GlassCard
+            x:Name="SlideCard"
+            Grid.Row="1"
+            Margin="0,18,0,18"
+            CardRadius="34"
+            VerticalAlignment="Center">
+            <StackPanel Spacing="26" VerticalAlignment="Center">
+                <Grid HorizontalAlignment="Center">
+                    <Border Width="132" Height="132" CornerRadius="999" Background="{ThemeResource ActionGradientBrush}">
+                        <FontIcon x:Name="SlideIcon" Glyph="&#xE8F1;" FontSize="54" Foreground="White" />
+                    </Border>
+                    <Border Width="86" Height="86" CornerRadius="999" Background="#3DFFFFFF" HorizontalAlignment="Right" Margin="0,-26,0,0" VerticalAlignment="Top" />
+                </Grid>
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        x:Name="SlideTitle"
+                        Style="{StaticResource PageTitleStyle}"
+                        Foreground="{ThemeResource DeepTextBrush}"
+                        TextAlignment="Center" />
+                    <TextBlock
+                        x:Name="SlideSubtitle"
+                        Style="{StaticResource BodyStyle}"
+                        Foreground="{ThemeResource SoftTextBrush}"
+                        TextAlignment="Center" />
+                </StackPanel>
+            </StackPanel>
+        </controls:GlassCard>
+
+        <!-- 指示点 -->
+        <StackPanel x:Name="DotsPanel" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" Margin="0,0,0,16" />
+
+        <Button
+            x:Name="NextButton"
+            Grid.Row="3"
+            Style="{StaticResource ActionButtonStyle}"
+            Background="{ThemeResource ActionGradientBrush}"
+            Foreground="White"
+            Content="下一步"
+            Click="OnNextClick" />
+    </Grid>
+</Page>

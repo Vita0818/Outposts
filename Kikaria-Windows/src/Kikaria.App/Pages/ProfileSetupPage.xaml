@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Kikaria.App.Pages.ProfileSetupPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Kikaria.App.Controls"
+    Background="{ThemeResource PageGradientBrush}">
+
+    <ScrollViewer Padding="24,56,24,32" VerticalScrollBarVisibility="Auto">
+        <controls:GlassCard
+            x:Name="SetupCard"
+            CardRadius="34"
+            ContentPadding="28"
+            VerticalAlignment="Center"
+            MaxWidth="420"
+            HorizontalAlignment="Center">
+            <StackPanel Spacing="22">
+                <StackPanel Spacing="10">
+                    <TextBlock
+                        Text="欢迎使用 Kikaria"
+                        Style="{StaticResource PageTitleStyle}"
+                        Foreground="{ThemeResource DeepTextBrush}"
+                        TextAlignment="Center" />
+                    <TextBlock
+                        Text="先设置你的个人资料"
+                        Style="{StaticResource BodyStyle}"
+                        Foreground="{ThemeResource SoftTextBrush}"
+                        TextAlignment="Center" />
+                </StackPanel>
+
+                <!-- 文字头像:昵称首字母圆(Windows 版无照片头像) -->
+                <Border
+                    x:Name="AvatarCircle"
+                    Width="88"
+                    Height="88"
+                    CornerRadius="999"
+                    Background="{ThemeResource ActionGradientBrush}"
+                    HorizontalAlignment="Center">
+                    <TextBlock
+                        x:Name="AvatarInitialText"
+                        Text="V"
+                        Style="{StaticResource NumberStyle}"
+                        FontSize="34"
+                        FontWeight="Bold"
+                        Foreground="White"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center" />
+                </Border>
+
+                <StackPanel Spacing="14">
+                    <TextBox
+                        x:Name="DisplayNameBox"
+                        Header="昵称"
+                        PlaceholderText="昵称"
+                        Style="{StaticResource InputTextBoxStyle}"
+                        TextChanged="OnFieldChanged" />
+                    <TextBox
+                        x:Name="UserHandleBox"
+                        Header="用户名"
+                        PlaceholderText="用户名"
+                        Style="{StaticResource InputTextBoxStyle}"
+                        TextChanged="OnFieldChanged" />
+                </StackPanel>
+
+                <Button
+                    x:Name="StartButton"
+                    Style="{StaticResource ActionButtonStyle}"
+                    Background="{ThemeResource ActionGradientBrush}"
+                    Foreground="White"
+                    Content="开始使用"
+                    IsEnabled="False"
+                    Opacity="0.48"
+                    Click="OnStartClick" />
+            </StackPanel>
+        </controls:GlassCard>
+    </ScrollViewer>
+</Page>

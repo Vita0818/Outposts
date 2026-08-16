@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Kikaria.App.Pages.ReviewHistoryPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Kikaria.App.Controls"
+    Background="{ThemeResource PageGradientBrush}">
+
+    <ScrollViewer Padding="24,48,24,28" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="18" MaxWidth="560" HorizontalAlignment="Stretch">
+            <Grid>
+                <Button
+                    x:Name="BackButton"
+                    Style="{StaticResource CircleButtonStyle}"
+                    Width="42"
+                    Height="42"
+                    HorizontalAlignment="Left"
+                    Background="{ThemeResource CardSubtleFillBrush}"
+                    Click="OnBackClick">
+                    <FontIcon Glyph="&#xE72B;" FontSize="15" Foreground="{ThemeResource DeepTextBrush}" />
+                </Button>
+            </Grid>
+
+            <TextBlock
+                Text="复习历史"
+                Style="{StaticResource PageTitleStyle}"
+                Foreground="{ThemeResource DeepTextBrush}"
+                Margin="0,10,0,0" />
+
+            <!-- 月历热力 -->
+            <controls:GlassCard CardRadius="30" ContentPadding="18">
+                <StackPanel Spacing="16">
+                    <Grid>
+                        <Button
+                            x:Name="PreviousMonthButton"
+                            Style="{StaticResource CircleButtonStyle}"
+                            Width="40"
+                            Height="40"
+                            HorizontalAlignment="Left"
+                            Background="{ThemeResource CardSubtleFillBrush}"
+                            Click="OnPreviousMonthClick">
+                            <FontIcon Glyph="&#xE76B;" FontSize="13" Foreground="{ThemeResource SkyBrush}" />
+                        </Button>
+                        <TextBlock
+                            x:Name="MonthTitleText"
+                            Style="{StaticResource HeadlineStyle}"
+                            FontSize="19"
+                            Foreground="{ThemeResource DeepTextBrush}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                        <Button
+                            x:Name="NextMonthButton"
+                            Style="{StaticResource CircleButtonStyle}"
+                            Width="40"
+                            Height="40"
+                            HorizontalAlignment="Right"
+                            Background="{ThemeResource CardSubtleFillBrush}"
+                            Click="OnNextMonthClick">
+                            <FontIcon Glyph="&#xE76C;" FontSize="13" Foreground="{ThemeResource SkyBrush}" />
+                        </Button>
+                    </Grid>
+
+                    <!-- 星期表头(代码构建) -->
+                    <Grid x:Name="WeekdayHeaderGrid" ColumnSpacing="6" />
+
+                    <!-- 日期网格(代码构建,7 列) -->
+                    <Grid x:Name="CalendarGrid" ColumnSpacing="6" RowSpacing="8" />
+                </StackPanel>
+            </controls:GlassCard>
+
+            <!-- 当日记录 -->
+            <controls:GlassCard CardRadius="28" ContentPadding="20">
+                <StackPanel Spacing="14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            x:Name="SelectedDateText"
+                            Grid.Column="0"
+                            Style="{StaticResource HeadlineStyle}"
+                            FontSize="19"
+                            Foreground="{ThemeResource DeepTextBrush}"
+                            VerticalAlignment="Center" />
+                        <Border
+                            Grid.Column="1"
+                            Style="{StaticResource TagPillBorderStyle}"
+                            Padding="11,6,11,6">
+                            <TextBlock
+                                x:Name="RecordCountText"
+                                Style="{StaticResource TagTextStyle}"
+                                Foreground="{ThemeResource SoftTextBrush}" />
+                        </Border>
+                    </Grid>
+
+                    <TextBlock
+                        x:Name="EmptyDayText"
+                        Text="这一天还没有学习记录。"
+                        Style="{StaticResource BodyStyle}"
+                        Foreground="{ThemeResource SoftTextBrush}"
+                        Visibility="Collapsed" />
+
+                    <StackPanel x:Name="SummaryRowsPanel" Spacing="9" Visibility="Collapsed" />
+                </StackPanel>
+            </controls:GlassCard>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

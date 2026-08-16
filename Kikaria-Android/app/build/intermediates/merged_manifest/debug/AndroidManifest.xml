@@ -2,13 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.vita0818.kikaria"
     android:versionCode="1"
-    android:versionName="0.1.0" >
+    android:versionName="1.0.0" >
 
     <uses-sdk
         android:minSdkVersion="26"
         android:targetSdkVersion="34" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <permission
         android:name="com.vita0818.kikaria.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
@@ -22,11 +23,12 @@
         android:debuggable="true"
         android:extractNativeLibs="false"
         android:icon="@mipmap/ic_launcher"
-        android:label="Kikaria"
+        android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Kikaria" >
+        android:theme="@android:style/Theme.Material.Light.NoActionBar" >
         <activity
             android:name="com.vita0818.kikaria.MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
             android:exported="true"
             android:windowSoftInputMode="adjustResize" >
             <intent-filter>
@@ -37,23 +39,9 @@
         </activity>
 
         <receiver
-            android:name="com.vita0818.kikaria.util.StudyReminderReceiver"
+            android:name="com.vita0818.kikaria.notif.WarningAlarmReceiver"
             android:exported="false" />
-        <receiver
-            android:name="com.vita0818.kikaria.widget.KikariaWidgetProvider"
-            android:exported="false" >
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
 
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/kikaria_widget_info" />
-        </receiver>
-
-        <activity
-            android:name="androidx.activity.ComponentActivity"
-            android:exported="true" />
         <activity
             android:name="androidx.compose.ui.tooling.PreviewActivity"
             android:exported="true" />
@@ -72,6 +60,10 @@
                 android:name="androidx.profileinstaller.ProfileInstallerInitializer"
                 android:value="androidx.startup" />
         </provider>
+        <provider
+            android:name="ru.noties.jlatexmath.JLatexMathInitProvider"
+            android:authorities="com.vita0818.kikaria.jlatexmathinitprovider"
+            android:exported="false" />
 
         <receiver
             android:name="androidx.profileinstaller.ProfileInstallReceiver"

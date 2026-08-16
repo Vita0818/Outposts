@@ -2,17 +2,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="Kikaria"
+        android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Kikaria">
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -20,19 +23,8 @@
         </activity>
 
         <receiver
-            android:name="com.vita0818.kikaria.util.StudyReminderReceiver"
+            android:name=".notif.WarningAlarmReceiver"
             android:exported="false" />
-
-        <receiver
-            android:name="com.vita0818.kikaria.widget.KikariaWidgetProvider"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/kikaria_widget_info" />
-        </receiver>
     </application>
 
 </manifest>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Kikaria.App.Pages.EditKnowledgePointPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="{ThemeResource PageGradientBrush}">
+
+    <Grid Padding="24,48,24,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Button
+                x:Name="BackButton"
+                Style="{StaticResource CircleButtonStyle}"
+                Width="42"
+                Height="42"
+                HorizontalAlignment="Left"
+                Background="{ThemeResource CardSubtleFillBrush}"
+                Click="OnBackClick">
+                <FontIcon Glyph="&#xE72B;" FontSize="15" Foreground="{ThemeResource DeepTextBrush}" />
+            </Button>
+            <TextBlock
+                x:Name="TitleText"
+                Text="编辑知识点"
+                Style="{StaticResource HeadlineStyle}"
+                Foreground="{ThemeResource DeepTextBrush}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center" />
+            <Button
+                x:Name="SaveButton"
+                Style="{StaticResource ActionButtonStyle}"
+                Background="Transparent"
+                Foreground="{ThemeResource SkyBrush}"
+                Content="保存"
+                MinHeight="42"
+                Padding="10,6,10,6"
+                HorizontalAlignment="Right"
+                Click="OnSaveClick" />
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" Margin="0,18,0,0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16" MaxWidth="520" HorizontalAlignment="Stretch">
+                <TextBlock
+                    x:Name="PresetNameText"
+                    Style="{StaticResource PageTitleStyle}"
+                    FontSize="24"
+                    Foreground="{ThemeResource DeepTextBrush}" />
+
+                <TextBox
+                    x:Name="TitleBox"
+                    Header="标题"
+                    Style="{StaticResource InputTextBoxStyle}" />
+                <TextBox
+                    x:Name="TagsBox"
+                    Header="标签，用逗号分隔"
+                    Style="{StaticResource InputTextBoxStyle}" />
+
+                <TextBox
+                    x:Name="HintBox"
+                    Header="提示"
+                    Style="{StaticResource MultiLineTextBoxStyle}"
+                    MinHeight="150" />
+                <TextBox
+                    x:Name="ContentBox"
+                    Header="答案"
+                    Style="{StaticResource MultiLineTextBoxStyle}"
+                    MinHeight="220" />
+
+                <Border
+                    x:Name="ErrorCard"
+                    Visibility="Collapsed"
+                    CornerRadius="18"
+                    Background="{ThemeResource CardSubtleFillBrush}"
+                    BorderBrush="{ThemeResource RemoveCoralBrush}"
+                    BorderThickness="1"
+                    Padding="14">
+                    <TextBlock
+                        x:Name="ErrorText"
+                        Text="标题、提示和答案都不能为空。"
+                        Style="{StaticResource CaptionStyle}"
+                        Foreground="{ThemeResource RemoveCoralBrush}"
+                        TextWrapping="Wrap" />
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

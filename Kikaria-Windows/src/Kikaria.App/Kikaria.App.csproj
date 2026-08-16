@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <AppxPackage>false</AppxPackage>
+    <GenerateAppInstallerFile>false</GenerateAppInstallerFile>
+    <EnableMrtCorePriGen>false</EnableMrtCorePriGen>
+    <AppxGeneratePriEnabled>false</AppxGeneratePriEnabled>
+    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <RootNamespace>Kikaria.App</RootNamespace>
+    <Platform Condition="'$(Platform)' == '' Or '$(Platform)' == 'AnyCPU'">x64</Platform>
+    <Platforms>x86;x64;ARM64</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Platform)' == 'x64'">
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)' == 'x86'">
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)' == 'ARM64'">
+    <RuntimeIdentifier>win-arm64</RuntimeIdentifier>
+    <PlatformTarget>ARM64</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240627000" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kikaria.Core\Kikaria.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 内置预设 Markdown,原样复制到输出目录 -->
+    <Content Include="Presets\**\*.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

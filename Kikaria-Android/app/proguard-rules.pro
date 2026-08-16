@@ -1,3 +1,3 @@
-# Add project specific ProGuard rules here.
-# By default, the flags in this file are appended to flags specified
-# in the SDK tools proguard configuration.
+# Keep jlatexmath font/render internals (release build safety)
+-keep class ru.noties.** { *; }
+-keep class org.scilab.** { *; }

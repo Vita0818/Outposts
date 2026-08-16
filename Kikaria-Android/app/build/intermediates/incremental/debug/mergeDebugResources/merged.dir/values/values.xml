@@ -5,7 +5,7 @@
     <color name="androidx_core_secondary_text_default_material_light">#8a000000</color>
     <color name="call_notification_answer_color">#1d873b</color>
     <color name="call_notification_decline_color">#d93025</color>
-    <color name="ic_launcher_background">#EAF3FF</color>
+    <color name="ic_launcher_background">#59B8F7</color>
     <color name="notification_action_color_filter">#ffffffff</color>
     <color name="notification_icon_bg_color">#ff9e9e9e</color>
     <dimen name="compat_button_inset_horizontal_material">4dp</dimen>
@@ -114,7 +114,6 @@
     <string name="dropdown_menu">"Dropdown menu"</string>
     <string name="in_progress">In progress</string>
     <string name="indeterminate">Partially checked</string>
-    <string name="kikaria_widget_description">显示 Kikaria 学习进度和知识点预览</string>
     <string name="m3c_bottom_sheet_collapse_description">Collapse bottom sheet</string>
     <string name="m3c_bottom_sheet_dismiss_description">Dismiss bottom sheet</string>
     <string name="m3c_bottom_sheet_drag_handle_description">Drag handle</string>
@@ -209,10 +208,6 @@
         <item name="android:textColor">?android:attr/textColorSecondary</item>
     </style>
     <style name="TextAppearance.Compat.Notification.Title" parent="@android:style/TextAppearance.StatusBar.EventContent.Title"/>
-    <style name="Theme.Kikaria" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-    </style>
     <style name="Widget.Compat.NotificationActionContainer" parent=""/>
     <style name="Widget.Compat.NotificationActionText" parent=""/>
     <declare-styleable name="ActivityNavigator">
@@ -249,14 +244,23 @@
         <attr format="reference" name="fontProviderCerts"/>
         
         <attr name="fontProviderFetchStrategy">
-            
+            <!-- The blocking font fetch works as follows.
+              First, check the local cache, then if the requested font is not cached, request the
+              font from the provider and wait until it is finished.  You can change the length of
+              the timeout by modifying fontProviderFetchTimeout.  If the timeout happens, the
+              default typeface will be used instead. -->
             <enum name="blocking" value="0"/>
-            
+            <!-- The async font fetch works as follows.
+              First, check the local cache, then if the requeted font is not cached, trigger a
+              request the font and continue with layout inflation. Once the font fetch succeeds, the
+              target text view will be refreshed with the downloaded font data. The
+              fontProviderFetchTimeout will be ignored if async loading is specified. -->
             <enum name="async" value="1"/>
         </attr>
         
         <attr format="integer" name="fontProviderFetchTimeout">
-            
+            <!-- A special value for the timeout. In this case, the blocking font fetching will not
+              timeout and wait until a reply is received from the font provider. -->
             <enum name="forever" value="-1"/>
         </attr>
         
@@ -321,6 +325,22 @@
         <attr name="android:offset"/>
         
         <attr name="android:color"/>
+    </declare-styleable>
+    <declare-styleable name="JLatexMathView">
+        <attr format="string" name="jlmv_latex"/>
+        <attr format="dimension" name="jlmv_textSize"/>
+        <attr format="color" name="jlmv_textColor"/>
+        <attr format="reference" name="jlmv_background"/>
+        <attr format="enum" name="jlmv_alignVertical">
+            <enum name="start" value="0"/>
+            <enum name="center" value="1"/>
+            <enum name="end" value="2"/>
+        </attr>
+        <attr format="enum" name="jlmv_alignHorizontal">
+            <enum name="start" value="0"/>
+            <enum name="center" value="1"/>
+            <enum name="end" value="2"/>
+        </attr>
     </declare-styleable>
     <declare-styleable name="NavAction">
         <attr name="android:id"/>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Kikaria.App.Pages.NewPresetPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Kikaria.App.Controls"
+    Background="{ThemeResource PageGradientBrush}">
+
+    <Grid Padding="24,48,24,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Button
+                x:Name="BackButton"
+                Style="{StaticResource CircleButtonStyle}"
+                Width="42"
+                Height="42"
+                HorizontalAlignment="Left"
+                Background="{ThemeResource CardSubtleFillBrush}"
+                Click="OnBackClick">
+                <FontIcon Glyph="&#xE72B;" FontSize="15" Foreground="{ThemeResource DeepTextBrush}" />
+            </Button>
+            <TextBlock
+                Text="上传新预设"
+                Style="{StaticResource HeadlineStyle}"
+                Foreground="{ThemeResource DeepTextBrush}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center" />
+            <Button
+                x:Name="SaveButton"
+                Style="{StaticResource ActionButtonStyle}"
+                Background="Transparent"
+                Foreground="{ThemeResource SkyBrush}"
+                Content="保存"
+                MinHeight="42"
+                Padding="10,6,10,6"
+                HorizontalAlignment="Right"
+                Click="OnSaveClick" />
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" Margin="0,18,0,0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16" MaxWidth="520" HorizontalAlignment="Stretch">
+                <TextBox
+                    x:Name="NameBox"
+                    Header="预设名称"
+                    PlaceholderText="预设名称"
+                    Style="{StaticResource InputTextBoxStyle}" />
+                <TextBox
+                    x:Name="CategoryBox"
+                    Header="分类"
+                    PlaceholderText="分类"
+                    Style="{StaticResource InputTextBoxStyle}" />
+
+                <Button
+                    Style="{StaticResource ActionButtonStyle}"
+                    Background="{ThemeResource CardSubtleFillBrush}"
+                    Foreground="{ThemeResource DeepTextBrush}"
+                    Click="OnPickFileClick">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Glyph="&#xE8A5;" FontSize="16" />
+                        <TextBlock Text="选择 .md / .txt 文件" />
+                    </StackPanel>
+                </Button>
+
+                <StackPanel Spacing="8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            Text="Markdown 文本"
+                            Style="{StaticResource CaptionStyle}"
+                            Foreground="{ThemeResource SoftTextBrush}"
+                            VerticalAlignment="Center" />
+                        <Button
+                            Grid.Column="1"
+                            Style="{StaticResource ActionButtonStyle}"
+                            Background="{ThemeResource CardSubtleFillBrush}"
+                            Foreground="{ThemeResource SkyBrush}"
+                            FontSize="12"
+                            MinHeight="32"
+                            Padding="12,4,12,4"
+                            Content="如何编写 Markdown 预设？"
+                            Click="OnOpenGuideClick" />
+                    </Grid>
+                    <TextBox
+                        x:Name="MarkdownBox"
+                        Style="{StaticResource MultiLineTextBoxStyle}"
+                        MinHeight="260"
+                        FontFamily="{StaticResource KikariaSerif}"
+                        AcceptsReturn="True" />
+                </StackPanel>
+
+                <Border
+                    x:Name="ErrorCard"
+                    Visibility="Collapsed"
+                    CornerRadius="18"
+                    Background="{ThemeResource CardSubtleFillBrush}"
+                    BorderBrush="{ThemeResource RemoveCoralBrush}"
+                    BorderThickness="1"
+                    Padding="14">
+                    <TextBlock
+                        x:Name="ErrorText"
+                        Style="{StaticResource CaptionStyle}"
+                        Foreground="{ThemeResource RemoveCoralBrush}"
+                        TextWrapping="Wrap" />
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

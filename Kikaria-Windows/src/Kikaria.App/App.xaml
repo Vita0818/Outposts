@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Application
+    x:Class="Kikaria.App.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:Kikaria.App"
+    RequestedTheme="Default">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <ResourceDictionary.ThemeDictionaries>
+                <!-- ============ Light(照抄 KikariaTheme 亮色值) ============ -->
+                <ResourceDictionary x:Key="Light">
+                    <Color x:Key="SkyColor">#63BAF5</Color>
+                    <Color x:Key="CyanColor">#92E0E8</Color>
+                    <Color x:Key="MistColor">#E8F7FC</Color>
+                    <Color x:Key="BlueGrayColor">#9EB8CC</Color>
+                    <Color x:Key="MasteredGreenColor">#5CC28A</Color>
+                    <Color x:Key="MasteredDeepGreenColor">#1F784D</Color>
+                    <Color x:Key="MasteredCompletedGreenColor">#C9EDD6</Color>
+                    <Color x:Key="NextAmberColor">#8A7DBF</Color>
+                    <Color x:Key="RemoveCoralColor">#DB524D</Color>
+                    <Color x:Key="DeepTextColor">#214054</Color>
+                    <Color x:Key="SoftTextColor">#6B8A9E</Color>
+                    <Color x:Key="TertiaryTextColor">#94ADC2</Color>
+                    <Color x:Key="GlassSurfaceColor">#FFFFFF</Color>
+                    <Color x:Key="GlassStrokeAccentColor">#92E0E8</Color>
+                    <Color x:Key="ShadowColor">#63BAF5</Color>
+                    <Color x:Key="BubbleMintColor">#BAF2E6</Color>
+                    <Color x:Key="BubbleLavenderColor">#BFC7FF</Color>
+                    <Color x:Key="BubbleGreenColor">#C7F2BD</Color>
+                    <Color x:Key="BubbleWhiteColor">#FFFFFF</Color>
+
+                    <SolidColorBrush x:Key="SkyBrush" Color="{StaticResource SkyColor}" />
+                    <SolidColorBrush x:Key="CyanBrush" Color="{StaticResource CyanColor}" />
+                    <SolidColorBrush x:Key="MistBrush" Color="{StaticResource MistColor}" />
+                    <SolidColorBrush x:Key="BlueGrayBrush" Color="{StaticResource BlueGrayColor}" />
+                    <SolidColorBrush x:Key="MasteredGreenBrush" Color="{StaticResource MasteredGreenColor}" />
+                    <SolidColorBrush x:Key="MasteredDeepGreenBrush" Color="{StaticResource MasteredDeepGreenColor}" />
+                    <SolidColorBrush x:Key="MasteredCompletedGreenBrush" Color="{StaticResource MasteredCompletedGreenColor}" />
+                    <SolidColorBrush x:Key="NextAmberBrush" Color="{StaticResource NextAmberColor}" />
+                    <SolidColorBrush x:Key="RemoveCoralBrush" Color="{StaticResource RemoveCoralColor}" />
+                    <SolidColorBrush x:Key="DeepTextBrush" Color="{StaticResource DeepTextColor}" />
+                    <SolidColorBrush x:Key="SoftTextBrush" Color="{StaticResource SoftTextColor}" />
+                    <SolidColorBrush x:Key="TertiaryTextBrush" Color="{StaticResource TertiaryTextColor}" />
+                    <SolidColorBrush x:Key="GlassSurfaceBrush" Color="{StaticResource GlassSurfaceColor}" />
+                    <SolidColorBrush x:Key="ShadowBrush" Color="{StaticResource ShadowColor}" />
+                    <SolidColorBrush x:Key="BubbleMintBrush" Color="{StaticResource BubbleMintColor}" />
+                    <SolidColorBrush x:Key="BubbleLavenderBrush" Color="{StaticResource BubbleLavenderColor}" />
+                    <SolidColorBrush x:Key="BubbleGreenBrush" Color="{StaticResource BubbleGreenColor}" />
+                    <SolidColorBrush x:Key="BubbleWhiteBrush" Color="{StaticResource BubbleWhiteColor}" />
+
+                    <!-- 页面背景三色渐变(topLeading → bottomTrailing,0,0 → 1,1) -->
+                    <LinearGradientBrush x:Key="PageGradientBrush" StartPoint="0,0" EndPoint="1,1" MappingMode="RelativeToBoundingBox">
+                        <GradientStop Color="#EDFAFF" Offset="0" />
+                        <GradientStop Color="#DBF5FA" Offset="0.5" />
+                        <GradientStop Color="#F5FAFF" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="ActionGradientBrush" StartPoint="0,0" EndPoint="1,1" MappingMode="RelativeToBoundingBox">
+                        <GradientStop Color="#59B8F7" Offset="0" />
+                        <GradientStop Color="#80DEE3" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="MasteredGradientBrush" StartPoint="0,0" EndPoint="1,1" MappingMode="RelativeToBoundingBox">
+                        <GradientStop Color="#63C78C" Offset="0" />
+                        <GradientStop Color="#ADE8C2" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="MasteredActionGradientBrush" StartPoint="0,0" EndPoint="1,1" MappingMode="RelativeToBoundingBox">
+                        <GradientStop Color="#40A86B" Offset="0" />
+                        <GradientStop Color="#8AD1A1" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="NextGradientBrush" StartPoint="0,0" EndPoint="1,1" MappingMode="RelativeToBoundingBox">
+                        <GradientStop Color="#C7B8F0" Offset="0" />
+                        <GradientStop Color="#9487CC" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="RemoveGradientBrush" StartPoint="0,0" EndPoint="1,1" MappingMode="RelativeToBoundingBox">
+                        <GradientStop Color="#E66159" Offset="0" />
+                        <GradientStop Color="#FA9480" Offset="1" />
+                    </LinearGradientBrush>
+
+                    <!-- 玻璃卡:Acrylic 背景(fillOpacity 0.48)+ 渐变描边(stroke 0.42) -->
+                    <AcrylicBrush x:Key="GlassCardBackgroundBrush" BackgroundSource="Backdrop" TintColor="#FFFFFF" TintOpacity="0.48" TintLuminosityOpacity="0.72" FallbackColor="#F2FFFFFF" />
+                    <LinearGradientBrush x:Key="GlassCardStrokeBrush" StartPoint="0,0" EndPoint="1,1" MappingMode="RelativeToBoundingBox">
+                        <GradientStop Color="#6BFFFFFF" Offset="0" />
+                        <GradientStop Color="#6B92E0E8" Offset="1" />
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="CardSubtleFillBrush" Color="#7AFFFFFF" />
+                    <SolidColorBrush x:Key="SeparatorBrush" Color="#1F9EB8CC" />
+                    <SolidColorBrush x:Key="CalendarIdleBrush" Color="#6BFFFFFF" />
+                </ResourceDictionary>
+
+                <!-- ============ Dark(照抄 KikariaTheme 暗色值) ============ -->
+                <ResourceDictionary x:Key="Dark">
+                    <Color x:Key="SkyColor">#4DB8F5</Color>
+                    <Color x:Key="CyanColor">#52CCD1</Color>
+                    <Color x:Key="MistColor">#142938</Color>
+                    <Color x:Key="BlueGrayColor">#7A9CB8</Color>
+                    <Color x:Key="MasteredGreenColor">#52D199</Color>
+                    <Color x:Key="MasteredDeepGreenColor">#94F0BD</Color>
+                    <Color x:Key="MasteredCompletedGreenColor">#2E614D</Color>
+                    <Color x:Key="NextAmberColor">#8C75D1</Color>
+                    <Color x:Key="RemoveCoralColor">#FA6B6B</Color>
+                    <Color x:Key="DeepTextColor">#E6F5FF</Color>
+                    <Color x:Key="SoftTextColor">#A8C4DB</Color>
+                    <Color x:Key="TertiaryTextColor">#6E8CA8</Color>
+                    <Color x:Key="GlassSurfaceColor">#0F212E</Color>
+                    <Color x:Key="GlassStrokeAccentColor">#6BD6ED</Color>
+                    <Color x:Key="ShadowColor">#00050D</Color>
+                    <Color x:Key="BubbleMintColor">#33948A</Color>
+                    <Color x:Key="BubbleLavenderColor">#524D94</Color>
+                    <Color x:Key="BubbleGreenColor">#338057</Color>
+                    <Color x:Key="BubbleWhiteColor">#263B54</Color>
+
+                    <SolidColorBrush x:Key="SkyBrush" Color="{StaticResource SkyColor}" />
+                    <SolidColorBrush x:Key="CyanBrush" Color="{StaticResource CyanColor}" />
+                    <SolidColorBrush x:Key="MistBrush" Color="{StaticResource MistColor}" />
+                    <SolidColorBrush x:Key="BlueGrayBrush" Color="{StaticResource BlueGrayColor}" />
+                    <SolidColorBrush x:Key="MasteredGreenBrush" Color="{StaticResource MasteredGreenColor}" />
+                    <SolidColorBrush x:Key="MasteredDeepGreenBrush" Color="{StaticResource MasteredDeepGreenColor}" />
+                    <SolidColorBrush x:Key="MasteredCompletedGreenBrush" Color="{StaticResource MasteredCompletedGreenColor}" />
+                    <SolidColorBrush x:Key="NextAmberBrush" Color="{StaticResource NextAmberColor}" />
+                    <SolidColorBrush x:Key="RemoveCoralBrush" Color="{StaticResource RemoveCoralColor}" />
+                    <SolidColorBrush x:Key="DeepTextBrush" Color="{StaticResource DeepTextColor}" />
+                    <SolidColorBrush x:Key="SoftTextBrush" Color="{StaticResource SoftTextColor}" />
+                    <SolidColorBrush x:Key="TertiaryTextBrush" Color="{StaticResource TertiaryTextColor}" />
+                    <SolidColorBrush x:Key="GlassSurfaceBrush" Color="{StaticResource GlassSurfaceColor}" />
+                    <SolidColorBrush x:Key="ShadowBrush" Color="{StaticResource ShadowColor}" />
+                    <SolidColorBrush x:Key="BubbleMintBrush" Color="{StaticResource BubbleMintColor}" />
+                    <SolidColorBrush x:Key="BubbleLavenderBrush" Color="{StaticResource BubbleLavenderColor}" />
+                    <SolidColorBrush x:Key="BubbleGreenBrush" Color="{StaticResource BubbleGreenColor}" />
+                    <SolidColorBrush x:Key="BubbleWhiteBrush" Color="{StaticResource BubbleWhiteColor}" />
+
+                    <LinearGradientBrush x:Key="PageGradientBrush" StartPoint="0,0" EndPoint="1,1" MappingMode="RelativeToBoundingBox">
+                        <GradientStop Color="#05121C" Offset="0" />
+                        <GradientStop Color="#0A2633" Offset="0.5" />
+                        <GradientStop Color="#020A14" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="ActionGradientBrush" StartPoint="0,0" EndPoint="1,1" MappingMode="RelativeToBoundingBox">
+                        <GradientStop Color="#1470B3" Offset="0" />
+                        <GradientStop Color="#0F9EA8" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="MasteredGradientBrush" StartPoint="0,0" EndPoint="1,1" MappingMode="RelativeToBoundingBox">
+                        <GradientStop Color="#1C8A5C" Offset="0" />
+                        <GradientStop Color="#33BF8A" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="MasteredActionGradientBrush" StartPoint="0,0" EndPoint="1,1" MappingMode="RelativeToBoundingBox">
+                        <GradientStop Color="#177A54" Offset="0" />
+                        <GradientStop Color="#2EB37D" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="NextGradientBrush" StartPoint="0,0" EndPoint="1,1" MappingMode="RelativeToBoundingBox">
+                        <GradientStop Color="#594A94" Offset="0" />
+                        <GradientStop Color="#8066C2" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="RemoveGradientBrush" StartPoint="0,0" EndPoint="1,1" MappingMode="RelativeToBoundingBox">
+                        <GradientStop Color="#942429" Offset="0" />
+                        <GradientStop Color="#DB4747" Offset="1" />
+                    </LinearGradientBrush>
+
+                    <AcrylicBrush x:Key="GlassCardBackgroundBrush" BackgroundSource="Backdrop" TintColor="#0F212E" TintOpacity="0.48" TintLuminosityOpacity="0.4" FallbackColor="#E60F212E" />
+                    <LinearGradientBrush x:Key="GlassCardStrokeBrush" StartPoint="0,0" EndPoint="1,1" MappingMode="RelativeToBoundingBox">
+                        <GradientStop Color="#4DFFFFFF" Offset="0" />
+                        <GradientStop Color="#AB6BD6ED" Offset="1" />
+                    </LinearGradientBrush>
+                    <SolidColorBrush x:Key="CardSubtleFillBrush" Color="#590F212E" />
+                    <SolidColorBrush x:Key="SeparatorBrush" Color="#2E7A9CB8" />
+                    <SolidColorBrush x:Key="CalendarIdleBrush" Color="#3DFFFFFF" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+            <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
+            <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis" />
+            <converters:NullToCollapsedConverter x:Key="NullToCollapsed" />
+            <converters:EmptyStringToCollapsedConverter x:Key="EmptyToCollapsed" />
+
+            <!-- 字体:中文用 Microsoft YaHei UI,拉丁/数字/数学用 Microsoft Serif UI -->
+            <FontFamily x:Key="KikariaSans">Microsoft YaHei UI</FontFamily>
+            <FontFamily x:Key="KikariaSerif">Microsoft Serif UI</FontFamily>
+
+            <!-- 排版角色(字号对齐 KikariaTypography,标题 Semibold,正文 Regular) -->
+            <Style x:Key="AppTitleStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource KikariaSerif}" />
+                <Setter Property="FontSize" Value="36" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+            <Style x:Key="PageTitleStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource KikariaSans}" />
+                <Setter Property="FontSize" Value="30" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+            <Style x:Key="HeadlineStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource KikariaSans}" />
+                <Setter Property="FontSize" Value="17" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+            <Style x:Key="SubHeadlineStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource KikariaSans}" />
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+            <Style x:Key="BodyStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource KikariaSans}" />
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+            <Style x:Key="CaptionStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource KikariaSans}" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontWeight" Value="Medium" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+            <Style x:Key="TagTextStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource KikariaSans}" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+            <Style x:Key="NumberStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource KikariaSerif}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+            <Style x:Key="MathCodeStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource KikariaSerif}" />
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+
+            <!-- 按钮 / 输入 -->
+            <Style x:Key="ActionButtonStyle" TargetType="Button">
+                <Setter Property="FontFamily" Value="{StaticResource KikariaSans}" />
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="CornerRadius" Value="22" />
+                <Setter Property="Padding" Value="18,13" />
+                <Setter Property="MinHeight" Value="52" />
+            </Style>
+            <Style x:Key="CircleButtonStyle" TargetType="Button">
+                <Setter Property="FontFamily" Value="{StaticResource KikariaSans}" />
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="CornerRadius" Value="999" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+            <Style x:Key="InputTextBoxStyle" TargetType="TextBox">
+                <Setter Property="FontFamily" Value="{StaticResource KikariaSans}" />
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="CornerRadius" Value="14" />
+                <Setter Property="Padding" Value="14,10" />
+            </Style>
+            <Style x:Key="MultiLineTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource InputTextBoxStyle}">
+                <Setter Property="AcceptsReturn" Value="True" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+            </Style>
+            <Style x:Key="TagPillBorderStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="999" />
+                <Setter Property="Background" Value="{ThemeResource CardSubtleFillBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource GlassCardStrokeBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Padding" Value="11,6" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
