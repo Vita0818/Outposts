@@ -4,17 +4,31 @@ namespace Intatis.Core.Providers;
 
 /// <summary>
 /// Incremental SSE parser: joins multi-line data fields, ignores event/id/retry and
-/// comments, dispatches on blank line — mirroring the Apple SSEParser contract.
+/// comments, dispatches on blank line. A single SSE line may be split across network
+/// chunks — the trailing partial line is carried into the next Consume() call.
 /// </summary>
 public sealed class SseParser
 {
     private readonly StringBuilder _pending = new();
     private bool _pendingHasData;
+    private readonly StringBuilder _carry = new();
 
     public List<string> Consume(ReadOnlySpan<char> chunk)
     {
         var events = new List<string>();
-        foreach (var rawLine in SplitLines(chunk))
+        _carry.Append(chunk);
+        var text = _carry.ToString();
+        _carry.Clear();
+
+        // Hold back a trailing partial line (no newline yet).
+        var lastNewline = text.LastIndexOf('\n');
+        if (lastNewline < text.Length - 1)
+        {
+            _carry.Append(text[(lastNewline + 1)..]);
+            text = text[..(lastNewline + 1)];
+        }
+
+        foreach (var rawLine in SplitLines(text))
         {
             var line = rawLine.TrimEnd('\r');
             if (line.Length == 0)
@@ -39,6 +53,12 @@ public sealed class SseParser
     public List<string> Flush()
     {
         var events = new List<string>();
+        if (_carry.Length > 0)
+        {
+            var rest = _carry.ToString();
+            _carry.Clear();
+            events.AddRange(Consume(rest + "\n"));
+        }
         Dispatch(events);
         return events;
     }

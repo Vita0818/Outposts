@@ -77,7 +77,7 @@ internal static class SelfTest
     {
         var config = """
 {
-  "enabled_providers": ["chat"],
+  "enabled_providers": ["chat", "images"],
   "model": "chat/main-model",
   "permission_reviewer_model": "chat/reviewer-model",
   "image_model": "images/gpt-image-1",
