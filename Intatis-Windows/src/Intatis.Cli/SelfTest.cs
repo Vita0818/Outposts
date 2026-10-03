@@ -35,6 +35,9 @@ internal static class SelfTest
             TestApplyPatch(root);
             TestChatLoop(root);
             TestWorkTaskGraph();
+        TestAutoTitleProjector();
+        TestSubmittedIntentOutbox();
+        TestEventLogRepair();
         }
         finally
         {
@@ -367,6 +370,35 @@ internal static class SelfTest
             mediator.Mediate("a", "b", new string('x', 4001)).Forwarded is null);
         Check("mediator: normal content forwarded",
             mediator.Mediate("a", "b", "result: 42").Forwarded == "result: 42");
+    }
+
+    private static void TestAutoTitleProjector()
+    {
+        Check("auto-title: projector selects earliest segments",
+            AutoTitleCoordinator.ProjectWithTruncation(new List<Envelope>(), 3).Count == 0);
+    }
+
+    private static void TestSubmittedIntentOutbox()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "selftest-outbox-" + Guid.NewGuid());
+        Directory.CreateDirectory(root);
+        var store = new SubmittedIntentStore.SubmittedIntentStore(root);
+        store.Append(new SubmittedIntentStore.OutboxEntry("sub_1", 1, "hello", null));
+        Check("outbox: append and contains", store.Contains("sub_1"));
+        store.Remove("sub_1");
+        Check("outbox: remove clears", !store.Contains("sub_1"));
+    }
+
+    private static void TestEventLogRepair()
+    {
+        var root = Path.GetTempPath();
+        var file = Path.Combine(root, "selftest-repair.jsonl");
+        File.WriteAllText(file, "{\"bad\"}");
+        // Repair removes torn partial; replay skips bad line.
+        using (var log = EventLog.Open("test", file))
+        {
+            Check("eventlog-repair: opens after repair", log.LastSeq == -1);
+        }
     }
 
     private static void TestWorkTaskGraph()

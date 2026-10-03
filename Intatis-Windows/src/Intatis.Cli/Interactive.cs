@@ -75,6 +75,13 @@ internal static class Interactive
 
             var images = pendingImages.ToList();
             pendingImages.Clear();
+            var goalText = line.StartsWith("/goal ") ? line[6..].Trim() : null;
+            var userPayload = new UserMessagePayload { Text = text, Goal = goalText };
+            // Note: outbox/submission wiring handled separately; goal event written below.
+            if (goalText is { Length: > 0 })
+            {
+                log.Append(EventType.GoalCreated, new JsonObject { ["goal_id"] = GoalId.New().Value, ["objective"] = goalText }.ToJson());
+            }
             var loop = new ChatLoop(log, provider, currentModel,
                 systemPrompt: "You are Intatis, a concise local AI assistant.",
                 reasoningEffort: effort,

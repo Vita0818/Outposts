@@ -109,11 +109,15 @@ GUI 也可以在 Visual Studio 中打开 `Intatis-Windows.sln` 直接 F5。
   `/agents` `/agent add|rm` `/tasks`、离线 `selftest`（EventLog / 投影 / 调度器 /
   Mediator / 补丁 / 门 / 配置导入 / ChatLoop 伪 provider 全链路）。
 
-## 尚未移植（后续批次）
+## 尚未移植（本轮已写入代码，需 Windows 构建验证）
 
-- MCP（client/server、OAuth、conformance）、Knowledge（embedding/reranker）、
-  Skills、浏览器工具、文档/媒体工具（PDF/DOCX/图像生成/转写）、managed terminal
-  (PTY)、hosted web search 与 citations 抓取、iOS 面。
+- 自动标题服务（Chat 侧已接入 Core + CLI + GUI 触发点，WebView2 Markdown 渲染已接入 Markdig；需要真实 provider smoke 与 UI 交互验证）。
+- EventLog WAL 崩溃恢复（已写 RepairTornTail，需真实写入中断后验证）。
+- SubmittedIntent outbox（已写 SubmittedIntentStore 并接入 Orchestrator.SendAsync）。
+- 会话历史侧栏（已接入 ChatPage 左栏 + ChatViewModel.RecentSessions；样式与交互完善待后续）。
+- Markdown 富渲染（已接入 Markdig + WebView2；深色主题同步与性能优化待后续）。
+- 模型历史压缩（Apple 2026-08-22 切换到 Codex App Server，压缩设计与 Windows AgentLoop 旧路径对齐需用户确认；本轮未引入 Codex binary 依赖）。
+- 仍待后续批次：MCP、Knowledge、Skills、浏览器工具、文档/媒体工具、managed terminal (PTY)、hosted web search 与 citations 抓取、iOS 面、完整自动标题控制面（coordinator 进程级单飞、15秒超时、第三次强制生成等全部实际运行时行为）。
 - EventLog 的 WAL 崩溃恢复与跨进程读锁（当前为写者租约 + 单机假设）、
   SubmittedIntent outbox、模型历史压缩、自动会话标题、Goal/ContinuationRun 运行时
   （WorkTask 图与 Goal 事件已定义，控制面未接）。

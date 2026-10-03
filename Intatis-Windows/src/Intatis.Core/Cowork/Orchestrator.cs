@@ -157,7 +157,10 @@ public sealed class Orchestrator : IDisposable
             }
         }
 
-        _log.Append(EventType.UserMessage, new UserMessagePayload { Text = userText }.ToJson());
+        var submissionId = SubmissionId.New().Value;
+        var store = new SubmittedIntentStore(Path.Combine(_log.SessionDirectory, ""));
+        store.Append(new SubmittedIntentStore.OutboxEntry(submissionId, 1, userText, null));
+        _log.Append(EventType.UserMessage, new UserMessagePayload { Text = userText, SubmissionId = submissionId }.ToJson());
         var taskId = TaskId.New();
         var task = new ScheduledTask
         {
@@ -175,6 +178,7 @@ public sealed class Orchestrator : IDisposable
         }.ToJson());
 
         await PumpUntilIdleAsync(ct).ConfigureAwait(false);
+        store.Remove(submissionId);
         var record = _scheduler.Records().FirstOrDefault(r => r.TaskId == taskId);
         return record?.Status switch
         {

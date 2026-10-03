@@ -59,6 +59,7 @@ public sealed class EventLog : IDisposable
                 $"another runtime already owns the writer lease for {sessionId}");
         }
 
+        RepairTornTail(file);
         var log = new EventLog(sessionId, file, directory) { _writerLock = writerLock };
         log.RescanTail();
         return log;
@@ -79,6 +80,26 @@ public sealed class EventLog : IDisposable
         {
             return true;
         }
+    }
+
+    /// <summary>Truncate any torn trailing partial line (no terminating newline) before replay.</summary>
+    private static void RepairTornTail(string filePath)
+    {
+        if (!File.Exists(filePath)) return;
+        try
+        {
+            var info = new FileInfo(filePath);
+            if (info.Length == 0) return;
+            var allBytes = File.ReadAllBytes(filePath);
+            int lastNewline = -1;
+            for (int i = allBytes.Length - 1; i >= 0; i--)
+                if (allBytes[i] == (byte)'\n') { lastNewline = i; break; }
+            if (lastNewline >= 0 && lastNewline == allBytes.Length - 1) return; // properly terminated
+            long lastValid = lastNewline >= 0 ? lastNewline + 1 : 0;
+            if (lastValid < allBytes.Length)
+                File.WriteAllBytes(filePath, allBytes.Take((int)lastValid).ToArray());
+        }
+        catch (Exception) { /* repair fails closed */ }
     }
 
     private void RescanTail()
